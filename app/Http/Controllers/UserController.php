@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\UserFormRequest;
+use App\Models\Editor;
 use App\Models\History;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -71,14 +72,14 @@ class UserController extends Controller
             'status' => $request->status,
         ]);
 
-        // $role = $user->role;
-        // if ($role == 3) {
-        //     $editor = Editor::create([
-        //         'name' => $request->input('full_name'),
-        //         'user_id' => $user->id,
-        //         'status' => $request->status,
-        //     ]);
-        // }
+        $role = $user->role;
+        if ($role == 3) {
+            $editor = Editor::create([
+                'name' => $request->input('full_name'),
+                'user_id' => $user->id,
+                'status' => $request->status,
+            ]);
+        }
 
         $history = History::create([
             'user_id' => $auth->id,
@@ -126,7 +127,15 @@ class UserController extends Controller
         $user->status = $request->status;
         $user->save();
 
-        
+
+        $role = $user->role;
+        if ($role == 3) {
+            $editor = Editor::where('user_id', $user->id)->first();
+            $editor->name = $user->full_name;
+            $editor->status = $user->status;
+            $editor->save();
+        }
+
         $history = History::create([
             'user_id' => $auth->id,
             'action' => 'edit',

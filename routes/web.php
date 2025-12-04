@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\EditorController;
 use App\Http\Controllers\FokusController;
 use App\Http\Controllers\HistoryController;
 use App\Http\Controllers\KanalController;
@@ -37,6 +38,7 @@ Route::middleware('auth')->prefix('admin')->name('admin.')->group(function () {
     Route::resource('history', HistoryController::class);
     Route::resource('fokus', FokusController::class);
     Route::resource('writer', WriterController::class);
+    Route::resource('editor', EditorController::class);
 });
 
 require __DIR__ . '/auth.php';
