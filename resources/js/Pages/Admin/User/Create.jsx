@@ -80,7 +80,7 @@ function Create() {
                                                 { label: "Editor", value: "3" },
                                             ]}
                                         />
-                                        <InputError message={errors.status} className="mt-2" />
+                                        <InputError message={errors.role} className="mt-2" />
                                     </div>
                                     <div className='lg:col-span-6'>
                                         <InputLabel

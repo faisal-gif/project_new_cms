@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AdsLocateController;
 use App\Http\Controllers\EditorController;
 use App\Http\Controllers\FokusController;
 use App\Http\Controllers\HistoryController;
@@ -39,6 +40,7 @@ Route::middleware('auth')->prefix('admin')->name('admin.')->group(function () {
     Route::resource('fokus', FokusController::class);
     Route::resource('writer', WriterController::class);
     Route::resource('editor', EditorController::class);
+    Route::resource('ads/daerah/locate', AdsLocateController::class)->names('ads.locate');
 });
 
 require __DIR__ . '/auth.php';
