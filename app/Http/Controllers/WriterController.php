@@ -2,8 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\WriterFormRequest;
+use App\Models\History;
+use App\Models\Network;
 use App\Models\Writer;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 use Inertia\Inertia;
 
 class WriterController extends Controller
@@ -43,15 +48,43 @@ class WriterController extends Controller
      */
     public function create()
     {
-        //
+        $networks = Network::select('id', 'name')->get()
+            ->map(fn($net) => [
+                'value' => $net->id,
+                'label' => $net->name,
+            ]);
+
+        return Inertia::render('Admin/Writer/Create', [
+            'networks' => $networks
+        ]);
     }
 
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(WriterFormRequest $request)
     {
-        //
+        $auth = Auth::user();
+
+
+        $writer = Writer::create([
+            'name' => $request->name,
+            'email' => $request->email,
+            'password' => Hash::make($request->password),
+            'network_id' => $request->network_id,
+            'no_whatsapp' => $request->no_whatsapp,
+            'date_exp' => date('Y-m-d', strtotime($request->date_exp)),
+            'status' => $request->status,
+        ]);
+
+        $history = History::create([
+            'user_id' => $auth->id,
+            'action' => 'add',
+            'tipe' => 'writer',
+            'target' => $writer->name,
+        ]);
+
+        return redirect()->route('admin.writer.index')->with('success', 'Writer Berhasil Ditambahkan');
     }
 
     /**
@@ -67,15 +100,42 @@ class WriterController extends Controller
      */
     public function edit(Writer $writer)
     {
-        //
+
+        $networks = Network::select('id', 'name')->get()
+            ->map(fn($net) => [
+                'value' => $net->id,
+                'label' => $net->name,
+            ]);
+
+        return Inertia::render('Admin/Writer/Edit', [
+            'networks' => $networks,
+            'writer' => $writer,
+        ]);
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Writer $writer)
+    public function update(WriterFormRequest $request, Writer $writer)
     {
-        //
+        $auth = Auth::user();
+
+        $writer->name = $request->input('name');
+        $writer->no_whatsapp = $request->no_whatsapp;
+        $writer->email = $request->input('email');
+        $writer->network_id = $request->input('network_id');
+        $writer->date_exp = date('Y-m-d', strtotime($request->date_exp));
+        $writer->status = $request->input('status');
+        $writer->save();
+
+        $history = History::create([
+            'user_id' => $auth->id,
+            'action' => 'edit',
+            'tipe' => 'writer',
+            'target' => $writer->name,
+        ]);
+
+         return redirect()->route('admin.writer.index')->with('success', 'Writer Berhasil diperbarui');
     }
 
     /**

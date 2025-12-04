@@ -145,7 +145,7 @@ function Create() {
                                             id="password"
                                             name="password"
                                             value={data.password}
-                                            className="mt-1 w-80 lg:w-full "
+                                            className="mt-1 w-80 md:w-full "
                                             autoComplete="current-password"
                                             onChange={(e) => setData('password', e.target.value)}
                                         />

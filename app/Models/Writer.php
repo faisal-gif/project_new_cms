@@ -10,6 +10,8 @@ class Writer extends Model
     //
     protected $table = 'writers';
 
+    protected $fillable = ['name', 'email', 'password', 'no_whatsapp', 'date_exp', 'network_id', 'status'];
+
 
     public function network(): BelongsTo
     {
