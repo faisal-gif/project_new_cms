@@ -7,33 +7,31 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout'
 import { formatDate } from '@/Utils/formatter'
 import { Head, Link, router } from '@inertiajs/react'
 import { Plus, Search } from 'lucide-react'
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 
 function Index({ focus, filters }) {
   const [search, setSearch] = useState(() => filters.search || '');
   const [status, setStatus] = useState(() => filters.status || '');
+  const isFirst = useRef(true);
+  const INDEX_ROUTE = route('admin.fokus.index');
 
-  // Debounce Search
   useEffect(() => {
+    if (isFirst.current) {
+      isFirst.current = false;
+      return;
+    }
+    
     const timeout = setTimeout(() => {
       router.get(
-        route('admin.fokus.index'),
+        INDEX_ROUTE,
         { search, status, page: 1 },
         { preserveState: true, replace: true }
       );
     }, 400);
 
     return () => clearTimeout(timeout);
-  }, [search]);
+  }, [search, status]);
 
-  // Filter Status langsung jalan
-  useEffect(() => {
-    router.get(
-      route('admin.fokus.index'),
-      { search, status, page: 1 },
-      { preserveState: true, replace: true }
-    );
-  }, [status]);
 
   function getStatusBadge(status) {
     switch (status) {
@@ -132,7 +130,7 @@ function Index({ focus, filters }) {
                         {getStatusBadge(fokus.status)}
                       </div>
 
-                   
+
 
                       {/* Actions */}
                       <div className="flex gap-2 mt-4">

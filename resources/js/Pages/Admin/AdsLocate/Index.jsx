@@ -147,7 +147,7 @@ function Index({ ads_locates, filters }) {
                           { label: "All", value: "" },
                           { label: "Desktop", value: "d" },
                           { label: "Mobile", value: "m" },
-                          { label: "Testimonila", value: "t" },
+                          { label: "Testimonial", value: "t" },
                         ]}
                       />
                     </div>

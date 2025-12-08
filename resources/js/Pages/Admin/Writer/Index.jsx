@@ -7,33 +7,45 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout'
 import { formatDate } from '@/Utils/formatter'
 import { Head, Link, router } from '@inertiajs/react'
 import { Plus, Search } from 'lucide-react'
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 
 function Index({ writers, filters }) {
   const [search, setSearch] = useState(() => filters.search || '');
   const [status, setStatus] = useState(() => filters.status || '');
 
-  // Debounce Search
+  const isFirst = useRef(true);
+  const INDEX_ROUTE = route('admin.writer.index');
+
   useEffect(() => {
-    const timeout = setTimeout(() => {
+    // Skip initial load
+    if (isFirst.current) {
+      isFirst.current = false;
+      return;
+    }
+
+    let timeout = null;
+
+    // Search → debounce
+    if (search !== filters.search) {
+      timeout = setTimeout(() => {
+        router.get(
+          INDEX_ROUTE,
+          { search, status, page: 1 },
+          { preserveState: true, replace: true }
+        );
+      }, 400);
+    }
+    // Status → langsung request
+    else {
       router.get(
-        route('admin.writer.index'),
+        INDEX_ROUTE,
         { search, status, page: 1 },
         { preserveState: true, replace: true }
       );
-    }, 400);
+    }
 
-    return () => clearTimeout(timeout);
-  }, [search]);
-
-  // Filter Status langsung jalan
-  useEffect(() => {
-    router.get(
-      route('admin.writer.index'),
-      { search, status, page: 1 },
-      { preserveState: true, replace: true }
-    );
-  }, [status]);
+    return () => timeout && clearTimeout(timeout);
+  }, [search, status]);
 
   function getStatusBadge(status) {
     switch (status) {
@@ -136,7 +148,7 @@ function Index({ writers, filters }) {
                       {/* Detail */}
                       <div className="text-sm space-y-1">
                         <p><span className="font-medium">Masa Berlaku:</span> {formatDate(writer.date_exp)}</p>
-                         <p><span className="font-medium">Wilayah:</span> {writer.network?.name}</p>
+                        <p><span className="font-medium">Wilayah:</span> {writer.network?.name}</p>
                       </div>
 
                       {/* Actions */}

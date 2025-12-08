@@ -7,7 +7,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout'
 import { formatDateTime } from '@/Utils/formatter'
 import { Head, Link, router } from '@inertiajs/react'
 import { PinIcon, PinOffIcon, Plus, PlusIcon, Search, SquarePen } from 'lucide-react'
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import Select from "react-select";
 
 
@@ -16,36 +16,40 @@ function Index({ history, filters, optionUser }) {
   const [action, setAction] = useState(() => filters.action || '');
   const [user, setUser] = useState(() => filters.user || '');
 
-  // Search
+  const isFirst = useRef(true);
+  const INDEX_ROUTE = route('admin.history.index');
+
   useEffect(() => {
-    const timeout = setTimeout(() => {
+    // Cegah load pertama memicu router.get()
+    if (isFirst.current) {
+      isFirst.current = false;
+      return;
+    }
+
+    let timeout = null;
+
+    // Debounce khusus search
+    if (search) {
+      timeout = setTimeout(() => {
+        router.get(
+          INDEX_ROUTE,
+          { search, action, user, page: 1 },
+          { preserveState: true, replace: true }
+        );
+      }, 400);
+    } else {
+      // Jika search kosong → langsung jalan
       router.get(
-        route('admin.history.index'),
+        INDEX_ROUTE,
         { search, action, user, page: 1 },
         { preserveState: true, replace: true }
       );
-    }, 400);
+    }
 
-    return () => clearTimeout(timeout);
-  }, [search]);
-
-  // Filter Status 
-  useEffect(() => {
-    router.get(
-      route('admin.history.index'),
-      { search, action, user, page: 1 },
-      { preserveState: true, replace: true }
-    );
-  }, [action]);
-
-  // Filter User
-  useEffect(() => {
-    router.get(
-      route('admin.history.index'),
-      { search, action, user, page: 1 },
-      { preserveState: true, replace: true }
-    );
-  }, [user]); 
+    return () => {
+      if (timeout) clearTimeout(timeout);
+    };
+  }, [search, action, user]);
 
 
 

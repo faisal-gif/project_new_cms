@@ -86,7 +86,7 @@ export default function AuthenticatedLayout({ header, children }) {
                                 <li><Link href={route('admin.kanal.index')} className='py-2 hover:bg-blue-400'><File size={16} className="me-1 inline-block" />Kanal</Link></li>
                                 <li><Link href={route('admin.network.index')} className='py-2 hover:bg-blue-400'><Globe size={16} className="me-1 inline-block" /> Network</Link></li>
                                 <li><Link className='py-2 hover:bg-blue-400'><Link2 size={16} className="me-1 inline-block" />Source</Link></li>
-                                <li><Link className='py-2 hover:bg-blue-400'><History size={16} className="me-1 inline-block" />History</Link></li>
+                                <li><Link href={route('admin.history.index')} className='py-2 hover:bg-blue-400'><History size={16} className="me-1 inline-block" />History</Link></li>
                             </ul>
                         </details>
                     </li>
@@ -100,9 +100,9 @@ export default function AuthenticatedLayout({ header, children }) {
                             </summary>
                             <ul>
                                 <li><Link className='py-2 hover:bg-blue-400'><Newspaper size={16} className="me-1 inline-block" />News</Link></li>
-                                <li><Link className='py-2 hover:bg-blue-400'><Clipboard size={16} className="me-1 inline-block" />Focus</Link></li>
-                                <li><Link className='py-2 hover:bg-blue-400'><Pen size={16} className="me-1 inline-block" />Writer</Link></li>
-                                <li><Link className='py-2 hover:bg-blue-400'><Edit size={16} className="me-1 inline-block" />Editor</Link></li>
+                                <li><Link href={route('admin.fokus.index')} className='py-2 hover:bg-blue-400'><Clipboard size={16} className="me-1 inline-block" />Focus</Link></li>
+                                <li><Link href={route('admin.writer.index')} className='py-2 hover:bg-blue-400'><Pen size={16} className="me-1 inline-block" />Writer</Link></li>
+                                <li><Link href={route('admin.editor.index')} className='py-2 hover:bg-blue-400'><Edit size={16} className="me-1 inline-block" />Editor</Link></li>
                             </ul>
                         </details>
                     </li>
@@ -122,8 +122,8 @@ export default function AuthenticatedLayout({ header, children }) {
                                             <ImageIcon size={16} className="me-1 inline-block" />ADS Daerah
                                         </summary>
                                         <ul>
-                                            <li><Link className='py-2 hover:bg-blue-400'><MapPin size={16} className="me-1 inline-block" />ADS Location</Link></li>
-                                            <li><Link className='py-2 hover:bg-blue-400'><List size={16} className="me-1 inline-block" />ADS List</Link></li>
+                                            <li><Link href={route('admin.ads.locate.index')} className='py-2 hover:bg-blue-400'><MapPin size={16} className="me-1 inline-block" />ADS Location</Link></li>
+                                            <li><Link href={route('admin.ads.daerah.index')} className='py-2 hover:bg-blue-400'><List size={16} className="me-1 inline-block" />ADS List</Link></li>
                                         </ul>
                                     </details>
 

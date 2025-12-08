@@ -6,33 +6,44 @@ import TextInput from '@/Components/TextInput'
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout'
 import { Head, Link, router } from '@inertiajs/react'
 import { Plus, Search } from 'lucide-react'
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 
 function Index({ kanal, filters }) {
   const [search, setSearch] = useState(() => filters.search || '');
   const [status, setStatus] = useState(() => filters.status || '');
-
-  // Debounce Search
+  const isFirst = useRef(true);
+  const INDEX_ROUTE = route('admin.kanal.index');
+  
   useEffect(() => {
-    const timeout = setTimeout(() => {
+    // Skip initial load
+    if (isFirst.current) {
+      isFirst.current = false;
+      return;
+    }
+
+    let timeout = null;
+
+    // Search → debounce
+    if (search !== filters.search) {
+      timeout = setTimeout(() => {
+        router.get(
+          INDEX_ROUTE,
+          { search, status, page: 1 },
+          { preserveState: true, replace: true }
+        );
+      }, 400);
+    }
+    // Status → langsung request
+    else {
       router.get(
-        route('admin.kanal.index'),
+        INDEX_ROUTE,
         { search, status, page: 1 },
         { preserveState: true, replace: true }
       );
-    }, 400);
+    }
 
-    return () => clearTimeout(timeout);
-  }, [search]);
-
-  // Filter Status langsung jalan
-  useEffect(() => {
-    router.get(
-      route('admin.kanal.index'),
-      { search, status, page: 1 },
-      { preserveState: true, replace: true }
-    );
-  }, [status]);
+    return () => timeout && clearTimeout(timeout);
+  }, [search, status]);
 
   function getStatusBadge(status) {
     switch (status) {
@@ -131,7 +142,7 @@ function Index({ kanal, filters }) {
                         {getStatusBadge(cat.status)}
                       </div>
 
-                   
+
 
                       {/* Actions */}
                       <div className="flex gap-2 mt-4">

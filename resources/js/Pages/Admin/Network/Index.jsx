@@ -6,33 +6,44 @@ import TextInput from '@/Components/TextInput'
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout'
 import { Head, Link, router } from '@inertiajs/react'
 import { Plus, Search } from 'lucide-react'
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 
 function Index({ networks, filters }) {
   const [search, setSearch] = useState(() => filters.search || '');
   const [status, setStatus] = useState(() => filters.status || '');
+  const isFirst = useRef(true);
+  const INDEX_ROUTE = route('admin.network.index');
 
-  // Debounce Search
   useEffect(() => {
-    const timeout = setTimeout(() => {
+    // Lewati initial load (hindari double fetch)
+    if (isFirst.current) {
+      isFirst.current = false;
+      return;
+    }
+
+    let timeout = null;
+
+    // Jika search berubah → debounce
+    if (search !== filters.search) {
+      timeout = setTimeout(() => {
+        router.get(
+          INDEX_ROUTE,
+          { search, status, page: 1 },
+          { preserveState: true, replace: true }
+        );
+      }, 400);
+    }
+    // Jika status berubah → langsung fetch
+    else {
       router.get(
-        route('admin.network.index'),
+        INDEX_ROUTE,
         { search, status, page: 1 },
         { preserveState: true, replace: true }
       );
-    }, 400);
+    }
 
-    return () => clearTimeout(timeout);
-  }, [search]);
-
-  // Filter Status langsung jalan
-  useEffect(() => {
-    router.get(
-      route('admin.network.index'),
-      { search, status, page: 1 },
-      { preserveState: true, replace: true }
-    );
-  }, [status]);
+    return () => timeout && clearTimeout(timeout);
+  }, [search, status]);
 
   function getStatusBadge(status) {
     switch (status) {
