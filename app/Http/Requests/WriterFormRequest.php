@@ -14,8 +14,6 @@ class WriterFormRequest extends FormRequest
      */
     public function rules(): array
     {
-
-
         $writer = $this->route('writer');
         $writerId = is_object($writer) ? $writer->id : $writer;
 

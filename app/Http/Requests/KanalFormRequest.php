@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class KanalFormRequest extends FormRequest
 {
@@ -19,11 +20,17 @@ class KanalFormRequest extends FormRequest
         $kanalId = is_object($kanal) ? $kanal->id : $kanal;
 
         return [
-            'name' => 'required|string|max:100',
-            'slug' => 'required|unique:news_cat,slug,' . $kanalId . '|string',
-            'keyword' => 'required|string|max:255',
-            'description' => 'required|string|max:500',
-            'status' => 'required|in:0,1',
+            'name' => ['required', 'string', 'max:100'],
+
+            'slug' => [
+                'required',
+                'string',
+                Rule::unique('mysql_daerah.news_cat', 'slug')->ignore($kanalId),
+            ],
+
+            'keyword' => ['required', 'string', 'max:255'],
+            'description' => ['required', 'string', 'max:500'],
+            'status' => ['required', Rule::in([0, 1])],
         ];
     }
 

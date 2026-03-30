@@ -63,6 +63,30 @@ return [
             ]) : [],
         ],
 
+        'mysql_nasional' => [
+            'driver' => 'mysql',
+            'host' => env('DB_HOST_NASIONAL'),
+            'port' => env('DB_PORT_NASIONAL', '3306'),
+            'database' => env('DB_DATABASE_NASIONAL'),
+            'username' => env('DB_USERNAME_NASIONAL'),
+            'password' => env('DB_PASSWORD_NASIONAL'),
+            'charset' => env('DB_CHARSET', 'utf8mb4'),
+            'collation' => env('DB_COLLATION', 'utf8mb4_unicode_ci'),
+        ],
+
+        'mysql_daerah' => [
+            'driver' => 'mysql',
+            'host' => env('DB_HOST_DAERAH'),
+            'port' => env('DB_PORT_DAERAH', '3306'),
+            'database' => env('DB_DATABASE_DAERAH'),
+            'username' => env('DB_USERNAME_DAERAH'),
+            'password' => env('DB_PASSWORD_DAERAH'),
+            'charset' => env('DB_CHARSET', 'utf8mb4'),
+            'collation' => env('DB_COLLATION', 'utf8mb4_unicode_ci'),
+        ],
+
+
+
         'mariadb' => [
             'driver' => 'mariadb',
             'url' => env('DB_URL'),
@@ -148,7 +172,7 @@ return [
 
         'options' => [
             'cluster' => env('REDIS_CLUSTER', 'redis'),
-            'prefix' => env('REDIS_PREFIX', Str::slug((string) env('APP_NAME', 'laravel')).'-database-'),
+            'prefix' => env('REDIS_PREFIX', Str::slug((string) env('APP_NAME', 'laravel')) . '-database-'),
             'persistent' => env('REDIS_PERSISTENT', false),
         ],
 

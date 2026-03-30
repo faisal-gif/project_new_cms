@@ -1,6 +1,6 @@
 import React from "react";
 
-export default function TextareaLimit({
+export default function InputTextarea({
     label,
     value,
     onChange,

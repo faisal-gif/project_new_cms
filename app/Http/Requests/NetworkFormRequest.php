@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class NetworkFormRequest extends FormRequest
 {
@@ -11,34 +12,39 @@ class NetworkFormRequest extends FormRequest
      *
      * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
      */
-    public function rules(): array
-    {
-        // Ambil ID user kalau ada (PUT), kalau POST maka null → aman
-        $network = $this->route('network');
-        $networkId = is_object($network) ? $network->id : $network;
+   public function rules(): array
+{
+    $network = $this->route('network');
+    $networkId = is_object($network) ? $network->id : $network;
 
-        return [
-            'name' => 'required|string|max:100',
-            'domain' => 'required|unique:network,domain,' . $networkId . '|string',
-            'title' => 'required|string',
-            'tagline' => 'required|string',
-            'keyword' => 'required|string',
-            'description' => 'required|string',
-            'analytics' => 'required|string',
-            'gverify' => 'required|string',
-            'fb' => 'required|string',
-            'tw' => 'required|string',
-            'ig' => 'required|string',
-            'yt' => 'required|string',
-            'gp' => 'required|string',
-            'logo' => 'required|url',
-            'logo_m' => 'required|url',
-            'img_socmed' => 'required|url',
-            'is_main' => 'required|string',
-            'status' => 'required|in:0,1',
-            'is_web' => 'required|in:0,1',
-        ];
-    }
+    return [
+        'name' => ['required', 'string', 'max:100'],
+
+        'domain' => [
+            'required',
+            'string',
+            Rule::unique('mysql_daerah.network', 'domain')->ignore($networkId),
+        ],
+
+        'title' => ['required', 'string'],
+        'tagline' => ['required', 'string'],
+        'keyword' => ['required', 'string'],
+        'description' => ['required', 'string'],
+        'analytics' => ['required', 'string'],
+        'gverify' => ['required', 'string'],
+        'fb' => ['required', 'string'],
+        'tw' => ['required', 'string'],
+        'ig' => ['required', 'string'],
+        'yt' => ['required', 'string'],
+        'gp' => ['required', 'string'],
+        'logo' => ['required', 'url'],
+        'logo_m' => ['required', 'url'],
+        'img_socmed' => ['required', 'url'],
+        'is_main' => ['required', Rule::in([0, 1])],
+        'status' => ['required', Rule::in([0, 1])],
+        'is_web' => ['required', Rule::in([0, 1])],
+    ];
+}
 
     public function messages(): array
     {

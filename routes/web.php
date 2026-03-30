@@ -3,24 +3,25 @@
 use App\Http\Controllers\AdsDaerahController;
 use App\Http\Controllers\AdsLocateController;
 use App\Http\Controllers\EditorController;
-use App\Http\Controllers\FokusController;
+use App\Http\Controllers\EditorDaerahController;
+use App\Http\Controllers\FokusDaerahController;
+use App\Http\Controllers\FokusNasionalController;
 use App\Http\Controllers\HistoryController;
-use App\Http\Controllers\KanalController;
-use App\Http\Controllers\NetworkController;
+use App\Http\Controllers\KanalDaerahController;
+use App\Http\Controllers\KanalNasionalController;
+use App\Http\Controllers\NetworkDaerahController;
+use App\Http\Controllers\NewsController;
+use App\Http\Controllers\NewsDaerahController;
+use App\Http\Controllers\NewsNasionalController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\UserController;
-use App\Http\Controllers\WriterController;
+use App\Http\Controllers\WriterDaerahController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
 Route::get('/', function () {
-    return Inertia::render('Welcome', [
-        'canLogin' => Route::has('login'),
-        'canRegister' => Route::has('register'),
-        'laravelVersion' => Application::VERSION,
-        'phpVersion' => PHP_VERSION,
-    ]);
+    return redirect()->route('dashboard');
 });
 
 Route::get('/dashboard', function () {
@@ -32,17 +33,35 @@ Route::middleware('auth')->group(function () {
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
-
+Route::post('/upload-image', [EditorController::class, 'upload']);
 Route::middleware('auth')->prefix('admin')->name('admin.')->group(function () {
+    Route::resource('news', NewsController::class);
+    Route::get('/news/import-daerah/{is_code}', [NewsController::class, 'importDaerah'])->name('news.import.daerah');
+    Route::get('/news/import-nasional/{is_code}', [NewsController::class, 'importNasional'])->name('news.import.nasional');
     Route::resource('users', UserController::class);
-    Route::resource('kanal', KanalController::class);
-    Route::resource('network', NetworkController::class);
     Route::resource('history', HistoryController::class);
-    Route::resource('fokus', FokusController::class);
-    Route::resource('writer', WriterController::class);
-    Route::resource('editor', EditorController::class);
-    Route::resource('ads/daerah/locate', AdsLocateController::class)->names('ads.locate');
-    Route::resource('ads/daerah/list',AdsDaerahController::class)->names('ads.daerah');
+    Route::prefix('daerah')->name('daerah.')->group(
+        function () {
+            Route::resource('kanal', KanalDaerahController::class);
+            Route::resource('network', NetworkDaerahController::class);
+            Route::resource('news', NewsDaerahController::class);
+            Route::resource('fokus', FokusDaerahController::class);
+            Route::resource('writer', WriterDaerahController::class);
+            Route::resource('editor', EditorDaerahController::class);
+            Route::resource('ads/locate', AdsLocateController::class)->names('ads.locate');
+            Route::resource('ads/list', AdsDaerahController::class)->names('ads.list');
+        }
+    );
+
+    Route::prefix('nasional')->name('nasional.')->group(
+        function () {
+            Route::resource('news', NewsNasionalController::class);
+            Route::resource('kanal', KanalNasionalController::class);
+            Route::resource('fokus', FokusNasionalController::class);
+            Route::resource('writer', WriterDaerahController::class);
+            Route::resource('editor', EditorDaerahController::class);
+        }
+    );
 });
 
 require __DIR__ . '/auth.php';

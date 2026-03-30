@@ -2,112 +2,62 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\EditorFormRequest;
-use App\Models\Editor;
-use App\Models\History;
-use App\Models\User;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
-use Inertia\Inertia;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
+use Intervention\Image\Drivers\Gd\Driver;
+use Intervention\Image\ImageManager;
 
 class EditorController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-    public function index(Request $request)
+    public function upload(Request $request)
     {
-        $query = Editor::query();
-
-        if ($request->search) {
-            $query->where(function ($q) use ($request) {
-                $q->where('name', 'like', "%{$request->search}%");
-            });
-        }
-
-        if ($request->filled('status')) {
-            $query->where('status', $request->status);
-        }
-
-        $editors = $query->orderBy('id', 'desc')
-            ->paginate(10)
-            ->withQueryString();
-
-        return Inertia::render('Admin/Editor/Index', [
-            'editors'   => $editors,
-            'filters' => $request->only(['search', 'status']),
-        ]);
-    }
-
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
-    {
-        //
-    }
-
-    /**
-     * Display the specified resource.
-     */
-    public function show(Editor $editor)
-    {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Editor $editor)
-    {
-        return Inertia::render('Admin/Editor/Edit', [
-            'editor' => $editor,
-        ]);
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(EditorFormRequest $request, Editor $editor)
-    {
-        $auth = Auth::user();
-
-        $editor->name = $request->input('name');
-        $editor->id_ti = $request->input('id_ti');
-        $editor->no_whatsapp = $request->input('no_whatsapp');
-        $editor->status = $request->input('status');
-        $editor->save();
-
-        if ($editor->user_id) {
-            $user = User::find($editor->user_id);
-            $user->full_name = $editor->name;
-            $user->status = $editor->status;
-            $user->save();
-        }
-
-        $history = History::create([
-            'user_id' => $auth->id,
-            'action' => 'edit',
-            'tipe' => 'editor',
-            'target' => $editor->name,
+        // 1. Validasi input dari frontend
+        $request->validate([
+            'file' => 'required|image|max:8192', // Sesuaikan batas maksimal dari frontend (contoh 8MB)
+            'name' => 'required|string|min:3|max:120',
+            'watermark' => 'sometimes|boolean',
+            'category_id' => 'sometimes|integer' // Jika ingin menerima kategori dari frontend
         ]);
 
-        return redirect()->route('admin.editor.index')->with('success', 'Editor berhasil diperbarui.');
-    }
+        $file = $request->file('file');
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(Editor $editor)
-    {
-        //
+        // Konversi boolean ke string '1' atau '0' untuk dikirim via form-data
+        $applyWatermark = $request->boolean('watermark') ? '1' : '0';
+
+        // 2. Tembak langsung ke API CDN beserta payload sesuai gambar Anda
+        $response = Http::withHeaders(
+            ['x-api-key' => 'QgwJShcyArAEGqLXKZ3xzcu4']
+        )->attach(
+            'file', // Key 'file' sesuai di gambar Postman
+            file_get_contents($file->getPathname()),
+            $file->getClientOriginalName()
+        )->post('https://cdn.tin.co.id/api/v1/images/upload', [
+            'name'          => $request->input('name'),
+            'category_id'   => $request->input('category_id'),
+            'process_type'  => 'convert',   // Sesuai gambar
+            'add_watermark' => $applyWatermark, // '1' atau '0'
+        ]);
+
+        // 3. Handle jika gagal
+        if (!$response->successful()) {
+            return response()->json([
+                'message' => 'Upload gagal ke CDN',
+                'error_detail' => $response->json() ?? $response->body()
+            ], $response->status());
+        }
+
+        $data = $response->json();
+
+        // 4. Return URL untuk TinyMCE
+        // ⚠️ PENTING: Sesuaikan key ['data']['url'] di bawah ini dengan struktur JSON asli dari CDN Anda
+        $imageUrl = $data['data']['url'] ?? $data['url'] ?? null;
+        $imageName = $data['data']['name'] ?? $data['name'] ?? $file->getClientOriginalName();
+
+        return response()->json([
+            'location' => $imageUrl,
+            'name'     => $imageName
+        ]);
     }
 }

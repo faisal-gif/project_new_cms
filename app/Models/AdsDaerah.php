@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class AdsDaerah extends Model
 {
+    protected $connection = 'mysql_daerah';
     protected $table = 'ads';
 
     protected $guarded = [];
@@ -19,6 +20,6 @@ class AdsDaerah extends Model
 
     public function networks()
     {
-        return $this->belongsToMany(Network::class, 'ads_network', 'ads_id', 'net_id');
+        return $this->belongsToMany(NetworkDaerah::class, 'ads_network', 'ads_id', 'net_id');
     }
 }

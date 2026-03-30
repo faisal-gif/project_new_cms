@@ -36,3 +36,41 @@
   --noise: 0;
 }
 
+
+
+.react-tags-wrapper {
+  width: 100% !important;
+}
+
+.react-tags {
+  width: 100% !important;
+  display: flex !important;
+  flex-wrap: wrap !important;
+  gap: 8px !important;
+  align-items: flex-start !important;
+  padding: 6px !important;
+}
+
+.react-tags__selected {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  gap: 8px !important;
+  width: 100% !important;
+}
+
+.react-tags__tagInput {
+  flex: 1 !important;
+  min-width: 150px !important;
+}
+
+.ProseMirror {
+  min-height: 200px;
+  outline: none;
+}
+
+.page-break {
+  page-break-after: always;
+  break-after: page;
+}
+
+
