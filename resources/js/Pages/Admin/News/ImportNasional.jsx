@@ -2,24 +2,24 @@ import Card from '@/Components/Card'
 import InputEditor from '@/Components/InputEditor'
 import InputError from '@/Components/InputError'
 import InputLabel from '@/Components/InputLabel'
-import InputRadioGroup from '@/Components/InputRadioGroup'
 import InputSwitch from '@/Components/InputSwitch'
 import InputTag from '@/Components/InputTag'
 import InputTextarea from '@/Components/InputTextarea'
 import TextInput from '@/Components/TextInput'
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout'
 import { Head, useForm } from '@inertiajs/react'
-import { CaptionsIcon, CopyIcon, EyeIcon, GlobeIcon, ImageIcon, ImagesIcon, InfoIcon, NotebookPenIcon } from 'lucide-react'
+import { CaptionsIcon, CopyIcon, EyeIcon, GlobeIcon, ImagesIcon, InfoIcon, NotebookPenIcon } from 'lucide-react'
 import React from 'react'
 import Select from "react-select";
 
-function ImportDaerah({ writers, editors, networks, kanal, fokus, initialData }) {
+function ImportNasional({ writers, editors, networks, kanal, fokus, initialData }) {
 
-    const { data, setData, post, processing, errors, reset } = useForm({
+    
+    const { data, setData, post, processing, errors } = useForm({
         is_code: initialData?.is_code || '',
         status: '3',
-        editor: '',
-        writer: initialData?.writer_id || '',
+        editor: initialData?.editor_id || '', // Menangkap nilai default editor_id dari backend
+        writer: initialData?.writer_id || '', // Menangkap nilai default writer_id dari backend
         pin: '',
         keyword_tool: '',
         title: initialData?.title || '',
@@ -27,35 +27,33 @@ function ImportDaerah({ writers, editors, networks, kanal, fokus, initialData })
         tag: initialData?.tag || [],
         is_content: initialData?.content || '',
         is_headline: '',
-        is_editorial: '',
-        is_adv: '',
         image_thumbnail: initialData?.image_thumbnail || '',
         image_caption: initialData?.image_caption || '',
-        datepub: '',
-        locus: '',
+        datepub: initialData?.datepub ?? '',
+        locus: initialData?.locus || '',
         focus: '',
         kanal: '',
-        network: [initialData?.writer_network_id || ''],
     });
+    
 
     const submit = (e) => {
         e.preventDefault();
-        post(route('admin.news.import.daerah.store'));
+        // Sesuaikan dengan nama route penyimpanan untuk Nasional di web.php kamu
+        post(route('admin.news.import.nasional.store'));
     };
-
 
     return (
         <div>
-            <Head title="Kirim News Daerah" />
-            <AuthenticatedLayout >
+            <Head title="Kirim News Nasional" />
+            <AuthenticatedLayout>
                 <div className="py-12">
                     <div className="mx-auto max-w-7xl sm:px-6 lg:px-8">
 
-                        <div className=" space-y-6">
+                        <div className="space-y-6">
                             <div className='flex flex-col md:flex-row justify-between md:items-center gap-2'>
                                 {/* start Header */}
                                 <div>
-                                    <h1 className="text-3xl font-bold text-foreground">Kirim News Daerah</h1>
+                                    <h1 className="text-3xl font-bold text-foreground">Kirim News Nasional</h1>
                                 </div>
                                 {/* end Header */}
 
@@ -64,11 +62,10 @@ function ImportDaerah({ writers, editors, networks, kanal, fokus, initialData })
                                     <ul>
                                         <li><a>Home</a></li>
                                         <li>News</li>
-                                        <li>Import News</li>
+                                        <li>Import Nasional</li>
                                     </ul>
                                 </div>
                                 {/* end breadcrumbs */}
-
                             </div>
 
                             <form onSubmit={submit} className='space-y-6'>
@@ -83,43 +80,39 @@ function ImportDaerah({ writers, editors, networks, kanal, fokus, initialData })
                                 >
                                     <div className='grid grid-cols-1 lg:grid-cols-6 gap-4 mt-4'>
 
-
-
                                         <div className='lg:col-span-3 w-full'>
                                             <InputLabel
                                                 htmlFor="editor"
                                                 value="Editor"
                                                 className='mb-2 label-text font-bold'
                                             />
-
                                             <Select
                                                 value={editors.find(e => e.value === data.editor)}
                                                 options={editors}
-                                                placeholder="Editors"
+                                                placeholder="Pilih Editor..."
                                                 onChange={(val) => setData('editor', val?.value)}
                                             />
                                             <InputError message={errors.editor} className="mt-2" />
-
                                         </div>
+
                                         <div className='lg:col-span-3 w-full'>
                                             <InputLabel
                                                 htmlFor="writer"
                                                 value="Penulis"
                                                 className='mb-2 label-text font-bold'
                                             />
-
                                             <Select
                                                 value={writers.find(w => w.value === data.writer)}
                                                 options={writers}
-                                                placeholder="Penulis"
+                                                placeholder="Pilih Penulis..."
                                                 onChange={(val) => setData('writer', val?.value)}
                                             />
                                             <InputError message={errors.writer} className="mt-2" />
-
                                         </div>
-                                    </div>
 
+                                    </div>
                                 </Card>
+
                                 {/* Card Judul, Deskripsi & Tag */}
                                 <Card
                                     title={
@@ -168,8 +161,8 @@ function ImportDaerah({ writers, editors, networks, kanal, fokus, initialData })
                                             <InputError message={errors.tag} className="mt-2" />
                                         </div>
                                     </div>
-
                                 </Card>
+
                                 {/* Card Konten Berita */}
                                 <Card
                                     title={
@@ -209,12 +202,10 @@ function ImportDaerah({ writers, editors, networks, kanal, fokus, initialData })
                                                     onChange={(val) => setData("is_adv", val ? 1 : 0)}
                                                 />
                                             </div>
-
                                         </div>
-
                                     </div>
-
                                 </Card>
+
                                 {/* Card Gambar Original Wartawan */}
                                 <Card
                                     title={
@@ -240,7 +231,6 @@ function ImportDaerah({ writers, editors, networks, kanal, fokus, initialData })
                                                             className="w-full h-full object-contain rounded-lg"
                                                         />
                                                         <div className='flex items-center justify-center gap-0.5 mt-1'>
-
                                                             <TextInput
                                                                 id="image_1"
                                                                 name="Image 1"
@@ -270,17 +260,12 @@ function ImportDaerah({ writers, editors, networks, kanal, fokus, initialData })
                                                         onChange={(e) => setData('image_caption', e.target.value)}
                                                         autoComplete="image_caption"
                                                         maxLength={255}
-
                                                     />
-
-
                                                     <InputError message={errors.image_caption} className="mt-2" />
                                                 </div>
-
                                             </div>
                                         </div>
                                     </div>
-
                                 </Card>
 
                                 {/* Card Publish */}
@@ -309,6 +294,7 @@ function ImportDaerah({ writers, editors, networks, kanal, fokus, initialData })
                                             />
                                             <InputError message={errors.datepub} className="mt-2" />
                                         </div>
+
                                         <div className='lg:col-span-3'>
                                             <InputLabel
                                                 htmlFor="lokus"
@@ -326,81 +312,72 @@ function ImportDaerah({ writers, editors, networks, kanal, fokus, initialData })
                                             />
                                             <InputError message={errors.locus} className="mt-2" />
                                         </div>
+
                                         <div className='lg:col-span-3'>
                                             <InputLabel
                                                 htmlFor="kanal"
                                                 value="Kanal"
                                                 className='mb-2 label-text font-bold'
                                             />
-
                                             <Select
                                                 value={kanal.find(k => k.value === data.kanal)}
                                                 options={kanal}
-                                                placeholder="Kanal"
+                                                placeholder="Pilih Kanal..."
                                                 onChange={(val) => setData('kanal', val?.value)}
                                             />
                                             <InputError message={errors.kanal} className="mt-2" />
                                         </div>
+
                                         <div className='lg:col-span-3'>
                                             <InputLabel
                                                 htmlFor="fokus"
                                                 value="Fokus"
                                                 className='mb-2 label-text font-bold'
                                             />
-
                                             <Select
                                                 value={fokus.find(f => f.value === data.focus)}
                                                 options={fokus}
-                                                placeholder="Fokus"
+                                                placeholder="Pilih Fokus..."
                                                 onChange={(val) => setData('focus', val?.value)}
                                             />
                                             <InputError message={errors.focus} className="mt-2" />
-
                                         </div>
-                                        <div className='lg:col-span-6'>
-                                            <InputLabel
-                                                htmlFor="network"
-                                                value="Network"
-                                                className='mb-2 label-text font-bold'
-                                            />
 
-                                            <div className="flex gap-2 mb-2">
-                                                <button
-                                                    type="button"
-                                                    className="btn btn-xs btn-outline"
-                                                    onClick={() => setData('network', networks.map(n => n.value))}
-                                                >
-                                                    Select All
-                                                </button>
-
-                                                <button
-                                                    type="button"
-                                                    className="btn btn-xs btn-outline"
-                                                    onClick={() => setData('network', [])}
-                                                >
-                                                    Clear
-                                                </button>
+                                        {networks && networks.length > 0 && (
+                                            <div className='lg:col-span-6'>
+                                                <InputLabel
+                                                    htmlFor="network"
+                                                    value="Network"
+                                                    className='mb-2 label-text font-bold'
+                                                />
+                                                <div className="flex gap-2 mb-2">
+                                                    <button
+                                                        type="button"
+                                                        className="btn btn-xs btn-outline"
+                                                        onClick={() => setData('network', networks.map(n => n.value))}
+                                                    >
+                                                        Select All
+                                                    </button>
+                                                    <button
+                                                        type="button"
+                                                        className="btn btn-xs btn-outline"
+                                                        onClick={() => setData('network', [])}
+                                                    >
+                                                        Clear
+                                                    </button>
+                                                </div>
+                                                <Select
+                                                    value={networks.filter(n => data.network?.includes(n.value))}
+                                                    options={networks}
+                                                    placeholder="Pilih Network..."
+                                                    isMulti
+                                                    onChange={(vals) => setData('network', vals ? vals.map(v => v.value) : [])}
+                                                />
+                                                <InputError message={errors.network} className="mt-2" />
                                             </div>
-
-                                            <Select
-                                                value={networks.filter(n => data.network?.includes(n.value))}
-                                                options={networks}
-                                                placeholder="Network"
-                                                isMulti
-                                                onChange={(vals) =>
-                                                    setData(
-                                                        'network',
-                                                        vals ? vals.map(v => v.value) : []
-                                                    )
-                                                }
-                                            />
-
-                                            <InputError message={errors.network} className="mt-2" />
-                                        </div>
+                                        )}
                                     </div>
-
                                 </Card>
-
 
                                 <div className='flex flex-row justify-end mt-4'>
                                     <button
@@ -408,14 +385,11 @@ function ImportDaerah({ writers, editors, networks, kanal, fokus, initialData })
                                         className="btn btn-primary"
                                         disabled={processing}
                                     >
-                                        Simpan Ke Daerah
+                                        Simpan Ke Nasional
                                     </button>
                                 </div>
-
                             </form>
-
                         </div>
-
                     </div>
                 </div>
             </AuthenticatedLayout>
@@ -423,4 +397,4 @@ function ImportDaerah({ writers, editors, networks, kanal, fokus, initialData })
     )
 }
 
-export default ImportDaerah
+export default ImportNasional

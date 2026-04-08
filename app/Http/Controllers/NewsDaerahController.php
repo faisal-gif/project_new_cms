@@ -14,6 +14,7 @@ use App\Models\WriterDaerah;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
 
@@ -142,8 +143,8 @@ class NewsDaerahController extends Controller
         }
 
         return Inertia::render('Admin/Daerah/News/Create', [
-            'kanal_daerah' => $kanal_daerah,
-            'focus_daerah' => $focus_daerah,
+            'kanal' => $kanal_daerah,
+            'fokus' => $focus_daerah,
             'networks' => $networks,
             'writers' => $writers,
             'editors' => $editors,
@@ -159,36 +160,65 @@ class NewsDaerahController extends Controller
         DB::connection('mysql_daerah')->beginTransaction();
 
         try {
-            // 1. Simpan tabel News (Koneksi Daerah)
-            // Sesuaikan nama field 'cat_id', 'fokus_id' dsb sesuai skema DB daerah kamu
-            $news = NewsDaerah::create([
-                'is_code'     => $request->is_code ?? Str::random(8),
-                'writer_id'   => $request->writer,
-                'editor_id'   => $request->editor,
-                'cat_id'      => $request->kanal, // kanal di form dipetakan ke cat_id
-                'fokus_id'    => $request->focus,
-                'title'       => $request->title,
-                'description' => $request->description,
-                'content'     => $request->is_content, // dari state react 'is_content'
-                'status'      => $request->status,
-                'locus'       => $request->locus,
-                'datepub'     => $request->datepub ?? now(),
-                'is_headline' => $request->is_headline ? 1 : 0,
-                'is_editorial' => $request->is_editorial ? 1 : 0,
-                'is_adv'      => $request->is_adv ? 1 : 0,
-                'pin'         => $request->pin ? 1 : 0,
-                'caption'     => $request->image_caption,
-            ]);
+            $applyWatermark = $request->boolean('image_watermark') ? '1' : '0';
 
+            // 2. Proses Upload image_thumbnail ke CDN
+            $thumbnailUrl = null;
 
-            NewsDaerahImages::create([
-                'news_id'     => $news->id,
-                'writer_id'   => $request->writer,
-                'image_url'   => $request->image_1,
-                'image_url_2' => $request->image_2,
-                'image_url_3' => $request->image_3,
-                'caption'     => $request->image_caption,
-            ]);
+            // Pastikan input dari frontend (React) bernama 'image_thumbnail'
+            if ($request->hasFile('image_thumbnail')) {
+                $file = $request->file('image_thumbnail');
+
+                // Tembak langsung API CDN
+                $response = Http::withHeaders([
+                    'x-api-key' => 'QgwJShcyArAEGqLXKZ3xzcu4'
+                ])->attach(
+                    'file', // Key 'file' sesuai dengan form-data API CDN
+                    file_get_contents($file->getPathname()),
+                    $file->getClientOriginalName()
+                )->post('https://cdn.tin.co.id/api/v1/images/upload', [
+                    'name'          => Str::slug($request->judul) . '-thumbnail',
+                    'category_id'   => '1', // Sesuaikan dengan kategori yang diinginkan
+                    'process_type'  => 'convert',
+                    'add_watermark' => $applyWatermark,
+                ]);
+
+                // Jika gagal ke CDN, lemparkan error agar DB di-rollback
+                if (!$response->successful()) {
+                    throw new \Exception('Gagal mengupload thumbnail ke CDN: ' . $response->body());
+                }
+
+                $data = $response->json();
+
+                // Ambil URL dari response JSON CDN
+                $thumbnailUrl = $data['data']['url'] ?? $data['url'] ?? null;
+
+                if (!$thumbnailUrl) {
+                    throw new \Exception('URL thumbnail tidak ditemukan dalam response CDN.');
+                }
+                // 1. Simpan tabel News (Koneksi Daerah)
+                // Sesuaikan nama field 'cat_id', 'fokus_id' dsb sesuai skema DB daerah kamu
+                $news = NewsDaerah::create([
+                    'is_code'     => $request->is_code ?? Str::random(8),
+                    'writer_id'   => $request->writer,
+                    'editor_id'   => $request->editor,
+                    'cat_id'      => $request->kanal, // kanal di form dipetakan ke cat_id
+                    'fokus_id'    => $request->focus,
+                    'title'       => $request->title,
+                    'description' => $request->description,
+                    'content'     => $request->is_content, // dari state react 'is_content'
+                    'image'       => $thumbnailUrl, // Simpan URL thumbnail di field 'image'
+                    'caption'     => $request->image_caption,
+                    'status'      => $request->status,
+                    'locus'       => $request->locus,
+                    'datepub'     => $request->datepub ?? now(),
+                    'is_headline' => $request->is_headline ? 1 : 0,
+                    'is_editorial' => $request->is_editorial ? 1 : 0,
+                    'is_adv'      => $request->is_adv ? 1 : 0,
+                    'pin'         => $request->pin ? 1 : 0,
+                    'tag'        => $request->tag ? implode(',', $request->tag) : null,
+                ]);
+            }
 
             // 3. Simpan Tags (Many-to-Many)
             if ($request->has('tag') && is_array($request->tag)) {
@@ -209,7 +239,7 @@ class NewsDaerahController extends Controller
 
             DB::connection('mysql_daerah')->commit();
 
-            return redirect()->route('admin.news.index')->with('success', 'Berita Daerah berhasil diterbitkan!');
+            return redirect()->route('admin.daerah.news.index')->with('success', 'Berita Daerah berhasil diterbitkan!');
         } catch (\Exception $e) {
             DB::connection('mysql_daerah')->rollBack();
 
@@ -228,17 +258,130 @@ class NewsDaerahController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(string $id)
+    public function edit($id)
     {
-        
-    }
+        // 1. Ambil data berita beserta relasi tag dan network
+        // Pastikan koneksi dan nama relasi sesuai dengan model NewsDaerah kamu
+        $news = NewsDaerah::on('mysql_daerah')->with(['tags', 'networks'])->findOrFail($id);
 
+        // Format tags menjadi array string biasa (contoh: ['pemilu', 'malang']) 
+        // agar komponen InputTag di React (data.tag) bisa membacanya dengan benar.
+        $news->tags_array = $news->tags->pluck('name')->toArray();
+
+        // 2. Ambil data untuk opsi Dropdown & Select
+        // Sesuaikan Model ini dengan struktur database daerah kamu
+        $writers = WriterDaerah::select('id as value', 'name as label')->get();
+
+        $editors = EditorDaerah::select('id as value', 'name as label')->get();
+
+        $kanal = KanalDaerah::select('id as value', 'name as label')->get();
+
+        $fokus = FokusDaerah::select('id as value', 'name as label')->get();
+
+        // Asumsi ada tabel networks
+        $networks = NetworkDaerah::select('id as value', 'name as label')->get();
+
+        // 3. Return ke view menggunakan Inertia
+        return inertia('Admin/Daerah/News/Edit', [
+            'news'     => $news,
+            'writers'  => $writers,
+            'editors'  => $editors,
+            'kanal'    => $kanal,
+            'fokus'    => $fokus,
+            'networks' => $networks,
+        ]);
+    }
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(NewsDaerahFormRequest $request, $id)
     {
-        //
+        DB::connection('mysql_daerah')->beginTransaction();
+
+        try {
+            $news = NewsDaerah::findOrFail($id);
+            $applyWatermark = $request->boolean('image_watermark') ? '1' : '0';
+
+            // Default gunakan URL lama
+            $thumbnailUrl = $news->image;
+
+            // Proses Upload image_thumbnail HANYA jika ada file baru yang diunggah
+            if ($request->hasFile('image_thumbnail')) {
+                $file = $request->file('image_thumbnail');
+
+                $response = Http::withHeaders([
+                    'x-api-key' => 'QgwJShcyArAEGqLXKZ3xzcu4'
+                ])->attach(
+                    'file',
+                    file_get_contents($file->getPathname()),
+                    $file->getClientOriginalName()
+                )->post('https://cdn.tin.co.id/api/v1/images/upload', [
+                    'name'          => Str::slug($request->title) . '-thumbnail',
+                    'category_id'   => '1',
+                    'process_type'  => 'convert',
+                    'add_watermark' => $applyWatermark,
+                ]);
+
+                if (!$response->successful()) {
+                    throw new \Exception('Gagal mengupload thumbnail ke CDN: ' . $response->body());
+                }
+
+                $data = $response->json();
+                $thumbnailUrl = $data['data']['url'] ?? $data['url'] ?? null;
+
+                if (!$thumbnailUrl) {
+                    throw new \Exception('URL thumbnail tidak ditemukan dalam response CDN.');
+                }
+            }
+
+            // 1. Update tabel News
+            $news->update([
+                'writer_id'   => $request->writer,
+                'editor_id'   => $request->editor,
+                'cat_id'      => $request->kanal,
+                'fokus_id'    => $request->focus,
+                'title'       => $request->title,
+                'description' => $request->description,
+                'content'     => $request->is_content,
+                'image'       => $thumbnailUrl, // Menyimpan URL baru atau tetap yang lama
+                'caption'     => $request->image_caption,
+                'status'      => $request->status,
+                'locus'       => $request->locus,
+                'datepub'     => $request->datepub ?? now(),
+                'is_headline' => $request->is_headline ? 1 : 0,
+                'is_editorial' => $request->is_editorial ? 1 : 0,
+                'is_adv'      => $request->is_adv ? 1 : 0,
+                'pin'         => $request->pin ? 1 : 0,
+                'tag'        => $request->tag ? implode(',', $request->tag) : null,
+            ]);
+
+            // 2. Sync Tags (Many-to-Many)
+            if ($request->has('tag') && is_array($request->tag)) {
+                $tagIds = collect($request->tag)->map(function ($tagName) {
+                    return TagsDaerah::firstOrCreate([
+                        'name' => strtolower(trim($tagName))
+                    ])->id;
+                });
+                $news->tags()->sync($tagIds);
+            } else {
+                // Kosongkan tag jika user menghapus semua tag
+                $news->tags()->sync([]);
+            }
+
+            // 3. Sync Networks (Multiple Select)
+            if ($request->has('network') && is_array($request->network)) {
+                $news->networks()->sync($request->network);
+            } else {
+                $news->networks()->sync([]);
+            }
+
+            DB::connection('mysql_daerah')->commit();
+
+            return redirect()->route('admin.daerah.news.index')->with('success', 'Berita Daerah berhasil diperbarui!');
+        } catch (\Exception $e) {
+            DB::connection('mysql_daerah')->rollBack();
+            return back()->withInput()->withErrors(['error' => 'Gagal update: ' . $e->getMessage()]);
+        }
     }
 
     /**

@@ -37,7 +37,9 @@ Route::post('/upload-image', [EditorController::class, 'upload']);
 Route::middleware('auth')->prefix('admin')->name('admin.')->group(function () {
     Route::resource('news', NewsController::class);
     Route::get('/news/import-daerah/{is_code}', [NewsController::class, 'importDaerah'])->name('news.import.daerah');
+    Route::post('/news/import-daerah', [NewsController::class, 'importDaerahStore'])->name('news.import.daerah.store');
     Route::get('/news/import-nasional/{is_code}', [NewsController::class, 'importNasional'])->name('news.import.nasional');
+    Route::post('/news/import-nasional', [NewsController::class, 'importNasionalStore'])->name('news.import.nasional.store');
     Route::resource('users', UserController::class);
     Route::resource('history', HistoryController::class);
     Route::prefix('daerah')->name('daerah.')->group(
@@ -55,6 +57,7 @@ Route::middleware('auth')->prefix('admin')->name('admin.')->group(function () {
 
     Route::prefix('nasional')->name('nasional.')->group(
         function () {
+            Route::get('news/diagnoze', [NewsNasionalController::class, 'diagnose'])->name('news.diagnose');
             Route::resource('news', NewsNasionalController::class);
             Route::resource('kanal', KanalNasionalController::class);
             Route::resource('fokus', FokusNasionalController::class);

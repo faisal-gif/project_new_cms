@@ -123,15 +123,15 @@ function Index({ news, writers, kanals, filters }) {
               <div className='flex flex-row justify-between items-center'>
                 {/* start Header */}
                 <div>
-                  <h1 className="text-3xl font-bold text-foreground">Daftar News</h1>
+                  <h1 className="text-3xl font-bold text-foreground">Daftar Berita Nasional</h1>
                 </div>
                 {/* end Header */}
 
                 {/* start breadcrumbs */}
                 <div className="breadcrumbs text-sm">
                   <ul>
-                    <li><a>Home</a></li>
-                    <li>News</li>
+                    <li><a>Beranda</a></li>
+                    <li>Berita Nasional</li>
                   </ul>
                 </div>
                 {/* end breadcrumbs */}
@@ -142,8 +142,8 @@ function Index({ news, writers, kanals, filters }) {
 
               <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
                 {/* Button Tambah User */}
-                <Link href={route('admin.daerah.news.create')} className="btn btn-primary rounded-lg">
-                  <Plus size={16} /> Tambah News
+                <Link href={route('admin.nasional.news.create')} className="btn btn-primary rounded-lg">
+                  <Plus size={16} /> Tambah Berita
                 </Link>
               </div>
               {/* End Head */}
@@ -211,30 +211,30 @@ function Index({ news, writers, kanals, filters }) {
                       {/* Header */}
                       <div className="flex justify-between items-start gap-2 mb-3">
                         <div>
-                          <p className="font-semibold text-base">{n.title}</p>
-                          <p className="text-sm text-gray-500">{n.writer?.name}</p>
+                          <p className="font-semibold text-base">{n.news_title}</p>
+                          <p className="text-sm text-gray-500">{n.news_writer}</p>
                         </div>
 
-                        {getStatusBadge(n.status)}
+                        {getStatusBadge(n.news_status)}
                       </div>
 
                       {/* Detail */}
                       <div className="text-sm space-y-1">
                         <p>
-                          <span className="font-medium">Kategori:</span> {n.kanal?.name}
+                          <span className="font-medium">Kategori:</span> {n.kanal?.catnews_title}
                         </p>
                         <p>
-                          <span className="font-medium">Tanggal Publish:</span> {formatDateTime(n.datepub)}
+                          <span className="font-medium">Tanggal Publish:</span> {formatDateTime(n.news_datepub)}
                         </p>
                         <p>
                           <span className="font-medium">Headline:</span>{" "}
-                          {getHeadlineBadge(n.is_headline)}
+                          {getHeadlineBadge(n.news_headline)}
                         </p>
                       </div>
 
                       {/* Actions */}
                       <div className="flex gap-2 mt-4">
-                        <Link href={route('admin.daerah.news.edit', n)} className="btn btn-sm btn-warning btn-outline">Edit</Link>
+                        <Link href={route('admin.nasional.news.edit', n.news_id)} className="btn btn-sm btn-warning btn-outline">Edit</Link>
 
                       </div>
                     </div>
@@ -252,7 +252,6 @@ function Index({ news, writers, kanals, filters }) {
                         <th>Judul</th>
                         <th>Kanal</th>
                         <th>Tanggal Publish</th>
-                        <th>View</th>
                         <th>HL</th>
                         <th>Status</th>
                         <th className="text-right">Action</th>
@@ -260,22 +259,21 @@ function Index({ news, writers, kanals, filters }) {
                     </thead>
                     <tbody>
                       {news.data.map((n, index) => (
-                        <tr key={n.id}>
-                          <th>{n.id}</th>
-                          <td>{n.writer?.name}</td>
-                          <td>{n.title}</td>
-                          <td>{n.kanal?.name}</td>
-                          <td>{n.datepub}</td>
-                          <td>{n.view}</td>
+                        <tr key={n.news_id}>
+                          <th>{n.news_id}</th>
+                          <td>{n.news_writer}</td>
+                          <td>{n.news_title}</td>
+                          <td>{n.kanal?.catnews_title}</td>
+                          <td>{formatDateTime(n.news_datepub)}</td>
                           <td>
-                            {getHeadlineBadge(n.is_headline)}
+                            {getHeadlineBadge(n.news_headline)}
                           </td>
                           <td>
-                            {getStatusBadge(n.status)}
+                            {getStatusBadge(n.news_status)}
                           </td>
                           <td>
                             <div className="flex justify-end gap-2">
-                              <Link href={route('admin.daerah.news.edit', n)} className="btn btn-sm btn-warning btn-outline">Edit</Link>
+                              <Link href={route('admin.nasional.news.edit', n.news_id)} className="btn btn-sm btn-warning btn-outline">Edit</Link>
                             </div>
                           </td>
                         </tr>

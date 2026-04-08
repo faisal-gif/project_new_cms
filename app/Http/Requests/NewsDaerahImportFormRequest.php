@@ -4,7 +4,7 @@ namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class NewsDaerahFormRequest extends FormRequest
+class NewsDaerahImportFormRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -19,40 +19,44 @@ class NewsDaerahFormRequest extends FormRequest
      *
      * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
      */
-    public function rules(): array
+     public function rules(): array
     {
-        $rules = [
+        return [
+            // Data Dasar
+            'is_code'       => ['required', 'string', 'max:50'],
             'title'         => ['required', 'string', 'max:255'],
             'description'   => ['nullable', 'string'],
             'is_content'    => ['required', 'string'],
-            'writer'        => ['required', 'exists:mysql_daerah.writers,id'],
-            'editor'        => ['required', 'exists:mysql_daerah.editors,id'],
-            'kanal'         => ['required', 'exists:mysql_daerah.news_cat,id'],
-            'focus'         => ['required', 'exists:mysql_daerah.news_fokus,id'],
-            'locus'         => ['required', 'string', 'max:255'],
+
+            // Relasi Dropdown (Menggunakan exists dengan koneksi mysql_daerah)
+            'writer'        => ['required', 'integer', 'exists:mysql_daerah.writers,id'],
+            'editor'        => ['required', 'integer', 'exists:mysql_daerah.editors,id'],
+            'kanal'         => ['required', 'integer', 'exists:mysql_daerah.news_cat,id'],
+            'focus'         => ['required', 'integer', 'exists:mysql_daerah.news_fokus,id'],
+            'locus'         => ['required', 'string', 'max:255'], // Asumsi locus masih input string biasa
+
+            // Multiple Select (Arrays)
             'tag'           => ['nullable', 'array'],
             'tag.*'         => ['string', 'max:100'],
+
             'network'       => ['nullable', 'array'],
-            'network.*'     => ['integer'],
+            'network.*'     => ['integer'], // Nanti bisa ditambah exists jika ada tabel networks
+
+            // Status & Flags
             'status'        => ['required', 'in:0,1,2,3'],
             'pin'           => ['nullable', 'boolean'],
             'is_headline'   => ['nullable', 'boolean'],
             'is_editorial'  => ['nullable', 'boolean'],
             'is_adv'        => ['nullable', 'boolean'],
+
+            // SEO & Publishing
             'keyword_tool'  => ['nullable', 'string', 'max:255'],
             'datepub'       => ['required', 'date'],
-            'image_watermark' => ['nullable', 'boolean'],
-            'image_caption'   => ['required', 'string', 'max:255'],
+
+            // Gambar
+            'image_thumbnail'       => ['required', 'url'],
+            'image_caption' => ['required', 'string', 'max:255'],
         ];
-
-        // Cek jika request adalah create (POST), gambar wajib. Jika update (PUT/PATCH), gambar opsional.
-        if ($this->isMethod('post')) {
-            $rules['image_thumbnail'] = ['required', 'image', 'mimes:jpeg,png,jpg,gif,svg', 'max:2048'];
-        } else {
-            $rules['image_thumbnail'] = ['nullable', 'image', 'mimes:jpeg,png,jpg,gif,svg', 'max:2048'];
-        }
-
-        return $rules;
     }
 
     public function messages(): array
@@ -73,9 +77,7 @@ class NewsDaerahFormRequest extends FormRequest
             'focus.exists'        => 'Fokus berita yang dipilih tidak ditemukan.',
             'status.required'     => 'Status berita wajib ditentukan.',
             'image.required'      => 'Gambar wajib diunggah.',
-            'image.image'         => 'File yang diunggah harus berupa gambar.',
-            'image.mimes'         => 'Format gambar tidak valid. Harus berupa JPEG, PNG, JPG, GIF, atau SVG.',
-            'image.max'           => 'Ukuran gambar tidak boleh lebih dari 2MB.',
+            'image.url'           => 'Gambar harus berupa URL yang valid.',
         ];
     }
 }

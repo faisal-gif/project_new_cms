@@ -2,17 +2,26 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\NewsDaerahImportFormRequest;
 use App\Http\Requests\NewsFormRequest;
+use App\Http\Requests\NewsNasionalImportFormRequest;
 use App\Models\EditorDaerah;
+use App\Models\EditorNasional;
 use App\Models\FokusDaerah;
+use App\Models\FokusNasional;
 use App\Models\KanalDaerah;
 use App\Models\KanalNasional;
 use App\Models\NetworkDaerah;
 use App\Models\News;
+use App\Models\NewsDaerah;
 use App\Models\NewsImages;
+use App\Models\NewsNasional;
 use App\Models\NewsTags;
 use App\Models\Tags;
+use App\Models\TagsDaerah;
+use App\Models\TagsNasional;
 use App\Models\WriterDaerah;
+use App\Models\WriterNasional;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -38,8 +47,12 @@ class NewsController extends Controller
             )->with([
                 'writer:id,name',
                 'newsDaerah.kanal',
+                'newsDaerah.writer',
+                'newsNasional.kanal',
+                'newsNasional.writer',
             ]);
 
+           
 
         // Search
         if ($request->search) {
@@ -62,6 +75,8 @@ class NewsController extends Controller
 
         // Faster pagination
         $news = $query->latest()->simplePaginate(10)->withQueryString();
+
+        dd($news);
 
         $writers = WriterDaerah::select('id', 'name')->where('status', '1')->get()
             ->map(fn($u) => [
@@ -103,14 +118,7 @@ class NewsController extends Controller
         DB::beginTransaction();
 
         try {
-            // 1. Simpan tabel News
-            $news = News::create([
-                'is_code'     => Str::random(8),
-                'writer_id'   => $request->writer,
-                'title'       => $request->judul,
-                'description' => $request->description,
-                'content'     => $request->content,
-            ]);
+
 
             $applyWatermark = $request->boolean('image_watermark') ? '1' : '0';
 
@@ -132,7 +140,7 @@ class NewsController extends Controller
                     'name'          => Str::slug($request->judul) . '-thumbnail',
                     'category_id'   => '1', // Sesuaikan dengan kategori yang diinginkan
                     'process_type'  => 'convert',
-                    'add_watermark' => $applyWatermark, 
+                    'add_watermark' => $applyWatermark,
                 ]);
 
                 // Jika gagal ke CDN, lemparkan error agar DB di-rollback
@@ -144,15 +152,21 @@ class NewsController extends Controller
 
                 // Ambil URL dari response JSON CDN
                 $thumbnailUrl = $data['data']['url'] ?? $data['url'] ?? null;
+
+
+                // 1. Simpan tabel News
+                $news = News::create([
+                    'is_code'     => Str::random(8),
+                    'writer_id'   => $request->writer,
+                    'title'       => $request->judul,
+                    'description' => $request->description,
+                    'image_thumbnail' => $thumbnailUrl, // Simpan URL thumbnail dari CDN
+                    'image_caption' => $request->image_caption,
+                    'content'     => $request->content,
+                ]);
             }
 
-            // Simpan URL gambar ke tabel (asumsi disimpan di image_url pada tabel NewsImages)
-            NewsImages::create([
-                'news_id'     => $news->id,
-                'writer_id'   => $request->writer,
-                'image_url'   => $thumbnailUrl, // Menyimpan link CDN di sini
-                'caption'     => $request->image_caption,
-            ]);
+
 
             // 3. Proses Tags
             if ($request->has('tag')) {
@@ -179,9 +193,12 @@ class NewsController extends Controller
 
     public function importDaerah($is_code)
     {
-        // 1. Ambil data dari DB Utama sebagai master data
-        $news = News::with(['writer', 'tags', 'images'])->where('is_code', $is_code)->firstOrFail();
+        $news = NewsNasional::where('is_code', $is_code)->first();
 
+        if (!$news) {
+            // 1. Ambil data dari DB Utama sebagai master data
+            $news = News::with(['writer', 'tags'])->where('is_code', $is_code)->firstOrFail();
+        }
 
         // 2. Ambil data pendukung dari DB Daerah untuk dropdown
         $writers = WriterDaerah::select('id as value', 'name as label')->get();
@@ -206,11 +223,181 @@ class NewsController extends Controller
                 'description' => $news->description,
                 'content' => $news->content,
                 'tag' => $news->tags->pluck('name')->toArray(),
-                'image_caption' => $news->images->caption ?? '',
-                'image_1' => $news->images->image_url ?? '',
-                'image_2' => $news->images->image_url_2 ?? '',
-                'image_3' => $news->images->image_url_3 ?? '',
+                'image_caption' => $news->image_caption ?? '',
+                'image_thumbnail' => $news->image_thumbnail ?? '',
+
             ]
         ]);
+    }
+
+    public function importDaerahStore(NewsDaerahImportFormRequest $request)
+    {
+        // Gunakan koneksi mysql_daerah untuk transaksi
+        DB::connection('mysql_daerah')->beginTransaction();
+
+        try {
+            // 1. Simpan tabel News (Koneksi Daerah)
+            // Sesuaikan nama field 'cat_id', 'fokus_id' dsb sesuai skema DB daerah kamu
+            $news = NewsDaerah::create([
+                'is_code'     => $request->is_code ?? Str::random(8),
+                'writer_id'   => $request->writer,
+                'editor_id'   => $request->editor,
+                'cat_id'      => $request->kanal, // kanal di form dipetakan ke cat_id
+                'fokus_id'    => $request->focus,
+                'title'       => $request->title,
+                'description' => $request->description,
+                'content'     => $request->is_content, // dari state react 'is_content'
+                'image'       => $request->image_thumbnail, // Simpan URL thumbnail di field 'image'
+                'caption'     => $request->image_caption,
+                'status'      => $request->status,
+                'locus'       => $request->locus,
+                'datepub'     => $request->datepub ?? now(),
+                'is_headline' => $request->is_headline ? 1 : 0,
+                'is_editorial' => $request->is_editorial ? 1 : 0,
+                'is_adv'      => $request->is_adv ? 1 : 0,
+                'pin'         => $request->pin ? 1 : 0,
+            ]);
+
+            // 3. Simpan Tags (Many-to-Many)
+            if ($request->has('tag') && is_array($request->tag)) {
+                $tagIds = collect($request->tag)->map(function ($tagName) {
+                    return TagsDaerah::firstOrCreate([
+                        'name' => strtolower(trim($tagName))
+                    ])->id;
+                });
+                $news->tags()->sync($tagIds);
+                // Catatan: Jika relasi di model NewsDaerah kamu namanya 'tags', ganti news() jadi tags()
+            }
+
+            // 4. Simpan Networks (Multiple Select)
+            if ($request->has('network') && is_array($request->network)) {
+                // Karena network biasanya ID yang sudah ada, langsung sync
+                $news->networks()->sync($request->network);
+            }
+
+            DB::connection('mysql_daerah')->commit();
+
+            return redirect()->route('admin.news.index')->with('success', 'Berita Daerah berhasil diterbitkan!');
+        } catch (\Exception $e) {
+            DB::connection('mysql_daerah')->rollBack();
+
+            return back()->withInput()->withErrors(['error' => 'Gagal simpan: ' . $e->getMessage()]);
+        }
+    }
+
+    public function importNasional($is_code)
+    {
+        // 1. Coba ambil dari DB Daerah dulu
+        $news = NewsDaerah::with('tags')->where('is_code', $is_code)->first();
+
+        // Siapkan variabel khusus untuk menampung nilai awal form
+        $initialWriter = null;
+        $initialEditor = null;
+
+        if ($news) {
+            // --- JIKA DATA DARI DAERAH ---
+            $editors = EditorDaerah::where('id', $news->editor_id)
+                ->select('id_ti as value', 'name as label')->get();
+
+            $writers = WriterDaerah::where('id', $news->writer_id)
+                ->select('name as value', 'name as label')->get();
+
+            // Di sinilah keajaibannya terjadi:
+            $initialWriter = $writers->first()->label ?? null; // Mengambil 'name' dari WriterDaerah 
+            $initialEditor = $editors->first()->value ?? null; // Mengambil 'id_ti' dari EditorDaerah
+
+        } else {
+            // --- JIKA DATA DARI NASIONAL ---
+            $news = News::with(['writer', 'tags'])->where('is_code', $is_code)->firstOrFail();
+
+            $editors = EditorNasional::select('editor_name as value', 'editor_name as label')->get();
+            // Pastikan model Writer ini sesuai dengan nama model untuk DB Nasional kamu
+            $writers = WriterNasional::select('name as value', 'name as label')->get();
+
+            // Ambil nama writer dari relasi yang sudah di-load (with('writer'))
+            $initialWriter = $news->writer->name ?? null;
+            // Asumsi jika dari Nasional, editor_id tetap menggunakan ID bawaan tabel News
+            $initialEditor = $news->editor_id ?? null;
+        }
+
+        // 2. Ambil data pendukung dari DB Nasional untuk dropdown
+        $kanal = KanalNasional::select('catnews_id as value', 'catnews_title as label')->get();
+        $fokus = FokusNasional::select('focnews_id as value', 'focnews_title as label')->get();
+
+        return Inertia::render('Admin/News/ImportNasional', [
+            'news' => $news,
+            'writers' => $writers,
+            'editors' => $editors,
+            'kanal' => $kanal,
+            'fokus' => $fokus,
+
+            // Pre-fill data untuk React useForm
+            'initialData' => [
+                'is_code' => $news->is_code ?? '',
+                'title' => $news->title ?? '',
+
+                // Masukkan variabel yang sudah kita racik di atas
+                'writer_id' => $initialWriter,
+                'editor_id' => $initialEditor,
+                'datepub' => $news->datepub ?? '',
+                'locus' => $news->locus ?? '',
+                'description' => $news->description ?? '',
+                'content' => $news->content ?? '',
+                'tag' => $news->tags ? $news->tags->pluck('name')->toArray() : [],
+                'image_caption' => $news->caption ?? $news->image_caption ?? '',
+                'image_thumbnail' => $news->image ?? $news->image_thumbnail ?? '',
+            ]
+        ]);
+    }
+
+    public function importNasionalStore(NewsNasionalImportFormRequest $request)
+    {
+        // Gunakan koneksi mysql_nasional untuk transaksi
+        DB::connection('mysql_nasional')->beginTransaction();
+
+        try {
+            // 1. Simpan tabel News (Koneksi Nasional)
+            // Asumsi nama modelnya adalah NewsNasional (berdasarkan kode controller sebelumnya)
+            $news = NewsNasional::create([
+                'is_code'      => $request->is_code ?? Str::random(8),
+                'news_writer'    => $request->writer,
+                'editor_id'    => $request->editor,
+                'catnews_id'       => $request->kanal,
+                'focnews_id'     => $request->focus,
+                'news_title'        => $request->title,
+                'news_description'  => $request->description,
+                'news_content'      => $request->is_content,
+                'news_image_new'        => $request->image_thumbnail,
+                'news_caption'      => $request->image_caption,
+                'news_status'       => $request->status ?? '3', // Beri default jika status kosong
+                'news_city'        => $request->locus,
+                'news_datepub'      => $request->datepub ?? now(),
+                'news_headline'  => $request->is_headline ? 1 : 0,
+                'news_tags' => implode(',', $request->tag ?? []), // Simpan tag sebagai string, nanti bisa diubah ke relasi many-to-many jika diperlukan
+            ]);
+
+            // 2. Simpan Tags (Many-to-Many) ke tabel Tag Nasional
+            if ($request->has('tag') && is_array($request->tag)) {
+                $tagIds = collect($request->tag)->map(function ($tagName) {
+                    // Gunakan model Tag (Nasional)
+                    return TagsNasional::firstOrCreate([
+                        'name' => strtolower(trim($tagName))
+                    ])->id;
+                });
+
+                // Pastikan relasi di model News kamu bernama 'tags'
+                $news->tags()->sync($tagIds);
+            }
+
+             DB::connection('mysql_nasional')->commit();
+
+            // Ubah route tujuan sesuai dengan halaman index berita nasional kamu
+            return redirect()->route('admin.news.index')->with('success', 'Berita Nasional berhasil diterbitkan!');
+        } catch (\Exception $e) {
+
+             DB::connection('mysql_nasional')->rollBack();
+
+            return back()->withInput()->withErrors(['error' => 'Gagal simpan ke Nasional: ' . $e->getMessage()]);
+        }
     }
 }
