@@ -1,8 +1,28 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React from 'react';
 import { Editor } from '@tinymce/tinymce-react';
 import EditorImageModal from './EditorImageModal';
 
-export default function InputEditor({ value, onChange }) {
+export default function InputEditor({ 
+    value, 
+    onChange,
+    height = 800, // Prop baru untuk mengatur tinggi editor 
+    enableImageUpload = true // Prop baru, default ON
+}) {
+    // Susun toolbar secara dinamis berdasarkan prop
+    const toolbarConfig = 
+        'undo redo | searchreplace | ' +
+        'blocks styles align  | ' +
+        'numlist bullist | ' +
+        (enableImageUpload ? 'customImage ' : '') + 'media link |' +
+        'outdent indent | ' +
+        'blockquote | ' +
+        'ltr rtl | ' +
+        'table | ' +
+        'hr pagebreak | ' +
+        'charmap emoticons | ' +
+        'forecolor backcolor | ' +
+        'removeformat code ';
+
     return (
         <>
             <Editor
@@ -10,6 +30,7 @@ export default function InputEditor({ value, onChange }) {
                 // Atau kosongkan jika ingin pakai mode warning/self-hosted
                 tinymceScriptSrc="/vendor/tinymce/tinymce.min.js"
                 referrerPolicy='origin'
+                
                 // 2. Binding Data
                 value={value}
                 onEditorChange={(content, editor) => {
@@ -19,7 +40,7 @@ export default function InputEditor({ value, onChange }) {
                 // 3. Konfigurasi Fitur Lengkap
                 init={{
                     license_key: 'gpl',
-                    height: 800,
+                    height: height,
                     menubar: false,
                     toolbar_mode: 'wrap',
                     forced_root_block: 'p',
@@ -27,19 +48,24 @@ export default function InputEditor({ value, onChange }) {
                     extended_valid_elements: '+script[language|type|src]',
                     file_picker_types: 'image',
                     contextmenu: false,
+                    
                     setup: (editor) => {
-                        editor.ui.registry.addButton('customImage', {
-                            icon: 'image',
-                            tooltip: 'Upload gambar',
-                            onAction: () => {
-                                window.dispatchEvent(
-                                    new CustomEvent('open-editor-image-modal', {
-                                        detail: { editor }
-                                    })
-                                );
-                            }
-                        });
+                        // Daftarkan custom button hanya jika fitur aktif
+                        if (enableImageUpload) {
+                            editor.ui.registry.addButton('customImage', {
+                                icon: 'image',
+                                tooltip: 'Upload gambar',
+                                onAction: () => {
+                                    window.dispatchEvent(
+                                        new CustomEvent('open-editor-image-modal', {
+                                            detail: { editor }
+                                        })
+                                    );
+                                }
+                            });
+                        }
                     },
+                    
                     image_dimensions: false,
                     image_default_style: 'width:100%;height:500px;',
                     plugins: [
@@ -51,19 +77,10 @@ export default function InputEditor({ value, onChange }) {
                     ],
                     valid_elements: '*[*]',   // izinkan semua dulu
                     invalid_elements: 'span,o:p', // lalu larang span
-                    toolbar:
-                        'undo redo | searchreplace | ' +
-                        'blocks styles align  | ' +
-                        'numlist bullist | ' +
-                        'customImage media link |' +
-                        'outdent indent | ' +
-                        'blockquote | ' +
-                        'ltr rtl | ' +
-                        'table | ' +
-                        'hr pagebreak | ' +
-                        'charmap emoticons | ' +
-                        'forecolor backcolor | ' +
-                        'removeformat code ',
+                    
+                    // Gunakan variabel toolbar yang sudah dibuat dinamis
+                    toolbar: toolbarConfig,
+                    
                     style_formats: [
                         { title: 'Bold', inline: 'strong' },
                         { title: 'Italic', inline: 'em' },
@@ -93,12 +110,11 @@ export default function InputEditor({ value, onChange }) {
                     },
 
                     content_style: 'body { font-size:14px } img { max-width:100%; height:auto; }',
-
-
                 }}
             />
-            <EditorImageModal />
+            
+            {/* Hanya render modal jika upload image diizinkan */}
+            {enableImageUpload && <EditorImageModal />}
         </>
-
     );
 }

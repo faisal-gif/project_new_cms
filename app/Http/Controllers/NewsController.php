@@ -22,10 +22,13 @@ use App\Models\TagsDaerah;
 use App\Models\TagsNasional;
 use App\Models\WriterDaerah;
 use App\Models\WriterNasional;
+use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
+use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
@@ -37,52 +40,58 @@ class NewsController extends Controller
      */
     public function index(Request $request)
     {
-        $query = News::query()
-            ->select(
-                'id',
-                'is_code',
-                'title',
-                'writer_id',
-                'created_at'
-            )->with([
-                'writer:id,name',
-                'newsDaerah.kanal',
-                'newsDaerah.writer',
-                'newsNasional.kanal',
-                'newsNasional.writer',
-            ]);
+        // 1. Ambil data berita (DB 1 & Relasi DB 2/3)
+        try {
+            $query = News::query()
+                ->select('id', 'is_code', 'title', 'writer_id', 'created_at')
+                ->with([
+                    'writer:id,name',
+                    'newsDaerah.kanal',
+                    'newsDaerah.writer',
+                    'newsNasional.kanal',
+                    'newsNasional.writer',
+                ]);
 
-           
+            // Search
+            if ($request->search) {
+                $query->where(function ($q) use ($request) {
+                    $search = $request->search;
+                    if (is_numeric($search)) {
+                        $q->where('id', $search);
+                    } else {
+                        $q->where('title', 'like', "%{$search}%");
+                    }
+                });
+            }
 
-        // Search
-        if ($request->search) {
-            $query->where(function ($q) use ($request) {
-                $search = $request->search;
+            // Filter writer
+            if ($request->writer) {
+                $query->where('writer_id', $request->writer);
+            }
 
-                if (is_numeric($search)) {
-                    $q->where('id', $search);
-                } else {
-                    $q->where('title', 'like', "%{$search}%");
-                }
-            });
+            $news = $query->latest()->simplePaginate(10)->withQueryString();
+        } catch (QueryException $e) {
+            // Jika DB News atau relasinya mati, kembalikan data kosong yang valid untuk frontend
+            Log::error('DB News/Relasi Error: ' . $e->getMessage());
+
+            // Paginator kosong agar Inertia/Vue tidak error saat loop/render
+            $news = new Paginator([], 10);
         }
 
-        // Filter writer
-        if ($request->writer) {
-            $query->where('writer_id', $request->writer);
+        // 2. Ambil data dropdown filter (Koneksi DB Lainnya)
+        try {
+            $writers = WriterDaerah::select('id', 'name')
+                ->where('status', '1')
+                ->get()
+                ->map(fn($u) => [
+                    'value' => $u->id,
+                    'label' => $u->name,
+                ]);
+        } catch (QueryException $e) {
+            // Jika DB WriterDaerah mati, dropdown cukup dikosongkan
+            Log::error('DB WriterDaerah Error: ' . $e->getMessage());
+            $writers = collect();
         }
-
-
-        // Faster pagination
-        $news = $query->latest()->simplePaginate(10)->withQueryString();
-
-        dd($news);
-
-        $writers = WriterDaerah::select('id', 'name')->where('status', '1')->get()
-            ->map(fn($u) => [
-                'value' => $u->id,
-                'label' => $u->name,
-            ]);
 
         return Inertia::render('Admin/News/Index', [
             'news'    => $news,
@@ -296,28 +305,30 @@ class NewsController extends Controller
 
         if ($news) {
             // --- JIKA DATA DARI DAERAH ---
-            $editors = EditorDaerah::where('id', $news->editor_id)
-                ->select('id_ti as value', 'name as label')->get();
+            $editors = EditorNasional::select('editor_id as value', 'editor_name as label')->get();
 
-            $writers = WriterDaerah::where('id', $news->writer_id)
-                ->select('name as value', 'name as label')->get();
+            $writers = WriterNasional::select('id as value', 'name as label')->get();
 
             // Di sinilah keajaibannya terjadi:
-            $initialWriter = $writers->first()->label ?? null; // Mengambil 'name' dari WriterDaerah 
-            $initialEditor = $editors->first()->value ?? null; // Mengambil 'id_ti' dari EditorDaerah
+
+            $initialEditor = EditorDaerah::find($news->editor_id)->id_ti; // Mengambil 'name' dari WriterDaerah 
+            $initialWriter = WriterDaerah::find($news->writer_id)->net_id; // Mengambil 'id_ti' dari EditorDaerah
+
+
 
         } else {
             // --- JIKA DATA DARI NASIONAL ---
             $news = News::with(['writer', 'tags'])->where('is_code', $is_code)->firstOrFail();
 
-            $editors = EditorNasional::select('editor_name as value', 'editor_name as label')->get();
+            $editors = EditorNasional::select('editor_id as value', 'editor_name as label')->get();
             // Pastikan model Writer ini sesuai dengan nama model untuk DB Nasional kamu
-            $writers = WriterNasional::select('name as value', 'name as label')->get();
+            $writers = WriterNasional::select('id as value', 'name as label')->get();
 
             // Ambil nama writer dari relasi yang sudah di-load (with('writer'))
-            $initialWriter = $news->writer->name ?? null;
+            $initialWriter =  WriterDaerah::find($news->writer_id); // Mengambil 'id_ti' dari WriterDaerah berdasarkan 'writer_id' di News
+
             // Asumsi jika dari Nasional, editor_id tetap menggunakan ID bawaan tabel News
-            $initialEditor = $news->editor_id ?? null;
+            $initialEditor =  null;
         }
 
         // 2. Ambil data pendukung dari DB Nasional untuk dropdown
@@ -337,7 +348,8 @@ class NewsController extends Controller
                 'title' => $news->title ?? '',
 
                 // Masukkan variabel yang sudah kita racik di atas
-                'writer_id' => $initialWriter,
+                'writer' => $initialWriter->name ?? '', // Jika $initialWriter adalah objek WriterDaerah, ambil namanya
+                'writer_id' => $initialWriter->net_id ?? '', // Jika $initialWriter adalah objek WriterDaerah, ambil ID-nya
                 'editor_id' => $initialEditor,
                 'datepub' => $news->datepub ?? '',
                 'locus' => $news->locus ?? '',
@@ -361,6 +373,7 @@ class NewsController extends Controller
             $news = NewsNasional::create([
                 'is_code'      => $request->is_code ?? Str::random(8),
                 'news_writer'    => $request->writer,
+                'journalist_id'   => $request->writer_id, // Simpan ID penulis di kolom journalist_id
                 'editor_id'    => $request->editor,
                 'catnews_id'       => $request->kanal,
                 'focnews_id'     => $request->focus,
@@ -389,13 +402,13 @@ class NewsController extends Controller
                 $news->tags()->sync($tagIds);
             }
 
-             DB::connection('mysql_nasional')->commit();
+            DB::connection('mysql_nasional')->commit();
 
             // Ubah route tujuan sesuai dengan halaman index berita nasional kamu
             return redirect()->route('admin.news.index')->with('success', 'Berita Nasional berhasil diterbitkan!');
         } catch (\Exception $e) {
 
-             DB::connection('mysql_nasional')->rollBack();
+            DB::connection('mysql_nasional')->rollBack();
 
             return back()->withInput()->withErrors(['error' => 'Gagal simpan ke Nasional: ' . $e->getMessage()]);
         }

@@ -6,18 +6,15 @@ import ReactCrop, { centerCrop, makeAspectCrop } from "react-image-crop";
 import "react-image-crop/dist/ReactCrop.css";
 import imageCompression from "browser-image-compression";
 
-// --- Helper: Ekstrak area crop dan paksa resolusi jadi 1200x800 ---
-const getCroppedImg = async (image, crop, fileName) => {
+// --- Helper: Ekstrak area crop dan paksa resolusi berdasarkan target ---
+// Tambahkan parameter targetWidth dan targetHeight
+const getCroppedImg = async (image, crop, fileName, targetWidth, targetHeight) => {
   const canvas = document.createElement("canvas");
   const scaleX = image.naturalWidth / image.width;
   const scaleY = image.naturalHeight / image.height;
 
-  // FIX DIMENSI OUTPUT 1200 x 800
-  const TARGET_WIDTH = 1200;
-  const TARGET_HEIGHT = 800;
-
-  canvas.width = TARGET_WIDTH;
-  canvas.height = TARGET_HEIGHT;
+  canvas.width = targetWidth;
+  canvas.height = targetHeight;
   const ctx = canvas.getContext("2d");
 
   // Optimasi kualitas gambar saat di-scale
@@ -31,8 +28,8 @@ const getCroppedImg = async (image, crop, fileName) => {
     crop.height * scaleY,
     0, // Posisi X di canvas
     0, // Posisi Y di canvas
-    TARGET_WIDTH,  // Lebar output paksa
-    TARGET_HEIGHT  // Tinggi output paksa
+    targetWidth,  // Lebar output paksa
+    targetHeight  // Tinggi output paksa
   );
 
   return new Promise((resolve, reject) => {
@@ -53,18 +50,21 @@ export default function InputImage({
   onChange,
   className = "",
   previewClass = "h-48",
+  enableCrop = true, 
+  targetWidth = 1200,  // Prop baru: lebar default
+  targetHeight = 800,  // Prop baru: tinggi default
 }) {
   const inputRef = useRef(null);
   const imgRef = useRef(null);
 
   const [preview, setPreview] = useState(null);
-  const [cropData, setCropData] = useState({ src: null, fileName: "" });
+  const [cropData, setCropData] = useState({ src: null, fileName: "", originalFile: null });
   const [crop, setCrop] = useState();
   const [completedCrop, setCompletedCrop] = useState(null);
   const [isProcessing, setIsProcessing] = useState(false);
 
-  // Rasio yang kita inginkan (1200 / 800 = 1.5)
-  const ASPECT_RATIO = 1200 / 800;
+  // Rasio crop sekarang dinamis berdasarkan prop
+  const ASPECT_RATIO = targetWidth / targetHeight;
 
   useEffect(() => {
     if (!value) {
@@ -85,11 +85,17 @@ export default function InputImage({
     const file = e.target.files?.[0];
     if (!file) return;
 
+    if (!enableCrop) {
+        processOriginalImage(file);
+        return;
+    }
+
     const reader = new FileReader();
     reader.addEventListener("load", () => {
       setCropData({
         src: reader.result?.toString() || "",
         fileName: file.name,
+        originalFile: file, 
       });
     });
     reader.readAsDataURL(file);
@@ -97,7 +103,6 @@ export default function InputImage({
     if (inputRef.current) inputRef.current.value = "";
   };
 
-  // Set area crop default di tengah layar dengan rasio 1.5
   const onImageLoad = (e) => {
     const { width, height } = e.currentTarget;
     imgRef.current = e.currentTarget;
@@ -106,7 +111,7 @@ export default function InputImage({
       makeAspectCrop(
         {
           unit: "%",
-          width: 90, // Ambil 90% lebar gambar sebagai default
+          width: 90,
         },
         ASPECT_RATIO,
         width,
@@ -119,22 +124,52 @@ export default function InputImage({
     setCrop(initialCrop);
   };
 
+  const processOriginalImage = async (fileToProcess = cropData.originalFile) => {
+    if (!fileToProcess) return;
+    setIsProcessing(true);
+
+    try {
+        const compressionOptions = {
+            maxSizeMB: 1.8, 
+            maxWidthOrHeight: Math.max(targetWidth, targetHeight, 1920), // Dinamis, minimal 1920 untuk gambar asli
+            useWebWorker: true,
+        };
+        
+        const compressedFile = await imageCompression(
+            fileToProcess,
+            compressionOptions
+        );
+
+        const previewUrl = URL.createObjectURL(compressedFile);
+        setPreview(previewUrl);
+        onChange?.(compressedFile);
+
+        setCropData({ src: null, fileName: "", originalFile: null });
+    } catch (error) {
+        console.error("Gagal kompresi gambar asli:", error);
+    } finally {
+        setIsProcessing(false);
+    }
+  };
+
   const handleSaveCrop = async () => {
     if (!completedCrop || !imgRef.current) return;
     setIsProcessing(true);
 
     try {
-      // 1. Ekstrak gambar (akan otomatis di-resize jadi 1200x800 oleh Canvas)
+      // 1. Ekstrak gambar (di-resize dinamis oleh Canvas)
       const croppedFile = await getCroppedImg(
         imgRef.current,
         completedCrop,
-        cropData.fileName
+        cropData.fileName,
+        targetWidth,  // Lempar prop
+        targetHeight  // Lempar prop
       );
 
-      // 2. Kompresi gambar agar sizenya kecil tapi dimensi tetap 1200x800
+      // 2. Kompresi gambar
       const compressionOptions = {
-        maxSizeMB: 1.5, // Max 1MB
-        maxWidthOrHeight: 1200, // Karena canvas sudah 1200, ini aman
+        maxSizeMB: 1.5, 
+        maxWidthOrHeight: Math.max(targetWidth, targetHeight), // Ambil sisi terpanjang
         useWebWorker: true,
       };
       const compressedFile = await imageCompression(
@@ -146,7 +181,7 @@ export default function InputImage({
       setPreview(previewUrl);
       onChange?.(compressedFile);
 
-      setCropData({ src: null, fileName: "" });
+      setCropData({ src: null, fileName: "", originalFile: null });
     } catch (error) {
       console.error("Gagal crop/kompresi:", error);
     } finally {
@@ -160,43 +195,51 @@ export default function InputImage({
     if (inputRef.current) inputRef.current.value = "";
   };
 
-  return (
-    <div className={`space-y-2 w-full ${className}`}>
+ return (
+    <div className={`w-full ${className}`}>
       {label && (
-        <label className="label">
-          <span className="label-text font-bold">{label}</span>
-        </label>
+        <div className="mb-3">
+          <span className="text-base font-medium">{label}</span>
+        </div>
       )}
 
-      <div
-        className={`relative border-2 border-dashed rounded-box overflow-hidden bg-base-100 hover:bg-base-200 transition cursor-pointer ${previewClass}`}
-        onClick={() => inputRef.current?.click()}
-      >
-        {preview ? (
-          <>
-            <img
-              src={preview}
-              alt="preview"
-              className="w-full h-full object-cover"
-            />
-            <button
-              type="button"
-              onClick={(e) => {
-                e.stopPropagation();
-                removeImage();
-              }}
-              className="btn btn-error btn-xs absolute top-2 right-2"
-            >
-              <XIcon className="w-4 h-4" />
-            </button>
-          </>
-        ) : (
-          <div className="flex flex-col items-center justify-center h-full text-center gap-2">
-            <ImageIcon className="w-8 h-8 opacity-50" />
-            <div className="text-sm opacity-60">Klik untuk upload gambar</div>
+      {preview ? (
+        <div className="relative w-full rounded-xl overflow-hidden border border-base-200 shadow-sm group">
+          {/* Hapus aspect-[3/2], ganti dengan style dinamis */}
+          <img
+            src={preview}
+            alt="preview"
+            style={{ aspectRatio: `${targetWidth} / ${targetHeight}` }}
+            className="w-full h-auto object-cover cursor-pointer bg-base-300"
+            onClick={() => inputRef.current?.click()}
+          />
+          
+          <div 
+            className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center cursor-pointer pointer-events-none"
+          >
+            <span className="text-white font-medium drop-shadow-md">Klik untuk ganti gambar</span>
           </div>
-        )}
-      </div>
+
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              removeImage();
+            }}
+            className="btn btn-error btn-sm btn-circle absolute top-3 right-3 shadow-lg"
+          >
+            <XIcon className="w-4 h-4" />
+          </button>
+        </div>
+      ) : (
+        <div
+          className="w-full border-2 border-dashed border-gray-400/70 rounded-xl py-6 flex flex-col items-center justify-center cursor-pointer hover:bg-base-200 hover:border-gray-500 transition-all min-h-[240px]"
+          onClick={() => inputRef.current?.click()}
+        >
+          <ImageIcon className="w-8 h-8 text-gray-400 mb-2" />
+          <div className="text-sm text-gray-500 font-medium">Klik untuk upload gambar</div>
+        </div>
+      )}
 
       <input
         ref={inputRef}
@@ -208,15 +251,15 @@ export default function InputImage({
 
       {cropData.src && (
         <div className="modal modal-open z-[9999] bg-black/60">
-          <div className="modal-box max-w-2xl bg-base-100">
-            <h3 className="font-bold text-lg mb-4">Sesuaikan Gambar (1200x800)</h3>
+          <div className="modal-box max-w-3xl bg-base-100">
+            <h3 className="font-bold text-lg mb-4">Sesuaikan Gambar</h3>
 
             <div className="flex justify-center items-center bg-base-200 overflow-auto max-h-[60vh] rounded-lg">
               <ReactCrop
                 crop={crop}
                 onChange={(_, percentCrop) => setCrop(percentCrop)}
                 onComplete={(c) => setCompletedCrop(c)}
-                aspect={ASPECT_RATIO} // 🔥 KUNCI: Paksa rasio 1.5 (Landscape)
+                aspect={ASPECT_RATIO} // Dinamis
               >
                 <img
                   src={cropData.src}
@@ -227,31 +270,39 @@ export default function InputImage({
               </ReactCrop>
             </div>
 
-            <div className="modal-action">
+            <div className="modal-action flex flex-col sm:flex-row gap-2 justify-between items-center w-full mt-6">
               <button
                 type="button"
-                className="btn btn-ghost"
-                onClick={() => setCropData({ src: null, fileName: "" })}
+                className="btn btn-outline w-full sm:w-auto"
+                onClick={() => processOriginalImage()}
                 disabled={isProcessing}
               >
-                Batal
+                {isProcessing ? <span className="loading loading-spinner loading-sm"></span> : "Gunakan Gambar Asli (Tanpa Crop)"}
               </button>
-              <button
-                type="button"
-                className="btn btn-primary"
-                onClick={handleSaveCrop}
-                disabled={
-                  isProcessing ||
-                  !completedCrop?.width ||
-                  !completedCrop?.height
-                }
-              >
-                {isProcessing ? (
-                  <span className="loading loading-spinner loading-sm"></span>
-                ) : (
-                  "Crop & Kompres"
-                )}
-              </button>
+
+              <div className="flex w-full sm:w-auto gap-2">
+                  <button
+                    type="button"
+                    className="btn btn-ghost flex-1 sm:flex-none"
+                    onClick={() => setCropData({ src: null, fileName: "", originalFile: null })}
+                    disabled={isProcessing}
+                  >
+                    Batal
+                  </button>
+                  <button
+                    type="button"
+                    className="btn btn-primary flex-1 sm:flex-none"
+                    onClick={handleSaveCrop}
+                    disabled={isProcessing || !completedCrop?.width || !completedCrop?.height}
+                  >
+                    {isProcessing ? (
+                      <span className="loading loading-spinner loading-sm"></span>
+                    ) : (
+                      // Teks tombol sekarang dinamis
+                      `Crop & Kompres (${targetWidth}x${targetHeight})`
+                    )}
+                  </button>
+              </div>
             </div>
           </div>
         </div>

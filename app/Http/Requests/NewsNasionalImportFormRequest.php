@@ -19,13 +19,14 @@ class NewsNasionalImportFormRequest extends FormRequest
      *
      * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
      */
-  public function rules(): array
+    public function rules(): array
     {
         return [
             'is_code'         => 'required|string',
             'status'          => 'nullable|string',
-            'editor'          => 'required', 
-            'writer'          => 'required', 
+            'editor'          => 'required',
+            'writer'          => 'required',
+            'writer_id'       => 'required|exists:mysql_nasional.journalist,id',
             'title'           => 'required|string|max:255',
             'description'     => 'required|string|max:255',
             'tag'             => 'nullable|array',
@@ -38,7 +39,7 @@ class NewsNasionalImportFormRequest extends FormRequest
             'locus'           => 'nullable|string|max:255',
             'focus'           => 'nullable',
             'kanal'           => 'required',
-         
+
         ];
     }
 

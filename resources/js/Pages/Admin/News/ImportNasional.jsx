@@ -19,7 +19,8 @@ function ImportNasional({ writers, editors, networks, kanal, fokus, initialData 
         is_code: initialData?.is_code || '',
         status: '3',
         editor: initialData?.editor_id || '', // Menangkap nilai default editor_id dari backend
-        writer: initialData?.writer_id || '', // Menangkap nilai default writer_id dari backend
+        writer: initialData?.writer || '', // Menangkap nilai default writer_id dari backend
+        writer_id: initialData?.writer_id || '', // Menangkap nilai default writer_id dari backend
         pin: '',
         keyword_tool: '',
         title: initialData?.title || '',
@@ -34,7 +35,7 @@ function ImportNasional({ writers, editors, networks, kanal, fokus, initialData 
         focus: '',
         kanal: '',
     });
-    
+
 
     const submit = (e) => {
         e.preventDefault();
@@ -91,6 +92,7 @@ function ImportNasional({ writers, editors, networks, kanal, fokus, initialData 
                                                 options={editors}
                                                 placeholder="Pilih Editor..."
                                                 onChange={(val) => setData('editor', val?.value)}
+                                            
                                             />
                                             <InputError message={errors.editor} className="mt-2" />
                                         </div>
@@ -102,10 +104,11 @@ function ImportNasional({ writers, editors, networks, kanal, fokus, initialData 
                                                 className='mb-2 label-text font-bold'
                                             />
                                             <Select
-                                                value={writers.find(w => w.value === data.writer)}
+                                                value={writers.find(w => w.value === data.writer_id)}
                                                 options={writers}
                                                 placeholder="Pilih Penulis..."
-                                                onChange={(val) => setData('writer', val?.value)}
+                                                onChange={(val) => setData('writer_id', val?.value)}
+                                               isDisabled={true} // Disable input writer karena sudah diambil dari data awal dan tidak bisa diubah
                                             />
                                             <InputError message={errors.writer} className="mt-2" />
                                         </div>

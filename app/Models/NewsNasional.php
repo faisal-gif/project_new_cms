@@ -27,7 +27,7 @@ class NewsNasional extends Model
 
     public function writer()
     {
-        return $this->belongsTo(WriterNasional::class, 'news_writer', 'name');
+        return $this->belongsTo(WriterNasional::class, 'journalist_id', 'id');
     }
 
     public function tags()

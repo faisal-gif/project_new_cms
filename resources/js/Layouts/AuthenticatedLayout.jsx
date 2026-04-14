@@ -8,6 +8,7 @@ import {
     FolderInput,
     Globe,
     History,
+    Image,
     ImageIcon,
     ImagesIcon,
     LayoutDashboard,
@@ -142,6 +143,17 @@ export default function AuthenticatedLayout({ header, children }) {
                                 </li>
                             </ul>
                         </details>
+                    </li>
+
+                    {/* Gallery */}
+                    <li>
+                        <Link
+                            href={route('admin.nasional.fotografi.index')}
+                            className={linkClass(isActive('admin.nasional.fotografi.*'))}
+                        >
+                            <Image size={16} />
+                            Gallery
+                        </Link>
                     </li>
 
                     {/* KANAL */}

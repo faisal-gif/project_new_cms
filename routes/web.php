@@ -6,6 +6,7 @@ use App\Http\Controllers\EditorController;
 use App\Http\Controllers\EditorDaerahController;
 use App\Http\Controllers\FokusDaerahController;
 use App\Http\Controllers\FokusNasionalController;
+use App\Http\Controllers\GalleryController;
 use App\Http\Controllers\HistoryController;
 use App\Http\Controllers\KanalDaerahController;
 use App\Http\Controllers\KanalNasionalController;
@@ -63,6 +64,7 @@ Route::middleware('auth')->prefix('admin')->name('admin.')->group(function () {
             Route::resource('fokus', FokusNasionalController::class);
             Route::resource('writer', WriterDaerahController::class);
             Route::resource('editor', EditorDaerahController::class);
+            Route::resource('fotografi', GalleryController::class);
         }
     );
 });
