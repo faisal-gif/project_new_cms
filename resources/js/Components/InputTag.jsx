@@ -172,7 +172,7 @@ export default function InputTag({ label = "Tags", value = [], onChange }) {
                 <span className="label-text font-bold">{label}</span>
             </label>
 
-            <div className="flex flex-wrap gap-2 rounded-box border border-[#d1d1d1] p-2 w-full">
+            <div className="flex flex-wrap gap-2 rounded-box border border-input p-2 w-full">
 
                 <DndContext
                     sensors={sensors}

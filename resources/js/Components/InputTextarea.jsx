@@ -29,7 +29,7 @@ export default function InputTextarea({
             )}
 
             <textarea
-                className={`textarea textarea-bordered w-full ${className}`}
+                className={`textarea border border-input bg-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 w-full ${className}`}
                 value={value}
                 onChange={handleChange}
                 placeholder={placeholder}

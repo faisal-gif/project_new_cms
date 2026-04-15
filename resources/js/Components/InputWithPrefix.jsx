@@ -10,7 +10,7 @@ export default function InputWithPrefix({
     ...props
 }) {
     return (
-        <label className={`input ${className}`}>
+        <label className={`input border border-input bg-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 ${className}`}>
             {prefix && <span className="label">{prefix}</span>}
 
             <input

@@ -3,6 +3,7 @@ import InputSelect from '@/Components/InputSelect'
 import InputWithPrefix from '@/Components/InputWithPrefix'
 import PaginationDaisy from '@/Components/PaginationDaisy'
 import TextInput from '@/Components/TextInput'
+import { Badge } from '@/Components/ui/badge'
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout'
 import { Head, Link, router } from '@inertiajs/react'
 import { Plus, Search } from 'lucide-react'
@@ -13,7 +14,7 @@ function Index({ kanal, filters }) {
   const [status, setStatus] = useState(() => filters.status || '');
   const isFirst = useRef(true);
   const INDEX_ROUTE = route('admin.daerah.kanal.index');
-  
+
   useEffect(() => {
     // Skip initial load
     if (isFirst.current) {
@@ -47,18 +48,24 @@ function Index({ kanal, filters }) {
 
   function getStatusBadge(status) {
     switch (status) {
-      case "active":
+      case "pending":
+      case '0':
+      case 0:
+        return <Badge variant="secondary">Pending</Badge>;
+      case "Review":
+      case '2':
+      case 2:
+        return <Badge className={"bg-yellow-300 text-yellow-700"}>Review</Badge>;
+      case "On Pro":
+      case '3':
+      case 3:
+        return <Badge variant="destructive">OnPro</Badge>;
+      case "Publish":
       case '1':
-      case true:
-        return <span className="badge badge-success badge-soft">Publish</span>;
-
-      case "inactive":
-      case "0":
-      case false:
-        return <span className="badge badge-error badge-soft">Pending</span>;
-
+      case 1:
+        return <Badge className={"bg-green-300 text-green-700"}>Publish</Badge>;
       default:
-        return <span className="badge badge-neutral">{status}</span>;
+        return <Badge variant="neutral">{status}</Badge>;
     }
   }
 

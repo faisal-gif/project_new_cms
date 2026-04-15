@@ -3,6 +3,7 @@ import InputSelect from '@/Components/InputSelect'
 import InputWithPrefix from '@/Components/InputWithPrefix'
 import PaginationDaisy from '@/Components/PaginationDaisy'
 import TextInput from '@/Components/TextInput'
+import { Badge } from '@/Components/ui/badge'
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout'
 import { formatDateTime } from '@/Utils/formatter'
 import { Head, Link, router } from '@inertiajs/react'
@@ -70,45 +71,37 @@ function Index({ news, writers, kanals, filters }) {
       case "pending":
       case '0':
       case 0:
-        return <span className="badge badge-secondary badge-soft">Pending</span>;
-
+        return <Badge variant="secondary">Pending</Badge>;
       case "Review":
       case '2':
       case 2:
-        return <span className="badge badge-warning badge-soft">Review</span>;
-
+        return <Badge className={"bg-yellow-300 text-yellow-700"}>Review</Badge>;
       case "On Pro":
       case '3':
       case 3:
-        return <span className="badge badge-error badge-soft">OnPro</span>;
-
+        return <Badge variant="destructive">OnPro</Badge>;
       case "Publish":
       case '1':
       case 1:
-        return <span className="badge badge-success badge-soft">Publish</span>;
-
+        return <Badge className={"bg-green-300 text-green-700"}>Publish</Badge>;
       default:
-        return <span className="badge badge-neutral">{status}</span>;
+        return <Badge variant="neutral">{status}</Badge>;
     }
   }
-
 
   function getHeadlineBadge(status) {
     switch (status) {
       case '1':
       case 1:
-        return <span className="badge badge-primary badge-soft">ON</span>;
-
+        return <Badge className="badge badge-primary badge-soft">ON</Badge>;
       case '0':
       case 0:
       case null:
-        return <span className="badge badge-secondary badge-soft">OFF</span>;
-
+        return <Badge variant="secondary">OFF</Badge>;
       default:
-        return <span className="badge badge-neutral">{status}</span>;
+        return <Badge variant="neutral">{status}</Badge>;
     }
   }
-
 
 
   return (

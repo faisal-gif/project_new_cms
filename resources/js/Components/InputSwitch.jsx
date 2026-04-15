@@ -1,3 +1,7 @@
+import React from "react";
+// Sesuaikan path import ini dengan lokasi file Switch Shadcn Anda
+import { Switch } from "@/components/ui/switch"; 
+
 export default function InputSwitch({
     label,
     checked = false,
@@ -6,25 +10,28 @@ export default function InputSwitch({
     className = "",
 }) {
     return (
-        <label
+        <div
             className={`flex items-center justify-between w-full 
-            rounded-lg border border-[#d1d1d1] p-4 cursor-pointer 
+            rounded-lg border border-input p-4 
             ${disabled ? "opacity-50 cursor-not-allowed" : ""}
             ${className}`}
         >
             {/* LABEL */}
-            <span className="text-base font-medium">
+            {/* Tambahkan id dan htmlFor agar text label bisa diklik untuk men-toggle switch */}
+            <label 
+                htmlFor="custom-switch" 
+                className={`text-base font-medium ${!disabled && 'cursor-pointer'}`}
+            >
                 {label}
-            </span>
+            </label>
 
-            {/* TOGGLE */}
-            <input
-                type="checkbox"
-                className="toggle toggle-primary"
+            {/* TOGGLE SHADCN */}
+            <Switch
+                id="custom-switch"
                 checked={checked}
+                onCheckedChange={onChange} // Shadcn menggunakan onCheckedChange, bukan onChange
                 disabled={disabled}
-                onChange={(e) => onChange(e.target.checked)}
             />
-        </label>
+        </div>
     );
 }

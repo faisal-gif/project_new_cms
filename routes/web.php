@@ -4,6 +4,7 @@ use App\Http\Controllers\AdsDaerahController;
 use App\Http\Controllers\AdsLocateController;
 use App\Http\Controllers\EditorController;
 use App\Http\Controllers\EditorDaerahController;
+use App\Http\Controllers\EKoranController;
 use App\Http\Controllers\FokusDaerahController;
 use App\Http\Controllers\FokusNasionalController;
 use App\Http\Controllers\GalleryController;
@@ -65,6 +66,7 @@ Route::middleware('auth')->prefix('admin')->name('admin.')->group(function () {
             Route::resource('writer', WriterDaerahController::class);
             Route::resource('editor', EditorDaerahController::class);
             Route::resource('fotografi', GalleryController::class);
+            Route::resource('ekoran', EKoranController::class);
         }
     );
 });
