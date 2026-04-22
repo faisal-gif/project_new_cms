@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\EkoranRequest;
 use App\Http\Requests\StoreEkoranRequest;
 use App\Models\Ekoran;
+use App\Services\CdnService;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
@@ -13,6 +14,11 @@ use Illuminate\Support\Str;
 
 class EKoranController extends Controller
 {
+
+    public function __construct(
+        protected CdnService $cdnService
+    ) {}
+
     public function index(Request $request)
     {
         $query = Ekoran::query();
@@ -42,43 +48,9 @@ class EKoranController extends Controller
     private function uploadToCdn(UploadedFile $file, string $prefixName): string
     {
         // Generate nama file yang unik untuk menghindari bentrok di CDN
-        $extension = $file->getClientOriginalExtension();
-        $fileNameToCDN = $prefixName . '_' . time() . '_' . Str::random(5);
+        $fileName = $prefixName . '_' . time() . '_' . Str::random(5);
 
-        // Praktik terbaik: Gunakan config/env untuk API KEY
-        $apiKey = env('CDN_API_KEY', 'QgwJShcyArAEGqLXKZ3xzcu4');
-
-        $response = Http::timeout(30)->withHeaders([ // Timeout 30 detik agar tidak block process
-            'x-api-key' => 'QgwJShcyArAEGqLXKZ3xzcu4'
-        ])->attach(
-            'file',
-            file_get_contents($file->getPathname()),
-            $file->getClientOriginalName()
-        )->post('https://cdn.tin.co.id/api/v1/images/upload', [
-            'name'          => $fileNameToCDN,
-            'category_id'   => 6,
-            'process_type'  => 'convert',
-            'add_watermark' => '0',
-        ]);
-
-        // Pastikan upload berhasil
-        if (!$response->successful()) {
-            // Lempar exception agar transaksi DB di-rollback
-            throw new \Exception('Gagal mengunggah gambar ke CDN: ' . $response->body());
-        }
-
-        // Ambil URL/Path balasan dari CDN
-        $responseData = $response->json();
-
-        // ASUMSI: API CDN mengembalikan URL lengkap atau path pada key 'data.url' atau 'url'
-        // Anda HARUS menyesuaikan ini dengan struktur response JSON dari API Anda
-        $cdnImageUrl = $responseData['data']['url'] ?? $responseData['url'] ?? null;
-
-        if (!$cdnImageUrl) {
-            throw new \Exception('Respons CDN tidak valid atau tidak mengembalikan URL.');
-        }
-
-        return $cdnImageUrl;
+        return $this->cdnService->uploadImage($file, $fileName, 6, 'convert', true);
     }
     public function store(EkoranRequest $request)
     {
@@ -141,8 +113,6 @@ class EKoranController extends Controller
             'ekoran' => $ekoran
         ]);
     }
-
-
 
     public function update(EkoranRequest $request, string $id)
     {

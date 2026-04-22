@@ -8,6 +8,7 @@ use App\Models\Gallery;
 use App\Models\GalleryCategory;
 use App\Models\GalleryImage;
 use App\Models\WriterNasional;
+use App\Services\CdnService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -19,6 +20,9 @@ use Inertia\Inertia;
 
 class GalleryController extends Controller
 {
+    public function __construct(
+        protected CdnService $cdnService
+    ) {}
     /**
      * Display a listing of the resource.
      */
@@ -122,37 +126,11 @@ class GalleryController extends Controller
                 $file = $image['file'];
 
                 // Buat nama unik untuk file di CDN (mencegah bentrok)
-                $fileNameToCDN = Str::slug($validated['title']) . '-' . time() . '-' . $index . '.' . $file->getClientOriginalExtension();
-
-
-                // Tembak ke API CDN
-                $response = Http::withHeaders([
-                    'x-api-key' => 'QgwJShcyArAEGqLXKZ3xzcu4' // Sebaiknya ini dipindah ke .env nanti
-                ])->attach(
-                    'file',
-                    file_get_contents($file->getPathname()),
-                    $fileNameToCDN
-                )->post('https://cdn.tin.co.id/api/v1/images/upload', [
-                    // Sesuaikan payload ini dengan kebutuhan API CDN Anda
-                    'name'          => $fileNameToCDN,
-                    'category_id'   => 7, // Menggunakan ID kategori berita
-                    'process_type'  => 'convert',
-
-                    'add_watermark' => '1',
-                ]);
-
-                // Pastikan upload berhasil
-                if (!$response->successful()) {
-                    // Lempar exception agar transaksi DB di-rollback
-                    throw new \Exception('Gagal mengunggah gambar ke CDN: ' . $response->body());
-                }
-
-                // Ambil URL/Path balasan dari CDN
-                $responseData = $response->json();
+                $fileNameToCDN = Str::slug($validated['title']) . '-' . time() . '-' . $index;
 
                 // ASUMSI: API CDN mengembalikan URL lengkap atau path pada key 'data.url' atau 'url'
                 // Anda HARUS menyesuaikan ini dengan struktur response JSON dari API Anda
-                $cdnImageUrl = $responseData['data']['url'] ?? $responseData['url'] ?? null;
+                $cdnImageUrl = $this->cdnService->uploadImage($file, $fileNameToCDN, 1, 'convert', true) ?? null;
 
                 if (!$cdnImageUrl) {
                     throw new \Exception('Respons CDN tidak valid atau tidak mengembalikan URL.');
@@ -222,7 +200,7 @@ class GalleryController extends Controller
      */
     public function update(GalleryRequest $request, $id)
     {
-   
+
         $gallery = Gallery::findOrFail($id);
         // 1. Ambil semua data yang sudah divalidasi oleh GalleryRequest
         $validated = $request->validated();
@@ -255,7 +233,7 @@ class GalleryController extends Controller
                 $imagesToDelete = GalleryImage::whereIn('gi_id', $validated['deleted_images'])->get();
 
                 foreach ($imagesToDelete as $img) {
-                
+
                     $img->delete();
                 }
             }
@@ -274,29 +252,9 @@ class GalleryController extends Controller
             if (!empty($validated['new_images'])) {
                 foreach ($validated['new_images'] as $index => $image) {
                     $file = $image['file'];
-                    $fileNameToCDN = Str::slug($validated['title']) . '-' . time() . '-' . $index . '.' . $file->getClientOriginalExtension();
-
-                    // Tembak ke API CDN (Sama seperti logika saat Create)
-                    $response = Http::withHeaders([
-                        'x-api-key' => env('CDN_TIN_API_KEY', 'QgwJShcyArAEGqLXKZ3xzcu4')
-                    ])->attach(
-                        'file',
-                        file_get_contents($file->getPathname()),
-                        $fileNameToCDN
-                    )->post(env('CDN_TIN_UPLOAD_URL', 'https://cdn.tin.co.id/api/v1/images/upload'), [
-                        'name'          => $fileNameToCDN,
-                        'category_id'   => $validated['categoryId'],
-                        'process_type'  => 'convert',
-                        'add_watermark' => '1',
-                    ]);
-
-                    if (!$response->successful()) {
-                        throw new \Exception('Gagal mengunggah gambar baru ke CDN: ' . $response->body());
-                    }
-
-                    $responseData = $response->json();
-                    $cdnImageUrl = $responseData['data']['url'] ?? $responseData['url'] ?? null;
-
+                    $fileNameToCDN = Str::slug($validated['title']) . '-' . time() . '-' . $index;
+                    
+                    $cdnImageUrl = $this->cdnService->uploadImage($file, $fileNameToCDN, 1, 'convert', true) ?? null;
                     if (!$cdnImageUrl) {
                         throw new \Exception('Respons CDN tidak mengembalikan URL yang valid.');
                     }

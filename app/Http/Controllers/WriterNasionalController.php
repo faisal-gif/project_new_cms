@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\WriterNasionalRequest;
 use App\Models\WriterNasional;
+use App\Services\CdnService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
@@ -12,6 +13,12 @@ use Inertia\Inertia;
 
 class WriterNasionalController extends Controller
 {
+
+    public function __construct(
+        protected CdnService $cdnService
+    ) {}
+
+
     public function index(Request $request)
     {
         $query = WriterNasional::query();
@@ -54,30 +61,11 @@ class WriterNasionalController extends Controller
             // Pastikan input dari frontend (React) bernama 'image_thumbnail'
             if ($request->hasFile('image')) {
                 $file = $request->file('image');
+                $profileImage = Str::slug($data['name']) . '-profile';
 
-                // Tembak langsung API CDN
-                $response = Http::withHeaders([
-                    'x-api-key' => 'QgwJShcyArAEGqLXKZ3xzcu4'
-                ])->attach(
-                    'file', // Key 'file' sesuai dengan form-data API CDN
-                    file_get_contents($file->getPathname()),
-                    $file->getClientOriginalName()
-                )->post('https://cdn.tin.co.id/api/v1/images/upload', [
-                    'name'          => Str::slug($data['name']) . '-profile',
-                    'category_id'   => '2', // Sesuaikan dengan kategori yang diinginkan
-                    'process_type'  => 'convert',
-                    'add_watermark' => '0',
-                ]);
-
-                // Jika gagal ke CDN, lemparkan error agar DB di-rollback
-                if (!$response->successful()) {
-                    throw new \Exception('Gagal mengupload thumbnail ke CDN: ' . $response->body());
-                }
-
-                $cdnData = $response->json();
-                // Ambil URL dari response JSON CDN
-                $ImageUrl = $cdnData['data']['url'] ?? $cdnData['url'] ?? null;
+                $ImageUrl = $this->cdnService->uploadImage($file, $profileImage, 2, 'convert', false);
             }
+
             $writerNasional = WriterNasional::create([
                 'slug' => Str::slug($data['name'] . '-' . time()),
                 'name' => $data['name'],
@@ -124,37 +112,13 @@ class WriterNasionalController extends Controller
             // 4. Jika ada file gambar baru yang diunggah
             if ($request->hasFile('image')) {
                 $file = $request->file('image');
+                $profileImage = Str::slug($data['name']) . '-profile';
 
-                // Tembak langsung API CDN
-                $response = Http::withHeaders([
-                    'x-api-key' => 'QgwJShcyArAEGqLXKZ3xzcu4'
-                ])->attach(
-                    'file',
-                    file_get_contents($file->getPathname()),
-                    $file->getClientOriginalName()
-                )->post('https://cdn.tin.co.id/api/v1/images/upload', [
-                    'name'          => Str::slug($data['name']) . '-profile',
-                    'category_id'   => '2',
-                    'process_type'  => 'convert',
-                    'add_watermark' => '0',
-                ]);
-
-                // Jika CDN error, batalkan update
-                if (!$response->successful()) {
-                    throw new \Exception('Gagal mengupload thumbnail baru ke CDN: ' . $response->body());
-                }
-
-                // GUNAKAN VARIABEL BERBEDA ($cdnData) AGAR TIDAK MENIMPA INPUT FORM ($data)
-                $cdnData = $response->json();
-
-                // Ambil URL dari response JSON CDN dan timpa variabel $ImageUrl
-                $ImageUrl = $cdnData['data']['url'] ?? $cdnData['url'] ?? null;
+                $ImageUrl = $this->cdnService->uploadImage($file, $profileImage, 2, 'convert', false);
             }
 
             // 5. Update data penulis ke database
             $writer->update([
-             
-
                 'name'     => $data['name'],
                 'image'    => $ImageUrl, // Berisi gambar lama ATAU gambar baru dari CDN
                 'type'     => $data['type'],

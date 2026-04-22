@@ -199,7 +199,6 @@ export default function EditorImageModal() {
             formData.append("file", finalFileToUpload, originalFileName);
             formData.append("watermark", watermark ? "1" : "0");
             formData.append("name", imageName);
-            formData.append("category_id", "4");
 
             const token = document
                 .querySelector('meta[name="csrf-token"]')

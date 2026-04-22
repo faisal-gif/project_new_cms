@@ -18,6 +18,11 @@ return [
         'key' => env('POSTMARK_API_KEY'),
     ],
 
+    'tin_cdn' => [
+        'url' => env('TIN_CDN_URL'),
+        'api_key' => env('TIN_CDN_API_KEY'),
+    ],
+
     'resend' => [
         'key' => env('RESEND_API_KEY'),
     ],

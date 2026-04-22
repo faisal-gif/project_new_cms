@@ -12,6 +12,7 @@ use App\Models\NewsDaerah;
 use App\Models\NewsDaerahImages;
 use App\Models\TagsDaerah;
 use App\Models\WriterDaerah;
+use App\Services\CdnService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
@@ -23,6 +24,10 @@ use Maatwebsite\Excel\Facades\Excel;
 
 class NewsDaerahController extends Controller
 {
+
+    public function __construct(
+        protected CdnService $cdnService
+    ) {}
 
     // Ekstrak query builder agar reusable
     private function buildQuery(Request $request)
@@ -206,57 +211,34 @@ class NewsDaerahController extends Controller
             // Pastikan input dari frontend (React) bernama 'image_thumbnail'
             if ($request->hasFile('image_thumbnail')) {
                 $file = $request->file('image_thumbnail');
-
-                // Tembak langsung API CDN
-                $response = Http::withHeaders([
-                    'x-api-key' => 'QgwJShcyArAEGqLXKZ3xzcu4'
-                ])->attach(
-                    'file', // Key 'file' sesuai dengan form-data API CDN
-                    file_get_contents($file->getPathname()),
-                    $file->getClientOriginalName()
-                )->post('https://cdn.tin.co.id/api/v1/images/upload', [
-                    'name'          => Str::slug($request->judul) . '-thumbnail',
-                    'category_id'   => '1', // Sesuaikan dengan kategori yang diinginkan
-                    'process_type'  => 'convert',
-                    'add_watermark' => $applyWatermark,
-                ]);
-
-                // Jika gagal ke CDN, lemparkan error agar DB di-rollback
-                if (!$response->successful()) {
-                    throw new \Exception('Gagal mengupload thumbnail ke CDN: ' . $response->body());
-                }
-
-                $data = $response->json();
-
+                $nameThumbnail = Str::slug($request->title, '-Thumbnail');
                 // Ambil URL dari response JSON CDN
-                $thumbnailUrl = $data['data']['url'] ?? $data['url'] ?? null;
-
-                if (!$thumbnailUrl) {
-                    throw new \Exception('URL thumbnail tidak ditemukan dalam response CDN.');
-                }
-                // 1. Simpan tabel News (Koneksi Daerah)
-                // Sesuaikan nama field 'cat_id', 'fokus_id' dsb sesuai skema DB daerah kamu
-                $news = NewsDaerah::create([
-                    'is_code'     => $request->is_code ?? Str::random(8),
-                    'writer_id'   => $request->writer,
-                    'editor_id'   => $request->editor,
-                    'cat_id'      => $request->kanal, // kanal di form dipetakan ke cat_id
-                    'fokus_id'    => $request->focus,
-                    'title'       => $request->title,
-                    'description' => $request->description,
-                    'content'     => $request->is_content, // dari state react 'is_content'
-                    'image'       => $thumbnailUrl, // Simpan URL thumbnail di field 'image'
-                    'caption'     => $request->image_caption,
-                    'status'      => $request->status,
-                    'locus'       => $request->locus,
-                    'datepub'     => $request->datepub ?? now(),
-                    'is_headline' => $request->is_headline ? 1 : 0,
-                    'is_editorial' => $request->is_editorial ? 1 : 0,
-                    'is_adv'      => $request->is_adv ? 1 : 0,
-                    'pin'         => $request->pin ? 1 : 0,
-                    'tag'        => $request->tag ? implode(',', $request->tag) : null,
-                ]);
+                $thumbnailUrl =   $this->cdnService->uploadImage($file, $nameThumbnail, 1, 'convert', $applyWatermark) ?? null;
             }
+
+            // 1. Simpan tabel News (Koneksi Daerah)
+            // Sesuaikan nama field 'cat_id', 'fokus_id' dsb sesuai skema DB daerah kamu
+            $news = NewsDaerah::create([
+                'is_code'     => $request->is_code ?? Str::random(8),
+                'writer_id'   => $request->writer,
+                'editor_id'   => $request->editor,
+                'cat_id'      => $request->kanal, // kanal di form dipetakan ke cat_id
+                'fokus_id'    => $request->focus,
+                'title'       => $request->title,
+                'description' => $request->description,
+                'content'     => $request->is_content, // dari state react 'is_content'
+                'image'       => $thumbnailUrl, // Simpan URL thumbnail di field 'image'
+                'caption'     => $request->image_caption,
+                'status'      => $request->status,
+                'locus'       => $request->locus,
+                'datepub'     => $request->datepub ?? now(),
+                'is_headline' => $request->is_headline ? 1 : 0,
+                'is_editorial' => $request->is_editorial ? 1 : 0,
+                'is_adv'      => $request->is_adv ? 1 : 0,
+                'pin'         => $request->pin ? 1 : 0,
+                'tag'        => $request->tag ? implode(',', $request->tag) : null,
+            ]);
+
 
             // 3. Simpan Tags (Many-to-Many)
             if ($request->has('tag') && is_array($request->tag)) {
@@ -346,30 +328,9 @@ class NewsDaerahController extends Controller
             // Proses Upload image_thumbnail HANYA jika ada file baru yang diunggah
             if ($request->hasFile('image_thumbnail')) {
                 $file = $request->file('image_thumbnail');
-
-                $response = Http::withHeaders([
-                    'x-api-key' => 'QgwJShcyArAEGqLXKZ3xzcu4'
-                ])->attach(
-                    'file',
-                    file_get_contents($file->getPathname()),
-                    $file->getClientOriginalName()
-                )->post('https://cdn.tin.co.id/api/v1/images/upload', [
-                    'name'          => Str::slug($request->title) . '-thumbnail',
-                    'category_id'   => '1',
-                    'process_type'  => 'convert',
-                    'add_watermark' => $applyWatermark,
-                ]);
-
-                if (!$response->successful()) {
-                    throw new \Exception('Gagal mengupload thumbnail ke CDN: ' . $response->body());
-                }
-
-                $data = $response->json();
-                $thumbnailUrl = $data['data']['url'] ?? $data['url'] ?? null;
-
-                if (!$thumbnailUrl) {
-                    throw new \Exception('URL thumbnail tidak ditemukan dalam response CDN.');
-                }
+                $nameThumbnail = Str::slug($request->title, '-Thumbnail');
+                // Ambil URL dari response JSON CDN
+                $thumbnailUrl =   $this->cdnService->uploadImage($file, $nameThumbnail, 1, 'convert', $applyWatermark) ?? null;
             }
 
             // 1. Update tabel News
@@ -430,7 +391,7 @@ class NewsDaerahController extends Controller
         //
     }
 
-     public function export(Request $request)
+    public function export(Request $request)
     {
 
         // Kita passing query yang sudah ter-filter ke dalam class Export
