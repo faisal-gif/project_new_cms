@@ -20,6 +20,7 @@ class NewsNasional extends Model
         return $this->belongsTo(KanalNasional::class, 'catnews_id');
     }
 
+
     public function fokus()
     {
         return $this->belongsTo(FokusNasional::class, 'focnews_id');
@@ -30,15 +31,24 @@ class NewsNasional extends Model
         return $this->belongsTo(WriterNasional::class, 'journalist_id', 'id');
     }
 
+    public function viewData()
+    {
+        return $this->hasOne(
+            NewsViewNasional::class,
+            'news_id', // Foreign key di tabel news_views
+            'news_id'  // Local key di tabel news
+        );
+    }
+
     public function tags()
     {
-      return $this->belongsToMany(
-            TagsNasional::class, 
-            'news_tags',         
-            'news_id',           
-            'tag_id',            
-            'news_id',           
-            'id'                 
+        return $this->belongsToMany(
+            TagsNasional::class,
+            'news_tags',
+            'news_id',
+            'tag_id',
+            'news_id',
+            'id'
         );
     }
 }

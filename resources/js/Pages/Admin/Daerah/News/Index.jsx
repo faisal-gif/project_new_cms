@@ -5,17 +5,21 @@ import PaginationDaisy from '@/Components/PaginationDaisy'
 import TextInput from '@/Components/TextInput'
 import { Badge } from '@/Components/ui/badge'
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout'
-import { formatDateTime } from '@/Utils/formatter'
+import { formatDateTime, formatNumber } from '@/Utils/formatter'
 import { Head, Link, router } from '@inertiajs/react'
-import { Plus, Search } from 'lucide-react'
+import { Download, Plus, Search } from 'lucide-react'
 import React, { useEffect, useRef, useState } from 'react'
 import Select from "react-select";
+import { toast } from 'sonner'
 
-function Index({ news, writers, kanals, filters }) {
+function Index({ news, writers, kanals, fokus, filters }) {
   const [search, setSearch] = useState(() => filters.search || '');
   const [status, setStatus] = useState(() => filters.status || '');
   const [writer, setWriter] = useState(() => filters.writer || '');
   const [kanal, setKanal] = useState(() => filters.kanal || '');
+  const [fokusId, setFokusId] = useState(() => filters.fokus || '');
+  const [startDate, setStartDate] = useState(() => filters.start_date || '');
+  const [endDate, setEndDate] = useState(() => filters.end_date || '');
 
 
   const isFirst = useRef(true);
@@ -30,37 +34,45 @@ function Index({ news, writers, kanals, filters }) {
 
     let timeout = null;
 
-    // Jika search berubah → debounce
+    // 1. Kumpulkan semua state filter ke dalam satu objek payload
+    // Pastikan key object sesuai dengan yang ditangkap $request di Controller
+    const queryPayload = {
+      search,
+      status,
+      writer,
+      kanal,
+      fokus: fokusId,
+      start_date: startDate, // SEBELUMNYA HILANG
+      end_date: endDate,     // SEBELUMNYA HILANG
+      page: 1
+    };
+
+    // 2. Jika text search berubah → gunakan Debounce (jeda 400ms agar tidak spam API)
     if (search !== filters.search) {
       timeout = setTimeout(() => {
-        router.get(
-          INDEX_ROUTE,
-          { search, status, writer, kanal, page: 1 },
-          { preserveState: true, replace: true }
-        );
+        router.get(INDEX_ROUTE, queryPayload, { preserveState: true, replace: true });
       }, 400);
     }
-    // Jika status berubah → langsung fetch
+    // 3. Jika filter lain (tanggal, status, kanal) yang berubah → langsung fetch
     else {
-      router.get(
-        INDEX_ROUTE,
-        { search, status, writer, kanal, page: 1 },
-        { preserveState: true, replace: true }
-      );
+      router.get(INDEX_ROUTE, queryPayload, { preserveState: true, replace: true });
     }
 
+    // Cleanup function untuk membatalkan timeout jika user mengetik terlalu cepat
     return () => timeout && clearTimeout(timeout);
-  }, [search, status, writer, kanal]);
+
+  }, [search, status, writer, kanal, fokusId, startDate, endDate]);
 
   function handleReset() {
     setSearch('');
     setStatus('');
     setWriter('');
     setKanal('');
+    setFokusId('');
 
     router.get(
       INDEX_ROUTE,
-      { search: '', status: '', writer: '', kanal: '', page: 1 },
+      { search: '', status: '', writer: '', kanal: '', fokus: '', page: 1 },
       { preserveState: true, replace: true }
     );
   }
@@ -103,6 +115,43 @@ function Index({ news, writers, kanals, filters }) {
     }
   }
 
+  const handleExport = () => {
+    // 1. Validasi Wajib Isi Tanggal
+    if (!startDate || !endDate) {
+      toast.error("Mohon pilih 'Dari Tanggal' dan 'Sampai Tanggal' terlebih dahulu sebelum melakukan export.");
+      return; // Hentikan proses
+    }
+
+    // 2. Validasi Rentang Waktu (Maksimal 31 Hari)
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+    const diffTime = Math.abs(end - start);
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+    if (diffDays > 31) {
+      toast.error("Rentang tanggal terlalu besar. Maksimal export adalah data untuk 31 hari.");
+      return; // Hentikan proses
+    }
+
+    if (start > end) {
+      toast.error("Tanggal awal tidak boleh lebih besar dari tanggal akhir.");
+      return;
+    }
+
+    // 3. Eksekusi Export jika semua validasi lolos
+    const queryParams = new URLSearchParams({
+      search: search || '',
+      status: status || '',
+      writer: writer || '',
+      fokus: fokusId || '',
+      kanal: kanal || '',
+      start_date: startDate || '',
+      end_date: endDate || ''
+    }).toString();
+
+    window.location.href = `${route('admin.daerah.news.export')}?${queryParams}`;
+  };
+
 
   return (
     <>
@@ -134,17 +183,24 @@ function Index({ news, writers, kanals, filters }) {
               {/* Start Head */}
 
               <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-                {/* Button Tambah User */}
-                <Link href={route('admin.daerah.news.create')} className="btn btn-primary rounded-lg">
-                  <Plus size={16} /> Tambah News
-                </Link>
+                <div className="flex gap-2">
+                  {/* Button Tambah User */}
+                  <Link href={route('admin.daerah.news.create')} className="btn btn-primary rounded-lg">
+                    <Plus size={16} /> Tambah News
+                  </Link>
+
+                  {/* Button Export Baru */}
+                  <button onClick={handleExport} className="btn btn-success text-white rounded-lg">
+                    <Download size={16} /> Export Excel
+                  </button>
+                </div>
               </div>
               {/* End Head */}
 
               {/* Start Filter */}
               <Card>
                 {/* Field Search And Filter */}
-                <div className="flex flex-col md:flex-row gap-4 w-full md:w-auto">
+                <div className="flex flex-col md:flex-row flex-wrap gap-4 w-full md:w-auto">
                   <div className="w-full md:w-96">
                     <InputWithPrefix
                       prefix={<Search size={16} />}
@@ -158,13 +214,25 @@ function Index({ news, writers, kanals, filters }) {
                     <Select
                       options={writers}
                       placeholder="Penulis"
-                      onChange={(e) => setWriter(e.value)} />
+                      value={writers.find(option => option.value === writer) || null}
+                      onChange={(e) => setWriter(e.value)}
+                      isClearable />
                   </div>
                   <div className="w-full md:w-48">
                     <Select
                       options={kanals}
                       placeholder="Kanal"
-                      onChange={(e) => setKanal(e.value)} />
+                      value={kanals.find(option => option.value === kanal) || null}
+                      onChange={(e) => setKanal(e.value)}
+                      isClearable />
+                  </div>
+                  <div className="w-full md:w-48">
+                    <Select
+                      options={fokus}
+                      placeholder="Fokus"
+                      value={fokus.find(option => option.value === fokusId) || null}
+                      onChange={(e) => setFokusId(e.value)}
+                      isClearable />
                   </div>
                   <div className="w-full md:w-48">
                     <InputSelect
@@ -181,13 +249,33 @@ function Index({ news, writers, kanals, filters }) {
                     />
                   </div>
 
-                  {/* RESET BUTTON */}
-                  <button
-                    type="button"
-                    className="btn btn-neutral md:ml-2"
-                    onClick={handleReset}
-                  >
-                    Reset
+
+                </div>
+
+                {/* Baris 2: Date Range & Buttons */}
+                <div className="flex flex-col md:flex-row items-end gap-4 w-full md:w-auto mt-2">
+                  <div className="w-full md:w-48">
+                    <label className="text-xs text-gray-500 mb-1 block">Dari Tanggal</label>
+                    <TextInput
+                      type="date"
+                      className="w-full"
+                      value={startDate}
+                      onChange={(e) => setStartDate(e.target.value)}
+                    />
+                  </div>
+                  <div className="w-full md:w-48">
+                    <label className="text-xs text-gray-500 mb-1 block">Sampai Tanggal</label>
+                    <TextInput
+                      type="date"
+                      className="w-full"
+                      value={endDate}
+                      min={startDate} // Mencegah user memilih end_date sebelum start_date
+                      onChange={(e) => setEndDate(e.target.value)}
+                    />
+                  </div>
+
+                  <button type="button" className="btn btn-neutral" onClick={handleReset}>
+                    Reset Filter
                   </button>
                 </div>
               </Card>
@@ -244,6 +332,7 @@ function Index({ news, writers, kanals, filters }) {
                         <th>Penulis</th>
                         <th>Judul</th>
                         <th>Kanal</th>
+                        <th>Fokus</th>
                         <th>Tanggal Publish</th>
                         <th>View</th>
                         <th>HL</th>
@@ -258,8 +347,9 @@ function Index({ news, writers, kanals, filters }) {
                           <td>{n.writer?.name}</td>
                           <td>{n.title}</td>
                           <td>{n.kanal?.name}</td>
+                          <td>{n.fokus?.name}</td>
                           <td>{n.datepub}</td>
-                          <td>{n.view}</td>
+                          <td>{formatNumber(n.views)}</td>
                           <td>
                             {getHeadlineBadge(n.is_headline)}
                           </td>

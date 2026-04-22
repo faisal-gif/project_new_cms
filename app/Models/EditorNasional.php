@@ -8,6 +8,7 @@ class EditorNasional extends Model
 {
     protected $connection = 'mysql_nasional';
     protected $table = 'editor';
+    protected $primaryKey = 'editor_id';
 
     protected $fillable = ['editor_name', 'editor_alias', 'editor_image', 'editor_description', 'status', 'created_by'];
 

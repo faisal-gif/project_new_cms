@@ -16,6 +16,11 @@ class NewsDaerah extends Model
         return $this->belongsTo(KanalDaerah::class, 'cat_id');
     }
 
+    public function fokus()
+    {
+        return $this->belongsTo(FokusDaerah::class, 'fokus_id');
+    }
+
     // Relasi dengan model Writer
     public function writer()
     {

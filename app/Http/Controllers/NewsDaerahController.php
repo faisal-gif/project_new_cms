@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Exports\NewsDaerahExport;
 use App\Http\Requests\NewsDaerahFormRequest;
 use App\Models\EditorDaerah;
 use App\Models\FokusDaerah;
@@ -12,19 +13,19 @@ use App\Models\NewsDaerahImages;
 use App\Models\TagsDaerah;
 use App\Models\WriterDaerah;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
+use Maatwebsite\Excel\Facades\Excel;
 
 class NewsDaerahController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
 
-    public function index(Request $request)
+    // Ekstrak query builder agar reusable
+    private function buildQuery(Request $request)
     {
         $query = NewsDaerah::query()
             ->select(
@@ -33,6 +34,7 @@ class NewsDaerahController extends Controller
                 'pin',
                 'is_code',
                 'cat_id',
+                'fokus_id',
                 'title',
                 'writer_id',
                 'datepub',
@@ -41,7 +43,7 @@ class NewsDaerahController extends Controller
                 'status',
                 'created_at'
             )
-            ->with(['kanal:id,name', 'writer:id,name']);
+            ->with(['kanal:id,name', 'writer:id,name', 'fokus:id,name']);
 
         // Search
         if ($request->search) {
@@ -66,13 +68,30 @@ class NewsDaerahController extends Controller
             $query->where('cat_id', $request->kanal);
         }
 
+        // Filter fokus
+        if ($request->fokus) {
+            $query->where('fokus_id', $request->fokus);
+        }
+
         // Filter status
         if ($request->filled('status')) {
             $query->where('status', $request->status);
         }
 
+        // FILTER RENTANG TANGGAL (Date Range)
+        if ($request->filled('start_date') && $request->filled('end_date')) {
+            $query->whereBetween('datepub', [
+                Carbon::parse($request->start_date)->startOfDay(), // 00:00:00
+                Carbon::parse($request->end_date)->endOfDay(),     // 23:59:59
+            ]);
+        } elseif ($request->filled('start_date')) {
+            $query->where('datepub', '>=', Carbon::parse($request->start_date)->startOfDay());
+        } elseif ($request->filled('end_date')) {
+            $query->where('datepub', '<=', Carbon::parse($request->end_date)->endOfDay());
+        }
+
         // Optimized sorting
-        $query->orderByRaw("
+        return $query->orderByRaw("
         CASE status
             WHEN 2 THEN 1
             WHEN 3 THEN 2
@@ -80,9 +99,19 @@ class NewsDaerahController extends Controller
             WHEN 0 THEN 4
         END
         ")->orderBy('created_at', 'DESC');
+    }
 
+
+    /**
+     * Display a listing of the resource.
+     */
+
+    public function index(Request $request)
+    {
+        $query = $this->buildQuery($request);
         // Faster pagination
         $news = $query->simplePaginate(10)->withQueryString();
+
 
         $writers = WriterDaerah::select('id', 'name')->where('status', '1')->get()
             ->map(fn($u) => [
@@ -90,16 +119,25 @@ class NewsDaerahController extends Controller
                 'label' => $u->name,
             ]);
 
+
         $kanals = KanalDaerah::select('id', 'name')->get()
             ->map(fn($u) => [
                 'value' => $u->id,
                 'label' => $u->name,
             ]);
 
+        $fokus = FokusDaerah::select('id', 'name')->get()
+            ->map(fn($u) => [
+                'value' => $u->id,
+                'label' => $u->name,
+            ]);
+
+
         return Inertia::render('Admin/Daerah/News/Index', [
             'news'    => $news,
             'writers' => $writers,
             'kanals' => $kanals,
+            'fokus' => $fokus,
             'filters' => $request->only(['search', 'writer', 'kanal', 'status']),
         ]);
     }
@@ -124,7 +162,7 @@ class NewsDaerahController extends Controller
                 'value' => $net->id,
                 'label' => $net->name,
             ]);
-        $writers = WriterDaerah::select(['id', 'name'])->get()
+        $writers = WriterDaerah::select(['id', 'name'])->where('status', '1')->get()
             ->map(fn($w) => [
                 'value' => $w->id,
                 'label' => $w->name,
@@ -390,5 +428,14 @@ class NewsDaerahController extends Controller
     public function destroy(string $id)
     {
         //
+    }
+
+     public function export(Request $request)
+    {
+
+        // Kita passing query yang sudah ter-filter ke dalam class Export
+        $query = $this->buildQuery($request);
+
+        return Excel::download(new NewsDaerahExport($query), 'laporan-news-daerah.xlsx');
     }
 }

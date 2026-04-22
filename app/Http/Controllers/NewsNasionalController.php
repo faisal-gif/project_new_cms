@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Exports\NewsNasionalExport;
 use App\Http\Requests\NewsNasionalFormRequest;
 use App\Models\EditorNasional;
 use App\Models\FokusNasional;
@@ -10,72 +11,65 @@ use App\Models\NewsNasional;
 use App\Models\TagsNasional;
 use App\Models\WriterNasional;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
+use Maatwebsite\Excel\Facades\Excel;
 
 class NewsNasionalController extends Controller
 {
+
+    // Ekstrak query builder agar reusable
+    private function buildQuery(Request $request)
+    {
+        $query = NewsNasional::query()
+            ->select('news_id', 'is_code', 'catnews_id', 'news_title', 'news_writer', 'news_datepub', 'news_headline', 'news_status', 'created')
+            ->with(['kanal:catnews_id,catnews_title,catnews_slug', 'viewData']);
+
+        if ($request->search) {
+            $query->where(function ($q) use ($request) {
+                if (is_numeric($request->search)) {
+                    $q->where('news_id', $request->search);
+                } else {
+                    $q->where('news_title', 'like', "%{$request->search}%");
+                }
+            });
+        }
+
+        if ($request->writer) $query->where('news_writer', $request->writer);
+        if ($request->kanal) $query->where('catnews_id', $request->kanal);
+        if ($request->filled('status')) $query->where('news_status', $request->status);
+
+        // FILTER RENTANG TANGGAL (Date Range)
+        if ($request->filled('start_date') && $request->filled('end_date')) {
+            $query->whereBetween('news_datepub', [
+                Carbon::parse($request->start_date)->startOfDay(), // 00:00:00
+                Carbon::parse($request->end_date)->endOfDay(),     // 23:59:59
+            ]);
+        } elseif ($request->filled('start_date')) {
+            $query->where('news_datepub', '>=', Carbon::parse($request->start_date)->startOfDay());
+        } elseif ($request->filled('end_date')) {
+            $query->where('news_datepub', '<=', Carbon::parse($request->end_date)->endOfDay());
+        }
+
+        return $query->orderByRaw("
+            CASE news_status
+                WHEN 2 THEN 1 WHEN 3 THEN 2 WHEN 1 THEN 3 WHEN 0 THEN 4
+            END
+        ")->orderBy('created', 'DESC');
+    }
+
     /**
      * Display a listing of the resource.
      */
     public function index(Request $request)
     {
-        $query = NewsNasional::query()
-            ->select(
-                'news_id',
-                'is_code',
-                'catnews_id',
-                'news_title',
-                'news_writer',
-                'news_datepub',
-                'news_headline',
-                'news_status',
-                'created'
-            )
-            ->with(['kanal:catnews_id,catnews_title']);
-
-        // Search
-        if ($request->search) {
-            $query->where(function ($q) use ($request) {
-                $search = $request->search;
-
-                if (is_numeric($search)) {
-                    $q->where('news_id', $search);
-                } else {
-                    $q->where('news_title', 'like', "%{$search}%");
-                }
-            });
-        }
-
-        // Filter writer
-        if ($request->writer) {
-            $query->where('news_writer', $request->writer);
-        }
-
-        // Filter kanal
-        if ($request->kanal) {
-            $query->where('catnews_id', $request->kanal);
-        }
-
-        // Filter status
-        if ($request->filled('status')) {
-            $query->where('news_status', $request->status);
-        }
-
-        // Optimized sorting
-        $query->orderByRaw("
-        CASE news_status
-            WHEN 2 THEN 1
-            WHEN 3 THEN 2
-            WHEN 1 THEN 3
-            WHEN 0 THEN 4
-        END
-        ")->orderBy('created', 'DESC');
-
+        $query = $this->buildQuery($request);
         // Faster pagination
         $news = $query->simplePaginate(10)->withQueryString();
+
 
         $writers = WriterNasional::select('id', 'name')->where('status', '1')->get()
             ->map(fn($u) => [
@@ -93,7 +87,7 @@ class NewsNasionalController extends Controller
             'news'    => $news,
             'writers' => $writers,
             'kanals' => $kanals,
-            'filters' => $request->only(['search', 'writer', 'kanal', 'status']),
+            'filters' => $request->only(['search', 'writer', 'kanal', 'status', 'start_date', 'end_date']),
         ]);
     }
 
@@ -270,7 +264,7 @@ class NewsNasionalController extends Controller
     {
         // 1. Ambil data berita beserta relasi tag (Gunakan koneksi mysql_nasional)
         $news = NewsNasional::find($id)->with('tags')->findOrFail($id);
-      
+
         // Format tags menjadi array string biasa untuk input frontend
         $news->tags_array = $news->tags->pluck('name')->toArray();
 
@@ -379,5 +373,17 @@ class NewsNasionalController extends Controller
     public function destroy(NewsNasional $newsNasional)
     {
         //
+    }
+
+
+    public function export(Request $request)
+    {
+
+        // Kita passing query yang sudah ter-filter ke dalam class Export
+        $query = $this->buildQuery($request);
+
+        
+
+        return Excel::download(new NewsNasionalExport($query), 'laporan-news-nasional.xlsx');
     }
 }

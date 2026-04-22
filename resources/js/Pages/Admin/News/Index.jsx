@@ -12,6 +12,8 @@ import React, { useEffect, useRef, useState } from 'react'
 import Select from "react-select";
 
 function Index({ news, writers, kanals, filters }) {
+  console.log(news);
+
   const [search, setSearch] = useState(() => filters.search || '');
   const [writer, setWriter] = useState(() => filters.writer || '');
 
@@ -148,7 +150,7 @@ function Index({ news, writers, kanals, filters }) {
                     <Select
                       options={writers}
                       placeholder="Penulis"
-                      onChange={(e) => setWriter(e.value)} 
+                      onChange={(e) => setWriter(e.value)}
                     />
                   </div>
 
@@ -171,15 +173,12 @@ function Index({ news, writers, kanals, filters }) {
                   {news.data.map((n) => (
                     <div key={n.id} className="card bg-base-100 border border-base-200 shadow-sm overflow-hidden">
                       <div className="card-body p-4 sm:p-5 gap-0">
-                        
-                        {/* Header: Title & Status */}
+
+                        {/* Header: Title */}
                         <div className="flex justify-between items-start gap-3 mb-2">
                           <h3 className="card-title text-base leading-snug font-bold">
                             {n.title}
                           </h3>
-                          {/* <div className="flex-shrink-0 mt-1">
-                            {getStatusBadge(n.status)}
-                          </div> */}
                         </div>
 
                         {/* Meta Info */}
@@ -189,56 +188,76 @@ function Index({ news, writers, kanals, filters }) {
                           <span>{formatDateTime(n.datepub)}</span>
                         </div>
 
-                        {/* Categories & Badges */}
-                        {/* <div className="flex flex-wrap gap-2 mb-4">
-                          <span className="badge badge-ghost badge-sm text-xs">
-                            Kanal: {n.kanal?.name || '-'}
-                          </span>
-                          <span className="badge badge-ghost badge-sm text-xs flex gap-1">
-                            Headline: {getHeadlineBadge(n.is_headline)}
-                          </span>
-                        </div> */}
-
-                        {/* Integration Status (Daerah & Nasional) - Ditambahkan untuk menyamakan dengan tabel desktop */}
-                        <div className="bg-base-200/50 rounded-lg p-3 flex flex-col gap-3 mb-4">
+                        {/* Integration Status (Daerah & Nasional) */}
+                        <div className="bg-base-200/50 rounded-lg p-3 flex flex-col gap-4 mb-4">
+                          
                           {/* Daerah */}
-                          <div className="flex justify-between items-center">
+                          <div className="flex flex-col gap-2">
                             <span className="text-xs font-semibold text-base-content/80">Distribusi Daerah</span>
                             {n.news_daerah ? (
-                              <div className="text-right">
-                                <span className="text-[11px] font-bold text-success block">Terindeks</span>
-                                <span className="text-[10px] text-base-content/60 truncate max-w-[120px] block">
-                                  {n.news_daerah.kanal?.name || 'Daerah'}
-                                </span>
+                              <div className="flex justify-between items-center bg-base-100 p-2 rounded border border-base-200">
+                                <div className="flex flex-col">
+                                  <span className="text-[11px] font-bold text-success flex items-center gap-1">
+                                    <span className="w-1.5 h-1.5 rounded-full bg-success"></span> Terindeks
+                                  </span>
+                                  <span className="text-[11px] text-base-content/70 truncate max-w-[150px]">
+                                    {n.news_daerah.kanal?.name || 'Daerah'}
+                                  </span>
+                                </div>
+                                <Link
+                                  href={route('admin.daerah.news.edit', n.news_daerah.id)} // Sesuaikan nama route Anda
+                                  className="btn btn-xs btn-warning btn-outline"
+                                >
+                                  Edit
+                                </Link>
                               </div>
                             ) : (
                               <Link
                                 href={route('admin.news.import.daerah', n.is_code)}
-                                className="btn btn-xs btn-info btn-outline"
+                                className="btn btn-xs btn-info btn-outline self-start"
                               >
                                 + Daerah
                               </Link>
                             )}
                           </div>
-                          
+
                           <div className="border-t border-base-300"></div>
-                          
+
                           {/* Nasional */}
-                          <div className="flex justify-between items-center">
+                          <div className="flex flex-col gap-2">
                             <span className="text-xs font-semibold text-base-content/80">Distribusi Nasional</span>
-                            <Link
-                              href={route('admin.news.import.nasional', n.is_code)}
-                              className="btn btn-xs btn-info btn-outline"
-                            >
-                              + Nasional
-                            </Link>
+                            {n.news_nasional ? (
+                              <div className="flex justify-between items-center bg-base-100 p-2 rounded border border-base-200">
+                                <div className="flex flex-col">
+                                  <span className="text-[11px] font-bold text-success flex items-center gap-1">
+                                    <span className="w-1.5 h-1.5 rounded-full bg-success"></span> Terindeks
+                                  </span>
+                                  <span className="text-[11px] text-base-content/70 truncate max-w-[150px]">
+                                    {n.news_nasional.kanal?.catnews_title || 'Nasional'}
+                                  </span>
+                                </div>
+                                <Link
+                                  href={route('admin.nasional.news.edit', n.news_nasional.news_id)} // Sesuaikan nama route Anda
+                                  className="btn btn-xs btn-warning btn-outline"
+                                >
+                                  Edit
+                                </Link>
+                              </div>
+                            ) : (
+                              <Link
+                                href={route('admin.news.import.nasional', n.is_code)}
+                                className="btn btn-xs btn-info btn-outline self-start"
+                              >
+                                + Nasional
+                              </Link>
+                            )}
                           </div>
                         </div>
 
                         {/* Actions */}
                         <div className="card-actions justify-end mt-2">
-                          <Link href={route('admin.news.edit', n)} className="btn btn-sm btn-warning btn-outline w-full sm:w-auto">
-                            Edit News
+                          <Link href={route('admin.news.edit', n.id)} className="btn btn-sm btn-primary w-full sm:w-auto">
+                            Edit Berita Utama
                           </Link>
                         </div>
 
@@ -249,12 +268,12 @@ function Index({ news, writers, kanals, filters }) {
 
                 {/* DESKTOP VERSION (Table Mode) */}
                 <div className="hidden md:block overflow-x-auto">
-                  <table className="table table-zebra">
+                  <table className="table table-zebra w-full">
                     <thead>
                       <tr>
                         <th>#</th>
                         <th>Penulis</th>
-                        <th>Judul</th>
+                        <th className="w-1/3">Judul</th>
                         <th>Daerah</th>
                         <th>Nasional</th>
                         <th className="text-right">Action</th>
@@ -265,35 +284,78 @@ function Index({ news, writers, kanals, filters }) {
                         <tr key={n.id}>
                           <th>{n.id}</th>
                           <td>{n.writer?.name}</td>
-                          <td>{n.title}</td>
+                          <td>
+                            <p className="font-medium truncate max-w-xs">{n.title}</p>
+                            <span className="text-[10px] text-base-content/60">{formatDateTime(n.datepub)}</span>
+                          </td>
+                          
+                          {/* Kolom Daerah */}
                           <td>
                             {n.news_daerah ? (
-                              <div className="flex flex-col gap-1">
-                                <span className="text-xs font-bold text-success">Sudah Terindeks</span>
-                                <span className="text-[10px] leading-tight text-gray-600">Judul: {n.news_daerah.title}</span>
-                                <span className="badge badge-xs badge-ghost italic">{n.news_daerah.kanal?.name}</span>
-                                {getStatusBadge(n.news_daerah.status)}
+                              <div className="flex flex-col gap-1.5">
+                                <div className="flex items-center justify-between gap-2">
+                                  <span className="text-[11px] font-bold text-success">Terindeks</span>
+                                  <Link 
+                                    href={route('admin.daerah.news.edit', n.news_daerah.id)} // Sesuaikan nama route Anda
+                                    className="btn btn-xs btn-warning btn-outline h-6 min-h-0"
+                                  >
+                                    Edit
+                                  </Link>
+                                </div>
+                                <span className="text-[11px] leading-tight text-base-content/80 truncate max-w-[150px]" title={n.news_daerah.title}>
+                                  {n.news_daerah.title}
+                                </span>
+                                <div className="flex items-center gap-1">
+                                  <span className="badge badge-xs badge-ghost italic">{n.news_daerah.kanal?.name}</span>
+                                  {getStatusBadge(n.news_daerah.status)}
+                                </div>
                               </div>
                             ) : (
                               <Link
                                 href={route('admin.news.import.daerah', n.is_code)}
                                 className="btn btn-xs btn-info btn-outline"
                               >
-                                Tidak Ada
+                                + Daerah
                               </Link>
                             )}
                           </td>
+
+                          {/* Kolom Nasional */}
                           <td>
-                            <Link
-                              href={route('admin.news.import.nasional', n.is_code)}
-                              className="btn btn-xs btn-info btn-outline"
-                            >
-                              Nasional
-                            </Link>
+                            {n.news_nasional ? (
+                              <div className="flex flex-col gap-1.5">
+                                <div className="flex items-center justify-between gap-2">
+                                  <span className="text-[11px] font-bold text-success">Terindeks</span>
+                                  <Link 
+                                    href={route('admin.nasional.news.edit', n.news_nasional.news_id)} // Sesuaikan nama route Anda
+                                    className="btn btn-xs btn-warning btn-outline h-6 min-h-0"
+                                  >
+                                    Edit
+                                  </Link>
+                                </div>
+                                <span className="text-[11px] leading-tight text-base-content/80 truncate max-w-[150px]">
+                                  {n.news_nasional.title || '-'}
+                                </span>
+                                <div className="flex items-center gap-1">
+                                  <span className="badge badge-xs badge-ghost italic">
+                                    {n.news_nasional.kanal?.catnews_title || 'Nasional'}
+                                  </span>
+                                  {getStatusBadge(n.news_nasional.news_status)}
+                                </div>
+                              </div>
+                            ) : (
+                              <Link
+                                href={route('admin.news.import.nasional', n.is_code)}
+                                className="btn btn-xs btn-info btn-outline"
+                              >
+                                + Nasional
+                              </Link>
+                            )}
                           </td>
+                          
                           <td>
                             <div className="flex justify-end gap-2">
-                              <Link href={route('admin.news.edit', n)} className="btn btn-sm btn-warning btn-outline">Edit</Link>
+                              <Link href={route('admin.news.edit', n.id)} className="btn btn-sm btn-primary btn-outline">Edit Induk</Link>
                             </div>
                           </td>
                         </tr>

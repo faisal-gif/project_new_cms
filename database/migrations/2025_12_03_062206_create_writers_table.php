@@ -19,12 +19,12 @@ return new class extends Migration
             $table->string('no_whatsapp')->nullable();
             $table->date('date_exp')->nullable();
             $table->unsignedBigInteger('network_id');
-            $table->integer('net_id')->nullable();
+            $table->integer('id_nasional')->nullable();
+            $table->integer('id_daerah')->nullable();
             $table->enum('status', ['0', '1'])->comment('0 = Pending, 1 = Publish');
             $table->unsignedBigInteger('editor_id')->nullable();
 
-            $table->foreign('network_id')->references('id')->on('network')->onDelete('cascade');
-            $table->foreign('editor_id')->references('id')->on('editors')->onDelete('cascade');
+       
             $table->timestamps();
         });
     }

@@ -20,6 +20,7 @@ use App\Models\NewsTags;
 use App\Models\Tags;
 use App\Models\TagsDaerah;
 use App\Models\TagsNasional;
+use App\Models\Writer;
 use App\Models\WriterDaerah;
 use App\Models\WriterNasional;
 use Illuminate\Database\QueryException;
@@ -106,7 +107,7 @@ class NewsController extends Controller
     public function create()
     {
         $auth = Auth::user();
-        $writers = WriterDaerah::select(['id', 'name'])->get()
+        $writers = Writer::select(['id', 'name'])->where('status', '1')->get()
             ->map(fn($w) => [
                 'value' => $w->id,
                 'label' => $w->name,
@@ -202,19 +203,15 @@ class NewsController extends Controller
 
     public function importDaerah($is_code)
     {
-        $news = NewsNasional::where('is_code', $is_code)->first();
 
-        if (!$news) {
-            // 1. Ambil data dari DB Utama sebagai master data
-            $news = News::with(['writer', 'tags'])->where('is_code', $is_code)->firstOrFail();
-        }
+        $news = News::with(['writer', 'tags'])->where('is_code', $is_code)->firstOrFail();
 
         // 2. Ambil data pendukung dari DB Daerah untuk dropdown
-        $writers = WriterDaerah::select('id as value', 'name as label')->get();
-        $editors = EditorDaerah::select('id as value', 'name as label')->get();
-        $networks = NetworkDaerah::select('id as value', 'name as label')->get();
-        $kanal = KanalDaerah::select('id as value', 'name as label')->get();
-        $fokus = FokusDaerah::select('id as value', 'name as label')->get();
+        $writers = WriterDaerah::select('id as value', 'name as label')->where('status', '1')->get();
+        $editors = EditorDaerah::select('id as value', 'name as label')->where('status', '1')->get();
+        $networks = NetworkDaerah::select('id as value', 'name as label')->where('status', '1')->get();
+        $kanal = KanalDaerah::select('id as value', 'name as label')->where('status', '1')->get();
+        $fokus = FokusDaerah::select('id as value', 'name as label')->where('status', '1')->get();
 
         return Inertia::render('Admin/News/ImportDaerah', [
             'news' => $news,
@@ -227,7 +224,7 @@ class NewsController extends Controller
             'initialData' => [
                 'is_code' => $news->is_code,
                 'title' => $news->title,
-                'writer_id' => $news->writer_id,
+                'writer_id' => $news->writer->id_daerah ?? null, // Ambil ID penulis dari relasi writer
                 'writer_network_id' => $news->writer->network_id ?? null,
                 'description' => $news->description,
                 'content' => $news->content,
@@ -241,6 +238,7 @@ class NewsController extends Controller
 
     public function importDaerahStore(NewsDaerahImportFormRequest $request)
     {
+      
         // Gunakan koneksi mysql_daerah untuk transaksi
         DB::connection('mysql_daerah')->beginTransaction();
 
@@ -297,43 +295,15 @@ class NewsController extends Controller
     public function importNasional($is_code)
     {
         // 1. Coba ambil dari DB Daerah dulu
-        $news = NewsDaerah::with('tags')->where('is_code', $is_code)->first();
+        $news = News::with(['writer', 'tags'])->where('is_code', $is_code)->firstOrFail();
 
-        // Siapkan variabel khusus untuk menampung nilai awal form
-        $initialWriter = null;
-        $initialEditor = null;
-
-        if ($news) {
-            // --- JIKA DATA DARI DAERAH ---
-            $editors = EditorNasional::select('editor_id as value', 'editor_name as label')->get();
-
-            $writers = WriterNasional::select('id as value', 'name as label')->get();
-
-            // Di sinilah keajaibannya terjadi:
-
-            $initialEditor = EditorDaerah::find($news->editor_id)->id_ti; // Mengambil 'name' dari WriterDaerah 
-            $initialWriter = WriterDaerah::find($news->writer_id)->net_id; // Mengambil 'id_ti' dari EditorDaerah
-
-
-
-        } else {
-            // --- JIKA DATA DARI NASIONAL ---
-            $news = News::with(['writer', 'tags'])->where('is_code', $is_code)->firstOrFail();
-
-            $editors = EditorNasional::select('editor_id as value', 'editor_name as label')->get();
-            // Pastikan model Writer ini sesuai dengan nama model untuk DB Nasional kamu
-            $writers = WriterNasional::select('id as value', 'name as label')->get();
-
-            // Ambil nama writer dari relasi yang sudah di-load (with('writer'))
-            $initialWriter =  WriterDaerah::find($news->writer_id); // Mengambil 'id_ti' dari WriterDaerah berdasarkan 'writer_id' di News
-
-            // Asumsi jika dari Nasional, editor_id tetap menggunakan ID bawaan tabel News
-            $initialEditor =  null;
-        }
+        $editors = EditorNasional::select('editor_id as value', 'editor_name as label')->where('status', '1')->get();
+        // Pastikan model Writer ini sesuai dengan nama model untuk DB Nasional kamu
+        $writers = WriterNasional::select('id as value', 'name as label')->where('status', '1')->get();
 
         // 2. Ambil data pendukung dari DB Nasional untuk dropdown
-        $kanal = KanalNasional::select('catnews_id as value', 'catnews_title as label')->get();
-        $fokus = FokusNasional::select('focnews_id as value', 'focnews_title as label')->get();
+        $kanal = KanalNasional::select('catnews_id as value', 'catnews_title as label')->where('catnews_status', '1')->get();
+        $fokus = FokusNasional::select('focnews_id as value', 'focnews_title as label')->where('status', '1')->get();
 
         return Inertia::render('Admin/News/ImportNasional', [
             'news' => $news,
@@ -348,9 +318,9 @@ class NewsController extends Controller
                 'title' => $news->title ?? '',
 
                 // Masukkan variabel yang sudah kita racik di atas
-                'writer' => $initialWriter->name ?? '', // Jika $initialWriter adalah objek WriterDaerah, ambil namanya
-                'writer_id' => $initialWriter->net_id ?? '', // Jika $initialWriter adalah objek WriterDaerah, ambil ID-nya
-                'editor_id' => $initialEditor,
+                'writer' => $news->writer->name ?? '', // Jika $initialWriter adalah objek WriterDaerah, ambil namanya
+                'writer_id' => $news->writer->id_nasional ?? '', // Jika $initialWriter adalah objek WriterDaerah, ambil ID-nya
+                'editor_id' => '',
                 'datepub' => $news->datepub ?? '',
                 'locus' => $news->locus ?? '',
                 'description' => $news->description ?? '',

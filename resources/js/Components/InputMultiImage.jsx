@@ -93,9 +93,12 @@ export default function InputMultiImage({
     // --- FUNGSI HAPUS ---
     const removeFile = (idToRemove) => {
         const fileToRemove = value.find((p) => p.id === idToRemove);
-        if (fileToRemove) {
+
+        // Hanya revoke jika itu BUKAN gambar lama yang sudah ada (isExisting)
+        if (fileToRemove && !fileToRemove.isExisting && fileToRemove.previewUrl) {
             URL.revokeObjectURL(fileToRemove.previewUrl);
         }
+
         onChange(value.filter((p) => p.id !== idToRemove));
     };
 

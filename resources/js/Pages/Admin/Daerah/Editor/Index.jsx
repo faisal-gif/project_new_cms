@@ -52,19 +52,11 @@ function Index({ editors, filters }) {
       case "pending":
       case '0':
       case 0:
-        return <Badge variant="secondary">Pending</Badge>;
-      case "Review":
-      case '2':
-      case 2:
-        return <Badge className={"bg-yellow-300 text-yellow-700"}>Review</Badge>;
-      case "On Pro":
-      case '3':
-      case 3:
-        return <Badge variant="destructive">OnPro</Badge>;
+        return <Badge variant="secondary">Inactive</Badge>;
       case "Publish":
       case '1':
       case 1:
-        return <Badge className={"bg-green-300 text-green-700"}>Publish</Badge>;
+        return <Badge className={"bg-green-300 text-green-700"}>Active</Badge>;
       default:
         return <Badge variant="neutral">{status}</Badge>;
     }
