@@ -7,8 +7,10 @@ use App\Models\AdsDaerah;
 use App\Models\AdsLocate;
 use App\Models\History;
 use App\Models\Network;
+use App\Models\NetworkDaerah;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 
 class AdsDaerahController extends Controller
@@ -38,7 +40,7 @@ class AdsDaerahController extends Controller
             ->paginate(10)
             ->withQueryString();
 
-        return Inertia::render('Admin/AdsDaerah/Index', [
+        return Inertia::render('Admin/Daerah/Ads/Index', [
             'ads_daerah'   => $ads_daerah,
             'filters' => $request->only(['search', 'status', 'type']),
         ]);
@@ -49,7 +51,7 @@ class AdsDaerahController extends Controller
      */
     public function create()
     {
-        $networks = Network::select('id', 'name')->get()
+        $networks = NetworkDaerah::select('id', 'name')->get()
             ->map(fn($net) => [
                 'value' => $net->id,
                 'label' => $net->name,
@@ -65,7 +67,7 @@ class AdsDaerahController extends Controller
             });
 
 
-        return Inertia::render('Admin/AdsDaerah/Create', [
+        return Inertia::render('Admin/Daerah/Ads/Create', [
             'locations' => $locations,
             'networks' => $networks,
         ]);
@@ -77,37 +79,32 @@ class AdsDaerahController extends Controller
     public function store(AdsDaerahFormRequest $request)
     {
 
-        $auth = Auth::user();
+        try {
+            DB::beginTransaction();
 
-        $adsDaerah = AdsDaerah::create([
-            'title' => $request->title,
-            'type' => $request->type,
-            'created_by' => $auth->id,
-            'modifed_by' => $auth->id,
-            'locate_id' => $request->location,
-            'datestart' => $request->datestart,
-            'dateend' => $request->dateend,
-            'image' => $request->image,
-            'url' => $request->url,
-            'cpc' => $request->cpc,
-            'cost' => $request->cost,
-            'status' => (int) $request->status,
-        ]);
-
-
-        $networkIds = collect($request->network)->pluck('value')->toArray();
-
-        $adsDaerah->networks()->sync($networkIds);
+            $adsDaerah = AdsDaerah::create([
+                'title' => $request->title,
+                'type' => $request->type,
+                'locate_id' => $request->location,
+                'datestart' => $request->datestart,
+                'dateend' => $request->dateend,
+                'image' => $request->image,
+                'url' => $request->url,
+                'cpc' => $request->cpc,
+                'cost' => $request->cost,
+                'status' => (int) $request->status,
+            ]);
 
 
-        $history = History::create([
-            'user_id' => $auth->id,
-            'action' => 'add',
-            'tipe' => 'ads daerah',
-            'target' => $adsDaerah->title,
-        ]);
+            $networkIds = collect($request->network)->pluck('value')->toArray();
 
-        return redirect()->route('admin.ads.daerah.index')->with('success', 'Ads Daerah berhasil ditambahkan.');
+            $adsDaerah->networks()->sync($networkIds);
+            DB::commit();
+            return redirect()->route('admin.daerah.ads.index')->with('success', 'Ads Daerah berhasil ditambahkan.');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return redirect()->back()->with('error', 'Gagal menambahkan Ads: ' . $e->getMessage());
+        }
     }
 
     /**
@@ -121,17 +118,17 @@ class AdsDaerahController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(AdsDaerah $list)
+    public function edit(AdsDaerah $ad)
     {
 
         // Semua opsi networks
-        $networks = Network::all()->map(fn($n) => [
+        $networks = NetworkDaerah::all()->map(fn($n) => [
             'label' => $n->name,
             'value' => $n->id,
         ]);
 
         // Selected networks (multi select)
-        $selectedNetworks = $list->networks->map(fn($n) => [
+        $selectedNetworks = $ad->networks->map(fn($n) => [
             'label' => $n->name,
             'value' => $n->id,
         ]);
@@ -145,9 +142,8 @@ class AdsDaerahController extends Controller
                 ]);
             });
 
-
-        return Inertia::render('Admin/AdsDaerah/Edit', [
-            'item' => $list,
+        return Inertia::render('Admin/Daerah/Ads/Edit', [
+            'item' => $ad,
             'networks' => $networks,
             'selectedNetworks' => $selectedNetworks,
             'locations' => $locations,
@@ -158,33 +154,35 @@ class AdsDaerahController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(AdsDaerahFormRequest $request, AdsDaerah $list)
+    public function update(AdsDaerahFormRequest $request, AdsDaerah $ad)
     {
         $auth = Auth::user();
+        try {
+            DB::beginTransaction();
 
-        $list->update([
-            'title' => $request->title,
-            'type' => $request->type,
-            'created_by' => $auth->id,
-            'modifed_by' => $auth->id,
-            'locate_id' => $request->location,
-            'datestart' => $request->datestart,
-            'dateend' => $request->dateend,
-            'image' => $request->image,
-            'url' => $request->url,
-            'cpc' => $request->cpc,
-            'cost' => $request->cost,
-            'status' => (int) $request->status,
-        ]);
+            $ad->update([
+                'title' => $request->title,
+                'type' => $request->type,
+                'locate_id' => $request->location,
+                'datestart' => $request->datestart,
+                'dateend' => $request->dateend,
+                'image' => $request->image,
+                'url' => $request->url,
+                'cpc' => $request->cpc,
+                'cost' => $request->cost,
+                'status' => (int) $request->status,
+            ]);
 
 
-        $networkIds = collect($request->network)->pluck('value')->toArray();
+            $networkIds = collect($request->network)->pluck('value')->toArray();
 
-        $list->networks()->sync($networkIds);
+            $ad->networks()->sync($networkIds);
 
-        return redirect()
-            ->route('admin.ads.daerah.index')
-            ->with('success', 'Data berhasil diperbarui!');
+            return redirect()->route('admin.daerah.ads.index')->with('success', 'Ads berhasil diperbarui!');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return redirect()->back()->with('error', 'Gagal Mengupdate Ads: ' . $e->getMessage());
+        }
     }
 
     /**

@@ -21,7 +21,7 @@ function Edit({ editor }) {
 
     const submit = (e) => {
         e.preventDefault();
-        put(route('admin.editor.update', editor));
+        put(route('admin.daerah.editor.update', editor));
 
     };
 

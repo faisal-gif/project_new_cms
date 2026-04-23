@@ -5,8 +5,10 @@ namespace App\Http\Controllers;
 use App\Http\Requests\AdsLocateFormRequest;
 use App\Models\AdsLocate;
 use App\Models\History;
+
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 
 class AdsLocateController extends Controller
@@ -36,7 +38,7 @@ class AdsLocateController extends Controller
             ->paginate(10)
             ->withQueryString();
 
-        return Inertia::render('Admin/AdsLocate/Index', [
+        return Inertia::render('Admin/Daerah/AdsLocate/Index', [
             'ads_locates'   => $ads_locate,
             'filters' => $request->only(['search', 'status', 'type']),
         ]);
@@ -47,7 +49,7 @@ class AdsLocateController extends Controller
      */
     public function create()
     {
-        return Inertia::render('Admin/AdsLocate/Create');
+        return Inertia::render('Admin/Daerah/AdsLocate/Create');
     }
 
     /**
@@ -57,21 +59,20 @@ class AdsLocateController extends Controller
     {
         $auth = Auth::user();
 
-        $adsLocate = AdsLocate::create([
-            'name' => $request->name,
-            'type' => $request->type,
-            'status' => $request->status,
-        ]);
+        DB::beginTransaction();
+        try {
+            $adsLocate = AdsLocate::create([
+                'name' => $request->name,
+                'type' => $request->type,
+                'status' => $request->status,
+            ]);
 
-
-        $history = History::create([
-            'user_id' => $auth->id,
-            'action' => 'add',
-            'tipe' => 'ads locate',
-            'target' => $adsLocate->name,
-        ]);
-
-        return redirect()->route('admin.ads.locate.index')->with('success', 'Ads Locate berhasil ditambahkan.');
+            DB::commit();
+            return redirect()->route('admin.daerah.adsLocate.index')->with('success', 'Ads Locate berhasil ditambahkan.');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return redirect()->route('admin.daerah.adsLocate.index')->with('error', 'Terjadi kesalahan saat menambahkan Ads Locate: ' . $e->getMessage());
+        }
     }
 
     /**
@@ -85,33 +86,33 @@ class AdsLocateController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(AdsLocate $locate)
+    public function edit(AdsLocate $adsLocate)
     {
-        return Inertia::render('Admin/AdsLocate/Edit', [
-            'ads_locate' => $locate,
+        return Inertia::render('Admin/Daerah/AdsLocate/Edit', [
+            'ads_locate' => $adsLocate,
         ]);
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(AdsLocateFormRequest $request, AdsLocate $locate)
+    public function update(AdsLocateFormRequest $request, AdsLocate $adsLocate)
     {
         $auth = Auth::user();
 
-        $locate->name = $request->input('name');
-        $locate->type = $request->input('type');
-        $locate->status = $request->input('status');
-        $locate->save();
+        try {
+            DB::beginTransaction();
+            $adsLocate->name = $request->input('name');
+            $adsLocate->type = $request->input('type');
+            $adsLocate->status = $request->input('status');
+            $adsLocate->save();
 
-        $history = History::create([
-            'user_id' => $auth->id,
-            'action' => 'edit',
-            'tipe' => 'ads locate',
-            'target' => $locate->name,
-        ]);
-
-        return redirect()->route('admin.ads.locate.index')->with('success', 'Ads Locate berhasil diperbarui.');
+            DB::commit();
+            return redirect()->route('admin.daerah.adsLocate.index')->with('success', 'Ads Locate berhasil diperbarui.');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return redirect()->route('admin.daerah.adsLocate.index')->with('error', 'Terjadi kesalahan saat memperbarui Ads Locate: ' . $e->getMessage());
+        }
     }
 
     /**

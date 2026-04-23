@@ -16,8 +16,8 @@ return new class extends Migration
             $table->string('name');
             $table->unsignedBigInteger('user_id');
             $table->integer('id_ti')->unique()->nullable()->comment('ID di DB TI Pusat');
+            $table->integer('id_daerah')->unique()->nullable()->comment('ID di DB Daerah');
             $table->enum('status', [0, 1])->comment('0 = Pending, 1 = Publish');
-            $table->string('no_whatsapp')->nullable();
             $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
             $table->timestamps();
         });

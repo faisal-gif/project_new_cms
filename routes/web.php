@@ -17,6 +17,7 @@ use App\Http\Controllers\NewsController;
 use App\Http\Controllers\NewsDaerahController;
 use App\Http\Controllers\NewsNasionalController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\TextEditorController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\WriterDaerahController;
 use App\Http\Controllers\WriterNasionalController;
@@ -37,7 +38,7 @@ Route::middleware('auth')->group(function () {
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
-Route::post('/upload-image', [EditorController::class, 'upload']);
+Route::post('/upload-image', [TextEditorController::class, 'upload']);
 Route::middleware('auth')->prefix('admin')->name('admin.')->group(function () {
     Route::resource('news', NewsController::class);
     Route::get('/news/import-daerah/{is_code}', [NewsController::class, 'importDaerah'])->name('news.import.daerah');
@@ -55,8 +56,8 @@ Route::middleware('auth')->prefix('admin')->name('admin.')->group(function () {
             Route::resource('fokus', FokusDaerahController::class);
             Route::resource('writer', WriterDaerahController::class);
             Route::resource('editor', EditorDaerahController::class);
-            Route::resource('ads/locate', AdsLocateController::class)->names('ads.locate');
-            Route::resource('ads/list', AdsDaerahController::class)->names('ads.list');
+            Route::resource('ads', AdsDaerahController::class);
+            Route::resource('adsLocate', AdsLocateController::class);
         }
     );
 

@@ -5,66 +5,104 @@ import PaginationDaisy from '@/Components/PaginationDaisy'
 import TextInput from '@/Components/TextInput'
 import { Badge } from '@/Components/ui/badge'
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout'
+import { formatDate } from '@/Utils/formatter'
 import { Head, Link, router } from '@inertiajs/react'
 import { Plus, Search } from 'lucide-react'
 import React, { useEffect, useRef, useState } from 'react'
 
-function Index({ kanal, filters }) {
+function Index({ ads_locates, filters }) {
   const [search, setSearch] = useState(() => filters.search || '');
   const [status, setStatus] = useState(() => filters.status || '');
-  const isFirst = useRef(true);
-  const INDEX_ROUTE = route('admin.daerah.kanal.index');
+  const [type, setType] = useState(() => filters.type || '');
+  const INDEX_ROUTE = route('admin.daerah.adsLocate.index');
+  // Debounce Search
+  const isFirstRender = useRef(true);
 
   useEffect(() => {
-    // Skip initial load
-    if (isFirst.current) {
-      isFirst.current = false;
+    // Lewati eksekusi pada render pertama
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
       return;
     }
 
-    let timeout = null;
-
-    // Search → debounce
-    if (search !== filters.search) {
-      timeout = setTimeout(() => {
-        router.get(
-          INDEX_ROUTE,
-          { search, status, page: 1 },
-          { preserveState: true, replace: true }
-        );
-      }, 400);
-    }
-    // Status → langsung request
-    else {
+    const timeout = setTimeout(() => {
       router.get(
         INDEX_ROUTE,
-        { search, status, page: 1 },
-        { preserveState: true, replace: true }
+        { search, status, type, page: 1 },
+        {
+          preserveState: true,
+          preserveScroll: true, // Tambahan: Mencegah scroll melompat ke atas saat ketik
+          replace: true
+        }
       );
-    }
+    }, 400);
 
-    return () => timeout && clearTimeout(timeout);
-  }, [search, status]);
+    // Cleanup function untuk menghapus timeout jika user mengetik lagi 
+    // atau jika komponen dilepas (unmount) sebelum 400ms selesai
+    return () => clearTimeout(timeout);
+  }, [search]);
+
+  // Filter Status langsung jalan
+  useEffect(() => {
+    router.get(
+      INDEX_ROUTE,
+      { search, status, type, page: 1 },
+      { preserveState: true, replace: true }
+    );
+  }, [status]);
+
+  // Filter Status langsung jalan
+  useEffect(() => {
+    router.get(
+      INDEX_ROUTE,
+      { search, status, type, page: 1 },
+      { preserveState: true, replace: true }
+    );
+  }, [type]);
 
   function getStatusBadge(status) {
     switch (status) {
-      case "pending":
-      case '0':
-      case 0:
-        return <Badge variant="secondary">Inactive</Badge>;
-      case "Publish":
+      case "active":
       case '1':
       case 1:
-        return <Badge className={"bg-green-300 text-green-700"}>Active</Badge>;
+      case true:
+        return <Badge className="bg-green-300 text-green-700">Active</Badge>;
+
+      case "inactive":
+      case "0":
+      case 0:
+      case false:
+        return <Badge className="bg-destructive">Inactive</Badge>;
+
       default:
-        return <Badge variant="neutral">{status}</Badge>;
+        return <Badge className="bg-neutral">{status}</Badge>;
+    }
+  }
+
+  function getTypeBadge(type) {
+    switch (type) {
+      case "mobile":
+      case 'm':
+        return <Badge className="bg-primary">Mobile</Badge>;
+
+      case "desktop":
+      case "d":
+        return <Badge className="bg-warning">Desktop</Badge>;
+
+      case "testimonial":
+      case "t":
+        return <Badge className="bg-error">Testimonial</Badge>;
+
+      default:
+        return <Badge className="bg-neutral">{type}</Badge>;
     }
   }
 
 
+
   return (
     <>
-      <Head title="Kanal Management" />
+      <Head title="Ads Locate Management" />
       <AuthenticatedLayout >
         <div className="py-12">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -74,7 +112,7 @@ function Index({ kanal, filters }) {
               <div className='flex flex-row justify-between items-center'>
                 {/* start Header */}
                 <div>
-                  <h1 className="text-3xl font-bold text-foreground">Daftar Kanal Daerah</h1>
+                  <h1 className="text-3xl font-bold text-foreground">Daftar Ads Locate</h1>
                 </div>
                 {/* end Header */}
 
@@ -82,8 +120,7 @@ function Index({ kanal, filters }) {
                 <div className="breadcrumbs text-sm">
                   <ul>
                     <li><a>Home</a></li>
-                    <li>Daerah</li>
-                    <li>Kanal</li>
+                    <li>Ads Locate</li>
                   </ul>
                 </div>
                 {/* end breadcrumbs */}
@@ -94,8 +131,8 @@ function Index({ kanal, filters }) {
               <Card>
                 <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
                   {/* Button Tambah User */}
-                  <Link href={route('admin.daerah.kanal.create')} className="btn btn-primary rounded-lg">
-                    <Plus size={16} /> Tambah Kanal Daerah
+                  <Link href={route('admin.daerah.adsLocate.create')} className="btn btn-primary rounded-lg">
+                    <Plus size={16} /> Tambah Ads Locate
                   </Link>
 
                   {/* Field Search And Filter */}
@@ -103,7 +140,7 @@ function Index({ kanal, filters }) {
                     <div className="w-full md:w-80">
                       <InputWithPrefix
                         prefix={<Search size={16} />}
-                        placeholder="Search user..."
+                        placeholder="Search Ads Locate..."
                         value={search}
                         onChange={(e) => setSearch(e.target.value)}
                       />
@@ -113,8 +150,21 @@ function Index({ kanal, filters }) {
                         value={status}
                         onChange={(e) => setStatus(e.target.value)}
                         options={[
+                          { label: "All", value: "" },
                           { label: "Active", value: "1" },
                           { label: "Inactive", value: "0" },
+                        ]}
+                      />
+                    </div>
+                    <div className="w-full md:w-48">
+                      <InputSelect
+                        value={type}
+                        onChange={(e) => setType(e.target.value)}
+                        options={[
+                          { label: "All", value: "" },
+                          { label: "Desktop", value: "d" },
+                          { label: "Mobile", value: "m" },
+                          { label: "Testimonial", value: "t" },
                         ]}
                       />
                     </div>
@@ -126,57 +176,33 @@ function Index({ kanal, filters }) {
 
               {/* Start Table */}
               <Card>
-                {/* MOBILE VERSION (Card Mode) */}
-                <div className="md:hidden flex flex-col gap-4">
-                  {/* Contoh data, ganti dengan data.map(...) */}
-                  {kanal.data.map((cat) => (
-                    <div key={cat.id} className="border rounded-xl p-4 bg-base-100 shadow-sm">
-
-                      {/* Header (Nama + Status) */}
-                      <div className="flex justify-between items-start mb-3">
-                        <div>
-                          <p className="font-semibold text-base">{cat.name}</p>
-                          <p className="text-sm text-gray-500">@{cat.slug}</p>
-                        </div>
-
-                        {getStatusBadge(cat.status)}
-                      </div>
-
-
-
-                      {/* Actions */}
-                      <div className="flex gap-2 mt-4">
-                        <Link href={route('admin.daerah.kanal.edit', cat)} className="btn btn-sm btn-warning btn-outline">Edit</Link>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-
                 {/* DESKTOP VERSION (Table Mode) */}
-                <div className="hidden md:block overflow-x-auto">
+                <div className=" overflow-x-auto">
                   <table className="table table-zebra">
 
                     <thead>
                       <tr>
                         <th>#</th>
                         <th>Nama</th>
-                        <th>Slug</th>
+                        <th>Type</th>
                         <th>Status</th>
                         <th className="text-right">Action</th>
                       </tr>
                     </thead>
                     <tbody>
-                      {kanal.data.map((cat, index) => (
-                        <tr key={cat.id}>
+                      {ads_locates.data.map((ads_locate, index) => (
+                        <tr key={ads_locate.id}>
                           <th>{index + 1}</th>
-                          <td>{cat.name}</td>
-                          <td>@{cat.slug}</td>
+                          <td>{ads_locate.name}</td>
                           <td>
-                            {getStatusBadge(cat.status)}
+                            {getTypeBadge(ads_locate.type)}
+                          </td>
+                          <td>
+                            {getStatusBadge(ads_locate.status)}
                           </td>
                           <td>
                             <div className="flex justify-end gap-2">
-                              <Link href={route('admin.daerah.kanal.edit', cat)} className="btn btn-sm btn-warning btn-outline">Edit</Link>
+                              <Link href={route('admin.daerah.adsLocate.edit', ads_locate)} className="btn btn-sm btn-warning btn-outline">Edit</Link>
                             </div>
                           </td>
                         </tr>
@@ -190,7 +216,7 @@ function Index({ kanal, filters }) {
               {/* End Table */}
 
               {/* Start Pagination */}
-              <PaginationDaisy data={kanal} />
+              <PaginationDaisy data={ads_locates} />
               {/* End Pagination */}
 
 

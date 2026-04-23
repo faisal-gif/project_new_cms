@@ -144,7 +144,7 @@ export default function AuthenticatedLayout({ header, children }) {
                         </Link>
                     </li>
                      <li>
-                        <Link href={route('admin.nasional.ekoran.index')} className={linkClass(isActive('admin.nasional.fotografi.*'))}>
+                        <Link href={route('admin.nasional.ekoran.index')} className={linkClass(isActive('admin.nasional.ekoran.*'))}>
                             <BookText size={16} /> Ekoran
                         </Link>
                     </li>
@@ -224,13 +224,13 @@ export default function AuthenticatedLayout({ header, children }) {
                             </summary>
                             <ul>
                                 <li>
-                                    <Link href={route('admin.daerah.ads.locate.index')} className={linkClass(isActive('admin.daerah.ads.locate.*'))}>
+                                    <Link href={route('admin.daerah.adsLocate.index')} className={linkClass(isActive('admin.daerah.ads.locate.*'))}>
                                         <MapPin size={16} /> Location
                                     </Link>
                                 </li>
                                 <li>
-                                    <Link href={route('admin.daerah.ads.list.index')} className={linkClass(isActive('admin.daerah.ads.list.*'))}>
-                                        <List size={16} /> Ads List
+                                    <Link href={route('admin.daerah.ads.index')} className={linkClass(isActive('admin.daerah.ads.list.*'))}>
+                                        <List size={16} /> Ads
                                     </Link>
                                 </li>
                             </ul>
