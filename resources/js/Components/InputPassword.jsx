@@ -24,7 +24,7 @@ export default forwardRef(function InputPassword(
             <input
                 {...props}
                 type={showPassword ? "text" : "password"}
-                className="input join-item w-full"
+                className="input border border-input join-item w-full"
                 ref={localRef}
             />
             <button

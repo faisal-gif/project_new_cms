@@ -8,7 +8,7 @@ export default function InputLabel({
         <label
             {...props}
             className={
-                `label ` +
+                `label border border-input ` +
                 className
             }
         >
