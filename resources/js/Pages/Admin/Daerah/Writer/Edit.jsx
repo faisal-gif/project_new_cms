@@ -12,6 +12,7 @@ import Select from "react-select";
 
 function Edit({ networks, writer }) {
 
+
     const { data, setData, put, processing, errors, reset } = useForm({
         name: writer.name || '',
         date_exp: writer.date_exp || '',
@@ -108,7 +109,7 @@ function Edit({ networks, writer }) {
                                     <div className='lg:col-span-6 w-full'>
                                         <InputLabel
                                             htmlFor="no_whatsapp"
-                                            value="Wilayah"
+                                            value="No whatsapp"
                                             className='mb-2 label-text font-bold'
                                         />
                                         <InputPhoneNumber
@@ -168,12 +169,13 @@ function Edit({ networks, writer }) {
                                             id="password"
                                             name="password"
                                             value={data.password}
-                                            className="mt-1 w-80 md:w-full "
-                                            autoComplete="current-password"
+                                            className="mt-1 w-80 md:w-full"
+                                            placeholder="Kosongkan jika tidak ingin mengubah password"
+                                            autoComplete="new-password"
                                             onChange={(e) => setData('password', e.target.value)}
                                         />
-
                                         <InputError message={errors.password} className="mt-2" />
+                                        <p className="text-xs text-gray-500 mt-1">Biarkan kosong jika tidak ingin mengubah password.</p>
                                     </div>
                                     <div className=' lg:col-span-6 flex flex-row justify-end mt-4'>
                                         <button

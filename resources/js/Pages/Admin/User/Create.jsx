@@ -130,7 +130,7 @@ function Create() {
                                             value={data.username}
                                             onChange={(e) => setData('username', e.target.value)}
                                             className="mt-1 block w-full"
-                                            autoComplete="username"
+                                            autoComplete="new-username"
                                         />
                                         <InputError message={errors.username} className="mt-2" />
 
@@ -146,7 +146,7 @@ function Create() {
                                             name="password"
                                             value={data.password}
                                             className="mt-1 w-80 md:w-full "
-                                            autoComplete="current-password"
+                                            autoComplete="new-password"
                                             onChange={(e) => setData('password', e.target.value)}
                                         />
 

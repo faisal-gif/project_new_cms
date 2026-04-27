@@ -19,6 +19,7 @@ use App\Http\Controllers\NewsNasionalController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\TextEditorController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\WriterController;
 use App\Http\Controllers\WriterDaerahController;
 use App\Http\Controllers\WriterNasionalController;
 use Illuminate\Foundation\Application;
@@ -46,6 +47,8 @@ Route::middleware('auth')->prefix('admin')->name('admin.')->group(function () {
     Route::get('/news/import-nasional/{is_code}', [NewsController::class, 'importNasional'])->name('news.import.nasional');
     Route::post('/news/import-nasional', [NewsController::class, 'importNasionalStore'])->name('news.import.nasional.store');
     Route::resource('users', UserController::class);
+    Route::resource('writers', WriterController::class);
+     Route::resource('editors', EditorController::class);
     Route::resource('history', HistoryController::class);
     Route::prefix('daerah')->name('daerah.')->group(
         function () {

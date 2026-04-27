@@ -12,6 +12,15 @@ class WriterDaerah extends Model
 
     protected $fillable = ['name', 'email', 'password', 'no_whatsapp', 'date_exp', 'network_id', 'status'];
 
+    protected $hidden = [
+        'password',
+    ];
+
+    // Casts untuk memastikan tipe data yang benar saat dikirim ke React
+    protected $casts = [
+        'password' => 'hashed', // Tersedia di Laravel 10+
+    ];
+
 
     public function network(): BelongsTo
     {

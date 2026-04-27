@@ -113,6 +113,26 @@ export default function AuthenticatedLayout({ header, children }) {
                             <Users size={16} /> Users Master
                         </Link>
                     </li>
+                        {/* Grup Tim Daerah */}
+                    <li>
+                        <details open={isActive(['admin.writers.*', 'admin.editors.*'])}>
+                            <summary className={linkClass(isActive(['admin.writers.*', 'admin.editors.*']))}>
+                                <Users size={16} /> Tim Redaksi Master
+                            </summary>
+                            <ul>
+                                <li>
+                                    <Link href={route('admin.writers.index')} className={linkClass(isActive('admin.writers.*'))}>
+                                        <Pen size={16} /> Penulis
+                                    </Link>
+                                </li>
+                                <li>
+                                    <Link href={route('admin.editors.index')} className={linkClass(isActive('admin.editors.*'))}>
+                                        <Edit size={16} /> Editor
+                                    </Link>
+                                </li>
+                            </ul>
+                        </details>
+                    </li>
                     <li>
                         <Link href={route('admin.history.index')} className={linkClass(isActive('admin.history.*'))}>
                             <History size={16} /> System History

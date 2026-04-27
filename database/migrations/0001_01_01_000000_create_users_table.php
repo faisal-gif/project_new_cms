@@ -16,7 +16,7 @@ return new class extends Migration
             $table->string('full_name');
             $table->string('username')->unique();
             $table->string('email');
-            $table->integer('role')->default(0);
+            $table->integer('role')->default(0)->comment('1 = Admin, 2 = Editor, 3 = Writer, 4 = Fotografer');
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
             $table->tinyInteger('is_default_password')->default(1);
