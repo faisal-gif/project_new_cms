@@ -168,14 +168,8 @@ function Edit({ news, writers, editors, networks, kanal, fokus }) {
                                 {/* Card Gambar */}
                                 <Card title={<span className="flex gap-2 items-center text-2xl font-semibold"><ImagesIcon className='w-6 h-6' /> Gambar Thumbnail</span>}>
                                     <div className='grid grid-cols-1 lg:grid-cols-6 gap-4 mt-8'>
-                                        {news.image && !data.image_thumbnail && (
-                                            <div className="lg:col-span-6 mb-4">
-                                                <p className="text-sm font-semibold mb-2">Gambar Saat Ini:</p>
-                                                <img src={news.image} alt="Thumbnail" className="w-80 h-auto rounded object-cover border" />
-                                            </div>
-                                        )}
                                         {/* Image 1 */}
-                                        <div id='image_thumbnail' className='md:col-span-2 flex flex-col gap-1'>
+                                        <div id='image_thumbnail' className='md:col-span-3 flex flex-col gap-1'>
                                             <div>
                                                 <InputLabel
                                                     htmlFor="image_thumbnail"
@@ -184,6 +178,7 @@ function Edit({ news, writers, editors, networks, kanal, fokus }) {
                                                 />
                                                 <div className='flex items-center justify-center gap-0.5 mt-1'>
                                                     <InputImage
+                                                        existingImage={news.image}
                                                         value={data.image_thumbnail}
                                                         onChange={(file) => setData('image_thumbnail', file)}
                                                     />

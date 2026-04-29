@@ -1,3 +1,5 @@
+import { Badge } from "./ui/badge";
+
 export default function InputRadioGroup({
     label,
     name,
@@ -17,10 +19,10 @@ export default function InputRadioGroup({
 
             <div
                 className={`flex gap-3 flex-wrap ${direction === "col"
-                        ? "md:flex-col"          
-                        : direction === "row"    
-                            ? "md:flex-row"
-                            : "md:flex-wrap"        
+                    ? "md:flex-col"
+                    : direction === "row"
+                        ? "md:flex-row"
+                        : "md:flex-wrap"
                     }`}
             >
                 {options.map((opt) => {
@@ -38,9 +40,9 @@ export default function InputRadioGroup({
                                 checked={value === opt.value}
                                 onChange={() => onChange(opt.value)}
                             />
-                            <span className={`badge badge-sm badge-soft badge-${color} whitespace-nowrap `}>
+                            <Badge variant="outline" className={` border-${color} text-${color} whitespace-nowrap `}>
                                 {opt.label}
-                            </span>
+                            </Badge>
                         </label>
                     )
                 })}

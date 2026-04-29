@@ -171,16 +171,12 @@ function Edit({ news, writers, editors, kanal, fokus }) {
                                 {/* Card Gambar Thumbnail */}
                                 <Card title={<span className="flex gap-2 items-center text-2xl font-semibold"><ImagesIcon className='w-6 h-6' /> Gambar Thumbnail</span>}>
                                     <div className='grid grid-cols-1 lg:grid-cols-6 gap-4 mt-8'>
-                                        <div className='lg:col-span-6'>
-                                            {/* Preview Gambar Lama */}
-                                            {news.news_image_new && !data.image_thumbnail && (
-                                                <div className="mb-4">
-                                                    <p className="text-sm font-semibold mb-2">Gambar Saat Ini:</p>
-                                                    <img src={news.news_image_new} alt="Thumbnail" className="w-48 h-auto rounded object-cover border" />
-                                                </div>
-                                            )}
+                                        <div className='lg:col-span-3'>
                                             <InputLabel value="Upload Thumbnail Baru (Opsional)" className='mb-2 label-text font-bold' />
                                             <InputImage
+                                                existingImage={news.news_image_new}
+                                                targetWidth={1200}
+                                                targetHeight={800}
                                                 value={data.image_thumbnail}
                                                 onChange={(file) => setData('image_thumbnail', file)}
                                             />

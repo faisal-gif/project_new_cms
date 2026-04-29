@@ -29,6 +29,9 @@ class UserFormRequest extends FormRequest
                 : 'nullable|string|min:8',
             'role' => 'required|string',
             'status' => 'required|in:0,1',
+            'id_writer' => 'nullable|exists:writers,id|unique:users,id_writer,' . $userId,
+            'id_editor' => 'nullable|exists:editors,id|unique:users,id_editor,' . $userId,
+            'id_fotografer' => 'nullable|exists:writers,id|unique:users,id_fotografer,' . $userId,
         ];
     }
 
@@ -42,7 +45,13 @@ class UserFormRequest extends FormRequest
             'password.required' => 'Password wajib diisi',
             'email.unique' => 'Email sudah didaftarkan',
             'role.required' => 'Role Wajib dipilih',
-            'status.required' => 'Status Wajib dipilih'
+            'status.required' => 'Status Wajib dipilih',
+            'id_writer.exists' => 'Writer yang dipilih tidak valid',
+            'id_writer.unique' => 'Writer yang dipilih sudah terdaftar sebagai user lain',
+            'id_editor.exists' => 'Editor yang dipilih tidak valid',
+            'id_editor.unique' => 'Editor yang dipilih sudah terdaftar sebagai user lain',
+            'id_fotografer.exists' => 'Fotografer yang dipilih tidak valid',
+            'id_fotografer.unique' => 'Fotografer yang dipilih sudah terdaftar sebagai user lain',
         ];
     }
 }

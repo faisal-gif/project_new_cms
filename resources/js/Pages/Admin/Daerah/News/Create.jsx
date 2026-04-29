@@ -242,53 +242,46 @@ function Create({ writers, editors, networks, kanal, fokus }) {
                                     }
                                 >
                                     <div className='grid grid-cols-1 lg:grid-cols-6 gap-4 mt-8'>
-                                        <div className='lg:col-span-6'>
-                                            <div className='grid grid-cols-1 md:grid-col-2 lg:grid-cols-3 gap-4'>
-                                                <div className='lg:col-span-6'>
-                                                    <div className='grid grid-cols-1 md:grid-col-2 lg:grid-cols-3 gap-4'>
-                                                        {/* Image 1 */}
-                                                        <div id='image_thumbnail' className='flex flex-col gap-1'>
-                                                            <div>
-                                                                <InputLabel
-                                                                    htmlFor="image_thumbnail"
-                                                                    value="Thumbnail"
-                                                                    className='mb-2 label-text font-bold'
-                                                                />
-                                                                <div className='flex items-center justify-center gap-0.5 mt-1'>
-                                                                    <InputImage
-                                                                        value={data.image_thumbnail}
-                                                                        onChange={(file) => setData('image_thumbnail', file)}
-                                                                    />
+                                        <div className='lg:col-span-3'>
 
-                                                                </div>
-                                                            </div>
-                                                        </div>
-
+                                            <div id='image_thumbnail' className='flex flex-col gap-1'>
+                                                <div>
+                                                    <InputLabel
+                                                        htmlFor="image_thumbnail"
+                                                        value="Thumbnail"
+                                                        className='mb-2 label-text font-bold'
+                                                    />
+                                                    <div className='flex items-center justify-center gap-0.5 mt-1'>
+                                                        <InputImage
+                                                            value={data.image_thumbnail}
+                                                            onChange={(file) => setData('image_thumbnail', file)}
+                                                        />
 
                                                     </div>
                                                 </div>
-
-                                                <label className="flex items-center gap-2">
-                                                    <Checkbox
-                                                        checked={data.image_watermark}
-                                                        onChange={(e) => setData('image_watermark', e.target.checked)}
-                                                    />
-                                                    Apakah ini foto original?
-                                                </label>
-
-                                                <div className='lg:col-span-6'>
-                                                    <InputTextarea
-                                                        id="image_caption"
-                                                        name="Caption Thumbnail"
-                                                        label={"Caption Thumbnail"}
-                                                        value={data.image_caption}
-                                                        onChange={(e) => setData('image_caption', e.target.value)}
-                                                        autoComplete="image_caption"
-                                                        maxLength={255}
-                                                    />
-                                                    <InputError message={errors.image_caption} className="mt-2" />
-                                                </div>
                                             </div>
+                                        </div>
+
+
+                                        <label className="lg:col-span-6 flex items-center gap-2">
+                                            <Checkbox
+                                                checked={data.image_watermark}
+                                                onChange={(e) => setData('image_watermark', e.target.checked)}
+                                            />
+                                            Apakah ini foto original?
+                                        </label>
+
+                                        <div className='lg:col-span-6'>
+                                            <InputTextarea
+                                                id="image_caption"
+                                                name="Caption Thumbnail"
+                                                label={"Caption Thumbnail"}
+                                                value={data.image_caption}
+                                                onChange={(e) => setData('image_caption', e.target.value)}
+                                                autoComplete="image_caption"
+                                                maxLength={255}
+                                            />
+                                            <InputError message={errors.image_caption} className="mt-2" />
                                         </div>
                                     </div>
                                 </Card>

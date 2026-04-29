@@ -5,10 +5,11 @@ import InputPassword from '@/Components/InputPassword'
 import InputSelect from '@/Components/InputSelect'
 import TextInput from '@/Components/TextInput'
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout'
-import { Head,  useForm } from '@inertiajs/react'
+import { Head, useForm } from '@inertiajs/react'
 import React from 'react'
+import Select from 'react-select'
 
-function Create() {
+function Create({ writers, editors }) {
 
     const { data, setData, post, processing, errors, reset } = useForm({
         full_name: '',
@@ -17,7 +18,9 @@ function Create() {
         email: '',
         password: '',
         status: '',
-
+        id_writer: null,
+        id_editor: null,
+        id_fotografer: null,
     });
 
     const submit = (e) => {
@@ -54,8 +57,61 @@ function Create() {
 
                             </div>
 
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <Card>
+                                    <div className="p-4">
+                                        <h3 className="text-lg font-bold mb-2">Akun Editor (Opsional)</h3>
+                                        <p className="text-sm text-gray-500 mb-4">
+                                            Pilih jika writer berafiliasi dengan akun editor. Kosongkan jika menambah langsung.
+                                        </p>
+                                        <Select
+                                            options={editors}
+                                            isClearable // Memungkinkan pengguna menghapus pilihan (tidak ada)
+                                            placeholder="Pilih Akun Editor..."
+                                            onChange={(e) => setData('id_editor', e ? e.value : null)}
+                                        />
+                                        <InputError message={errors.id_editor} className="mt-2" />
+                                    </div>
+                                </Card>
+
+                                <Card>
+                                    <div className="p-4">
+                                        <h3 className="text-lg font-bold mb-2">Akun Writer (Opsional)</h3>
+                                        <p className="text-sm text-gray-500 mb-4">
+                                            Pilih jika akun berafiliasi dengan akun writer. Kosongkan jika menambah langsung.
+                                        </p>
+                                        <Select
+                                            options={writers}
+                                            isClearable // Memungkinkan pengguna menghapus pilihan (tidak ada)
+                                            placeholder="Pilih Akun Writer..."
+                                            onChange={(e) => setData('id_writer', e ? e.value : null)}
+                                        />
+                                        <InputError message={errors.id_writer} className="mt-2" />
+                                    </div>
+                                </Card>
+
+                                   <Card>
+                                    <div className="p-4">
+                                        <h3 className="text-lg font-bold mb-2">Akun Fotografer (Opsional)</h3>
+                                        <p className="text-sm text-gray-500 mb-4">
+                                            Pilih jika akun berafiliasi dengan akun fotografer. Kosongkan jika menambah langsung.
+                                        </p>
+                                        <Select
+                                            options={writers}
+                                            isClearable // Memungkinkan pengguna menghapus pilihan (tidak ada)
+                                            placeholder="Pilih Akun Fotografer..."
+                                            onChange={(e) => setData('id_fotografer', e ? e.value : null)}
+                                        />
+                                        <InputError message={errors.id_fotografer} className="mt-2" />
+                                    </div>
+                                </Card>
+                            </div>
+
                             <Card>
                                 <form onSubmit={submit} className='grid grid-cols-1 lg:grid-cols-6 gap-4'>
+
+
                                     {/* Form fields will go here */}
                                     <div className="lg:col-span-2 w-full">
                                         <InputSelect

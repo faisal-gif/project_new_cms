@@ -11,6 +11,7 @@ import {
     History,
     Image as ImageIcon, // Alias agar tidak bentrok dengan class bawaan JS
     Images,
+    Key,
     LayoutDashboard,
     Link2,
     List,
@@ -19,6 +20,7 @@ import {
     Newspaper,
     Pen,
     Settings,
+    ShieldCheck,
     User,
     Users
 } from 'lucide-react';
@@ -113,7 +115,18 @@ export default function AuthenticatedLayout({ header, children }) {
                             <Users size={16} /> Users Master
                         </Link>
                     </li>
-                        {/* Grup Tim Daerah */}
+                    {/* ===== START PENAMBAHAN MENU ROLE & PERMISSION ===== */}
+                    <li>
+                        <Link href={route('admin.roles.index')} className={linkClass(isActive('admin.roles.*'))}>
+                            <ShieldCheck size={16} /> Roles Master
+                        </Link>
+                    </li>
+                    <li>
+                        <Link href={route('admin.permissions.index')} className={linkClass(isActive('admin.permissions.*'))}>
+                            <Key size={16} /> Permissions Master
+                        </Link>
+                    </li>
+                    {/* Grup Tim Daerah */}
                     <li>
                         <details open={isActive(['admin.writers.*', 'admin.editors.*'])}>
                             <summary className={linkClass(isActive(['admin.writers.*', 'admin.editors.*']))}>
@@ -163,7 +176,7 @@ export default function AuthenticatedLayout({ header, children }) {
                             <ImageIcon size={16} /> Gallery Nasional
                         </Link>
                     </li>
-                     <li>
+                    <li>
                         <Link href={route('admin.nasional.ekoran.index')} className={linkClass(isActive('admin.nasional.ekoran.*'))}>
                             <BookText size={16} /> Ekoran
                         </Link>

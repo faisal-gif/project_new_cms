@@ -7,8 +7,9 @@ import TextInput from '@/Components/TextInput'
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout'
 import { Head, useForm } from '@inertiajs/react'
 import React from 'react'
+import Select from 'react-select'
 
-function Edit({ user }) {
+function Edit({ user, writers, editors }) {
 
     const { data, setData, put, processing, errors, reset } = useForm({
         full_name: user.full_name || '',
@@ -17,8 +18,15 @@ function Edit({ user }) {
         email: user.email || '',
         password: '',
         status: user.status || '',
+        id_writer: user.id_writer || null,
+        id_editor: user.id_editor || null,
+        id_fotografer: user.id_fotografer || null,
 
     });
+
+    const selectedEditor = editors.find(e => e.value === data.id_editor) || null;
+    const selectedWriter = writers.find(w => w.value === data.id_writer) || null;
+    const selectedFotografer = writers.find(w => w.value === data.id_fotografer) || null;
 
     const submit = (e) => {
         e.preventDefault();
@@ -51,6 +59,59 @@ function Edit({ user }) {
                                 </div>
                                 {/* end breadcrumbs */}
 
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <Card>
+                                    <div className="p-4">
+                                        <h3 className="text-lg font-bold mb-2">Akun Editor (Opsional)</h3>
+                                        <p className="text-sm text-gray-500 mb-4">
+                                            Pilih jika writer berafiliasi dengan akun editor. Kosongkan jika menambah langsung.
+                                        </p>
+                                        <Select
+                                            options={editors}
+                                            isClearable // Memungkinkan pengguna menghapus pilihan (tidak ada)
+                                            placeholder="Pilih Akun Editor..."
+                                            value={selectedEditor}
+                                            onChange={(e) => setData('id_editor', e ? e.value : null)}
+                                        />
+                                        <InputError message={errors.id_editor} className="mt-2" />
+                                    </div>
+                                </Card>
+
+                                <Card>
+                                    <div className="p-4">
+                                        <h3 className="text-lg font-bold mb-2">Akun Writer (Opsional)</h3>
+                                        <p className="text-sm text-gray-500 mb-4">
+                                            Pilih jika akun berafiliasi dengan akun writer. Kosongkan jika menambah langsung.
+                                        </p>
+                                        <Select
+                                            options={writers}
+                                            isClearable // Memungkinkan pengguna menghapus pilihan (tidak ada)
+                                            placeholder="Pilih Akun Writer..."
+                                            value={selectedWriter}
+                                            onChange={(e) => setData('id_writer', e ? e.value : null)}
+                                        />
+                                        <InputError message={errors.id_writer} className="mt-2" />
+                                    </div>
+                                </Card>
+
+                                <Card>
+                                    <div className="p-4">
+                                        <h3 className="text-lg font-bold mb-2">Akun Fotografer (Opsional)</h3>
+                                        <p className="text-sm text-gray-500 mb-4">
+                                            Pilih jika akun berafiliasi dengan akun fotografer. Kosongkan jika menambah langsung.
+                                        </p>
+                                        <Select
+                                            options={writers}
+                                            isClearable // Memungkinkan pengguna menghapus pilihan (tidak ada)
+                                            placeholder="Pilih Akun Fotografer..."
+                                            value={selectedFotografer}
+                                            onChange={(e) => setData('id_fotografer', e ? e.value : null)}
+                                        />
+                                        <InputError message={errors.id_fotografer} className="mt-2" />
+                                    </div>
+                                </Card>
                             </div>
 
                             <Card>
