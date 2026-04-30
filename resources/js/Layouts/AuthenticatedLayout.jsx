@@ -30,6 +30,16 @@ import { toast } from 'sonner';
 export default function AuthenticatedLayout({ header, children }) {
     const { auth, flash } = usePage().props;
     const user = auth.user;
+    const userPermissions = auth.permissions || [];
+
+    // 2. Buat helper function
+    const hasPermission = (permissions) => {
+        if (Array.isArray(permissions)) {
+            return permissions.some(permission => userPermissions.includes(permission));
+        }
+        return userPermissions.includes(permissions);
+    };
+
 
     useEffect(() => {
         if (flash?.success) {
@@ -105,47 +115,61 @@ export default function AuthenticatedLayout({ header, children }) {
                             <LayoutDashboard size={16} /> Dashboard
                         </Link>
                     </li>
-                    <li>
-                        <Link href={route('admin.news.index')} className={linkClass(isActive('admin.news.*'))}>
-                            <Newspaper size={16} /> News Master
-                        </Link>
-                    </li>
-                    <li>
-                        <Link href={route('admin.users.index')} className={linkClass(isActive('admin.users.*'))}>
-                            <Users size={16} /> Users Master
-                        </Link>
-                    </li>
+                    {hasPermission('view news master') && (
+                        <li>
+                            <Link href={route('admin.news.index')} className={linkClass(isActive('admin.news.*'))}>
+                                <Newspaper size={16} /> News Master
+                            </Link>
+                        </li>
+                    )}
+                    {hasPermission('view users master') && (
+                        <li>
+                            <Link href={route('admin.users.index')} className={linkClass(isActive('admin.users.*'))}>
+                                <Users size={16} /> Users Master
+                            </Link>
+                        </li>
+                    )}
                     {/* ===== START PENAMBAHAN MENU ROLE & PERMISSION ===== */}
-                    <li>
-                        <Link href={route('admin.roles.index')} className={linkClass(isActive('admin.roles.*'))}>
-                            <ShieldCheck size={16} /> Roles Master
-                        </Link>
-                    </li>
-                    <li>
-                        <Link href={route('admin.permissions.index')} className={linkClass(isActive('admin.permissions.*'))}>
-                            <Key size={16} /> Permissions Master
-                        </Link>
-                    </li>
+                    {hasPermission('view role master') && (
+                        <li>
+                            <Link href={route('admin.roles.index')} className={linkClass(isActive('admin.roles.*'))}>
+                                <ShieldCheck size={16} /> Roles Master
+                            </Link>
+                        </li>
+                    )}
+                    {hasPermission('view permission master') && (
+                        <li>
+                            <Link href={route('admin.permissions.index')} className={linkClass(isActive('admin.permissions.*'))}>
+                                <Key size={16} /> Permissions Master
+                            </Link>
+                        </li>
+                    )}
                     {/* Grup Tim Daerah */}
-                    <li>
-                        <details open={isActive(['admin.writers.*', 'admin.editors.*'])}>
-                            <summary className={linkClass(isActive(['admin.writers.*', 'admin.editors.*']))}>
-                                <Users size={16} /> Tim Redaksi Master
-                            </summary>
-                            <ul>
-                                <li>
-                                    <Link href={route('admin.writers.index')} className={linkClass(isActive('admin.writers.*'))}>
-                                        <Pen size={16} /> Penulis
-                                    </Link>
-                                </li>
-                                <li>
-                                    <Link href={route('admin.editors.index')} className={linkClass(isActive('admin.editors.*'))}>
-                                        <Edit size={16} /> Editor
-                                    </Link>
-                                </li>
-                            </ul>
-                        </details>
-                    </li>
+                    {hasPermission(['view penulis master', 'view editors master']) && (
+                        <li>
+                            <details open={isActive(['admin.writers.*', 'admin.editors.*'])}>
+                                <summary className={linkClass(isActive(['admin.writers.*', 'admin.editors.*']))}>
+                                    <Users size={16} /> Tim Redaksi Master
+                                </summary>
+                                <ul>
+                                    {hasPermission('view penulis master') && (
+                                        <li>
+                                            <Link href={route('admin.writers.index')} className={linkClass(isActive('admin.writers.*'))}>
+                                                <Pen size={16} /> Penulis
+                                            </Link>
+                                        </li>
+                                    )}
+                                    {hasPermission('view editors master') && (
+                                        <li>
+                                            <Link href={route('admin.editors.index')} className={linkClass(isActive('admin.editors.*'))}>
+                                                <Edit size={16} /> Editor
+                                            </Link>
+                                        </li>
+                                    )}
+                                </ul>
+                            </details>
+                        </li>
+                    )}
                     <li>
                         <Link href={route('admin.history.index')} className={linkClass(isActive('admin.history.*'))}>
                             <History size={16} /> System History
@@ -155,120 +179,154 @@ export default function AuthenticatedLayout({ header, children }) {
                     {/* ================= 2. NASIONAL ================= */}
                     <div className="divider my-1 bg-white/10 h-[1px]"></div>
                     <h2 className="menu-title text-blue-400 uppercase text-xs tracking-wider">Nasional</h2>
-
-                    <li>
-                        <Link href={route('admin.nasional.news.index')} className={linkClass(isActive('admin.nasional.news.*'))}>
-                            <Newspaper size={16} /> News Nasional
-                        </Link>
-                    </li>
-                    <li>
-                        <Link href={route('admin.nasional.kanal.index')} className={linkClass(isActive('admin.nasional.kanal.*'))}>
-                            <File size={16} /> Kanal Nasional
-                        </Link>
-                    </li>
-                    <li>
-                        <Link href={route('admin.nasional.fokus.index')} className={linkClass(isActive('admin.nasional.fokus.*'))}>
-                            <Clipboard size={16} /> Fokus Nasional
-                        </Link>
-                    </li>
-                    <li>
-                        <Link href={route('admin.nasional.fotografi.index')} className={linkClass(isActive('admin.nasional.fotografi.*'))}>
-                            <ImageIcon size={16} /> Gallery Nasional
-                        </Link>
-                    </li>
-                    <li>
-                        <Link href={route('admin.nasional.ekoran.index')} className={linkClass(isActive('admin.nasional.ekoran.*'))}>
-                            <BookText size={16} /> Ekoran
-                        </Link>
-                    </li>
+                    {hasPermission('view news nasional') && (
+                        <li>
+                            <Link href={route('admin.nasional.news.index')} className={linkClass(isActive('admin.nasional.news.*'))}>
+                                <Newspaper size={16} /> News Nasional
+                            </Link>
+                        </li>
+                    )}
+                    {hasPermission('view kanal nasional') && (
+                        <li>
+                            <Link href={route('admin.nasional.kanal.index')} className={linkClass(isActive('admin.nasional.kanal.*'))}>
+                                <File size={16} /> Kanal Nasional
+                            </Link>
+                        </li>
+                    )}
+                    {hasPermission('view fokus nasional') && (
+                        <li>
+                            <Link href={route('admin.nasional.fokus.index')} className={linkClass(isActive('admin.nasional.fokus.*'))}>
+                                <Clipboard size={16} /> Fokus Nasional
+                            </Link>
+                        </li>
+                    )}
+                    {hasPermission('view gallery nasional') && (
+                        <li>
+                            <Link href={route('admin.nasional.fotografi.index')} className={linkClass(isActive('admin.nasional.fotografi.*'))}>
+                                <ImageIcon size={16} /> Gallery Nasional
+                            </Link>
+                        </li>
+                    )}
+                    {hasPermission('view ekoran nasional') && (
+                        <li>
+                            <Link href={route('admin.nasional.ekoran.index')} className={linkClass(isActive('admin.nasional.ekoran.*'))}>
+                                <BookText size={16} /> Ekoran
+                            </Link>
+                        </li>
+                    )}
                     {/* Grup Tim Nasional */}
-                    <li>
-                        <details open={isActive(['admin.nasional.writer.*', 'admin.nasional.editor.*'])}>
-                            <summary className={linkClass(isActive(['admin.nasional.writer.*', 'admin.nasional.editor.*']))}>
-                                <Users size={16} /> Tim Redaksi
-                            </summary>
-                            <ul>
-                                <li>
-                                    <Link href={route('admin.nasional.writer.index')} className={linkClass(isActive('admin.nasional.writer.*'))}>
-                                        <Pen size={16} /> Penulis
-                                    </Link>
-                                </li>
-                                <li>
-                                    <Link href={route('admin.nasional.editor.index')} className={linkClass(isActive('admin.nasional.editor.*'))}>
-                                        <Edit size={16} /> Editor
-                                    </Link>
-                                </li>
-                            </ul>
-                        </details>
-                    </li>
+                    {hasPermission(["view penulis nasional", "view editor nasional"]) && (
+                        <li>
+                            <details open={isActive(['admin.nasional.writer.*', 'admin.nasional.editor.*'])}>
+                                <summary className={linkClass(isActive(['admin.nasional.writer.*', 'admin.nasional.editor.*']))}>
+                                    <Users size={16} /> Tim Redaksi
+                                </summary>
+                                <ul>
+                                    {hasPermission('view penulis nasional') && (
+                                        <li>
+                                            <Link href={route('admin.nasional.writer.index')} className={linkClass(isActive('admin.nasional.writer.*'))}>
+                                                <Pen size={16} /> Penulis
+                                            </Link>
+                                        </li>
+                                    )}
+                                    {hasPermission('view editor nasional') && (
+                                        <li>
+                                            <Link href={route('admin.nasional.editor.index')} className={linkClass(isActive('admin.nasional.editor.*'))}>
+                                                <Edit size={16} /> Editor
+                                            </Link>
+                                        </li>
+                                    )}
+                                </ul>
+                            </details>
+                        </li>
+                    )}
                     {/* ================= 3. DAERAH ================= */}
                     <div className="divider my-1 bg-white/10 h-[1px]"></div>
                     <h2 className="menu-title text-emerald-400 uppercase text-xs tracking-wider">Daerah</h2>
-
-                    <li>
-                        <Link href={route('admin.daerah.news.index')} className={linkClass(isActive('admin.daerah.news.*'))}>
-                            <Newspaper size={16} /> News Daerah
-                        </Link>
-                    </li>
-                    <li>
-                        <Link href={route('admin.daerah.kanal.index')} className={linkClass(isActive('admin.daerah.kanal.*'))}>
-                            <File size={16} /> Kanal Daerah
-                        </Link>
-                    </li>
-                    <li>
-                        <Link href={route('admin.daerah.fokus.index')} className={linkClass(isActive('admin.daerah.fokus.*'))}>
-                            <Clipboard size={16} /> Fokus Daerah
-                        </Link>
-                    </li>
+                    {hasPermission('view news daerah') && (
+                        <li>
+                            <Link href={route('admin.daerah.news.index')} className={linkClass(isActive('admin.daerah.news.*'))}>
+                                <Newspaper size={16} /> News Daerah
+                            </Link>
+                        </li>
+                    )}
+                    {hasPermission('view kanal daerah') && (
+                        <li>
+                            <Link href={route('admin.daerah.kanal.index')} className={linkClass(isActive('admin.daerah.kanal.*'))}>
+                                <File size={16} /> Kanal Daerah
+                            </Link>
+                        </li>
+                    )}
+                    {hasPermission('view fokus daerah') && (
+                        <li>
+                            <Link href={route('admin.daerah.fokus.index')} className={linkClass(isActive('admin.daerah.fokus.*'))}>
+                                <Clipboard size={16} /> Fokus Daerah
+                            </Link>
+                        </li>
+                    )}
 
                     {/* Grup Tim Daerah */}
-                    <li>
-                        <details open={isActive(['admin.daerah.writer.*', 'admin.daerah.editor.*'])}>
-                            <summary className={linkClass(isActive(['admin.daerah.writer.*', 'admin.daerah.editor.*']))}>
-                                <Users size={16} /> Tim Redaksi
-                            </summary>
-                            <ul>
-                                <li>
-                                    <Link href={route('admin.daerah.writer.index')} className={linkClass(isActive('admin.daerah.writer.*'))}>
-                                        <Pen size={16} /> Penulis
-                                    </Link>
-                                </li>
-                                <li>
-                                    <Link href={route('admin.daerah.editor.index')} className={linkClass(isActive('admin.daerah.editor.*'))}>
-                                        <Edit size={16} /> Editor
-                                    </Link>
-                                </li>
-                            </ul>
-                        </details>
-                    </li>
+                    {hasPermission(["view penulis daerah", "view editor daerah"]) && (
+                        <li>
+                            <details open={isActive(['admin.daerah.writer.*', 'admin.daerah.editor.*'])}>
+                                <summary className={linkClass(isActive(['admin.daerah.writer.*', 'admin.daerah.editor.*']))}>
+                                    <Users size={16} /> Tim Redaksi
+                                </summary>
+                                <ul>
+                                    {hasPermission('view penulis daerah') && (
+                                        <li>
+                                            <Link href={route('admin.daerah.writer.index')} className={linkClass(isActive('admin.daerah.writer.*'))}>
+                                                <Pen size={16} /> Penulis
+                                            </Link>
+                                        </li>
+                                    )}
+                                    {hasPermission('view editor daerah') && (
+                                        <li>
+                                            <Link href={route('admin.daerah.editor.index')} className={linkClass(isActive('admin.daerah.editor.*'))}>
+                                                <Edit size={16} /> Editor
+                                            </Link>
+                                        </li>
+                                    )}
+                                </ul>
+                            </details>
+                        </li>
+                    )}
 
                     {/* Grup Ekstra Daerah */}
-                    <li>
-                        <Link href={route('admin.daerah.network.index')} className={linkClass(isActive('admin.daerah.network.*'))}>
-                            <Globe size={16} /> Network
-                        </Link>
-                    </li>
+                    {hasPermission('view network daerah') && (
+                        <li>
+                            <Link href={route('admin.daerah.network.index')} className={linkClass(isActive('admin.daerah.network.*'))}>
+                                <Globe size={16} /> Network
+                            </Link>
+                        </li>
+                    )}
 
                     {/* ADS Daerah - Diperbaiki agar tidak double dropdown */}
-                    <li>
-                        <details open={isActive('admin.daerah.ads.*')}>
-                            <summary className={linkClass(isActive('admin.daerah.ads.*'))}>
-                                <Images size={16} /> ADS Manager
-                            </summary>
-                            <ul>
-                                <li>
-                                    <Link href={route('admin.daerah.adsLocate.index')} className={linkClass(isActive('admin.daerah.ads.locate.*'))}>
-                                        <MapPin size={16} /> Location
-                                    </Link>
-                                </li>
-                                <li>
-                                    <Link href={route('admin.daerah.ads.index')} className={linkClass(isActive('admin.daerah.ads.list.*'))}>
-                                        <List size={16} /> Ads
-                                    </Link>
-                                </li>
-                            </ul>
-                        </details>
-                    </li>
+                    {hasPermission(["view ads daerah", "view ads daerah location"]) && (
+                        <li>
+                            <details open={isActive('admin.daerah.ads.*')}>
+                                <summary className={linkClass(isActive('admin.daerah.ads.*'))}>
+                                    <Images size={16} /> ADS Manager
+                                </summary>
+                                <ul>
+                                    {hasPermission('view ads daerah location') && (
+                                        <li>
+                                            <Link href={route('admin.daerah.adsLocate.index')} className={linkClass(isActive('admin.daerah.ads.locate.*'))}>
+                                                <MapPin size={16} /> Location
+                                            </Link>
+                                        </li>
+                                    )}
+                                    {hasPermission('view ads daerah') && (
+                                        <li>
+                                            <Link href={route('admin.daerah.ads.index')} className={linkClass(isActive('admin.daerah.ads.list.*'))}>
+                                                <List size={16} /> Ads
+                                            </Link>
+                                        </li>
+                                    )}
+                                </ul>
+                            </details>
+                        </li>
+                    )}
 
                     {/* ================= 4. TOOLS & EXPORT ================= */}
                     <div className="divider my-1 bg-white/10 h-[1px]"></div>

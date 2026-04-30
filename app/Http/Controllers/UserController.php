@@ -12,16 +12,21 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Inertia\Inertia;
+use Spatie\Permission\Models\Role;
 
 class UserController extends Controller
 {
+
+
+    
+
     /**
      * Display a listing of the resource.
      */
     public function index(Request $request)
     {
 
-        $query = User::query();
+        $query = User::with('roles:name');
 
         if ($request->search) {
             $query->where(function ($q) use ($request) {
@@ -45,6 +50,7 @@ class UserController extends Controller
             ->paginate(10)
             ->withQueryString();
 
+
         return Inertia::render('Admin/User/Index', [
             'users'   => $users,
             'filters' => $request->only(['search', 'status']),
@@ -58,11 +64,12 @@ class UserController extends Controller
     {
         $writers = Writer::select('id as value', 'name as label')->get();
         $editors = Editor::select('id as value', 'name as label')->get();
-
-
+        $roles = Role::pluck('name');
+      
         return Inertia::render('Admin/User/Create', [
             'writers' => $writers,
             'editors' => $editors,
+            'roles' => $roles,
         ]);
     }
 
@@ -81,13 +88,14 @@ class UserController extends Controller
                 'username' => $request->username,
                 'email' => $request->email,
                 'password' => Hash::make($request->password),
-                'role' => $request->role,
                 'is_default_password' => 0,
                 'status' => $request->status,
                 'id_writer' => $request->id_writer,
                 'id_editor' => $request->id_editor,
                 'id_fotografer' => $request->id_fotografer,
             ]);
+
+            $user->syncRoles($request->roles ?? []);
 
             DB::commit();
             return redirect()->route('admin.users.index')->with('success', 'User berhasil ditambahkan.');
@@ -112,11 +120,15 @@ class UserController extends Controller
     {
         $writers = Writer::select('id as value', 'name as label')->get();
         $editors = Editor::select('id as value', 'name as label')->get();
+        $roles = Role::pluck('name');
+        $userRoles = $user->roles->pluck('name')->toArray();
 
         return Inertia::render('Admin/User/Edit', [
             'user' => $user,
             'writers' => $writers,
             'editors' => $editors,
+            'roles' => $roles,
+            'userRoles' => $userRoles,
         ]);
     }
 
@@ -125,6 +137,7 @@ class UserController extends Controller
      */
     public function update(UserFormRequest $request, User $user)
     {
+
 
         try {
             DB::beginTransaction();
@@ -135,12 +148,13 @@ class UserController extends Controller
             if ($request->password) {
                 $user->password = Hash::make($request->password);
             }
-            $user->role = $request->role;
             $user->status = $request->status;
             $user->id_writer = $request->id_writer;
             $user->id_editor = $request->id_editor;
             $user->id_fotografer = $request->id_fotografer;
             $user->save();
+
+            $user->syncRoles($request->roles ?? []);
 
             DB::commit();
             return redirect()->route('admin.users.index')->with('success', 'User berhasil diperbarui.');

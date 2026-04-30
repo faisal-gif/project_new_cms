@@ -27,6 +27,8 @@ use App\Services\CdnService;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\Paginator;
+use Illuminate\Routing\Controllers\HasMiddleware;
+use Illuminate\Routing\Controllers\Middleware;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
@@ -35,12 +37,37 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
 
-class NewsController extends Controller
+class NewsController extends Controller implements HasMiddleware
 {
 
     public function __construct(
         protected CdnService $cdnService
     ) {}
+
+    public static function middleware(): array
+    {
+        return [
+            // User butuh permission 'view news master' untuk melihat daftar (index) atau detail (show)
+            new Middleware('permission:view news master', only: ['index', 'show']),
+
+            // User butuh permission 'create news' untuk melihat form tambah (create) dan menyimpan data (store)
+            new Middleware('permission:create news master', only: ['create', 'store']),
+
+            // User butuh permission 'edit news' untuk melihat form edit (edit) dan memperbarui data (update)
+            new Middleware('permission:edit news master', only: ['edit', 'update']),
+
+            // User butuh permission 'import nasional news master' untuk melihat form import nasional (importNasional) dan menyimpan data ke nasional (importNasionalStore)
+            new Middleware('permission:import nasional news master', only: ['importNasional', 'importNasionalStore']),
+
+            // User butuh permission 'import daerah news master' untuk melihat form import daerah (importDaerah) dan menyimpan data ke daerah (importDaerahStore)
+            new Middleware('permission:import daerah news master', only: ['importDaerah', 'importDaerahStore']),
+
+            // User butuh permission 'delete news' untuk menghapus data (destroy)
+            new Middleware('permission:delete news master', only: ['destroy']),
+        ];
+    }
+
+    
     /**
      * Display a listing of the resource.
      */

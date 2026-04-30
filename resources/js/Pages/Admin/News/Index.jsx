@@ -6,16 +6,25 @@ import TextInput from '@/Components/TextInput'
 import { Badge } from '@/Components/ui/badge'
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout'
 import { formatDateTime } from '@/Utils/formatter'
-import { Head, Link, router } from '@inertiajs/react'
+import { Head, Link, router, usePage } from '@inertiajs/react'
 import { Plus, Search } from 'lucide-react'
 import React, { useEffect, useRef, useState } from 'react'
 import Select from "react-select";
 
 function Index({ news, writers, kanals, filters }) {
-  console.log(news);
 
   const [search, setSearch] = useState(() => filters.search || '');
   const [writer, setWriter] = useState(() => filters.writer || '');
+  const { auth } = usePage().props;
+  const userPermissions = auth.permissions || [];
+
+  // 2. Buat helper function
+  const hasPermission = (permissions) => {
+    if (Array.isArray(permissions)) {
+      return permissions.some(permission => userPermissions.includes(permission));
+    }
+    return userPermissions.includes(permissions);
+  };
 
   const isFirst = useRef(true);
   const INDEX_ROUTE = route('admin.news.index');
@@ -128,9 +137,11 @@ function Index({ news, writers, kanals, filters }) {
 
               {/* Start Head */}
               <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-                <Link href={route('admin.news.create')} className="btn btn-primary rounded-lg">
-                  <Plus size={16} /> Tambah News
-                </Link>
+                {hasPermission('create news master') && (
+                  <Link href={route('admin.news.create')} className="btn btn-primary rounded-lg">
+                    <Plus size={16} /> Tambah News
+                  </Link>
+                )}
               </div>
               {/* End Head */}
 
@@ -190,68 +201,72 @@ function Index({ news, writers, kanals, filters }) {
 
                         {/* Integration Status (Daerah & Nasional) */}
                         <div className="bg-base-200/50 rounded-lg p-3 flex flex-col gap-4 mb-4">
-                          
+
                           {/* Daerah */}
-                          <div className="flex flex-col gap-2">
-                            <span className="text-xs font-semibold text-base-content/80">Distribusi Daerah</span>
-                            {n.news_daerah ? (
-                              <div className="flex justify-between items-center bg-base-100 p-2 rounded border border-base-200">
-                                <div className="flex flex-col">
-                                  <span className="text-[11px] font-bold text-success flex items-center gap-1">
-                                    <span className="w-1.5 h-1.5 rounded-full bg-success"></span> Terindeks
-                                  </span>
-                                  <span className="text-[11px] text-base-content/70 truncate max-w-[150px]">
-                                    {n.news_daerah.kanal?.name || 'Daerah'}
-                                  </span>
+                          {hasPermission('import daerah news master') && (
+                            < div className="flex flex-col gap-2">
+                              <span className="text-xs font-semibold text-base-content/80">Distribusi Daerah</span>
+                              {n.news_daerah ? (
+                                <div className="flex justify-between items-center bg-base-100 p-2 rounded border border-base-200">
+                                  <div className="flex flex-col">
+                                    <span className="text-[11px] font-bold text-success flex items-center gap-1">
+                                      <span className="w-1.5 h-1.5 rounded-full bg-success"></span> Terindeks
+                                    </span>
+                                    <span className="text-[11px] text-base-content/70 truncate max-w-[150px]">
+                                      {n.news_daerah.kanal?.name || 'Daerah'}
+                                    </span>
+                                  </div>
+                                  <Link
+                                    href={route('admin.daerah.news.edit', n.news_daerah.id)} // Sesuaikan nama route Anda
+                                    className="btn btn-xs btn-warning btn-outline"
+                                  >
+                                    Edit
+                                  </Link>
                                 </div>
+                              ) : (
                                 <Link
-                                  href={route('admin.daerah.news.edit', n.news_daerah.id)} // Sesuaikan nama route Anda
-                                  className="btn btn-xs btn-warning btn-outline"
+                                  href={route('admin.news.import.daerah', n.is_code)}
+                                  className="btn btn-xs btn-info btn-outline self-start"
                                 >
-                                  Edit
+                                  + Daerah
                                 </Link>
-                              </div>
-                            ) : (
-                              <Link
-                                href={route('admin.news.import.daerah', n.is_code)}
-                                className="btn btn-xs btn-info btn-outline self-start"
-                              >
-                                + Daerah
-                              </Link>
-                            )}
-                          </div>
+                              )}
+                            </div>
+                          )}
 
                           <div className="border-t border-base-300"></div>
 
                           {/* Nasional */}
-                          <div className="flex flex-col gap-2">
-                            <span className="text-xs font-semibold text-base-content/80">Distribusi Nasional</span>
-                            {n.news_nasional ? (
-                              <div className="flex justify-between items-center bg-base-100 p-2 rounded border border-base-200">
-                                <div className="flex flex-col">
-                                  <span className="text-[11px] font-bold text-success flex items-center gap-1">
-                                    <span className="w-1.5 h-1.5 rounded-full bg-success"></span> Terindeks
-                                  </span>
-                                  <span className="text-[11px] text-base-content/70 truncate max-w-[150px]">
-                                    {n.news_nasional.kanal?.catnews_title || 'Nasional'}
-                                  </span>
+                          {hasPermission('import nasional news master') && (
+                            <div className="flex flex-col gap-2">
+                              <span className="text-xs font-semibold text-base-content/80">Distribusi Nasional</span>
+                              {n.news_nasional ? (
+                                <div className="flex justify-between items-center bg-base-100 p-2 rounded border border-base-200">
+                                  <div className="flex flex-col">
+                                    <span className="text-[11px] font-bold text-success flex items-center gap-1">
+                                      <span className="w-1.5 h-1.5 rounded-full bg-success"></span> Terindeks
+                                    </span>
+                                    <span className="text-[11px] text-base-content/70 truncate max-w-[150px]">
+                                      {n.news_nasional.kanal?.catnews_title || 'Nasional'}
+                                    </span>
+                                  </div>
+                                  <Link
+                                    href={route('admin.nasional.news.edit', n.news_nasional.news_id)} // Sesuaikan nama route Anda
+                                    className="btn btn-xs btn-warning btn-outline"
+                                  >
+                                    Edit
+                                  </Link>
                                 </div>
+                              ) : (
                                 <Link
-                                  href={route('admin.nasional.news.edit', n.news_nasional.news_id)} // Sesuaikan nama route Anda
-                                  className="btn btn-xs btn-warning btn-outline"
+                                  href={route('admin.news.import.nasional', n.is_code)}
+                                  className="btn btn-xs btn-info btn-outline self-start"
                                 >
-                                  Edit
+                                  + Nasional
                                 </Link>
-                              </div>
-                            ) : (
-                              <Link
-                                href={route('admin.news.import.nasional', n.is_code)}
-                                className="btn btn-xs btn-info btn-outline self-start"
-                              >
-                                + Nasional
-                              </Link>
-                            )}
-                          </div>
+                              )}
+                            </div>
+                          )}
                         </div>
 
                         {/* Actions */}
@@ -274,8 +289,12 @@ function Index({ news, writers, kanals, filters }) {
                         <th>#</th>
                         <th>Penulis</th>
                         <th className="w-1/3">Judul</th>
-                        <th>Daerah</th>
-                        <th>Nasional</th>
+                        {hasPermission('import daerah news master') && (
+                          <th>Daerah</th>
+                        )}
+                        {hasPermission('import nasional news master') && (
+                          <th>Nasional</th>
+                        )}
                         <th className="text-right">Action</th>
                       </tr>
                     </thead>
@@ -288,76 +307,81 @@ function Index({ news, writers, kanals, filters }) {
                             <p className="font-medium truncate max-w-xs">{n.title}</p>
                             <span className="text-[10px] text-base-content/60">{formatDateTime(n.datepub)}</span>
                           </td>
-                          
+
                           {/* Kolom Daerah */}
-                          <td>
-                            {n.news_daerah ? (
-                              <div className="flex flex-col gap-1.5">
-                                <div className="flex items-center justify-between gap-2">
-                                  <span className="text-[11px] font-bold text-success">Terindeks</span>
-                                  <Link 
-                                    href={route('admin.daerah.news.edit', n.news_daerah.id)} // Sesuaikan nama route Anda
-                                    className="btn btn-xs btn-warning btn-outline h-6 min-h-0"
-                                  >
-                                    Edit
-                                  </Link>
+                          {hasPermission('import daerah news master') && (
+                            <td>
+                              {n.news_daerah ? (
+                                <div className="flex flex-col gap-1.5">
+                                  <div className="flex items-center justify-between gap-2">
+                                    <span className="text-[11px] font-bold text-success">Terindeks</span>
+                                    <Link
+                                      href={route('admin.daerah.news.edit', n.news_daerah.id)} // Sesuaikan nama route Anda
+                                      className="btn btn-xs btn-warning btn-outline h-6 min-h-0"
+                                    >
+                                      Edit
+                                    </Link>
+                                  </div>
+                                  <span className="text-[11px] leading-tight text-base-content/80 truncate max-w-[150px]" title={n.news_daerah.title}>
+                                    {n.news_daerah.title}
+                                  </span>
+                                  <div className="flex items-center gap-1">
+                                    <span className="badge badge-xs badge-ghost italic">{n.news_daerah.kanal?.name}</span>
+                                    {getStatusBadge(n.news_daerah.status)}
+                                  </div>
                                 </div>
-                                <span className="text-[11px] leading-tight text-base-content/80 truncate max-w-[150px]" title={n.news_daerah.title}>
-                                  {n.news_daerah.title}
-                                </span>
-                                <div className="flex items-center gap-1">
-                                  <span className="badge badge-xs badge-ghost italic">{n.news_daerah.kanal?.name}</span>
-                                  {getStatusBadge(n.news_daerah.status)}
-                                </div>
-                              </div>
-                            ) : (
-                              <Link
-                                href={route('admin.news.import.daerah', n.is_code)}
-                                className="btn btn-xs btn-info btn-outline"
-                              >
-                                + Daerah
-                              </Link>
-                            )}
-                          </td>
+                              ) : (
+                                <Link
+                                  href={route('admin.news.import.daerah', n.is_code)}
+                                  className="btn btn-xs btn-info btn-outline"
+                                >
+                                  + Daerah
+                                </Link>
+                              )}
+                            </td>
+                          )}
 
                           {/* Kolom Nasional */}
-                          <td>
-                            {n.news_nasional ? (
-                              <div className="flex flex-col gap-1.5">
-                                <div className="flex items-center justify-between gap-2">
-                                  <span className="text-[11px] font-bold text-success">Terindeks</span>
-                                  <Link 
-                                    href={route('admin.nasional.news.edit', n.news_nasional.news_id)} // Sesuaikan nama route Anda
-                                    className="btn btn-xs btn-warning btn-outline h-6 min-h-0"
-                                  >
-                                    Edit
-                                  </Link>
-                                </div>
-                                <span className="text-[11px] leading-tight text-base-content/80 truncate max-w-[150px]">
-                                  {n.news_nasional.title || '-'}
-                                </span>
-                                <div className="flex items-center gap-1">
-                                  <span className="badge badge-xs badge-ghost italic">
-                                    {n.news_nasional.kanal?.catnews_title || 'Nasional'}
+                          {hasPermission('import nasional news master') && (
+                            <td>
+                              {n.news_nasional ? (
+                                <div className="flex flex-col gap-1.5">
+                                  <div className="flex items-center justify-between gap-2">
+                                    <span className="text-[11px] font-bold text-success">Terindeks</span>
+                                    <Link
+                                      href={route('admin.nasional.news.edit', n.news_nasional.news_id)} // Sesuaikan nama route Anda
+                                      className="btn btn-xs btn-warning btn-outline h-6 min-h-0"
+                                    >
+                                      Edit
+                                    </Link>
+                                  </div>
+                                  <span className="text-[11px] leading-tight text-base-content/80 truncate max-w-[150px]">
+                                    {n.news_nasional.title || '-'}
                                   </span>
-                                  {getStatusBadge(n.news_nasional.news_status)}
+                                  <div className="flex items-center gap-1">
+                                    <span className="badge badge-xs badge-ghost italic">
+                                      {n.news_nasional.kanal?.catnews_title || 'Nasional'}
+                                    </span>
+                                    {getStatusBadge(n.news_nasional.news_status)}
+                                  </div>
                                 </div>
+                              ) : (
+                                <Link
+                                  href={route('admin.news.import.nasional', n.is_code)}
+                                  className="btn btn-xs btn-info btn-outline"
+                                >
+                                  + Nasional
+                                </Link>
+                              )}
+                            </td>
+                          )}
+                          {hasPermission('edit news master') && (
+                            <td>
+                              <div className="flex justify-end gap-2">
+                                <Link href={route('admin.news.edit', n.id)} className="btn btn-sm btn-primary btn-outline">Edit Induk</Link>
                               </div>
-                            ) : (
-                              <Link
-                                href={route('admin.news.import.nasional', n.is_code)}
-                                className="btn btn-xs btn-info btn-outline"
-                              >
-                                + Nasional
-                              </Link>
-                            )}
-                          </td>
-                          
-                          <td>
-                            <div className="flex justify-end gap-2">
-                              <Link href={route('admin.news.edit', n.id)} className="btn btn-sm btn-primary btn-outline">Edit Induk</Link>
-                            </div>
-                          </td>
+                            </td>
+                          )}
                         </tr>
                       ))}
                     </tbody>
@@ -372,8 +396,8 @@ function Index({ news, writers, kanals, filters }) {
 
             </div>
           </div>
-        </div>
-      </AuthenticatedLayout>
+        </div >
+      </AuthenticatedLayout >
     </>
   )
 }

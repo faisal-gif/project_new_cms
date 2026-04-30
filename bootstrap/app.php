@@ -17,11 +17,16 @@ return Application::configure(basePath: dirname(__DIR__))
             \App\Http\Middleware\HandleInertiaRequests::class,
             \Illuminate\Http\Middleware\AddLinkHeadersForPreloadedAssets::class,
         ]);
-
+        // Mendaftarkan Alias Middleware untuk Spatie Permission
+        $middleware->alias([
+            'role' => \Spatie\Permission\Middleware\RoleMiddleware::class,
+            'permission' => \Spatie\Permission\Middleware\PermissionMiddleware::class,
+            'role_or_permission' => \Spatie\Permission\Middleware\RoleOrPermissionMiddleware::class,
+        ]);
         //
     })
     ->withExceptions(function (Exceptions $exceptions): void {
-       $exceptions->render(function (PostTooLargeException $e, Request $request) {
+        $exceptions->render(function (PostTooLargeException $e, Request $request) {
             if ($request->expectsJson()) {
                 return response()->json([
                     'message' => 'Ukuran file terlalu besar. Maksimal 8MB.'

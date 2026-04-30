@@ -27,7 +27,8 @@ class UserFormRequest extends FormRequest
             'password' => $this->isMethod('POST')
                 ? 'required|string|min:8'
                 : 'nullable|string|min:8',
-            'role' => 'required|string',
+            'roles' => 'required|array', 
+            'roles.*' => 'exists:roles,name',
             'status' => 'required|in:0,1',
             'id_writer' => 'nullable|exists:writers,id|unique:users,id_writer,' . $userId,
             'id_editor' => 'nullable|exists:editors,id|unique:users,id_editor,' . $userId,
