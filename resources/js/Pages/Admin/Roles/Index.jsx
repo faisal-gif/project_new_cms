@@ -1,6 +1,6 @@
 import React from 'react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { Head, Link, useForm } from '@inertiajs/react';
+import { Head, Link, useForm, usePage } from '@inertiajs/react';
 import { Edit, Trash2, Plus } from 'lucide-react';
 import Card from '@/Components/Card';
 import PaginationDaisy from '@/Components/PaginationDaisy';
@@ -8,6 +8,17 @@ import { Badge } from '@/Components/ui/badge';
 
 export default function Index({ roles }) {
     const { delete: destroy } = useForm();
+    const { auth } = usePage().props;
+    const userPermissions = auth.permissions || [];
+
+    // 2. Buat helper function
+    const hasPermission = (permissions) => {
+        if (Array.isArray(permissions)) {
+            return permissions.some(permission => userPermissions.includes(permission));
+        }
+        return userPermissions.includes(permissions);
+    };
+
 
     const handleDelete = (id) => {
         if (confirm('Apakah Anda yakin ingin menghapus role ini?')) {
@@ -44,10 +55,11 @@ export default function Index({ roles }) {
                         <Card>
                             <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
                                 {/* Button Tambah User */}
-                                <Link href={route('admin.roles.create')} className="btn btn-primary rounded-lg">
-                                    <Plus size={16} /> Tambah Role
-                                </Link>
-
+                                {hasPermission('create role master') && (
+                                    <Link href={route('admin.roles.create')} className="btn btn-primary rounded-lg">
+                                        <Plus size={16} /> Tambah Role
+                                    </Link>
+                                )}
 
                             </div>
                         </Card>
@@ -76,10 +88,12 @@ export default function Index({ roles }) {
                                                     </Badge>
                                                 </td>
                                                 <td className="flex justify-end gap-2">
-                                                    <Link href={route('admin.roles.edit', role.id)} className="btn btn-warning btn-outline btn-sm">
-                                                        <Edit size={16} />
-                                                    </Link>
-                                                   
+                                                    {hasPermission('edit role master') && (
+                                                        <Link href={route('admin.roles.edit', role.id)} className="btn btn-warning btn-outline btn-sm">
+                                                            <Edit size={16} />
+                                                        </Link>
+                                                    )}
+
                                                 </td>
                                             </tr>
                                         ))}

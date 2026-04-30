@@ -6,7 +6,7 @@ import TextInput from '@/Components/TextInput'
 import { Badge } from '@/Components/ui/badge'
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout'
 import { formatDate } from '@/Utils/formatter'
-import { Head, Link, router } from '@inertiajs/react'
+import { Head, Link, router, usePage } from '@inertiajs/react'
 import { Pencil, Plus, Search } from 'lucide-react'
 import React, { useEffect, useRef, useState } from 'react'
 
@@ -16,6 +16,17 @@ function Index({ editors, filters }) {
 
     const isFirst = useRef(true);
     const INDEX_ROUTE = route('admin.editors.index');
+
+    const { auth } = usePage().props;
+    const userPermissions = auth.permissions || [];
+
+    // 2. Buat helper function
+    const hasPermission = (permissions) => {
+        if (Array.isArray(permissions)) {
+            return permissions.some(permission => userPermissions.includes(permission));
+        }
+        return userPermissions.includes(permissions);
+    };
 
     useEffect(() => {
         // Skip initial load
@@ -97,7 +108,7 @@ function Index({ editors, filters }) {
         }
 
         if (type === "nasional") {
-               return (
+            return (
                 <div className="rounded-lg border border-base-200 px-2.5 py-2 w-48 bg-base-300">
                     <div className="flex items-center justify-between gap-2 mb-1.5">
                         <span className="text-sm font-medium truncate" title={item.title || item.editor_name}>
@@ -114,7 +125,7 @@ function Index({ editors, filters }) {
                         </span>
                     </div>
                 </div>
-            ); 
+            );
         }
 
     }
@@ -150,9 +161,11 @@ function Index({ editors, filters }) {
                             <Card>
                                 <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
                                     {/* Button Tambah User */}
-                                    <Link href={route('admin.editors.create')} className="btn btn-primary rounded-lg">
-                                        <Plus size={16} /> Tambah Editor
-                                    </Link>
+                                    {hasPermission('create editor master') && (
+                                        <Link href={route('admin.editors.create')} className="btn btn-primary rounded-lg">
+                                            <Plus size={16} /> Tambah Editor
+                                        </Link>
+                                    )}
 
                                     {/* Field Search And Filter */}
                                     <div className="flex flex-col md:flex-row gap-4 w-full md:w-auto">
@@ -288,12 +301,14 @@ function Index({ editors, filters }) {
                                                         </td>
 
                                                         <td className="py-4 align-top text-right">
-                                                            <Link
-                                                                href={route('admin.editors.edit', editor)}
-                                                                className="btn btn-sm btn-ghost gap-1.5"
-                                                            >
-                                                                <Pencil className="w-3.5 h-3.5" /> Edit
-                                                            </Link>
+                                                            {hasPermission('edit editor master') && (
+                                                                <Link
+                                                                    href={route('admin.editors.edit', editor)}
+                                                                    className="btn btn-sm btn-ghost gap-1.5"
+                                                                >
+                                                                    <Pencil className="w-3.5 h-3.5" /> Edit
+                                                                </Link>
+                                                            )}
                                                         </td>
                                                     </tr>
                                                 );

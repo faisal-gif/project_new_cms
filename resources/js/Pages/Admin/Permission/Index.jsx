@@ -6,7 +6,7 @@ import TextInput from '@/Components/TextInput'
 import InputLabel from '@/Components/InputLabel'
 import { Badge } from '@/Components/ui/badge'
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout'
-import { Head, router, useForm } from '@inertiajs/react'
+import { Head, router, useForm, usePage } from '@inertiajs/react'
 import { Plus, Search, Edit, Trash2, AlertTriangle } from 'lucide-react'
 import React, { useEffect, useRef, useState } from 'react'
 
@@ -18,16 +18,6 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
 
 function Index({ permissions, categories, filters }) {
   // ===== STATE FILTER & SEARCH =====
@@ -44,6 +34,17 @@ function Index({ permissions, categories, filters }) {
   // ===== STATE ALERT MODAL (DELETE) =====
   const [isAlertOpen, setIsAlertOpen] = useState(false);
   const [permissionToDelete, setPermissionToDelete] = useState(null);
+
+  const { auth } = usePage().props;
+  const userPermissions = auth.permissions || [];
+
+  // 2. Buat helper function
+  const hasPermission = (permissions) => {
+    if (Array.isArray(permissions)) {
+      return permissions.some(permission => userPermissions.includes(permission));
+    }
+    return userPermissions.includes(permissions);
+  };
 
   // ===== INERTIA FORM =====
   const { data, setData, post, put, delete: destroy, processing, reset, errors, clearErrors } = useForm({
@@ -145,9 +146,11 @@ function Index({ permissions, categories, filters }) {
               <Card>
                 <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
                   {/* Button Tambah Permission diubah menjadi onClick trigger */}
-                  <button onClick={openAddModal} className="btn btn-primary rounded-lg">
-                    <Plus size={16} /> Tambah Permission
-                  </button>
+                  {hasPermission('create permission master') && (
+                    <button onClick={openAddModal} className="btn btn-primary rounded-lg">
+                      <Plus size={16} /> Tambah Permission
+                    </button>
+                  )}
 
                   {/* Field Search And Filter */}
                   <div className="flex flex-col md:flex-row gap-4 w-full md:w-auto">
@@ -198,10 +201,11 @@ function Index({ permissions, categories, filters }) {
                           </td>
                           <td>
                             <div className="flex justify-end gap-2">
-                              <button onClick={() => openEditModal(permission)} className="btn btn-sm btn-warning">
-                                <Edit size={16} />
-                              </button>
-
+                              {hasPermission('edit permission master') && (
+                                <button onClick={() => openEditModal(permission)} className="btn btn-sm btn-warning">
+                                  <Edit size={16} />
+                                </button>
+                              )}
                             </div>
                           </td>
                         </tr>

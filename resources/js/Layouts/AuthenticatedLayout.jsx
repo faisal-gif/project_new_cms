@@ -159,7 +159,7 @@ export default function AuthenticatedLayout({ header, children }) {
                                             </Link>
                                         </li>
                                     )}
-                                    {hasPermission('view editors master') && (
+                                    {hasPermission('view editor master') && (
                                         <li>
                                             <Link href={route('admin.editors.index')} className={linkClass(isActive('admin.editors.*'))}>
                                                 <Edit size={16} /> Editor

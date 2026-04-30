@@ -6,7 +6,7 @@ import TextInput from '@/Components/TextInput'
 import { Badge } from '@/Components/ui/badge'
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout'
 import { formatDate } from '@/Utils/formatter'
-import { Head, Link, router } from '@inertiajs/react'
+import { Head, Link, router, usePage } from '@inertiajs/react'
 import { Pencil, Plus, Search } from 'lucide-react'
 import React, { useEffect, useRef, useState } from 'react'
 
@@ -16,6 +16,17 @@ function Index({ writers, filters }) {
 
     const isFirst = useRef(true);
     const INDEX_ROUTE = route('admin.writers.index');
+
+    const { auth } = usePage().props;
+    const userPermissions = auth.permissions || [];
+
+    // 2. Buat helper function
+    const hasPermission = (permissions) => {
+        if (Array.isArray(permissions)) {
+            return permissions.some(permission => userPermissions.includes(permission));
+        }
+        return userPermissions.includes(permissions);
+    };
 
     useEffect(() => {
         // Skip initial load
@@ -125,9 +136,11 @@ function Index({ writers, filters }) {
                             <Card>
                                 <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
                                     {/* Button Tambah User */}
-                                    <Link href={route('admin.writers.create')} className="btn btn-primary rounded-lg">
-                                        <Plus size={16} /> Tambah Penulis
-                                    </Link>
+                                    {hasPermission('create penulis master') && (
+                                        <Link href={route('admin.writers.create')} className="btn btn-primary rounded-lg">
+                                            <Plus size={16} /> Tambah Penulis
+                                        </Link>
+                                    )}
 
                                     {/* Field Search And Filter */}
                                     <div className="flex flex-col md:flex-row gap-4 w-full md:w-auto">
@@ -198,11 +211,14 @@ function Index({ writers, filters }) {
                                                 </div>
                                             </div>
                                             {/* Actions */}
+
                                             <div className="flex items-center justify-between text-xs text-base-content/60 pt-1">
                                                 <span>Berlaku s/d {formatDate(writer.date_exp)}</span>
-                                                <Link href={route('admin.writers.edit', writer)} className="btn btn-xs btn-warning btn-soft gap-1">
-                                                    <Pencil className="w-3 h-3" /> Edit
-                                                </Link>
+                                                {hasPermission('edit penulis master') && (
+                                                    <Link href={route('admin.writers.edit', writer)} className="btn btn-xs btn-warning btn-soft gap-1">
+                                                        <Pencil className="w-3 h-3" /> Edit
+                                                    </Link>
+                                                )}
                                             </div>
                                         </div>
                                     ))}
@@ -264,12 +280,14 @@ function Index({ writers, filters }) {
                                                         </td>
 
                                                         <td className="py-4 align-top text-right">
-                                                            <Link
-                                                                href={route('admin.writers.edit', writer)}
-                                                                className="btn btn-sm btn-ghost gap-1.5"
-                                                            >
-                                                                <Pencil className="w-3.5 h-3.5" /> Edit
-                                                            </Link>
+                                                            {hasPermission('edit penulis master') && (
+                                                                <Link
+                                                                    href={route('admin.writers.edit', writer)}
+                                                                    className="btn btn-sm btn-ghost gap-1.5"
+                                                                >
+                                                                    <Pencil className="w-3.5 h-3.5" /> Edit
+                                                                </Link>
+                                                            )}
                                                         </td>
                                                     </tr>
                                                 );

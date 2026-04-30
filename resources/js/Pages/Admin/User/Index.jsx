@@ -5,7 +5,7 @@ import PaginationDaisy from '@/Components/PaginationDaisy'
 import TextInput from '@/Components/TextInput'
 import { Badge } from '@/Components/ui/badge'
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout'
-import { Head, Link, router } from '@inertiajs/react'
+import { Head, Link, router, usePage } from '@inertiajs/react'
 import { Plus, Search } from 'lucide-react'
 import React, { useEffect, useRef, useState } from 'react'
 
@@ -15,6 +15,16 @@ function Index({ users, filters }) {
   const [role, setRole] = useState(() => filters.role || '');
   const isFirst = useRef(true);
   const INDEX_ROUTE = route('admin.users.index');
+  const { auth } = usePage().props;
+  const userPermissions = auth.permissions || [];
+
+  // 2. Buat helper function
+  const hasPermission = (permissions) => {
+    if (Array.isArray(permissions)) {
+      return permissions.some(permission => userPermissions.includes(permission));
+    }
+    return userPermissions.includes(permissions);
+  };
 
   useEffect(() => {
     // Skip initial load
@@ -115,9 +125,11 @@ function Index({ users, filters }) {
               <Card>
                 <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
                   {/* Button Tambah User */}
-                  <Link href={route('admin.users.create')} className="btn btn-primary rounded-lg">
-                    <Plus size={16} /> Tambah User
-                  </Link>
+                  {hasPermission('create users master') && (
+                    <Link href={route('admin.users.create')} className="btn btn-primary rounded-lg">
+                      <Plus size={16} /> Tambah User
+                    </Link>
+                  )}
 
                   {/* Field Search And Filter */}
                   <div className="flex flex-col md:flex-row gap-4 w-full md:w-auto">
@@ -184,9 +196,11 @@ function Index({ users, filters }) {
                       </div>
 
                       {/* Actions */}
-                      <div className="flex gap-2 mt-4">
-                        <Link href={route('admin.users.edit', user)} className="btn btn-sm btn-warning btn-outline">Edit</Link>
-                      </div>
+                      {hasPermission('edit users master') && (
+                        <div className="flex gap-2 mt-4">
+                          <Link href={route('admin.users.edit', user)} className="btn btn-sm btn-warning btn-outline">Edit</Link>
+                        </div>
+                      )}
                     </div>
                   ))}
                 </div>
@@ -229,12 +243,13 @@ function Index({ users, filters }) {
                           <td>
                             {getStatusBadge(user.status)}
                           </td>
-
-                          <td>
-                            <div className="flex justify-end gap-2">
-                              <Link href={route('admin.users.edit', user)} className="btn btn-sm btn-warning btn-outline">Edit</Link>
-                            </div>
-                          </td>
+                          {hasPermission('edit users master') && (
+                            <td>
+                              <div className="flex justify-end gap-2">
+                                <Link href={route('admin.users.edit', user)} className="btn btn-sm btn-warning btn-outline">Edit</Link>
+                              </div>
+                            </td>
+                          )}
                         </tr>
                       ))}
                     </tbody>
