@@ -5,7 +5,7 @@ import PaginationDaisy from '@/Components/PaginationDaisy'
 import { Badge } from '@/Components/ui/badge'
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout'
 import { formatDateTime } from '@/Utils/formatter'
-import { Head, Link, router } from '@inertiajs/react'
+import { Head, Link, router, usePage } from '@inertiajs/react'
 import { Plus, Search } from 'lucide-react'
 import React, { useEffect, useRef, useState } from 'react'
 
@@ -14,9 +14,18 @@ function Index({ ekorans, filters }) {
   const [status, setStatus] = useState(() => filters.status || '');
 
   const isFirst = useRef(true);
-  
-  // Sesuaikan dengan nama route Laravel Anda, contoh: 'ekoran.index'
   const INDEX_ROUTE = route('admin.nasional.ekoran.index');
+
+  const { auth } = usePage().props;
+  const userPermissions = auth.permissions || [];
+
+  // 2. Buat helper function
+  const hasPermission = (permissions) => {
+    if (Array.isArray(permissions)) {
+      return permissions.some(permission => userPermissions.includes(permission));
+    }
+    return userPermissions.includes(permissions);
+  };
 
   useEffect(() => {
     if (isFirst.current) {
@@ -75,7 +84,7 @@ function Index({ ekorans, filters }) {
         <div className="py-12">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <div className="space-y-6">
-              
+
               <div className='flex flex-row justify-between items-center'>
                 <div>
                   <h1 className="text-3xl font-bold text-foreground">Daftar eKoran</h1>
@@ -89,9 +98,11 @@ function Index({ ekorans, filters }) {
               </div>
 
               <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-                <Link href={route('admin.nasional.ekoran.create')} className="btn btn-primary rounded-lg">
-                  <Plus size={16} /> Tambah Edisi
-                </Link>
+                {hasPermission('create ekoran nasional') && (
+                  <Link href={route('admin.nasional.ekoran.create')} className="btn btn-primary rounded-lg">
+                    <Plus size={16} /> Tambah Edisi
+                  </Link>
+                )}
               </div>
 
               {/* Start Filter */}
@@ -156,9 +167,11 @@ function Index({ ekorans, filters }) {
                       </div>
 
                       <div className="flex gap-2 mt-4">
-                        <Link href={route('admin.nasional.ekoran.edit', item.id)} className="btn btn-sm btn-warning btn-outline">
-                          Edit
-                        </Link>
+                        {hasPermission('edit ekoran nasional') && (
+                          <Link href={route('admin.nasional.ekoran.edit', item.id)} className="btn btn-sm btn-warning btn-outline">
+                            Edit
+                          </Link>
+                        )}
                       </div>
                     </div>
                   ))}
@@ -189,14 +202,16 @@ function Index({ ekorans, filters }) {
                           <td>{getStatusBadge(item.status)}</td>
                           <td>
                             <div className="flex justify-end gap-2">
-                              <Link href={route('admin.nasional.ekoran.edit', item.id)} className="btn btn-sm btn-warning btn-outline">
-                                Edit
-                              </Link>
+                              {hasPermission('edit ekoran nasional') && (
+                                <Link href={route('admin.nasional.ekoran.edit', item.id)} className="btn btn-sm btn-warning btn-outline">
+                                  Edit
+                                </Link>
+                              )}
                             </div>
                           </td>
                         </tr>
                       ))}
-                      
+
                       {/* Kondisi jika data kosong */}
                       {ekorans.data.length === 0 && (
                         <tr>

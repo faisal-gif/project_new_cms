@@ -5,7 +5,7 @@ import PaginationDaisy from '@/Components/PaginationDaisy'
 import { Badge } from '@/Components/ui/badge'
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout'
 import { formatDateTime } from '@/Utils/formatter'
-import { Head, Link, router } from '@inertiajs/react'
+import { Head, Link, router, usePage } from '@inertiajs/react'
 import { Plus, Search, Camera } from 'lucide-react'
 import React, { useEffect, useRef, useState } from 'react'
 import Select from "react-select";
@@ -18,6 +18,17 @@ function Index({ galleries, writers, categories, filters }) {
 
   const isFirst = useRef(true);
   const INDEX_ROUTE = route('admin.nasional.fotografi.index');
+
+  const { auth } = usePage().props;
+  const userPermissions = auth.permissions || [];
+
+  // 2. Buat helper function
+  const hasPermission = (permissions) => {
+    if (Array.isArray(permissions)) {
+      return permissions.some(permission => userPermissions.includes(permission));
+    }
+    return userPermissions.includes(permissions);
+  };
 
   useEffect(() => {
     // Lewati initial load (hindari double fetch)
@@ -129,9 +140,11 @@ function Index({ galleries, writers, categories, filters }) {
               {/* Start Head */}
               <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
                 {/* Button Tambah Galeri */}
-                <Link href={route('admin.nasional.fotografi.create')} className="btn btn-primary rounded-lg">
-                  <Plus size={16} /> Tambah Galeri
-                </Link>
+                {hasPermission('create gallery nasional') && (
+                  <Link href={route('admin.nasional.fotografi.create')} className="btn btn-primary rounded-lg">
+                    <Plus size={16} /> Tambah Galeri
+                  </Link>
+                )}
               </div>
               {/* End Head */}
 
@@ -153,7 +166,7 @@ function Index({ galleries, writers, categories, filters }) {
                       options={writers}
                       value={writers?.find(w => w.value === writer) || null}
                       placeholder="Pewarta"
-                      onChange={(e) => setWriter(e?.value || '')} 
+                      onChange={(e) => setWriter(e?.value || '')}
                       isClearable
                     />
                   </div>
@@ -162,7 +175,7 @@ function Index({ galleries, writers, categories, filters }) {
                       options={categories}
                       value={categories?.find(c => c.value === category) || null}
                       placeholder="Kategori"
-                      onChange={(e) => setCategory(e?.value || '')} 
+                      onChange={(e) => setCategory(e?.value || '')}
                       isClearable
                     />
                   </div>
@@ -200,7 +213,7 @@ function Index({ galleries, writers, categories, filters }) {
                   {galleries.data.length > 0 ? (
                     galleries.data.map((g) => (
                       <div key={g.gal_id} className="border rounded-xl p-4 bg-base-100 shadow-sm flex flex-col gap-3">
-                        
+
                         {/* Header Mobile Card */}
                         <div className="flex gap-3">
                           <div className="flex-shrink-0">
@@ -234,9 +247,11 @@ function Index({ galleries, writers, categories, filters }) {
 
                         {/* Actions Mobile Card */}
                         <div className="flex gap-2 mt-2 pt-2 border-t">
-                          <Link href={route('admin.nasional.fotografi.edit', g.gal_id)} className="btn btn-sm btn-warning btn-outline flex-1">
-                            Edit
-                          </Link>
+                          {hasPermission('edit gallery nasional') && (
+                            <Link href={route('admin.nasional.fotografi.edit', g.gal_id)} className="btn btn-sm btn-warning btn-outline flex-1">
+                              Edit
+                            </Link>
+                          )}
                         </div>
                       </div>
                     ))
@@ -287,9 +302,11 @@ function Index({ galleries, writers, categories, filters }) {
                             </td>
                             <td>
                               <div className="flex justify-end gap-2">
-                                <Link href={route('admin.nasional.fotografi.edit', g.gal_id)} className="btn btn-sm btn-warning btn-outline">
-                                  Edit
-                                </Link>
+                                {hasPermission('edit gallery nasional') && (
+                                  <Link href={route('admin.nasional.fotografi.edit', g.gal_id)} className="btn btn-sm btn-warning btn-outline">
+                                    Edit
+                                  </Link>
+                                )}
                               </div>
                             </td>
                           </tr>

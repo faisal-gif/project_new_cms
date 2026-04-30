@@ -6,7 +6,7 @@ import TextInput from '@/Components/TextInput'
 import { Badge } from '@/Components/ui/badge'
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout'
 import { formatDate } from '@/Utils/formatter'
-import { Head, Link, router } from '@inertiajs/react'
+import { Head, Link, router, usePage } from '@inertiajs/react'
 import { Plus, Search } from 'lucide-react'
 import React, { useEffect, useRef, useState } from 'react'
 
@@ -15,6 +15,17 @@ function Index({ editors, filters }) {
     const [status, setStatus] = useState(() => filters.status || '');
     const isFirst = useRef(true);
     const INDEX_ROUTE = route('admin.nasional.editor.index');
+
+    const { auth } = usePage().props;
+    const userPermissions = auth.permissions || [];
+
+    // 2. Buat helper function
+    const hasPermission = (permissions) => {
+        if (Array.isArray(permissions)) {
+            return permissions.some(permission => userPermissions.includes(permission));
+        }
+        return userPermissions.includes(permissions);
+    };
 
     useEffect(() => {
         // Skip initial load
@@ -96,9 +107,11 @@ function Index({ editors, filters }) {
                                 <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
 
                                     {/* Button Tambah Editor Nasional */}
-                                    <Link href={route('admin.nasional.editor.create')} className="btn btn-primary rounded-lg">
-                                        <Plus size={16} /> Tambah Editor Nasional
-                                    </Link>
+                                    {hasPermission('create editor nasional') && (
+                                        <Link href={route('admin.nasional.editor.create')} className="btn btn-primary rounded-lg">
+                                            <Plus size={16} /> Tambah Editor Nasional
+                                        </Link>
+                                    )}
 
                                     {/* Field Search And Filter */}
                                     <div className="flex flex-col md:flex-row gap-4 w-full md:w-auto">
@@ -150,7 +163,9 @@ function Index({ editors, filters }) {
                                                     </td>
                                                     <td>
                                                         <div className="flex justify-end gap-2">
-                                                            <Link href={route('admin.nasional.editor.edit', editor.editor_id)} className="btn btn-sm btn-warning btn-outline">Edit</Link>
+                                                            {hasPermission('edit editor nasional') && (
+                                                                <Link href={route('admin.nasional.editor.edit', editor.editor_id)} className="btn btn-sm btn-warning btn-outline">Edit</Link>
+                                                            )}
                                                         </div>
                                                     </td>
                                                 </tr>
