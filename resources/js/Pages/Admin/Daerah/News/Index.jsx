@@ -6,7 +6,7 @@ import TextInput from '@/Components/TextInput'
 import { Badge } from '@/Components/ui/badge'
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout'
 import { formatDateTime, formatNumber } from '@/Utils/formatter'
-import { Head, Link, router } from '@inertiajs/react'
+import { Head, Link, router, usePage } from '@inertiajs/react'
 import { Download, Plus, Search } from 'lucide-react'
 import React, { useEffect, useRef, useState } from 'react'
 import Select from "react-select";
@@ -21,9 +21,19 @@ function Index({ news, writers, kanals, fokus, filters }) {
   const [startDate, setStartDate] = useState(() => filters.start_date || '');
   const [endDate, setEndDate] = useState(() => filters.end_date || '');
 
-
   const isFirst = useRef(true);
   const INDEX_ROUTE = route('admin.daerah.news.index');
+
+  const { auth } = usePage().props;
+  const userPermissions = auth.permissions || [];
+
+  // 2. Buat helper function
+  const hasPermission = (permissions) => {
+    if (Array.isArray(permissions)) {
+      return permissions.some(permission => userPermissions.includes(permission));
+    }
+    return userPermissions.includes(permissions);
+  };
 
   useEffect(() => {
     // Lewati initial load (hindari double fetch)
@@ -185,9 +195,12 @@ function Index({ news, writers, kanals, fokus, filters }) {
               <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
                 <div className="flex gap-2">
                   {/* Button Tambah User */}
-                  <Link href={route('admin.daerah.news.create')} className="btn btn-primary rounded-lg">
-                    <Plus size={16} /> Tambah News
-                  </Link>
+                  {hasPermission('create news daerah') && (
+                    <Link href={route('admin.daerah.news.create')} className="btn btn-primary rounded-lg">
+                      <Plus size={16} /> Tambah News
+                    </Link>
+                  )}
+
 
                   {/* Button Export Baru */}
                   <button onClick={handleExport} className="btn btn-success text-white rounded-lg">
@@ -315,8 +328,9 @@ function Index({ news, writers, kanals, fokus, filters }) {
 
                       {/* Actions */}
                       <div className="flex gap-2 mt-4">
-                        <Link href={route('admin.daerah.news.edit', n)} className="btn btn-sm btn-warning btn-outline">Edit</Link>
-
+                        {hasPermission('edit news daerah') && (
+                          <Link href={route('admin.daerah.news.edit', n)} className="btn btn-sm btn-warning btn-outline">Edit</Link>
+                        )}
                       </div>
                     </div>
                   ))}
@@ -358,7 +372,9 @@ function Index({ news, writers, kanals, fokus, filters }) {
                           </td>
                           <td>
                             <div className="flex justify-end gap-2">
-                              <Link href={route('admin.daerah.news.edit', n)} className="btn btn-sm btn-warning btn-outline">Edit</Link>
+                              {hasPermission('edit news daerah') && (
+                                <Link href={route('admin.daerah.news.edit', n)} className="btn btn-sm btn-warning btn-outline">Edit</Link>
+                              )}
                             </div>
                           </td>
                         </tr>

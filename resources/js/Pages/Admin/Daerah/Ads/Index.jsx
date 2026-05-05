@@ -6,7 +6,7 @@ import TextInput from '@/Components/TextInput'
 import { Badge } from '@/Components/ui/badge'
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout'
 import { formatDate } from '@/Utils/formatter'
-import { Head, Link, router } from '@inertiajs/react'
+import { Head, Link, router, usePage } from '@inertiajs/react'
 import { Plus, Search } from 'lucide-react'
 import React, { useEffect, useRef, useState } from 'react'
 
@@ -17,7 +17,16 @@ function Index({ ads_daerah, filters }) {
   const isFirst = useRef(true);
   const INDEX_ROUTE = route('admin.daerah.ads.index');
 
+  const { auth } = usePage().props;
+  const userPermissions = auth.permissions || [];
 
+  // 2. Buat helper function
+  const hasPermission = (permissions) => {
+    if (Array.isArray(permissions)) {
+      return permissions.some(permission => userPermissions.includes(permission));
+    }
+    return userPermissions.includes(permissions);
+  };
 
 
   useEffect(() => {
@@ -121,9 +130,11 @@ function Index({ ads_daerah, filters }) {
               <Card>
                 <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
                   {/* Button Tambah User */}
-                  <Link href={route('admin.daerah.ads.create')} className="btn btn-primary rounded-lg">
-                    <Plus size={16} /> Tambah Ads Daerah
-                  </Link>
+                  {hasPermission('create ads daerah') && (
+                    <Link href={route('admin.daerah.ads.create')} className="btn btn-primary rounded-lg">
+                      <Plus size={16} /> Tambah Ads Daerah
+                    </Link>
+                  )}
 
                   {/* Field Search And Filter */}
                   <div className="flex flex-col md:flex-row gap-4 w-full md:w-auto">
@@ -182,9 +193,9 @@ function Index({ ads_daerah, filters }) {
                         {getStatusBadge(ad.status)}
                       </div>
 
-                      
+
                       {/* Detail */}
-                      <div className="text-sm space-y-1"> 
+                      <div className="text-sm space-y-1">
                         <p><span className="font-medium">Date Start:</span> {formatDate(ad.datestart)}</p>
                         <p><span className="font-medium">Date End:</span> {formatDate(ad.dateend)}</p>
                       </div>
@@ -194,7 +205,9 @@ function Index({ ads_daerah, filters }) {
 
                       {/* Actions */}
                       <div className="flex gap-2 mt-4">
-                        <Link href={route('admin.daerah.ads.edit', ad)} className="btn btn-sm btn-warning btn-outline">Edit</Link>
+                        {hasPermission('edit ads daerah') && (
+                          <Link href={route('admin.daerah.ads.edit', ad)} className="btn btn-sm btn-warning btn-outline">Edit</Link>
+                        )}
                       </div>
                     </div>
                   ))}
@@ -229,7 +242,9 @@ function Index({ ads_daerah, filters }) {
                           </td>
                           <td>
                             <div className="flex justify-end gap-2">
-                              <Link href={route('admin.daerah.ads.edit', ad)} className="btn btn-sm btn-warning btn-outline">Edit</Link>
+                              {hasPermission('edit ads daerah') && (
+                                <Link href={route('admin.daerah.ads.edit', ad)} className="btn btn-sm btn-warning btn-outline">Edit</Link>
+                              )}
                             </div>
                           </td>
                         </tr>

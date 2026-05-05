@@ -6,7 +6,7 @@ import TextInput from '@/Components/TextInput'
 import { Badge } from '@/Components/ui/badge'
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout'
 import { formatDate } from '@/Utils/formatter'
-import { Head, Link, router } from '@inertiajs/react'
+import { Head, Link, router, usePage } from '@inertiajs/react'
 import { Plus, Search } from 'lucide-react'
 import React, { useEffect, useRef, useState } from 'react'
 
@@ -15,6 +15,17 @@ function Index({ editors, filters }) {
   const [status, setStatus] = useState(() => filters.status || '');
   const isFirst = useRef(true);
   const INDEX_ROUTE = route('admin.daerah.editor.index');
+
+  const { auth } = usePage().props;
+  const userPermissions = auth.permissions || [];
+
+  // 2. Buat helper function
+  const hasPermission = (permissions) => {
+    if (Array.isArray(permissions)) {
+      return permissions.some(permission => userPermissions.includes(permission));
+    }
+    return userPermissions.includes(permissions);
+  };
 
   useEffect(() => {
     // Skip initial load
@@ -146,7 +157,9 @@ function Index({ editors, filters }) {
                           </td>
                           <td>
                             <div className="flex justify-end gap-2">
-                              <Link href={route('admin.daerah.editor.edit', editor)} className="btn btn-sm btn-warning btn-outline">Edit</Link>
+                              {hasPermission('edit editor daerah') && (
+                                <Link href={route('admin.daerah.editor.edit', editor)} className="btn btn-sm btn-warning btn-outline">Edit</Link>
+                              )}
                             </div>
                           </td>
                         </tr>

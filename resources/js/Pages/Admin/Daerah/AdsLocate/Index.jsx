@@ -6,7 +6,7 @@ import TextInput from '@/Components/TextInput'
 import { Badge } from '@/Components/ui/badge'
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout'
 import { formatDate } from '@/Utils/formatter'
-import { Head, Link, router } from '@inertiajs/react'
+import { Head, Link, router, usePage } from '@inertiajs/react'
 import { Plus, Search } from 'lucide-react'
 import React, { useEffect, useRef, useState } from 'react'
 
@@ -17,6 +17,17 @@ function Index({ ads_locates, filters }) {
   const INDEX_ROUTE = route('admin.daerah.adsLocate.index');
   // Debounce Search
   const isFirstRender = useRef(true);
+
+  const { auth } = usePage().props;
+  const userPermissions = auth.permissions || [];
+
+  // 2. Buat helper function
+  const hasPermission = (permissions) => {
+    if (Array.isArray(permissions)) {
+      return permissions.some(permission => userPermissions.includes(permission));
+    }
+    return userPermissions.includes(permissions);
+  };
 
   useEffect(() => {
     // Lewati eksekusi pada render pertama
@@ -131,9 +142,12 @@ function Index({ ads_locates, filters }) {
               <Card>
                 <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
                   {/* Button Tambah User */}
-                  <Link href={route('admin.daerah.adsLocate.create')} className="btn btn-primary rounded-lg">
-                    <Plus size={16} /> Tambah Ads Locate
-                  </Link>
+                  {hasPermission('create ads daerah location') && (
+                    <Link href={route('admin.daerah.adsLocate.create')} className="btn btn-primary rounded-lg">
+                      <Plus size={16} /> Tambah Ads Locate
+                    </Link>
+                  )}
+
 
                   {/* Field Search And Filter */}
                   <div className="flex flex-col md:flex-row gap-4 w-full md:w-auto">
@@ -202,7 +216,9 @@ function Index({ ads_locates, filters }) {
                           </td>
                           <td>
                             <div className="flex justify-end gap-2">
-                              <Link href={route('admin.daerah.adsLocate.edit', ads_locate)} className="btn btn-sm btn-warning btn-outline">Edit</Link>
+                              {hasPermission('edit ads daerah location') && (
+                                <Link href={route('admin.daerah.adsLocate.edit', ads_locate)} className="btn btn-sm btn-warning btn-outline">Edit</Link>
+                              )}
                             </div>
                           </td>
                         </tr>
