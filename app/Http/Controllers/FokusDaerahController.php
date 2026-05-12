@@ -5,12 +5,18 @@ namespace App\Http\Controllers;
 use App\Http\Requests\FokusFormRequest;
 use App\Models\FokusDaerah;
 use App\Models\History;
+use App\Services\CdnService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
+use Illuminate\Support\Str;
 
 class FokusDaerahController extends Controller
 {
+    public function __construct(
+        protected CdnService $cdnService
+    ) {}
     /**
      * Display a listing of the resource.
      */
@@ -52,26 +58,51 @@ class FokusDaerahController extends Controller
      */
     public function store(FokusFormRequest $request)
     {
-        $auth = Auth::user();
+        $ImageDesktopListUrl = null;
+        $ImageDesktopNewsUrl = null;
+        $ImageMobileUrl = null;
 
-        $fokus = FokusDaerah::create([
-            'name' => $request->name,
-            'keyword' => $request->keyword,
-            'status' => $request->status,
-            'img_desktop_list' => $request->img_desktop_list,
-            'img_desktop_news' => $request->img_desktop_news,
-            'img_mobile' => $request->img_mobile,
-            'description' => $request->description,
-        ]);
+        try {
+            DB::beginTransaction();
 
-        $history = History::create([
-            'user_id' => $auth->id,
-            'action' => 'add',
-            'tipe' => 'fokus',
-            'target' => $fokus->name,
-        ]);
+            if ($request->hasFile('img_desktop_list')) {
+                $file = $request->file('img_desktop_list');
+                $ImageDesktopListName = Str::slug($request->name, '-ImageDesktopList');
+                // Ambil URL dari response JSON CDN
+                $ImageDesktopListUrl = $this->cdnService->uploadImage($file, $ImageDesktopListName, 1, 'convert', 0) ?? null;
+            }
 
-        return redirect()->route('admin.daerah.fokus.index')->with('success', 'Fokus Berhasil Ditambahkan');
+            if ($request->hasFile('img_desktop_news')) {
+                $file = $request->file('img_desktop_news');
+                $ImageDesktopNewsName = Str::slug($request->name, '-ImageDesktopNews');
+                // Ambil URL dari response JSON CDN
+                $ImageDesktopNewsUrl = $this->cdnService->uploadImage($file, $ImageDesktopNewsName, 1, 'convert', 0) ?? null;
+            }
+
+            if ($request->hasFile('img_mobile')) {
+                $file = $request->file('img_mobile');
+                $ImageMobileName = Str::slug($request->name, '-ImageMobile');
+                // Ambil URL dari response JSON CDN
+                $ImageMobileUrl = $this->cdnService->uploadImage($file, $ImageMobileName, 1, 'convert', 0) ?? null;
+            }
+
+            $fokus = FokusDaerah::create([
+                'name' => $request->name,
+                'keyword' => $request->keyword,
+                'description' => $request->description,
+                'status' => $request->status,
+                'img_desktop_list' => $ImageDesktopListUrl,
+                'img_desktop_news' => $ImageDesktopNewsUrl,
+                'img_mobile' => $ImageMobileUrl,
+            ]);
+
+            DB::commit();
+            return redirect()->route('admin.daerah.fokus.index')->with('success', 'Fokus Berhasil Ditambahkan');
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            return redirect()->back()->with('error', 'Fokus Gagal Ditambahkan : ' . $e->getMessage());
+        }
     }
 
     /**
@@ -98,25 +129,55 @@ class FokusDaerahController extends Controller
     public function update(FokusFormRequest $request, FokusDaerah $foku)
     {
 
-        $auth = Auth::user();
+        $ImageDesktopListUrl = $foku->img_desktop_list;
+        $ImageDesktopNewsUrl = $foku->img_desktop_news;
+        $ImageMobileUrl      = $foku->img_mobile;
 
-        $foku->name = $request->name;
-        $foku->keyword = $request->keyword;
-        $foku->status = $request->status;
-        $foku->img_desktop_list = $request->img_desktop_list;
-        $foku->img_desktop_news = $request->img_desktop_news;
-        $foku->img_mobile = $request->img_mobile;
-        $foku->description = $request->description;
-        $foku->save();
+        try {
+            DB::beginTransaction();
 
-        $history = History::create([
-            'user_id' => $auth->id,
-            'action' => 'edit',
-            'tipe' => 'fokus',
-            'target' => $foku->name,
-        ]);
+            $baseSlug = Str::slug($request->name);
+            $timestamp = time(); // Timestamp untuk mencegah isu caching pada CDN
 
-         return redirect()->route('admin.daerah.fokus.index')->with('success', 'Fokus Berhasil Diperbarui');
+            // 2. Cek masing-masing input. Jika ada file baru, upload dan timpa variabel URL.
+            if ($request->hasFile('img_desktop_list')) {
+                $file = $request->file('img_desktop_list');
+                $ImageDesktopListName = "{$baseSlug}-ImageDesktopList-{$timestamp}";
+
+                $ImageDesktopListUrl = $this->cdnService->uploadImage($file, $ImageDesktopListName, 1, 'convert', 0) ?? $ImageDesktopListUrl;
+            }
+
+            if ($request->hasFile('img_desktop_news')) {
+                $file = $request->file('img_desktop_news');
+                $ImageDesktopNewsName = "{$baseSlug}-ImageDesktopNews-{$timestamp}";
+
+                $ImageDesktopNewsUrl = $this->cdnService->uploadImage($file, $ImageDesktopNewsName, 1, 'convert', 0) ?? $ImageDesktopNewsUrl;
+            }
+
+            if ($request->hasFile('img_mobile')) {
+                $file = $request->file('img_mobile');
+                $ImageMobileName = "{$baseSlug}-ImageMobile-{$timestamp}";
+
+                $ImageMobileUrl = $this->cdnService->uploadImage($file, $ImageMobileName, 1, 'convert', 0) ?? $ImageMobileUrl;
+            }
+
+            $foku->name = $request->name;
+            $foku->keyword = $request->keyword;
+            $foku->description = $request->description;
+            $foku->status = $request->status;
+            $foku->img_desktop_list = $ImageDesktopListUrl;
+            $foku->img_desktop_news = $ImageDesktopNewsUrl;
+            $foku->img_mobile =   $ImageMobileUrl;
+            $foku->save();
+            DB::commit();
+
+            return redirect()->route('admin.daerah.fokus.index')->with('success', 'Fokus Berhasil Diperbarui');
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            return back()
+                ->with('error', 'Error saat update Fokus Daerah : ' . $e->getMessage());
+        }
     }
 
     /**
