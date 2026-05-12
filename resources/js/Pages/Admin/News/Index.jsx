@@ -356,7 +356,7 @@ function Index({ news, writers, kanals, filters }) {
                                     </Link>
                                   </div>
                                   <span className="text-[11px] leading-tight text-base-content/80 truncate max-w-[150px]">
-                                    {n.news_nasional.title || '-'}
+                                    {n.news_nasional.news_title || '-'}
                                   </span>
                                   <div className="flex items-center gap-1">
                                     <span className="badge badge-xs badge-ghost italic">

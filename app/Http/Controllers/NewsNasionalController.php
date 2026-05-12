@@ -133,7 +133,7 @@ class NewsNasionalController extends Controller
                 $file = $request->file('image_thumbnail');
                 $nameThumbnail = Str::slug($request->title, '-Thumbnail');
                 // Ambil URL dari response JSON CDN
-                $thumbnailUrl =   $this->cdnService->uploadImage($file, $nameThumbnail, 1, 'convert', $applyWatermark) ?? null;
+                $thumbnailUrl =   $this->cdnService->uploadImage($file, $nameThumbnail, 3, 'convert', $applyWatermark) ?? null;
             }
 
             // 1. Simpan tabel News (Koneksi Nasional)
