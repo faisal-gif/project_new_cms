@@ -1,16 +1,17 @@
 import Card from '@/Components/Card'
 import InputError from '@/Components/InputError'
 import InputLabel from '@/Components/InputLabel'
-import InputPassword from '@/Components/InputPassword'
 import InputSelect from '@/Components/InputSelect'
 import InputTextarea from '@/Components/InputTextarea'
 import TextInput from '@/Components/TextInput'
+import InputImage from '@/Components/InputImage' // <-- Pastikan import InputImage
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout'
 import { Head, useForm } from '@inertiajs/react'
 import React, { useEffect } from 'react'
 
 function Create() {
 
+    // 1. Ubah inisialisasi file menjadi null agar Inertia mendeteksi multipart/form-data
     const { data, setData, post, processing, errors, reset } = useForm({
         name: '',
         domain: '',
@@ -25,12 +26,12 @@ function Create() {
         ig: '',
         yt: '',
         gp: '',
-        logo: '',
-        logo_m: '',
-        img_socmed: '',
-        is_main: '',
-        is_web: '',
-        status: '',
+        logo: null,       // <-- Diubah ke null
+        logo_m: null,     // <-- Diubah ke null
+        img_socmed: null, // <-- Diubah ke null
+        is_main: '0',     // Berikan default value (misal: '0')
+        is_web: '1',      // Berikan default value
+        status: '1',      // Berikan default value
     });
 
     useEffect(() => {
@@ -47,9 +48,7 @@ function Create() {
     const submit = (e) => {
         e.preventDefault();
         post(route('admin.daerah.network.store'));
-
     };
-
 
     return (
         <>
@@ -75,11 +74,11 @@ function Create() {
                                     </ul>
                                 </div>
                                 {/* end breadcrumbs */}
-
                             </div>
 
 
                             <form onSubmit={submit} className='space-y-6'>
+                                {/* --- SECTION: DETAIL NETWORK --- */}
                                 <div className='space-y-4'>
                                     <h2>
                                         <span className="text-lg font-semibold text-foreground">Detail Network</span>
@@ -87,7 +86,6 @@ function Create() {
                                     <Card>
                                         <div className='grid grid-cols-1 lg:grid-cols-6 gap-4'>
 
-                                            {/* Form fields will go here */}
                                             <div className="lg:col-span-2 w-full">
                                                 <InputSelect
                                                     label="Status"
@@ -128,11 +126,7 @@ function Create() {
                                             </div>
 
                                             <div className='lg:col-span-3 w-full'>
-                                                <InputLabel
-                                                    htmlFor="name"
-                                                    value="Nama"
-                                                    className='mb-2 label-text font-bold'
-                                                />
+                                                <InputLabel htmlFor="name" value="Nama" className='mb-2 label-text font-bold' />
                                                 <TextInput
                                                     id="name"
                                                     name="name"
@@ -146,11 +140,7 @@ function Create() {
                                             </div>
 
                                             <div className='lg:col-span-3 w-full'>
-                                                <InputLabel
-                                                    htmlFor="domain"
-                                                    value="Domain"
-                                                    className='mb-2 font-bold'
-                                                />
+                                                <InputLabel htmlFor="domain" value="Domain" className='mb-2 font-bold' />
                                                 <TextInput
                                                     id="domain"
                                                     name="domain"
@@ -164,11 +154,7 @@ function Create() {
                                             </div>
 
                                             <div className='lg:col-span-3 w-full'>
-                                                <InputLabel
-                                                    htmlFor="title"
-                                                    value="Judul"
-                                                    className='mb-2 font-bold'
-                                                />
+                                                <InputLabel htmlFor="title" value="Judul" className='mb-2 font-bold' />
                                                 <TextInput
                                                     id="title"
                                                     name="title"
@@ -182,11 +168,7 @@ function Create() {
                                             </div>
 
                                             <div className='lg:col-span-3 w-full'>
-                                                <InputLabel
-                                                    htmlFor="tagline"
-                                                    value="Tagline"
-                                                    className='mb-2 font-bold'
-                                                />
+                                                <InputLabel htmlFor="tagline" value="Tagline" className='mb-2 font-bold' />
                                                 <TextInput
                                                     id="tagline"
                                                     name="tagline"
@@ -208,8 +190,8 @@ function Create() {
                                                     maxLength={255}
                                                 />
                                                 <InputError message={errors.keyword} className="mt-2" />
-
                                             </div>
+
                                             <div className='lg:col-span-6 w-full'>
                                                 <InputTextarea
                                                     label="Description"
@@ -220,26 +202,20 @@ function Create() {
                                                     maxLength={500}
                                                 />
                                                 <InputError message={errors.description} className="mt-2" />
-
                                             </div>
-
-
-
                                         </div>
                                     </Card>
                                 </div>
+
+                                {/* --- SECTION: SOCIAL MEDIA --- */}
                                 <div className='space-y-4'>
                                     <h2>
-                                        <span className="text-lg font-semibold text-foreground">Social Media</span>
+                                        <span className="text-lg font-semibold text-foreground">Social Media & Analytics</span>
                                     </h2>
                                     <Card>
                                         <div className='grid grid-cols-1 lg:grid-cols-6 gap-4'>
                                             <div className='lg:col-span-3 w-full'>
-                                                <InputLabel
-                                                    htmlFor="analytics"
-                                                    value="Analytics ID"
-                                                    className='mb-2 label-text font-bold'
-                                                />
+                                                <InputLabel htmlFor="analytics" value="Analytics ID" className='mb-2 label-text font-bold' />
                                                 <TextInput
                                                     id="analytics"
                                                     name="analytics"
@@ -247,16 +223,12 @@ function Create() {
                                                     className="block w-full"
                                                     value={data.analytics}
                                                     onChange={(e) => setData('analytics', e.target.value)}
-                                                    autoComplete="analytics"
                                                 />
                                                 <InputError message={errors.analytics} className="mt-2" />
                                             </div>
+                                            
                                             <div className='lg:col-span-3 w-full'>
-                                                <InputLabel
-                                                    htmlFor="gverify"
-                                                    value="Google Verify"
-                                                    className='mb-2 label-text font-bold'
-                                                />
+                                                <InputLabel htmlFor="gverify" value="Google Verify" className='mb-2 label-text font-bold' />
                                                 <TextInput
                                                     id="gverify"
                                                     name="gverify"
@@ -264,16 +236,12 @@ function Create() {
                                                     className="block w-full"
                                                     value={data.gverify}
                                                     onChange={(e) => setData('gverify', e.target.value)}
-                                                    autoComplete="gverify"
                                                 />
                                                 <InputError message={errors.gverify} className="mt-2" />
                                             </div>
+
                                             <div className='lg:col-span-3 w-full'>
-                                                <InputLabel
-                                                    htmlFor="fb"
-                                                    value="Facebook"
-                                                    className='mb-2 label-text font-bold'
-                                                />
+                                                <InputLabel htmlFor="fb" value="Facebook" className='mb-2 label-text font-bold' />
                                                 <TextInput
                                                     id="fb"
                                                     name="fb"
@@ -281,16 +249,12 @@ function Create() {
                                                     className="block w-full"
                                                     value={data.fb}
                                                     onChange={(e) => setData('fb', e.target.value)}
-                                                    autoComplete="fb"
                                                 />
                                                 <InputError message={errors.fb} className="mt-2" />
                                             </div>
+
                                             <div className='lg:col-span-3 w-full'>
-                                                <InputLabel
-                                                    htmlFor="tw"
-                                                    value="Twiter"
-                                                    className='mb-2 label-text font-bold'
-                                                />
+                                                <InputLabel htmlFor="tw" value="Twitter" className='mb-2 label-text font-bold' />
                                                 <TextInput
                                                     id="tw"
                                                     name="tw"
@@ -298,16 +262,12 @@ function Create() {
                                                     className="block w-full"
                                                     value={data.tw}
                                                     onChange={(e) => setData('tw', e.target.value)}
-                                                    autoComplete="tw"
                                                 />
                                                 <InputError message={errors.tw} className="mt-2" />
                                             </div>
+
                                             <div className='lg:col-span-3 w-full'>
-                                                <InputLabel
-                                                    htmlFor="ig"
-                                                    value="Instagram"
-                                                    className='mb-2 label-text font-bold'
-                                                />
+                                                <InputLabel htmlFor="ig" value="Instagram" className='mb-2 label-text font-bold' />
                                                 <TextInput
                                                     id="ig"
                                                     name="ig"
@@ -315,16 +275,12 @@ function Create() {
                                                     className="block w-full"
                                                     value={data.ig}
                                                     onChange={(e) => setData('ig', e.target.value)}
-                                                    autoComplete="ig"
                                                 />
                                                 <InputError message={errors.ig} className="mt-2" />
                                             </div>
+
                                             <div className='lg:col-span-3 w-full'>
-                                                <InputLabel
-                                                    htmlFor="yt"
-                                                    value="Youtube"
-                                                    className='mb-2 label-text font-bold'
-                                                />
+                                                <InputLabel htmlFor="yt" value="Youtube" className='mb-2 label-text font-bold' />
                                                 <TextInput
                                                     id="yt"
                                                     name="yt"
@@ -332,108 +288,76 @@ function Create() {
                                                     className="block w-full"
                                                     value={data.yt}
                                                     onChange={(e) => setData('yt', e.target.value)}
-                                                    autoComplete="yt"
                                                 />
-                                                <InputError message={errors.ig} className="mt-2" />
-                                            </div>
-                                            <div className='lg:col-span-3 w-full'>
-                                                <InputLabel
-                                                    htmlFor="gp"
-                                                    value="Google Plus"
-                                                    className='mb-2 label-text font-bold'
-                                                />
-                                                <TextInput
-                                                    id="gp"
-                                                    name="gp"
-                                                    type="text"
-                                                    className="block w-full"
-                                                    value={data.gp}
-                                                    onChange={(e) => setData('gp', e.target.value)}
-                                                    autoComplete="gp"
-                                                />
-                                                <InputError message={errors.gp} className="mt-2" />
+                                                <InputError message={errors.yt} className="mt-2" />
                                             </div>
                                         </div>
                                     </Card>
                                 </div>
+
+                                {/* --- SECTION: IMAGE ASSETS --- */}
                                 <div className='space-y-4'>
                                     <h2>
-                                        <span className="text-lg font-semibold text-foreground">Image</span>
+                                        <span className="text-lg font-semibold text-foreground">Aset Gambar (Logo & Open Graph)</span>
                                     </h2>
                                     <Card>
-                                        <div className='grid grid-cols-1 lg:grid-cols-6 gap-4'>
-                                            <div className='lg:col-span-3 w-full'>
-                                                <InputLabel
-                                                    htmlFor="logo"
-                                                    value="Logo Desktop"
-                                                    className='mb-2 label-text font-bold'
-                                                />
-                                                <TextInput
-                                                    id="logo"
-                                                    name="logo"
-                                                    type="text"
-                                                    className="block w-full"
+                                        {/* Menggunakan grid-cols-3 agar sejajar rapi */}
+                                        <div className='grid grid-cols-1 lg:grid-cols-3 gap-6'>
+                                            
+                                            <div className='w-full'>
+                                                <InputImage
+                                                    label="Logo Desktop"
                                                     value={data.logo}
-                                                    onChange={(e) => setData('logo', e.target.value)}
-                                                    autoComplete="logo"
+                                                    onChange={(file) => setData('logo', file)}
+                                                    // Resolusi persegi panjang pipih ideal untuk header desktop (rasio 3:1 atau 4:1)
+                                                    targetWidth={600} 
+                                                    targetHeight={150} 
                                                 />
                                                 <InputError message={errors.logo} className="mt-2" />
                                             </div>
-                                            <div className='lg:col-span-3 w-full'>
-                                                <InputLabel
-                                                    htmlFor="logo_m"
-                                                    value="Logo Mobile"
-                                                    className='mb-2 label-text font-bold'
-                                                />
-                                                <TextInput
-                                                    id="logo_m"
-                                                    name="logo_m"
-                                                    type="text"
-                                                    className="block w-full"
+                                            
+                                            <div className='w-full'>
+                                                <InputImage
+                                                    label="Logo Mobile / Favicon"
                                                     value={data.logo_m}
-                                                    onChange={(e) => setData('logo_m', e.target.value)}
-                                                    autoComplete="logo_m"
+                                                    onChange={(file) => setData('logo_m', file)}
+                                                    // Resolusi kotak ideal untuk mobile icon / favicon
+                                                    targetWidth={200} 
+                                                    targetHeight={200} 
                                                 />
                                                 <InputError message={errors.logo_m} className="mt-2" />
                                             </div>
 
-                                            <div className='lg:col-span-3 w-full'>
-                                                <InputLabel
-                                                    htmlFor="img_socmed"
-                                                    value="Image Sosmed"
-                                                    className='mb-2 label-text font-bold'
-                                                />
-                                                <TextInput
-                                                    id="img_socmed"
-                                                    name="img_socmed"
-                                                    type="text"
-                                                    className="block w-full"
+                                            <div className='w-full'>
+                                                <InputImage
+                                                    label="Image Open Graph (Sosmed)"
                                                     value={data.img_socmed}
-                                                    onChange={(e) => setData('img_socmed', e.target.value)}
-                                                    autoComplete="img_socmed"
+                                                    onChange={(file) => setData('img_socmed', file)}
+                                                    // Resolusi standar Facebook/WA/Twitter Open Graph URL (Rasio 1.91:1)
+                                                    targetWidth={1200} 
+                                                    targetHeight={630} 
                                                 />
                                                 <InputError message={errors.img_socmed} className="mt-2" />
                                             </div>
+
                                         </div>
                                     </Card>
-
                                 </div>
 
+                                {/* --- SUBMIT BUTTON --- */}
                                 <div className='flex flex-row justify-end mt-2'>
                                     <button
                                         type="submit"
                                         className="btn btn-primary"
                                         disabled={processing}
                                     >
-                                        Simpan
+                                        {processing ? <span className="loading loading-spinner"></span> : "Simpan Network"}
                                     </button>
                                 </div>
 
                             </form>
 
-
                         </div>
-
                     </div>
                 </div>
             </AuthenticatedLayout>

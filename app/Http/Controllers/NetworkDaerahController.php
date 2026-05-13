@@ -6,13 +6,19 @@ use App\Http\Requests\NetworkFormRequest;
 use App\Models\History;
 use App\Models\Network;
 use App\Models\NetworkDaerah;
+use App\Services\CdnService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
 
 class NetworkDaerahController extends Controller
 {
+
+    public function __construct(
+        protected CdnService $cdnService
+    ) {}
     /**
      * Display a listing of the resource.
      */
@@ -57,37 +63,69 @@ class NetworkDaerahController extends Controller
     {
         $auth = Auth::user();
 
-        $network = NetworkDaerah::create([
-            'name' => $request->name,
-            'domain' => $request->domain,
-            'slug' => Str::slug($request->name),
-            'title' => $request->title,
-            'tagline' => $request->tagline,
-            'logo' => $request->logo,
-            'logo_m' => $request->logo_m,
-            'keyword' => $request->keyword,
-            'description' => $request->description,
-            'img_socmed' => $request->img_socmed,
-            'analytics' => $request->analytics,
-            'gverify' => $request->gverify,
-            'fb' => $request->fb,
-            'tw' => $request->tw,
-            'ig' => $request->ig,
-            'gp' => $request->gp,
-            'yt' => $request->yt,
-            'is_main' => $request->is_main,
-            'is_web' => $request->is_web,
-            'status' => $request->status,
-        ]);
+        $ImageLogoUrl = null;
+        $ImageLogoMobileUrl = null;
+        $ImageSocmedUrl = null;
 
-        $history = History::create([
-            'user_id' => $auth->id,
-            'action' => 'add',
-            'tipe' => 'network',
-            'target' => $network->name,
-        ]);
+        try {
 
-        return redirect()->route('admin.daerah.network.index')->with('success', 'Network Berhasil Ditambahkan');
+            $baseSlug = Str::slug($request->name);
+            $timestamp = time(); // Timestamp untuk mencegah isu caching pada CDN
+
+            // 2. Cek masing-masing input. Jika ada file baru, upload dan timpa variabel URL.
+            if ($request->hasFile('logo')) {
+                $file = $request->file('logo');
+                $ImageLogo = "{$baseSlug}-ImageLogo-{$timestamp}";
+
+                $ImageLogoUrl = $this->cdnService->uploadImage($file, $ImageLogo, 1, 'convert', 0) ?? $ImageLogoUrl;
+            }
+
+            if ($request->hasFile('logo_m')) {
+                $file = $request->file('logo_m');
+                $ImageLogoMobileName = "{$baseSlug}-ImageLogoMobile-{$timestamp}";
+
+                $ImageLogoMobileUrl = $this->cdnService->uploadImage($file, $ImageLogoMobileName, 1, 'convert', 0) ?? $ImageLogoMobileUrl;
+            }
+
+            if ($request->hasFile('img_socmed')) {
+                $file = $request->file('img_socmed');
+                $ImageSocmedName = "{$baseSlug}-ImageSocmed-{$timestamp}";
+
+                $ImageSocmedUrl = $this->cdnService->uploadImage($file, $ImageSocmedName, 1, 'convert', 0) ?? $ImageSocmedUrl;
+            }
+
+            $network = NetworkDaerah::create([
+                'name' => $request->name,
+                'domain' => $request->domain,
+                'slug' => Str::slug($request->name),
+                'title' => $request->title,
+                'tagline' => $request->tagline,
+                'logo' => $ImageLogoUrl,
+                'logo_m' => $ImageLogoMobileUrl,
+                'img_socmed' => $ImageSocmedUrl,
+                'keyword' => $request->keyword,
+                'description' => $request->description,
+                'analytics' => $request->analytics,
+                'gverify' => $request->gverify,
+                'fb' => $request->fb,
+                'tw' => $request->tw,
+                'ig' => $request->ig,
+                'gp' => $request->gp,
+                'yt' => $request->yt,
+                'is_main' => $request->is_main,
+                'is_web' => $request->is_web,
+                'status' => $request->status,
+            ]);
+            DB::commit();
+
+            return redirect()->route('admin.daerah.network.index')->with('success', 'Network Berhasil Ditambahkan');
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            return back()
+                ->withInput()
+                ->withErrors(['error' => 'Gagal menyimpan Network Daerah: Terjadi kesalahan sistem.' . $e->getMessage()]);
+        }
     }
 
     /**
@@ -113,39 +151,70 @@ class NetworkDaerahController extends Controller
      */
     public function update(NetworkFormRequest $request, NetworkDaerah $network)
     {
-        $auth = Auth::user();
+        $ImageLogoUrl = $network->logo;
+        $ImageLogoMobileUrl = $network->logo_m;
+        $ImageSocmedUrl = $network->img_socmed;
 
-        $network->name = $request->name;
-        $network->domain = $request->domain;
-        $network->slug = Str::slug($request->name);
-        $network->title = $request->title;
-        $network->tagline = $request->tagline;
-        $network->keyword = $request->keyword;
-        $network->description = $request->description;
-        $network->logo = $request->logo;
-        $network->logo_m = $request->logo_m;
-        $network->img_socmed = $request->img_socmed;
-        $network->analytics = $request->analytics;
-        $network->gverify = $request->gverify;
-        $network->fb = $request->fb;
-        $network->tw = $request->tw;
-        $network->ig = $request->ig;
-        $network->gp = $request->gp;
-        $network->yt = $request->yt;
-        $network->is_main = $request->is_main;
-        $network->is_web = $request->is_web;
-        $network->status = $request->status;
+        try {
 
-        $network->save();
+            $baseSlug = Str::slug($request->name);
+            $timestamp = time(); // Timestamp untuk mencegah isu caching pada CDN
 
-        $history = History::create([
-            'user_id' => $auth->id,
-            'action' => 'edit',
-            'tipe' => 'network',
-            'target' => $network->name,
-        ]);
+            // 2. Cek masing-masing input. Jika ada file baru, upload dan timpa variabel URL.
+            if ($request->hasFile('logo')) {
+                $file = $request->file('logo');
+                $ImageLogo = "{$baseSlug}-ImageLogo-{$timestamp}";
 
-        return redirect()->route('admin.daerah.network.index')->with('success', 'Network Berhasil Diubah');
+                $ImageLogoUrl = $this->cdnService->uploadImage($file, $ImageLogo, 1, 'convert', 0) ?? $ImageLogoUrl;
+            }
+
+            if ($request->hasFile('logo_m')) {
+                $file = $request->file('logo_m');
+                $ImageLogoMobileName = "{$baseSlug}-ImageLogoMobile-{$timestamp}";
+
+                $ImageLogoMobileUrl = $this->cdnService->uploadImage($file, $ImageLogoMobileName, 1, 'convert', 0) ?? $ImageLogoMobileUrl;
+            }
+
+            if ($request->hasFile('img_socmed')) {
+                $file = $request->file('img_socmed');
+                $ImageSocmedName = "{$baseSlug}-ImageSocmed-{$timestamp}";
+
+                $ImageSocmedUrl = $this->cdnService->uploadImage($file, $ImageSocmedName, 1, 'convert', 0) ?? $ImageSocmedUrl;
+            }
+
+            $network->name = $request->name;
+            $network->domain = $request->domain;
+            $network->slug = Str::slug($request->name);
+            $network->title = $request->title;
+            $network->tagline = $request->tagline;
+            $network->keyword = $request->keyword;
+            $network->description = $request->description;
+            $network->logo = $ImageLogoUrl;
+            $network->logo_m = $ImageLogoMobileUrl;
+            $network->img_socmed = $ImageSocmedUrl;
+            $network->analytics = $request->analytics;
+            $network->gverify = $request->gverify;
+            $network->fb = $request->fb;
+            $network->tw = $request->tw;
+            $network->ig = $request->ig;
+            $network->gp = $request->gp;
+            $network->yt = $request->yt;
+            $network->is_main = $request->is_main;
+            $network->is_web = $request->is_web;
+            $network->status = $request->status;
+
+            $network->save();
+
+            DB::commit();
+            return redirect()->route('admin.daerah.network.index')->with('success', 'Network Berhasil Diubah');
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            return back()
+                ->withInput()
+                ->withErrors(['error' => 'Gagal Mengubah Network Daerah: Terjadi kesalahan sistem.' . $e->getMessage()]);
+        }
     }
 
     /**

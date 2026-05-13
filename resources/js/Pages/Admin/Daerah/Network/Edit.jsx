@@ -1,17 +1,19 @@
 import Card from '@/Components/Card'
 import InputError from '@/Components/InputError'
 import InputLabel from '@/Components/InputLabel'
-import InputPassword from '@/Components/InputPassword'
 import InputSelect from '@/Components/InputSelect'
 import InputTextarea from '@/Components/InputTextarea'
 import TextInput from '@/Components/TextInput'
+import InputImage from '@/Components/InputImage' // <-- Wajib import komponen InputImage
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout'
 import { Head, useForm } from '@inertiajs/react'
 import React, { useEffect } from 'react'
 
 function Edit({ network }) {
 
-    const { data, setData, put, processing, errors, reset } = useForm({
+    // 1. Integrasi Method Spoofing: Gunakan 'post' dari useForm, dan tambahkan _method: 'put'
+    const { data, setData, post, processing, errors, reset } = useForm({
+        _method: 'put', // <-- Kunci utama untuk edit file di Laravel Inertia
         name: network.name || '',
         domain: network.domain || '',
         title: network.title || 'TIMES _DAERAH_',
@@ -25,15 +27,20 @@ function Edit({ network }) {
         ig: network.ig || '',
         yt: network.yt || '',
         gp: network.gp || '',
-        logo: network.logo || '',
-        logo_m: network.logo_m || '',
-        img_socmed: network.img_socmed || '',
-        is_main: network.is_main || '',
-        is_web: network.is_web || '',
-        status: network.status || '',
+        
+        // Inisialisasi awal dengan URL existing dari database
+        logo: null,
+        logo_m:  null,
+        img_socmed:  null,
+        
+        is_main: network.is_main ?? '0', // Gunakan ?? agar nilai 0 tidak tertimpa falsy OR (||)
+        is_web: network.is_web ?? '1',
+        status: network.status ?? '1',
     });
 
     useEffect(() => {
+        // Logika auto-fill. Catatan: Pada mode Edit, Anda mungkin ingin memastikan 
+        // ini tidak menimpa data yang sengaja diubah manual oleh user.
         if (data.name) {
             setData(prev => ({
                 ...prev,
@@ -46,10 +53,10 @@ function Edit({ network }) {
 
     const submit = (e) => {
         e.preventDefault();
-        put(route('admin.daerah.network.update', network));
-
+        // 2. Eksekusi menggunakan fungsi post(), bukan put()
+        // Method _method: 'put' di payload akan memberi tahu Laravel untuk mengarahkannya ke metode update()
+        post(route('admin.daerah.network.update', network.id));
     };
-
 
     return (
         <>
@@ -58,36 +65,28 @@ function Edit({ network }) {
                 <div className="py-12">
                     <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
 
-                        <div className=" space-y-6">
+                        <div className="space-y-6">
                             <div className='flex flex-col md:flex-row justify-between md:items-center gap-2'>
-                                {/* start Header */}
                                 <div>
-                                    <h1 className="text-3xl font-bold text-foreground">Edit Network</h1>
+                                    <h1 className="text-3xl font-bold text-foreground">Edit Network Daerah</h1>
                                 </div>
-                                {/* end Header */}
-
-                                {/* start breadcrumbs */}
                                 <div className="breadcrumbs text-sm">
                                     <ul>
                                         <li><a>Home</a></li>
-                                        <li>Network</li>
-                                        <li>Edit Network</li>
+                                        <li>Network Daerah</li>
+                                        <li>Edit Network Daerah</li>
                                     </ul>
                                 </div>
-                                {/* end breadcrumbs */}
-
                             </div>
 
-
                             <form onSubmit={submit} className='space-y-6'>
+                                {/* --- SECTION: DETAIL NETWORK --- */}
                                 <div className='space-y-4'>
                                     <h2>
                                         <span className="text-lg font-semibold text-foreground">Detail Network</span>
                                     </h2>
                                     <Card>
                                         <div className='grid grid-cols-1 lg:grid-cols-6 gap-4'>
-
-                                            {/* Form fields will go here */}
                                             <div className="lg:col-span-2 w-full">
                                                 <InputSelect
                                                     label="Status"
@@ -128,11 +127,7 @@ function Edit({ network }) {
                                             </div>
 
                                             <div className='lg:col-span-3 w-full'>
-                                                <InputLabel
-                                                    htmlFor="name"
-                                                    value="Nama"
-                                                    className='mb-2 label-text font-bold'
-                                                />
+                                                <InputLabel htmlFor="name" value="Nama" className='mb-2 label-text font-bold' />
                                                 <TextInput
                                                     id="name"
                                                     name="name"
@@ -146,11 +141,7 @@ function Edit({ network }) {
                                             </div>
 
                                             <div className='lg:col-span-3 w-full'>
-                                                <InputLabel
-                                                    htmlFor="domain"
-                                                    value="Domain"
-                                                    className='mb-2 font-bold'
-                                                />
+                                                <InputLabel htmlFor="domain" value="Domain" className='mb-2 font-bold' />
                                                 <TextInput
                                                     id="domain"
                                                     name="domain"
@@ -164,11 +155,7 @@ function Edit({ network }) {
                                             </div>
 
                                             <div className='lg:col-span-3 w-full'>
-                                                <InputLabel
-                                                    htmlFor="title"
-                                                    value="Judul"
-                                                    className='mb-2 font-bold'
-                                                />
+                                                <InputLabel htmlFor="title" value="Judul" className='mb-2 font-bold' />
                                                 <TextInput
                                                     id="title"
                                                     name="title"
@@ -182,11 +169,7 @@ function Edit({ network }) {
                                             </div>
 
                                             <div className='lg:col-span-3 w-full'>
-                                                <InputLabel
-                                                    htmlFor="tagline"
-                                                    value="Tagline"
-                                                    className='mb-2 font-bold'
-                                                />
+                                                <InputLabel htmlFor="tagline" value="Tagline" className='mb-2 font-bold' />
                                                 <TextInput
                                                     id="tagline"
                                                     name="tagline"
@@ -208,7 +191,6 @@ function Edit({ network }) {
                                                     maxLength={255}
                                                 />
                                                 <InputError message={errors.keyword} className="mt-2" />
-
                                             </div>
                                             <div className='lg:col-span-6 w-full'>
                                                 <InputTextarea
@@ -220,26 +202,20 @@ function Edit({ network }) {
                                                     maxLength={500}
                                                 />
                                                 <InputError message={errors.description} className="mt-2" />
-
                                             </div>
-
-
-
                                         </div>
                                     </Card>
                                 </div>
+
+                                {/* --- SECTION: SOCIAL MEDIA --- */}
                                 <div className='space-y-4'>
                                     <h2>
-                                        <span className="text-lg font-semibold text-foreground">Social Media</span>
+                                        <span className="text-lg font-semibold text-foreground">Social Media & Analytics</span>
                                     </h2>
                                     <Card>
                                         <div className='grid grid-cols-1 lg:grid-cols-6 gap-4'>
                                             <div className='lg:col-span-3 w-full'>
-                                                <InputLabel
-                                                    htmlFor="analytics"
-                                                    value="Analytics ID"
-                                                    className='mb-2 label-text font-bold'
-                                                />
+                                                <InputLabel htmlFor="analytics" value="Analytics ID" className='mb-2 label-text font-bold' />
                                                 <TextInput
                                                     id="analytics"
                                                     name="analytics"
@@ -247,16 +223,11 @@ function Edit({ network }) {
                                                     className="block w-full"
                                                     value={data.analytics}
                                                     onChange={(e) => setData('analytics', e.target.value)}
-                                                    autoComplete="analytics"
                                                 />
                                                 <InputError message={errors.analytics} className="mt-2" />
                                             </div>
                                             <div className='lg:col-span-3 w-full'>
-                                                <InputLabel
-                                                    htmlFor="gverify"
-                                                    value="Google Verify"
-                                                    className='mb-2 label-text font-bold'
-                                                />
+                                                <InputLabel htmlFor="gverify" value="Google Verify" className='mb-2 label-text font-bold' />
                                                 <TextInput
                                                     id="gverify"
                                                     name="gverify"
@@ -264,16 +235,11 @@ function Edit({ network }) {
                                                     className="block w-full"
                                                     value={data.gverify}
                                                     onChange={(e) => setData('gverify', e.target.value)}
-                                                    autoComplete="gverify"
                                                 />
                                                 <InputError message={errors.gverify} className="mt-2" />
                                             </div>
                                             <div className='lg:col-span-3 w-full'>
-                                                <InputLabel
-                                                    htmlFor="fb"
-                                                    value="Facebook"
-                                                    className='mb-2 label-text font-bold'
-                                                />
+                                                <InputLabel htmlFor="fb" value="Facebook" className='mb-2 label-text font-bold' />
                                                 <TextInput
                                                     id="fb"
                                                     name="fb"
@@ -281,16 +247,11 @@ function Edit({ network }) {
                                                     className="block w-full"
                                                     value={data.fb}
                                                     onChange={(e) => setData('fb', e.target.value)}
-                                                    autoComplete="fb"
                                                 />
                                                 <InputError message={errors.fb} className="mt-2" />
                                             </div>
                                             <div className='lg:col-span-3 w-full'>
-                                                <InputLabel
-                                                    htmlFor="tw"
-                                                    value="Twiter"
-                                                    className='mb-2 label-text font-bold'
-                                                />
+                                                <InputLabel htmlFor="tw" value="Twitter" className='mb-2 label-text font-bold' />
                                                 <TextInput
                                                     id="tw"
                                                     name="tw"
@@ -298,16 +259,11 @@ function Edit({ network }) {
                                                     className="block w-full"
                                                     value={data.tw}
                                                     onChange={(e) => setData('tw', e.target.value)}
-                                                    autoComplete="tw"
                                                 />
                                                 <InputError message={errors.tw} className="mt-2" />
                                             </div>
                                             <div className='lg:col-span-3 w-full'>
-                                                <InputLabel
-                                                    htmlFor="ig"
-                                                    value="Instagram"
-                                                    className='mb-2 label-text font-bold'
-                                                />
+                                                <InputLabel htmlFor="ig" value="Instagram" className='mb-2 label-text font-bold' />
                                                 <TextInput
                                                     id="ig"
                                                     name="ig"
@@ -315,16 +271,11 @@ function Edit({ network }) {
                                                     className="block w-full"
                                                     value={data.ig}
                                                     onChange={(e) => setData('ig', e.target.value)}
-                                                    autoComplete="ig"
                                                 />
                                                 <InputError message={errors.ig} className="mt-2" />
                                             </div>
                                             <div className='lg:col-span-3 w-full'>
-                                                <InputLabel
-                                                    htmlFor="yt"
-                                                    value="Youtube"
-                                                    className='mb-2 label-text font-bold'
-                                                />
+                                                <InputLabel htmlFor="yt" value="Youtube" className='mb-2 label-text font-bold' />
                                                 <TextInput
                                                     id="yt"
                                                     name="yt"
@@ -332,91 +283,69 @@ function Edit({ network }) {
                                                     className="block w-full"
                                                     value={data.yt}
                                                     onChange={(e) => setData('yt', e.target.value)}
-                                                    autoComplete="yt"
                                                 />
-                                                <InputError message={errors.ig} className="mt-2" />
+                                                <InputError message={errors.yt} className="mt-2" />
                                             </div>
-                                            <div className='lg:col-span-3 w-full'>
-                                                <InputLabel
-                                                    htmlFor="gp"
-                                                    value="Google Plus"
-                                                    className='mb-2 label-text font-bold'
-                                                />
+                                            <div className='lg:col-span-6 w-full'>
+                                                <InputLabel htmlFor="gp" value="Google Plus" className='mb-2 label-text font-bold' />
                                                 <TextInput
                                                     id="gp"
                                                     name="gp"
                                                     type="text"
-                                                    className="block w-full"
+                                                    className="block w-full lg:w-1/2"
                                                     value={data.gp}
                                                     onChange={(e) => setData('gp', e.target.value)}
-                                                    autoComplete="gp"
                                                 />
                                                 <InputError message={errors.gp} className="mt-2" />
                                             </div>
                                         </div>
                                     </Card>
                                 </div>
+
+                                {/* --- SECTION: IMAGE ASSETS --- */}
                                 <div className='space-y-4'>
                                     <h2>
-                                        <span className="text-lg font-semibold text-foreground">Image</span>
+                                        <span className="text-lg font-semibold text-foreground">Aset Gambar</span>
                                     </h2>
                                     <Card>
-                                        <div className='grid grid-cols-1 lg:grid-cols-6 gap-4'>
-                                            <div className='lg:col-span-3 w-full'>
-                                                <InputLabel
-                                                    htmlFor="logo"
-                                                    value="Logo Desktop"
-                                                    className='mb-2 label-text font-bold'
-                                                />
-                                                <TextInput
-                                                    id="logo"
-                                                    name="logo"
-                                                    type="text"
-                                                    className="block w-full"
+                                        <div className='grid grid-cols-1 lg:grid-cols-3 gap-6'>
+                                            <div className='w-full'>
+                                                <InputImage
+                                                    label="Logo Desktop"
                                                     value={data.logo}
-                                                    onChange={(e) => setData('logo', e.target.value)}
-                                                    autoComplete="logo"
+                                                    existingImage={network.logo}
+                                                    onChange={(file) => setData('logo', file)}
+                                                    targetWidth={600} 
+                                                    targetHeight={150} 
                                                 />
                                                 <InputError message={errors.logo} className="mt-2" />
                                             </div>
-                                            <div className='lg:col-span-3 w-full'>
-                                                <InputLabel
-                                                    htmlFor="logo_m"
-                                                    value="Logo Mobile"
-                                                    className='mb-2 label-text font-bold'
-                                                />
-                                                <TextInput
-                                                    id="logo_m"
-                                                    name="logo_m"
-                                                    type="text"
-                                                    className="block w-full"
+                                            
+                                            <div className='w-full'>
+                                                <InputImage
+                                                    label="Logo Mobile / Favicon"
                                                     value={data.logo_m}
-                                                    onChange={(e) => setData('logo_m', e.target.value)}
-                                                    autoComplete="logo_m"
+                                                    existingImage={network.logo_m}
+                                                    onChange={(file) => setData('logo_m', file)}
+                                                    targetWidth={600} 
+                                                    targetHeight={150} 
                                                 />
                                                 <InputError message={errors.logo_m} className="mt-2" />
                                             </div>
 
-                                            <div className='lg:col-span-3 w-full'>
-                                                <InputLabel
-                                                    htmlFor="img_socmed"
-                                                    value="Image Sosmed"
-                                                    className='mb-2 label-text font-bold'
-                                                />
-                                                <TextInput
-                                                    id="img_socmed"
-                                                    name="img_socmed"
-                                                    type="text"
-                                                    className="block w-full"
+                                            <div className='w-full'>
+                                                <InputImage
+                                                    label="Image Open Graph (Sosmed)"
                                                     value={data.img_socmed}
-                                                    onChange={(e) => setData('img_socmed', e.target.value)}
-                                                    autoComplete="img_socmed"
+                                                    existingImage={network.img_socmed}
+                                                    onChange={(file) => setData('img_socmed', file)}
+                                                    targetWidth={200} 
+                                                    targetHeight={200} 
                                                 />
                                                 <InputError message={errors.img_socmed} className="mt-2" />
                                             </div>
                                         </div>
                                     </Card>
-
                                 </div>
 
                                 <div className='flex flex-row justify-end mt-2'>
@@ -425,15 +354,12 @@ function Edit({ network }) {
                                         className="btn btn-primary"
                                         disabled={processing}
                                     >
-                                        Simpan
+                                        {processing ? <span className="loading loading-spinner"></span> : "Perbarui Network"}
                                     </button>
                                 </div>
 
                             </form>
-
-
                         </div>
-
                     </div>
                 </div>
             </AuthenticatedLayout>
