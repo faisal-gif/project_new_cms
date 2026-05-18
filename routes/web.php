@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AdsDaerahController;
 use App\Http\Controllers\AdsLocateController;
+use App\Http\Controllers\AdsNasionalController;
 use App\Http\Controllers\EditorController;
 use App\Http\Controllers\EditorDaerahController;
 use App\Http\Controllers\EditorNasionalController;
@@ -72,6 +73,7 @@ Route::middleware('auth')->prefix('admin')->name('admin.')->group(function () {
         function () {
             Route::get('news/diagnoze', [NewsNasionalController::class, 'diagnose'])->name('news.diagnose');
             Route::get('news/export', [NewsNasionalController::class, 'export'])->name('news.export');
+            Route::resource('ads', AdsNasionalController::class);
             Route::resource('news', NewsNasionalController::class);
             Route::resource('kanal', KanalNasionalController::class);
             Route::resource('fokus', FokusNasionalController::class);

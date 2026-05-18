@@ -11,6 +11,7 @@ import {
     History,
     Image as ImageIcon, // Alias agar tidak bentrok dengan class bawaan JS
     Images,
+    ImagesIcon,
     Key,
     LayoutDashboard,
     Link2,
@@ -236,10 +237,19 @@ export default function AuthenticatedLayout({ header, children }) {
                                             </Link>
                                         </li>
                                     )}
+
+
                                 </ul>
+
                             </details>
+
                         </li>
                     )}
+                    <li>
+                        <Link href={route('admin.nasional.ads.index')} className={linkClass(isActive('admin.nasional.ads.*'))}>
+                            <ImagesIcon size={16} /> Ads
+                        </Link>
+                    </li>
                     {/* ================= 3. DAERAH ================= */}
                     <div className="divider my-1 bg-white/10 h-[1px]"></div>
                     <h2 className="menu-title text-emerald-400 uppercase text-xs tracking-wider">Daerah</h2>
