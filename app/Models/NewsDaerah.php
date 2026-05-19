@@ -31,7 +31,7 @@ class NewsDaerah extends Model
         'is_headline',
         'is_editorial',
         'is_adv',
-        'is_code ',
+        'is_code',
         'views',
         'status'
     ];

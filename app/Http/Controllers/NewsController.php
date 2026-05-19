@@ -255,7 +255,7 @@ class NewsController extends Controller implements HasMiddleware
             // 1. Simpan tabel News (Koneksi Daerah)
             // Sesuaikan nama field 'cat_id', 'fokus_id' dsb sesuai skema DB daerah kamu
             $news = NewsDaerah::create([
-                'is_code'     => $request->is_code ?? Str::random(8),
+                'is_code'     => $request->is_code,
                 'writer_id'   => $request->writer,
                 'editor_id'   => $request->editor,
                 'cat_id'      => $request->kanal, // kanal di form dipetakan ke cat_id
