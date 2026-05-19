@@ -14,7 +14,6 @@ use App\Models\KanalNasional;
 use App\Models\NetworkDaerah;
 use App\Models\News;
 use App\Models\NewsDaerah;
-use App\Models\NewsImages;
 use App\Models\NewsNasional;
 use App\Models\NewsTags;
 use App\Models\Tags;

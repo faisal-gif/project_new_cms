@@ -23,11 +23,6 @@ class News extends Model
         return $this->belongsTo(Writer::class, 'writer_id');
     }
 
-    public function images()
-    {
-        return $this->hasOne(NewsImages::class, 'news_id');
-    }
-
     public function tags()
     {
         return $this->belongsToMany(Tags::class, 'news_tags', 'news_id', 'tag_id');
