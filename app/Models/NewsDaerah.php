@@ -65,11 +65,6 @@ class NewsDaerah extends Model
         return $this->belongsToMany(NetworkDaerah::class, 'news_network', 'news_id', 'net_id');
     }
 
-    public function images()
-    {
-        return $this->hasOne(NewsDaerahImages::class, 'news_id');
-    }
-
     public function tags()
     {
         return $this->belongsToMany(TagsDaerah::class, 'news_tags', 'news_id', 'tag_id');

@@ -9,7 +9,6 @@ use App\Models\FokusDaerah;
 use App\Models\KanalDaerah;
 use App\Models\NetworkDaerah;
 use App\Models\NewsDaerah;
-use App\Models\NewsDaerahImages;
 use App\Models\TagsDaerah;
 use App\Models\WriterDaerah;
 use App\Services\CdnService;
