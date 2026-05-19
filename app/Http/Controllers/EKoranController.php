@@ -50,7 +50,7 @@ class EKoranController extends Controller
         // Generate nama file yang unik untuk menghindari bentrok di CDN
         $fileName = $prefixName . '_' . time() . '_' . Str::random(5);
 
-        return $this->cdnService->uploadImage($file, $fileName, 6, 'convert', true);
+        return $this->cdnService->uploadImage($file, $fileName, 6, 'convert', false);
     }
     public function store(EkoranRequest $request)
     {

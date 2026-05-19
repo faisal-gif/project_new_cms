@@ -18,7 +18,7 @@ export default function Edit({ ekoran }) {
     const { data, setData, post, processing, errors, transform } = useForm({
         title: ekoran.title || "",
         datepub: ekoran.datepub || "",
-        emagazineId: ekoran.emagazine_id || "",
+        emagazine_id: ekoran.emagazine_id || "",
         status: ekoran.status?.toString() || "0",
         regular_pages: [],
         spesial_pages: [],
@@ -115,7 +115,7 @@ export default function Edit({ ekoran }) {
                                     </div>
                                     <div className="w-full">
                                         <InputLabel value="eMagazine ID (Opsional)" className="font-bold mb-2" />
-                                        <TextInput value={data.emagazineId} onChange={(e) => setData("emagazineId", e.target.value)} className="w-full bg-base-200 focus:bg-base-100" />
+                                        <TextInput value={data.emagazine_id} onChange={(e) => setData("emagazine_id", e.target.value)} className="w-full bg-base-200 focus:bg-base-100" />
                                     </div>
                                 </div>
                             </div>

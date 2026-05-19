@@ -19,7 +19,7 @@ export default function Create() {
     const { data, setData, post, processing, errors } = useForm({
         title: "",
         datepub: "",
-        emagazineId: "",
+        emagazine_id: "",
         status: "0",
         regular_pages: [], // Akan diisi saat submit
         spesial_pages: [],   // Akan diisi saat submit
@@ -92,8 +92,8 @@ export default function Create() {
                                         <InputLabel value="eMagazine ID (Opsional)" className="font-bold mb-2" />
                                         <TextInput
                                             placeholder="Opsional"
-                                            value={data.emagazineId}
-                                            onChange={(e) => setData("emagazineId", e.target.value)}
+                                            value={data.emagazine_id}
+                                            onChange={(e) => setData("emagazine_id", e.target.value)}
                                             className="w-full bg-base-200 focus:bg-base-100"
                                         />
                                     </div>

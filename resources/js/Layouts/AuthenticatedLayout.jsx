@@ -245,11 +245,13 @@ export default function AuthenticatedLayout({ header, children }) {
 
                         </li>
                     )}
-                    <li>
-                        <Link href={route('admin.nasional.ads.index')} className={linkClass(isActive('admin.nasional.ads.*'))}>
-                            <ImagesIcon size={16} /> Ads
-                        </Link>
-                    </li>
+                    {hasPermission('view ads nasional') && (
+                        <li>
+                            <Link href={route('admin.nasional.ads.index')} className={linkClass(isActive('admin.nasional.ads.*'))}>
+                                <ImagesIcon size={16} /> Ads
+                            </Link>
+                        </li>
+                    )}
                     {/* ================= 3. DAERAH ================= */}
                     <div className="divider my-1 bg-white/10 h-[1px]"></div>
                     <h2 className="menu-title text-emerald-400 uppercase text-xs tracking-wider">Daerah</h2>
@@ -342,11 +344,6 @@ export default function AuthenticatedLayout({ header, children }) {
                     <div className="divider my-1 bg-white/10 h-[1px]"></div>
                     <h2 className="menu-title text-white/50 uppercase text-xs tracking-wider">Tools & Export</h2>
 
-                    <li>
-                        <Link href="#" className={linkClass(false)}>
-                            <Link2 size={16} /> Source Links
-                        </Link>
-                    </li>
                     <li>
                         <Link href="#" className={linkClass(false)}>
                             <FolderInput size={16} /> Export AJP

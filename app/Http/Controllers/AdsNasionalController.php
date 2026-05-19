@@ -225,8 +225,7 @@ class AdsNasionalController extends Controller
                 $locateData = collect($allLocates)->map(function ($locate_id) use ($ad) {
                     return [
                         'ads_id'     => $ad->id,
-                        'locate_id'  => $locate_id,
-                      
+                        'locate_id'  => $locate_id,                     
                     ];
                 })->toArray();
 

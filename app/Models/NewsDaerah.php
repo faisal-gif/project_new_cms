@@ -9,7 +9,35 @@ class NewsDaerah extends Model
 
     protected $connection = 'mysql_daerah';
     protected $table = 'news';
-    protected $guarded = [];
+    protected $fillable = [
+        'datepub',
+        'title',
+        'title_regional',
+        'subtitle',
+        'description',
+        'content',
+        'youtube',
+        'caption',
+        'tag',
+        'keyword_tool',
+        'image',
+        'locus',
+        'writer_id',
+        'editor_note',
+        'writer_id',
+        'editor_id',
+        'cat_id',
+        'fokus_id',
+        'is_headline',
+        'is_editorial',
+        'is_adv',
+        'is_code ',
+        'views',
+        'status'
+    ];
+
+    const CREATED_AT = 'created_at';
+    const UPDATED_AT = 'updated_at';
 
     public function kanal()
     {
