@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use App\Http\Requests\EditorDaerahRequest;
 use App\Http\Requests\EditorFormRequest;
 use App\Models\EditorDaerah;
-use App\Models\History;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;

@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\KanalFormRequest;
-use App\Models\History;
 use App\Models\KanalDaerah;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -64,13 +63,6 @@ class KanalDaerahController extends Controller
             'status' => $request->status,
         ]);
 
-        $history = History::create([
-            'user_id' => $auth->id,
-            'action' => 'add',
-            'tipe' => 'kanal',
-            'target' => $kanal->name,
-        ]);
-
         return redirect()->route('admin.daerah.kanal.index')->with('success', 'Kanal Berhasil Ditambahkan');
     }
 
@@ -105,14 +97,6 @@ class KanalDaerahController extends Controller
         $kanal->description = $request->input('description');
         $kanal->status = $request->input('status');
         $kanal->save();
-
-        $history = History::create([
-            'user_id' => $auth->id,
-            'action' => 'edit',
-            'tipe' => 'kanal',
-            'target' => $kanal->name,
-        ]);
-
 
         return redirect()->route('admin.daerah.kanal.index')->with('success', 'Kanal Berhasil Diperbarui');
     }

@@ -10,7 +10,6 @@ use App\Http\Controllers\EKoranController;
 use App\Http\Controllers\FokusDaerahController;
 use App\Http\Controllers\FokusNasionalController;
 use App\Http\Controllers\GalleryController;
-use App\Http\Controllers\HistoryController;
 use App\Http\Controllers\KanalDaerahController;
 use App\Http\Controllers\KanalNasionalController;
 use App\Http\Controllers\NetworkDaerahController;
@@ -54,7 +53,6 @@ Route::middleware('auth')->prefix('admin')->name('admin.')->group(function () {
     Route::resource('users', UserController::class);
     Route::resource('writers', WriterController::class);
     Route::resource('editors', EditorController::class);
-    Route::resource('history', HistoryController::class);
     Route::prefix('daerah')->name('daerah.')->group(
         function () {
             Route::get('news/export', [NewsDaerahController::class, 'export'])->name('news.export');

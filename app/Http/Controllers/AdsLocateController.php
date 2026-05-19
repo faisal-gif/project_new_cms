@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\AdsLocateFormRequest;
 use App\Models\AdsLocate;
-use App\Models\History;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;

@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\UserFormRequest;
 use App\Models\Editor;
-use App\Models\History;
 use App\Models\User;
 use App\Models\Writer;
 use Illuminate\Http\Request;

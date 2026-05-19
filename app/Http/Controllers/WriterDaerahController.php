@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\WriterFormRequest;
-use App\Models\History;
 use App\Models\Network;
 use App\Models\NetworkDaerah;
 
@@ -79,13 +78,6 @@ class WriterDaerahController extends Controller
             'status' => $request->status,
         ]);
 
-        $history = History::create([
-            'user_id' => $auth->id,
-            'action' => 'add',
-            'tipe' => 'writer',
-            'target' => $writer->name,
-        ]);
-
         return redirect()->route('admin.daerah.writer.index')->with('success', 'Writer Berhasil Ditambahkan');
     }
 
@@ -129,13 +121,6 @@ class WriterDaerahController extends Controller
         $writer->date_exp = date('Y-m-d', strtotime($request->date_exp));
         $writer->status = $request->input('status');
         $writer->save();
-
-        $history = History::create([
-            'user_id' => $auth->id,
-            'action' => 'edit',
-            'tipe' => 'writer',
-            'target' => $writer->name,
-        ]);
 
          return redirect()->route('admin.daerah.writer.index')->with('success', 'Writer Berhasil diperbarui');
     }
