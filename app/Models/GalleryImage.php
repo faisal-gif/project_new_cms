@@ -9,7 +9,15 @@ class GalleryImage extends Model
     protected $connection = 'mysql_nasional';
     protected $table = 'gallery_img';
     protected $primaryKey = 'gi_id';
-    protected $guarded = [];
+    protected $fillable = [
+        'gal_id',
+        'gi_image',
+        'gi_caption',
+        'gi_cover',
+        'gi_status',
+        'created_by',
+        'created',
+    ];
     public $timestamps = false; // Kita akan set manual kolom 'created' & 'modified'
 
     public function gallery()
