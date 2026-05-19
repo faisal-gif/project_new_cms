@@ -14,40 +14,7 @@ class HistoryController extends Controller
      */
     public function index(Request $request)
     {
-        $query = History::with('user');
-
-        if ($request->search) {
-            $search = $request->search;
-
-            $query->where(function ($q) use ($search) {
-                $q->where('target', 'like', "%{$search}%")
-                    ->orWhere('tipe', 'like', "%{$search}%");
-            });
-        }
-
-        if ($request->filled('action')) {
-            $query->where('action', $request->action);
-        }
-
-         if ($request->filled('user')) {
-            $query->where('user_id', $request->user);
-        }
-
-        $history = $query->orderBy('id', 'desc')
-            ->paginate(10)
-            ->withQueryString();
-
-        $optionUser = User::select('id', 'full_name')->get()
-            ->map(fn($u) => [
-                'value' => $u->id,
-                'label' => $u->full_name,
-            ]);
-
-        return Inertia::render('Admin/History/Index', [
-            'history' => $history,
-            'optionUser' => $optionUser,
-            'filters' => $request->only(['search', 'action', 'user']),
-        ]);
+       
     }
 
     /**
