@@ -2,7 +2,7 @@
 
 namespace App\Console\Commands;
 
-use App\Models\EditorMaster;
+use App\Models\Editor;
 use Carbon\Carbon;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
@@ -40,11 +40,11 @@ class ImportEditorDaerah extends Command
             foreach ($editorsDaerah as $wd) {
                 
                 // 1. Pengecekan Duplikasi Email
-                $existingEditor = EditorMaster::where('name', $wd->name)->first();
+                $existingEditor = Editor::where('name', $wd->name)->first();
 
                 if ($existingEditor) {
                     // JIKA EMAIL SUDAH ADA: Update saja kolom id_daerah-nya
-                    EditorMaster::where('id', $existingEditor->id)
+                    Editor::where('id', $existingEditor->id)
                         ->update([
                             'id_daerah' => $wd->id,
                             'id_ti' => $wd->id_ti,
@@ -52,7 +52,7 @@ class ImportEditorDaerah extends Command
                         ]);
                 } else {
                     // JIKA BELUM ADA: Insert sebagai baris baru
-                    EditorMaster::create([
+                    Editor::create([
                         'id'          => $wd->id, // PERTAHANKAN ID LAMA SEBAGAI ID BARU
                         'name'        => $wd->name,
                         'user_id'     => $wd->user_id,
