@@ -11,7 +11,14 @@ class KanalNasional extends Model
     protected $primaryKey = 'catnews_id';
 
 
-    protected $guarded = [];
+    protected $fillable = [
+        'catnews_order',
+        'catnews_title',
+        'catnews_slug',
+        'catnews_description',
+        'catnews_keyword',
+        'catnews_status',
+    ];
 
     const CREATED_AT = 'created';
     const UPDATED_AT = 'modified';
