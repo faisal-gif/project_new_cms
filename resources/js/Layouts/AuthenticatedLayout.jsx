@@ -345,7 +345,7 @@ export default function AuthenticatedLayout({ header, children }) {
                     <h2 className="menu-title text-white/50 uppercase text-xs tracking-wider">Tools & Export</h2>
 
                     <li>
-                        <Link href="#" className={linkClass(false)}>
+                        <Link href={route('admin.ajp-export.create')} className={linkClass(false)}>
                             <FolderInput size={16} /> Export AJP
                         </Link>
                     </li>
