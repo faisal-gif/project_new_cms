@@ -49,10 +49,10 @@ class DashboardController extends Controller
         if ($user->hasRole('fotografer')) {
             $stats['photos'] = [
                 'uploaded_today' => Gallery::whereDate('created', today())
-                    ->where('fotografer_id', $user->id)
+                    ->where('fotografer_id', $user->id_fotografer)
                     ->count(),
                 'pending_review' => Gallery::where('gal_status', 0)
-                    ->where('fotografer_id', $user->id)
+                    ->where('fotografer_id', $user->id_fotografer)
                     ->count(),
             ];
         }
