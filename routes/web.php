@@ -18,8 +18,11 @@ use App\Http\Controllers\NetworkDaerahController;
 use App\Http\Controllers\NewsController;
 use App\Http\Controllers\NewsDaerahController;
 use App\Http\Controllers\NewsNasionalController;
+use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\PermissionController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\ReportNewsDaerahController;
+use App\Http\Controllers\ReportNewsNasionalController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\TextEditorController;
 use App\Http\Controllers\UserController;
@@ -34,7 +37,7 @@ Route::get('/', function () {
     return redirect()->route('dashboard');
 });
 
-Route::get('/dashboard',[DashboardController::class,'index'])->middleware(['auth', 'verified'])->name('dashboard');
+Route::get('/dashboard', [DashboardController::class, 'index'])->middleware(['auth', 'verified'])->name('dashboard');
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
@@ -43,7 +46,7 @@ Route::middleware('auth')->group(function () {
 });
 Route::post('/upload-image', [TextEditorController::class, 'upload']);
 Route::middleware('auth')->prefix('admin')->name('admin.')->group(function () {
-    Route::resource('news', NewsController::class);
+    Route::resource('news', NewsController::class)->only('index', 'show');
     Route::get('/news/import-daerah/{is_code}', [NewsController::class, 'importDaerah'])->name('news.import.daerah');
     Route::post('/news/import-daerah', [NewsController::class, 'importDaerahStore'])->name('news.import.daerah.store');
     Route::get('/news/import-nasional/{is_code}', [NewsController::class, 'importNasional'])->name('news.import.nasional');
@@ -54,9 +57,11 @@ Route::middleware('auth')->prefix('admin')->name('admin.')->group(function () {
     Route::resource('users', UserController::class);
     Route::resource('writers', WriterController::class);
     Route::resource('editors', EditorController::class);
+    Route::post('/notifications/clear', [NotificationController::class, 'clear'])->name('notifications.clear');
     Route::prefix('daerah')->name('daerah.')->group(
         function () {
-            Route::get('news/export', [NewsDaerahController::class, 'export'])->name('news.export');
+            Route::get('news/report', [ReportNewsDaerahController::class, 'index'])->name('news.report.index');
+            Route::post('news/export', [ReportNewsDaerahController::class, 'export'])->name('news.report.export');
             Route::resource('kanal', KanalDaerahController::class);
             Route::resource('network', NetworkDaerahController::class);
             Route::resource('news', NewsDaerahController::class);
@@ -71,7 +76,8 @@ Route::middleware('auth')->prefix('admin')->name('admin.')->group(function () {
     Route::prefix('nasional')->name('nasional.')->group(
         function () {
             Route::get('news/diagnoze', [NewsNasionalController::class, 'diagnose'])->name('news.diagnose');
-            Route::get('news/export', [NewsNasionalController::class, 'export'])->name('news.export');
+            Route::get('news/report', [ReportNewsNasionalController::class, 'index'])->name('news.report.index');
+            Route::post('news/export', [ReportNewsNasionalController::class, 'export'])->name('news.report.export');
             Route::resource('ads', AdsNasionalController::class);
             Route::resource('news', NewsNasionalController::class);
             Route::resource('kanal', KanalNasionalController::class);

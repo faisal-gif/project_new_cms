@@ -1,6 +1,6 @@
 import ApplicationLogo from '@/Components/ApplicationLogo';
 import Dropdown from '@/Components/Dropdown';
-import { Link, usePage } from '@inertiajs/react';
+import { Link, router, usePage } from '@inertiajs/react';
 import {
     BookText,
     Clipboard,
@@ -9,7 +9,7 @@ import {
     FolderInput,
     Globe,
     History,
-    Image as ImageIcon, // Alias agar tidak bentrok dengan class bawaan JS
+    Image as ImageIcon,
     Images,
     ImagesIcon,
     Key,
@@ -23,15 +23,70 @@ import {
     Settings,
     ShieldCheck,
     User,
-    Users
+    Users,
+    Bell,        // <-- TAMBAHAN: Icon Lonceng Notifikasi
+    BarChart3    // <-- TAMBAHAN: Icon untuk menu Laporan/Report
 } from 'lucide-react';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 
 export default function AuthenticatedLayout({ header, children }) {
     const { auth, flash } = usePage().props;
     const user = auth.user;
     const userPermissions = auth.permissions || [];
+
+    // AMBIL DATA NOTIFIKASI DARI MIDDLEWARE
+    const [notifications, setNotifications] = useState(auth.notifications || []);
+
+
+    const handleClearNotifications = () => {
+        router.post(route('admin.notifications.clear'), {}, {
+            preserveScroll: true,
+            preserveState: true,
+            onSuccess: () => {
+                // Kosongkan state lokal agar angka merah di lonceng langsung hilang
+                setNotifications([]);
+            }
+        });
+    };
+
+    useEffect(() => {
+        // Pastikan Echo sudah tersedia dan user sedang login
+        if (window.Echo && user) {
+
+            // Dengarkan channel 'private-App.Models.User.{id}' khusus untuk user ini
+            window.Echo.private(`App.Models.User.${user.id}`)
+                .notification((notification) => {
+                    // Ketika ada notifikasi real-time masuk:
+
+                    // A. Format ulang strukturnya agar mirip dengan database JSON
+                    const newNotification = {
+                        id: notification.id,
+                        data: {
+                            title: notification.title,
+                            message: notification.message,
+                            url: notification.url
+                        }
+                    };
+
+                    // B. Masukkan notif baru ke urutan paling atas di Navbar tanpa refresh!
+                    setNotifications((prev) => [newNotification, ...prev]);
+
+                    // C. Tampilkan Popup Toast sebagai pemberitahuan instan di layar!
+                    toast.success(newNotification.data.title, {
+                        description: newNotification.data.message
+                    });
+                });
+        }
+
+        // Cleanup listener saat komponen unmount
+        return () => {
+            if (window.Echo && user) {
+                window.Echo.leave(`App.Models.User.${user.id}`);
+            }
+        };
+    }, [user]);
+
 
     // 2. Buat helper function
     const hasPermission = (permissions) => {
@@ -40,7 +95,6 @@ export default function AuthenticatedLayout({ header, children }) {
         }
         return userPermissions.includes(permissions);
     };
-
 
     useEffect(() => {
         if (flash?.success) {
@@ -76,10 +130,83 @@ export default function AuthenticatedLayout({ header, children }) {
                         </label>
                     </div>
                     <div className="flex-1" />
-                    <div className="flex-none">
+
+                    {/* BAGIAN KANAN NAVBAR */}
+                    <div className="flex-none flex items-center gap-2">
+
+                        {/* ================= LONCENG NOTIFIKASI ================= */}
+                        <div className="dropdown dropdown-end">
+                            <div tabIndex={0} role="button" className="btn btn-ghost btn-circle">
+                                <div className="indicator">
+                                    <Bell size={20} />
+                                    {notifications.length > 0 && (
+                                        <span className="badge badge-sm badge-error indicator-item text-white border-none shadow-sm">
+                                            {notifications.length}
+                                        </span>
+                                    )}
+                                </div>
+                            </div>
+
+                            <ul tabIndex={0} className="mt-3 z-[50] p-2 shadow-lg menu menu-sm dropdown-content bg-base-100 rounded-box w-80 border border-gray-100">
+                                <li className="menu-title flex flex-row items-center justify-between border-b pb-2 mb-2">
+                                    <span className="text-gray-900 font-bold text-sm">Notifikasi Anda</span>
+
+                                    {/* TOMBOL BERSIHKAN MUNCUL JIKA ADA NOTIFIKASI */}
+                                    {notifications.length > 0 && (
+                                        <button
+                                            onClick={handleClearNotifications}
+                                            className="text-[10px] text-red-500 hover:text-red-700 bg-red-50 px-2 py-1 rounded-md cursor-pointer uppercase tracking-wider font-bold"
+                                        >
+                                            Bersihkan
+                                        </button>
+                                    )}
+                                </li>
+
+                                {notifications.length === 0 ? (
+                                    <li className="text-gray-500 text-center py-4">Belum ada notifikasi baru</li>
+                                ) : (
+                                    notifications.map((notif) => (
+                                        <li key={notif.id}>
+                                            {notif.data.is_download ? (
+                                                // RENDER UNTUK NOTIFIKASI EXCEL (UNDUH)
+                                                <a
+                                                    href={notif.data.url}
+                                                    download
+                                                    className="flex flex-col items-start gap-1 p-3 hover:bg-green-50/50"
+                                                >
+                                                    <span className="font-bold text-success">{notif.data.title}</span>
+                                                    <span className="text-xs text-gray-600 whitespace-normal">
+                                                        {notif.data.message}
+                                                    </span>
+                                                    <span className="text-xs font-semibold text-green-600 mt-1 flex items-center gap-1">
+                                                        ⬇️ Klik untuk mengunduh Excel
+                                                    </span>
+                                                </a>
+                                            ) : (
+                                                // RENDER UNTUK NOTIFIKASI BERITA BARU DARI WARTAWAN (LINK HALAMAN)
+                                                <Link
+                                                    href={notif.data.url}
+                                                    className="flex flex-col items-start gap-1 p-3 hover:bg-blue-50/50"
+                                                >
+                                                    <span className="font-bold text-primary">{notif.data.title}</span>
+                                                    <span className="text-xs text-gray-600 whitespace-normal line-clamp-2">
+                                                        {notif.data.message}
+                                                    </span>
+                                                    <span className="text-xs font-semibold text-blue-500 mt-1 flex items-center gap-1">
+                                                        👁️ Tinjau Berita Sekarang
+                                                    </span>
+                                                </Link>
+                                            )}
+                                        </li>
+                                    ))
+                                )}
+                            </ul>
+                        </div>
+                        {/* ======================================================= */}
+
                         <Dropdown
                             trigger={
-                                <button className="btn btn-ghost flex items-center gap-2">
+                                <button className="btn btn-ghost flex items-center gap-2 ml-2">
                                     <User size={20} />
                                     <span>{user.name}</span>
                                 </button>
@@ -180,6 +307,8 @@ export default function AuthenticatedLayout({ header, children }) {
                     {/* ================= 2. NASIONAL ================= */}
                     <div className="divider my-1 bg-white/10 h-[1px]"></div>
                     <h2 className="menu-title text-blue-400 uppercase text-xs tracking-wider">Nasional</h2>
+
+
                     {hasPermission('view news nasional') && (
                         <li>
                             <Link href={route('admin.nasional.news.index')} className={linkClass(isActive('admin.nasional.news.*'))}>
@@ -237,12 +366,8 @@ export default function AuthenticatedLayout({ header, children }) {
                                             </Link>
                                         </li>
                                     )}
-
-
                                 </ul>
-
                             </details>
-
                         </li>
                     )}
                     {hasPermission('view ads nasional') && (
@@ -252,9 +377,11 @@ export default function AuthenticatedLayout({ header, children }) {
                             </Link>
                         </li>
                     )}
+
                     {/* ================= 3. DAERAH ================= */}
                     <div className="divider my-1 bg-white/10 h-[1px]"></div>
                     <h2 className="menu-title text-emerald-400 uppercase text-xs tracking-wider">Daerah</h2>
+
                     {hasPermission('view news daerah') && (
                         <li>
                             <Link href={route('admin.daerah.news.index')} className={linkClass(isActive('admin.daerah.news.*'))}>
@@ -313,7 +440,7 @@ export default function AuthenticatedLayout({ header, children }) {
                         </li>
                     )}
 
-                    {/* ADS Daerah - Diperbaiki agar tidak double dropdown */}
+                    {/* ADS Daerah */}
                     {hasPermission(["view ads daerah", "view ads daerah location"]) && (
                         <li>
                             <details open={isActive('admin.daerah.ads.*')}>

@@ -16,10 +16,10 @@ class DashboardController extends Controller
     {
         $user = $request->user();
         $stats = [];
-        
+
 
         // Logika untuk Admin / Editor
-        if ($user->hasAnyRole(['super-admin','admin', 'editor'])) {
+        if ($user->hasAnyRole(['super-admin', 'admin', 'editor'])) {
             $stats['news'] = Cache::remember('dashboard_news_stats_v2', 60 * 5, function () {
                 return [
                     // Kategori Utama sekarang hanya menghitung Total Row (Container)
@@ -56,8 +56,6 @@ class DashboardController extends Controller
                     ->count(),
             ];
         }
-
-
 
         return Inertia::render('Dashboard', [
             'stats' => $stats

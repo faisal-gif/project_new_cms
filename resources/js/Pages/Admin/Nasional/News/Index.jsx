@@ -133,42 +133,6 @@ function Index({ news, writers, kanals, filters }) {
     }
   }
 
-  const handleExport = () => {
-    // 1. Validasi Wajib Isi Tanggal
-    if (!startDate || !endDate) {
-      toast.error("Mohon pilih 'Dari Tanggal' dan 'Sampai Tanggal' terlebih dahulu sebelum melakukan export.");
-      return; // Hentikan proses
-    }
-
-    // 2. Validasi Rentang Waktu (Maksimal 31 Hari)
-    const start = new Date(startDate);
-    const end = new Date(endDate);
-    const diffTime = Math.abs(end - start);
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
-    if (diffDays > 31) {
-      toast.error("Rentang tanggal terlalu besar. Maksimal export adalah data untuk 31 hari.");
-      return; // Hentikan proses
-    }
-
-    if (start > end) {
-      toast.error("Tanggal awal tidak boleh lebih besar dari tanggal akhir.");
-      return;
-    }
-
-    // 3. Eksekusi Export jika semua validasi lolos
-    const queryParams = new URLSearchParams({
-      search: search || '',
-      status: status || '',
-      writer: writer || '',
-      kanal: kanal || '',
-      start_date: startDate || '',
-      end_date: endDate || ''
-    }).toString();
-
-    window.location.href = `${route('admin.nasional.news.export')}?${queryParams}`;
-  };
-
   // 3. Fungsi untuk menyalin link
   const handleCopyLink = (newsItem) => {
 
@@ -230,9 +194,9 @@ function Index({ news, writers, kanals, filters }) {
                   )}
 
                   {/* Button Export Baru */}
-                  <button onClick={handleExport} className="btn btn-success text-white rounded-lg">
-                    <Download size={16} /> Export Excel
-                  </button>
+                  <Link href={route('admin.nasional.news.report.index')} className="btn btn-secondary text-white rounded-lg">
+                    <Download size={16} /> Report Excel
+                  </Link>
                 </div>
               </div>
               {/* End Head */}
