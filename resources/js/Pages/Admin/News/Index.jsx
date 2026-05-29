@@ -271,8 +271,8 @@ function Index({ news, writers, kanals, filters }) {
 
                         {/* Actions */}
                         <div className="card-actions justify-end mt-2">
-                          <Link href={route('admin.news.edit', n.id)} className="btn btn-sm btn-primary w-full sm:w-auto">
-                            Edit Berita Utama
+                          <Link href={route('admin.news.show', n.id)} className="btn btn-sm btn-primary w-full sm:w-auto">
+                            Detail Berita
                           </Link>
                         </div>
 
@@ -378,7 +378,7 @@ function Index({ news, writers, kanals, filters }) {
                           {hasPermission('edit news master') && (
                             <td>
                               <div className="flex justify-end gap-2">
-                                <Link href={route('admin.news.edit', n.id)} className="btn btn-sm btn-primary btn-outline">Edit Induk</Link>
+                                <Link href={route('admin.news.show', n.id)} className="btn btn-sm btn-primary btn-outline">Edit Induk</Link>
                               </div>
                             </td>
                           )}

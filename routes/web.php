@@ -46,7 +46,7 @@ Route::middleware('auth')->group(function () {
 });
 Route::post('/upload-image', [TextEditorController::class, 'upload']);
 Route::middleware('auth')->prefix('admin')->name('admin.')->group(function () {
-    Route::resource('news', NewsController::class)->only('index', 'show');
+    Route::resource('news', NewsController::class)->only('index', 'create', 'show');
     Route::get('/news/import-daerah/{is_code}', [NewsController::class, 'importDaerah'])->name('news.import.daerah');
     Route::post('/news/import-daerah', [NewsController::class, 'importDaerahStore'])->name('news.import.daerah.store');
     Route::get('/news/import-nasional/{is_code}', [NewsController::class, 'importNasional'])->name('news.import.nasional');
@@ -57,7 +57,10 @@ Route::middleware('auth')->prefix('admin')->name('admin.')->group(function () {
     Route::resource('users', UserController::class);
     Route::resource('writers', WriterController::class);
     Route::resource('editors', EditorController::class);
+    // Rute untuk membaca notifikasi lalu dialihkan ke halaman tujuan
+    Route::get('/notifications/{id}/go', [NotificationController::class, 'open'])->name('notifications.go');
     Route::post('/notifications/clear', [NotificationController::class, 'clear'])->name('notifications.clear');
+    Route::post('/notifications/{id}/read', [NotificationController::class, 'markAsRead'])->name('notifications.read');
     Route::prefix('daerah')->name('daerah.')->group(
         function () {
             Route::get('news/report', [ReportNewsDaerahController::class, 'index'])->name('news.report.index');

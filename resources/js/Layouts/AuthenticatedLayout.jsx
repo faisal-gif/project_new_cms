@@ -1,5 +1,12 @@
 import ApplicationLogo from '@/Components/ApplicationLogo';
-import Dropdown from '@/Components/Dropdown';
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuSeparator,
+    DropdownMenuTrigger,
+} from "@/Components/ui/dropdown-menu";
+import { Badge } from '@/Components/ui/badge';
 import { Link, router, usePage } from '@inertiajs/react';
 import {
     BookText,
@@ -38,7 +45,6 @@ export default function AuthenticatedLayout({ header, children }) {
     // AMBIL DATA NOTIFIKASI DARI MIDDLEWARE
     const [notifications, setNotifications] = useState(auth.notifications || []);
 
-
     const handleClearNotifications = () => {
         router.post(route('admin.notifications.clear'), {}, {
             preserveScroll: true,
@@ -49,6 +55,21 @@ export default function AuthenticatedLayout({ header, children }) {
             }
         });
     };
+
+    const handleMarkAsRead = (id) => {
+        router.post(route('admin.notifications.read', id), {}, {
+            preserveScroll: true,
+            preserveState: true,
+            onSuccess: () => {
+                // TAMBAHAN: Langsung saring dan buang notifikasi yang dibaca dari layar
+                setNotifications((prev) => prev.filter((notif) => notif.id !== id));
+            }
+        });
+    };
+
+    useEffect(() => {
+        setNotifications(auth.notifications || []);
+    }, [auth.notifications]);
 
     useEffect(() => {
         // Pastikan Echo sudah tersedia dan user sedang login
@@ -65,7 +86,8 @@ export default function AuthenticatedLayout({ header, children }) {
                         data: {
                             title: notification.title,
                             message: notification.message,
-                            url: notification.url
+                            url: notification.url,
+                            is_download: notification.is_download || false // <-- Pastikan properti ini ada, default false
                         }
                     };
 
@@ -134,87 +156,127 @@ export default function AuthenticatedLayout({ header, children }) {
                     {/* BAGIAN KANAN NAVBAR */}
                     <div className="flex-none flex items-center gap-2">
 
-                        {/* ================= LONCENG NOTIFIKASI ================= */}
-                        <div className="dropdown dropdown-end">
-                            <div tabIndex={0} role="button" className="btn btn-ghost btn-circle">
-                                <div className="indicator">
-                                    <Bell size={20} />
-                                    {notifications.length > 0 && (
-                                        <span className="badge badge-sm badge-error indicator-item text-white border-none shadow-sm">
-                                            {notifications.length}
-                                        </span>
-                                    )}
-                                </div>
-                            </div>
+                        {/* ================= LONCENG NOTIFIKASI (SHADCN UI) ================= */}
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                {/* Tombol Trigger (Bisa pakai class daisyUI yang sudah ada) */}
+                                <button className="btn btn-ghost btn-circle relative focus:outline-none">
+                                    <div className="indicator">
+                                        <Bell size={20} />
+                                        {notifications.length > 0 && (
+                                            <Badge className="indicator-item text-white border-none shadow-sm">
+                                                {notifications.length}
+                                            </Badge>
+                                        )}
+                                    </div>
+                                </button>
+                            </DropdownMenuTrigger>
 
-                            <ul tabIndex={0} className="mt-3 z-[50] p-2 shadow-lg menu menu-sm dropdown-content bg-base-100 rounded-box w-80 border border-gray-100">
-                                <li className="menu-title flex flex-row items-center justify-between border-b pb-2 mb-2">
+                            <DropdownMenuContent
+                                align="end"
+                                sideOffset={8}
+                                className="w-[calc(100vw-2rem)] sm:w-80 p-0 mx-2 z-[100]"
+                            >
+                                {/* Header Dropdown Notifikasi */}
+                                <div className="flex flex-row items-center justify-between px-4 py-3 bg-gray-50/50 rounded-t-md">
                                     <span className="text-gray-900 font-bold text-sm">Notifikasi Anda</span>
 
-                                    {/* TOMBOL BERSIHKAN MUNCUL JIKA ADA NOTIFIKASI */}
                                     {notifications.length > 0 && (
                                         <button
                                             onClick={handleClearNotifications}
-                                            className="text-[10px] text-red-500 hover:text-red-700 bg-red-50 px-2 py-1 rounded-md cursor-pointer uppercase tracking-wider font-bold"
+                                            className="text-[10px] text-red-500 hover:text-red-700 hover:bg-red-100 bg-red-50 px-2 py-1 rounded-md cursor-pointer uppercase tracking-wider font-bold transition"
                                         >
                                             Bersihkan
                                         </button>
                                     )}
-                                </li>
+                                </div>
 
-                                {notifications.length === 0 ? (
-                                    <li className="text-gray-500 text-center py-4">Belum ada notifikasi baru</li>
-                                ) : (
-                                    notifications.map((notif) => (
-                                        <li key={notif.id}>
-                                            {notif.data.is_download ? (
-                                                // RENDER UNTUK NOTIFIKASI EXCEL (UNDUH)
-                                                <a
-                                                    href={notif.data.url}
-                                                    download
-                                                    className="flex flex-col items-start gap-1 p-3 hover:bg-green-50/50"
-                                                >
-                                                    <span className="font-bold text-success">{notif.data.title}</span>
-                                                    <span className="text-xs text-gray-600 whitespace-normal">
-                                                        {notif.data.message}
-                                                    </span>
-                                                    <span className="text-xs font-semibold text-green-600 mt-1 flex items-center gap-1">
-                                                        ⬇️ Klik untuk mengunduh Excel
-                                                    </span>
-                                                </a>
-                                            ) : (
-                                                // RENDER UNTUK NOTIFIKASI BERITA BARU DARI WARTAWAN (LINK HALAMAN)
-                                                <Link
-                                                    href={notif.data.url}
-                                                    className="flex flex-col items-start gap-1 p-3 hover:bg-blue-50/50"
-                                                >
-                                                    <span className="font-bold text-primary">{notif.data.title}</span>
-                                                    <span className="text-xs text-gray-600 whitespace-normal line-clamp-2">
-                                                        {notif.data.message}
-                                                    </span>
-                                                    <span className="text-xs font-semibold text-blue-500 mt-1 flex items-center gap-1">
-                                                        👁️ Tinjau Berita Sekarang
-                                                    </span>
-                                                </Link>
-                                            )}
-                                        </li>
-                                    ))
-                                )}
-                            </ul>
-                        </div>
-                        {/* ======================================================= */}
+                                {/* Isi List Notifikasi dengan Scrollbar */}
+                                <div className="max-h-96 overflow-y-auto p-1">
+                                    {notifications.length === 0 ? (
+                                        <div className="text-gray-500 text-center py-8 text-sm">
+                                            Belum ada notifikasi baru
+                                        </div>
+                                    ) : (
+                                        notifications.map((notif) => (
+                                            <DropdownMenuItem
+                                                key={notif.id}
+                                                asChild
+                                                className="mb-1 cursor-pointer focus:bg-transparent"
+                                            >
+                                                {notif.data.is_download ? (
+                                                    /* =========================================================
+                                                       1. LOGIKA UNTUK EXCEL (Gunakan tag <a> standar + onClick)
+                                                       ========================================================= */
+                                                    <a
+                                                        href={notif.data.url}
+                                                        download
+                                                        onClick={() => handleMarkAsRead(notif.id)}
+                                                        className="flex flex-col items-start gap-1 p-3 hover:bg-green-50 outline-none rounded-md transition duration-200"
+                                                    >
+                                                        <span className="font-bold text-success text-sm">{notif.data.title}</span>
+                                                        <span className="text-xs text-gray-600 whitespace-normal line-clamp-2">
+                                                            {notif.data.message}
+                                                        </span>
+                                                        <span className="text-xs font-semibold text-green-600 mt-1 flex items-center gap-1">
+                                                            ⬇️ Klik untuk mengunduh Excel
+                                                        </span>
+                                                    </a>
+                                                ) : (
+                                                    /* =========================================================
+                                                       2. LOGIKA UNTUK BERITA BARU (Gunakan <Link> ke rute /go)
+                                                       ========================================================= */
+                                                    <Link
+                                                        href={route('notifications.go', notif.id)}
+                                                        className="flex flex-col items-start gap-1 p-3 hover:bg-blue-50 outline-none rounded-md transition duration-200"
+                                                    >
+                                                        <span className="font-bold text-primary text-sm">{notif.data.title}</span>
+                                                        <span className="text-xs text-gray-600 whitespace-normal line-clamp-2">
+                                                            {notif.data.message}
+                                                        </span>
+                                                        <span className="text-xs font-semibold text-blue-500 mt-1 flex items-center gap-1">
+                                                            👁️ Tinjau Berita Sekarang
+                                                        </span>
+                                                    </Link>
+                                                )}
+                                            </DropdownMenuItem>
+                                        ))
+                                    )}
+                                </div>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
+                        {/* ======================================================================= */}
 
-                        <Dropdown
-                            trigger={
-                                <button className="btn btn-ghost flex items-center gap-2 ml-2">
+                        {/* ================= MENU PROFIL USER (SHADCN UI) ================= */}
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <button className="btn btn-ghost btn-circle relative focus:outline-none">
                                     <User size={20} />
-                                    <span>{user.name}</span>
                                 </button>
-                            }
-                        >
-                            <Dropdown.Link href={route('profile.edit')}>Profile</Dropdown.Link>
-                            <Dropdown.Link href={route('logout')} method="post" as="button">Log Out</Dropdown.Link>
-                        </Dropdown>
+                            </DropdownMenuTrigger>
+
+                            <DropdownMenuContent align="end" className="w-56 mt-1 z-[100]">
+                                {/* Opsional: Header menu kecil agar terlihat lebih profesional */}
+                                <div className="px-2 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                                    Akun Saya
+                                </div>
+
+
+
+                                <DropdownMenuItem asChild className="cursor-pointer py-2">
+                                    <Link href={route('profile.edit')} className="w-full flex items-center">
+                                        Profile
+                                    </Link>
+                                </DropdownMenuItem>
+
+                                <DropdownMenuItem asChild className="cursor-pointer py-2 text-red-600 focus:text-red-700 focus:bg-red-50">
+                                    <Link href={route('logout')} method="post" as="button" className="w-full flex items-center">
+                                        Log Out
+                                    </Link>
+                                </DropdownMenuItem>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
+                        {/* ================================================================ */}
                     </div>
                 </div>
 
