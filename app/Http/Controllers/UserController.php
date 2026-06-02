@@ -6,6 +6,7 @@ use App\Http\Requests\UserFormRequest;
 use App\Models\Editor;
 use App\Models\User;
 use App\Models\Writer;
+use App\Models\WriterNasional;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -62,11 +63,13 @@ class UserController extends Controller
     public function create()
     {
         $writers = Writer::select('id as value', 'name as label')->get();
+        $fotografer = WriterNasional::select('id as value', 'name as label')->get();
         $editors = Editor::select('id as value', 'name as label')->get();
         $roles = Role::pluck('name');
       
         return Inertia::render('Admin/User/Create', [
             'writers' => $writers,
+            'fotografer' => $fotografer,
             'editors' => $editors,
             'roles' => $roles,
         ]);
@@ -118,6 +121,7 @@ class UserController extends Controller
     public function edit(User $user)
     {
         $writers = Writer::select('id as value', 'name as label')->get();
+        $fotografer = WriterNasional::select('id as value', 'name as label')->get();
         $editors = Editor::select('id as value', 'name as label')->get();
         $roles = Role::pluck('name');
         $userRoles = $user->roles->pluck('name')->toArray();
@@ -125,6 +129,7 @@ class UserController extends Controller
         return Inertia::render('Admin/User/Edit', [
             'user' => $user,
             'writers' => $writers,
+            'fotografer' => $fotografer,
             'editors' => $editors,
             'roles' => $roles,
             'userRoles' => $userRoles,

@@ -3,6 +3,7 @@ import InputSelect from '@/Components/InputSelect'
 import InputWithPrefix from '@/Components/InputWithPrefix'
 import PaginationDaisy from '@/Components/PaginationDaisy'
 import { Badge } from '@/Components/ui/badge'
+import { useAuthorization } from '@/Hooks/useAuthorization'
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout'
 import { formatDateTime } from '@/Utils/formatter'
 import { Head, Link, router, usePage } from '@inertiajs/react'
@@ -21,6 +22,7 @@ function Index({ galleries, writers, categories, filters }) {
 
   const { auth } = usePage().props;
   const userPermissions = auth.permissions || [];
+  const { hasAnyRole } = useAuthorization();
 
   // 2. Buat helper function
   const hasPermission = (permissions) => {
@@ -120,7 +122,7 @@ function Index({ galleries, writers, categories, filters }) {
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
 
             <div className="space-y-6">
-              <div className='flex flex-row justify-between items-center'>
+              <div className='flex flex-col md:flex-row md:justify-between md:items-center'>
                 {/* start Header */}
                 <div>
                   <h1 className="text-3xl font-bold text-foreground">Daftar Fotografi Jurnalistik</h1>
@@ -161,15 +163,18 @@ function Index({ galleries, writers, categories, filters }) {
                       onChange={(e) => setSearch(e.target.value)}
                     />
                   </div>
-                  <div className="w-full md:w-48">
-                    <Select
-                      options={writers}
-                      value={writers?.find(w => w.value === writer) || null}
-                      placeholder="Pewarta"
-                      onChange={(e) => setWriter(e?.value || '')}
-                      isClearable
-                    />
-                  </div>
+                  {hasAnyRole(['super admin', 'admin','editor']) && (
+                    <div className="w-full md:w-48">
+                      <Select
+                        options={writers}
+                        value={writers?.find(w => w.value === writer) || null}
+                        placeholder="Pewarta"
+                        onChange={(e) => setWriter(e?.value || '')}
+                        isClearable
+                      />
+                    </div>
+                  )}
+
                   <div className="w-full md:w-48">
                     <Select
                       options={categories}

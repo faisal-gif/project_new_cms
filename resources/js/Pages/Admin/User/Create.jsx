@@ -10,7 +10,7 @@ import { Head, useForm } from '@inertiajs/react'
 import React from 'react'
 import Select from 'react-select'
 
-function Create({ writers, editors, roles }) {
+function Create({ writers, fotografer, editors, roles }) {
 
     const { data, setData, post, processing, errors, reset } = useForm({
         full_name: '',
@@ -107,7 +107,7 @@ function Create({ writers, editors, roles }) {
                                             Pilih jika akun berafiliasi dengan akun fotografer. Kosongkan jika menambah langsung.
                                         </p>
                                         <Select
-                                            options={writers}
+                                            options={fotografer}
                                             isClearable // Memungkinkan pengguna menghapus pilihan (tidak ada)
                                             placeholder="Pilih Akun Fotografer..."
                                             onChange={(e) => setData('id_fotografer', e ? e.value : null)}

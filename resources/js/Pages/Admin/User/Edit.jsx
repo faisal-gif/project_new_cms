@@ -11,7 +11,7 @@ import React from 'react'
 import Select from 'react-select'
 
 // Tambahkan props `roles` (semua role tersedia) dan `userRoles` (role yang dimiliki user saat ini)
-function Edit({ user, writers, editors, roles, userRoles }) {
+function Edit({ user, fotografer, writers, editors, roles, userRoles }) {
 
     const { data, setData, put, processing, errors } = useForm({
         full_name: user.full_name || '',
@@ -28,7 +28,7 @@ function Edit({ user, writers, editors, roles, userRoles }) {
 
     const selectedEditor = editors.find(e => e.value === data.id_editor) || null;
     const selectedWriter = writers.find(w => w.value === data.id_writer) || null;
-    const selectedFotografer = writers.find(w => w.value === data.id_fotografer) || null;
+    const selectedFotografer = fotografer.find(f => f.value === data.id_fotografer) || null;
 
     const submit = (e) => {
         e.preventDefault();
@@ -113,7 +113,7 @@ function Edit({ user, writers, editors, roles, userRoles }) {
                                             Pilih jika user berafiliasi dengan akun fotografer. Kosongkan jika tidak.
                                         </p>
                                         <Select
-                                            options={writers} // Asumsi Anda menggunakan referensi array yang sama, jika ada `fotografers` ganti ini
+                                            options={fotografer}
                                             isClearable
                                             placeholder="Pilih Akun Fotografer..."
                                             value={selectedFotografer}

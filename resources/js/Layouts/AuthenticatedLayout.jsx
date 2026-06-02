@@ -538,14 +538,18 @@ export default function AuthenticatedLayout({ header, children }) {
                     )}
 
                     {/* ================= 4. TOOLS & EXPORT ================= */}
-                    <div className="divider my-1 bg-white/10 h-[1px]"></div>
-                    <h2 className="menu-title text-white/50 uppercase text-xs tracking-wider">Tools & Export</h2>
+                    {hasPermission(['export ajp']) && (
+                        <>
+                            <div className="divider my-1 bg-white/10 h-[1px]"></div>
+                            <h2 className="menu-title text-white/50 uppercase text-xs tracking-wider">Tools & Export</h2>
 
-                    <li>
-                        <Link href={route('admin.ajp-export.create')} className={linkClass(false)}>
-                            <FolderInput size={16} /> Export AJP
-                        </Link>
-                    </li>
+                            <li>
+                                <Link href={route('admin.ajp-export.create')} className={linkClass(false)}>
+                                    <FolderInput size={16} /> Export AJP
+                                </Link>
+                            </li>
+                        </>
+                    )}
                 </ul>
             </div>
         </div>

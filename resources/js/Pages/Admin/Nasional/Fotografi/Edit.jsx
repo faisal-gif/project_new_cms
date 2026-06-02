@@ -29,11 +29,11 @@ const formatForDateTimeLocal = (dateString) => {
     if (!dateString) return "";
     const date = new Date(dateString);
     // Mengamankan timezone offset agar waktu tidak bergeser saat diformat
-    const tzOffset = date.getTimezoneOffset() * 60000; 
+    const tzOffset = date.getTimezoneOffset() * 60000;
     return new Date(date.getTime() - tzOffset).toISOString().slice(0, 16);
 };
 
-export default function Edit({ editors, writers, categories, gallery }) {
+export default function Edit({ editors, writers, categories, gallery, isFotografer }) {
     // 1. Inisialisasi useForm dengan data yang sudah ada dari prop 'gallery'
     const { data, setData, post, processing, errors } = useForm({
         _method: 'PUT', // Wajib untuk upload file saat update di Laravel
@@ -43,15 +43,15 @@ export default function Edit({ editors, writers, categories, gallery }) {
         content: gallery.gal_content || "",
         city: gallery.gal_city || "",
         fotografer: gallery.gal_pewarta || "",
-        fotografer_id: gallery.fotografer_id || "", 
-        editor: gallery.editor_id || "", 
+        fotografer_id: gallery.fotografer_id || "",
+        editor: gallery.editor_id || "",
         categoryId: gallery.gal_catid?.toString() || "", // Pastikan string untuk InputSelect
         status: gallery.gal_status?.toString() || "0", // Pastikan string
         datepub: formatForDateTimeLocal(gallery.gal_datepub),
-        
+
         // Array khusus untuk dikirim ke backend
-        new_images: [], 
-        existing_images_meta: [], 
+        new_images: [],
+        existing_images_meta: [],
         deleted_images: [], // Menyimpan ID gambar lama yang dihapus user
     });
 
@@ -96,7 +96,7 @@ export default function Edit({ editors, writers, categories, gallery }) {
     // Fungsi Hapus Gambar (Logika kompleks Existing vs New)
     const removeImage = (imgId) => {
         const imgToRemove = images.find(img => img.id === imgId);
-        
+
         // Jika yang dihapus adalah gambar dari DB, catat ID-nya ke data.deleted_images
         if (imgToRemove && imgToRemove.is_existing) {
             setData('deleted_images', [...data.deleted_images, imgToRemove.id]);
@@ -106,10 +106,10 @@ export default function Edit({ editors, writers, categories, gallery }) {
         setImages((prev) => {
             // Jika gambar baru, bersihkan memori blob
             if (imgToRemove && !imgToRemove.is_existing && imgToRemove.url.startsWith('blob:')) {
-                URL.revokeObjectURL(imgToRemove.url); 
+                URL.revokeObjectURL(imgToRemove.url);
             }
             const filtered = prev.filter((img) => img.id !== imgId);
-            
+
             // Re-assign cover jika cover dihapus dan masih ada gambar tersisa
             if (filtered.length > 0 && !filtered.some((img) => img.isCover)) {
                 filtered[0].isCover = true;
@@ -164,7 +164,7 @@ export default function Edit({ editors, writers, categories, gallery }) {
     return (
         <AuthenticatedLayout>
             <Head title={`Edit Galeri - ${gallery.gal_title}`} />
-            
+
             <div className="space-y-6 max-w-7xl mx-auto pb-12">
 
                 {/* --- HEADER --- */}
@@ -267,6 +267,7 @@ export default function Edit({ editors, writers, categories, gallery }) {
                                             setData('fotografer_id', val?.value);
                                         }}
                                         styles={customSelectStyles}
+                                        isDisabled={isFotografer}
                                         menuPortalTarget={document.body}
                                         menuPosition="fixed"
                                     />
@@ -331,50 +332,60 @@ export default function Edit({ editors, writers, categories, gallery }) {
                                             Daftar Foto Saat Ini ({images.length})
                                         </h3>
                                         {images.map((img, index) => (
-                                            <div key={img.id} className="flex flex-col sm:flex-row gap-4 p-4 rounded-xl border border-base-200 bg-base-100 shadow-sm hover:shadow-md transition-shadow relative">
-                                                
+                                            <div key={img.id} className="flex flex-col sm:flex-row gap-4 p-4 mt-4 rounded-xl border border-base-200 bg-base-100 shadow-sm hover:shadow-md transition-all relative">
+
                                                 {/* Label Existing vs New */}
-                                                <span className={`badge badge-sm absolute -top-2 -right-2 font-bold ${img.is_existing ? 'badge-neutral' : 'badge-success text-white'}`}>
+                                                <span className={`badge badge-sm absolute -top-2 -right-2 font-bold z-10 ${img.is_existing ? 'badge-neutral' : 'badge-success text-white'}`}>
                                                     {img.is_existing ? 'Tersimpan' : 'Baru'}
                                                 </span>
 
-                                                <div className="relative w-full sm:w-32 h-32 sm:h-24 rounded-lg overflow-hidden flex-shrink-0 bg-base-300">
+                                                {/* 1. THUMBNAIL GAMBAR */}
+                                                {/* Di mobile menggunakan aspect-video agar proporsional, di desktop menjadi kotak 32x24 */}
+                                                <div className="relative w-full aspect-video sm:aspect-auto sm:w-32 sm:h-24 rounded-lg overflow-hidden flex-shrink-0 bg-base-300">
                                                     <img src={img.url} alt={img.caption} className="w-full h-full object-cover" />
                                                     {img.isCover && (
-                                                        <span className="badge badge-warning font-bold absolute top-2 left-2 shadow-sm">COVER</span>
+                                                        <span className="badge badge-warning font-bold absolute top-2 left-2 shadow-sm text-xs">
+                                                            COVER
+                                                        </span>
                                                     )}
                                                 </div>
+
+                                                {/* 2. AREA CAPTION */}
                                                 <div className="flex-1 min-w-0 flex flex-col justify-center space-y-2">
                                                     <p className="text-sm font-bold text-primary">Foto {index + 1}</p>
-                                                    {/* Input Caption langsung editable di list */}
-                                                    <input 
-                                                        type="text" 
-                                                        className="input input-sm input-bordered w-full text-sm italic" 
+                                                    <input
+                                                        type="text"
+                                                        className="input input-sm input-bordered w-full text-sm italic"
                                                         value={img.caption}
                                                         onChange={(e) => {
                                                             setImages(prev => prev.map(i => i.id === img.id ? { ...i, caption: e.target.value } : i))
                                                         }}
-                                                        placeholder="Masukkan caption..."
+                                                        placeholder="Masukkan caption foto..."
                                                     />
                                                 </div>
-                                                <div className="flex sm:flex-col gap-2 items-center justify-center border-t sm:border-t-0 sm:border-l border-base-200 pt-3 sm:pt-0 sm:pl-4">
+
+                                                {/* 3. AREA TOMBOL AKSI */}
+                                                {/* Di mobile menggunakan Grid 2 Kolom agar sejajar rapi, di desktop menggunakan flex column */}
+                                                <div className="grid grid-cols-2 sm:flex sm:flex-col gap-2 items-center justify-center border-t sm:border-t-0 sm:border-l border-base-200 pt-4 sm:pt-0 sm:pl-4 mt-2 sm:mt-0">
                                                     <button
                                                         type="button"
-                                                        className={`btn btn-sm w-full sm:w-auto ${img.isCover ? 'btn-warning' : 'btn-ghost'}`}
+                                                        className={`btn btn-sm w-full ${img.isCover ? 'btn-warning' : 'btn-ghost border-base-300'}`}
                                                         onClick={() => setCover(img.id)}
                                                     >
-                                                        {img.isCover ? <Star className="h-4 w-4 mr-1" /> : <StarOff className="h-4 w-4 mr-1" />}
-                                                        <span className="sm:hidden">Jadikan Cover</span>
+                                                        {img.isCover ? <Star className="h-4 w-4 mr-1 sm:mr-0 lg:mr-1" /> : <StarOff className="h-4 w-4 mr-1 sm:mr-0 lg:mr-1 text-base-content/50" />}
+                                                        <span className="sm:hidden lg:inline">{img.isCover ? 'Cover Aktif' : 'Jadikan Cover'}</span>
                                                     </button>
+
                                                     <button
                                                         type="button"
-                                                        className="btn btn-sm btn-ghost text-error w-full sm:w-auto"
+                                                        className="btn btn-sm w-full btn-outline border-base-300 text-error hover:bg-error hover:border-error hover:text-white"
                                                         onClick={() => removeImage(img.id)}
                                                     >
-                                                        <Trash2 className="h-4 w-4 mr-1" />
-                                                        <span className="sm:hidden">Hapus</span>
+                                                        <Trash2 className="h-4 w-4 mr-1 sm:mr-0 lg:mr-1" />
+                                                        <span className="sm:hidden lg:inline">Hapus</span>
                                                     </button>
                                                 </div>
+
                                             </div>
                                         ))}
                                     </div>

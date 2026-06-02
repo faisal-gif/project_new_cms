@@ -32,41 +32,55 @@ class GalleryController extends Controller
         $search = $request->query('search');
         $status = $request->query('status');
         $writer = $request->query('writer');
-        $category  = $request->query('category'); // Sesuaikan dengan nama parameter yang dikirim dari React-Select
+        $category  = $request->query('category');
 
-        // 2. Query Utama dengan Filter
-        $galleries = Gallery::with(['kanal']) // Eager load relasi untuk optimasi
+        // [BARU] 2. Cek Role User yang sedang login
+        $user = auth()->user();
+        // Sesuaikan nama field role dan valuenya dengan database Anda (misal: 'role', 'level', atau menggunakan Spatie)
+        $isFotografer = $user->hasRole('fotografer');
+        // Sesuaikan dengan relasi/field ID fotografer pada user
+        $fotograferId = $user->id_fotografer ?? null; // Pastikan ini sesuai dengan struktur database Anda
+
+
+        // 3. Query Utama dengan Filter
+        $galleries = Gallery::with(['kanal'])
+            ->withCount('images') // [BARU] Ini akan otomatis membuat kolom 'images_count'
             ->when($search, function ($query, $search) {
                 $query->where(function ($q) use ($search) {
                     $q->where('gal_title', 'like', "%{$search}%")
                         ->orWhere('gal_id', 'like', "%{$search}%");
                 });
             })
-            // Gunakan strlen untuk memastikan angka '0' (Pending) tidak dianggap kosong
             ->when(strlen($status) > 0, function ($query) use ($status) {
                 $query->where('gal_status', $status);
             })
+            // Filter dari dropdown (jika admin yang memfilter)
             ->when($writer, function ($query, $writer) {
                 $query->where('fotografer_id', $writer);
             })
             ->when($category, function ($query, $category) {
-                $query->where('gal_catid', $category); // Sesuaikan dengan foreign key kategori Anda
+                $query->where('gal_catid', $category);
+            })
+            // [BARU] Filter wajib jika yang login adalah Fotografer itu sendiri
+            ->when($isFotografer, function ($query) use ($fotograferId) {
+                // Saya gunakan 'fotografer_id' mengikuti kolom di filter $writer Anda
+                $query->where('fotografer_id', $fotograferId);
             })
             ->orderBy('gal_datepub', 'desc')
-            // 3. Paginasi & Pertahankan Query String
             ->paginate(10)
             ->withQueryString();
 
         // 4. Siapkan data untuk dropdown filter (React-Select)
+        // Opsional: Jika yang login fotografer, mungkin Anda tidak perlu mengirim daftar semua writer?
         $writers = WriterNasional::select('id as value', 'name as label')->where('status', 1)->get();
         $categories = GalleryCategory::select('id as value', 'title as label')->get();
 
         // 5. Kirim payload ke Inertia
         return Inertia::render('Admin/Nasional/Fotografi/Index', [
-            'galleries'    => $galleries, // Ini akan langsung dibaca oleh <PaginationDaisy data={news} />
-            'writers' => $writers,
-            'categories'  => $categories,
-            'filters' => $request->only(['search', 'status', 'writer', 'kanal']),
+            'galleries'    => $galleries,
+            'writers'      => $writers,
+            'categories'   => $categories,
+            'filters'      => $request->only(['search', 'status', 'writer', 'category']), // Typo diperbaiki: 'kanal' -> 'category'
         ]);
     }
 
@@ -78,10 +92,15 @@ class GalleryController extends Controller
         $editors = EditorNasional::select('editor_id as value', 'editor_name as label')->where('status', 1)->get();
         $writers = WriterNasional::select('id as value', 'name as label')->where('status', 1)->get();
         $categories = GalleryCategory::select('id as value', 'title as label')->get();
+
+        $user = auth()->user();
+
         return Inertia::render('Admin/Nasional/Fotografi/Create', [
             'editors' => $editors,
             'writers' => $writers,
-            'categories' => $categories
+            'categories' => $categories,
+            'isFotografer'     => $user->hasRole('fotografer'),
+            'userFotograferId' => $user->id_fotografer ?? null,
         ]);
     }
 
@@ -187,11 +206,14 @@ class GalleryController extends Controller
         $writers = WriterNasional::select('id as value', 'name as label')->where('status', 1)->get();
         $categories = GalleryCategory::select('id as value', 'title as label')->get();
 
+        $user = auth()->user();
+
         return Inertia::render('Admin/Nasional/Fotografi/Edit', [
             'gallery'    => $gallery,
             'categories' => $categories,
             'editors'    => $editors,
             'writers'    => $writers,
+            'isFotografer' => $user->hasRole('fotografer'),
         ]);
     }
 
@@ -253,7 +275,7 @@ class GalleryController extends Controller
                 foreach ($validated['new_images'] as $index => $image) {
                     $file = $image['file'];
                     $fileNameToCDN = Str::slug($validated['title']) . '-' . time() . '-' . $index;
-                    
+
                     $cdnImageUrl = $this->cdnService->uploadImage($file, $fileNameToCDN, 1, 'convert', true) ?? null;
                     if (!$cdnImageUrl) {
                         throw new \Exception('Respons CDN tidak mengembalikan URL yang valid.');

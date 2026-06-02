@@ -25,18 +25,24 @@ import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
 import InputImage from "@/Components/InputImage";
 import InputEditor from "@/Components/InputEditor";
 
-export default function Create({ editors, writers, categories }) {
+
+export default function Create({ editors, writers, categories, isFotografer, userFotograferId }) {
+
+    const defaultFotografer = isFotografer
+        ? writers.find(w => String(w.value) === String(userFotograferId))
+        : null;
+
     const { data, setData, post, processing, errors } = useForm({
         title: "",
         subtitle: "",
         description: "",
         content: "",
         city: "",
-        fotografer: "",
-        fotografer_id: "",
+        fotografer: isFotografer && defaultFotografer ? defaultFotografer.label : "",
+        fotografer_id: isFotografer ? userFotograferId : "",
         editor: "",
         categoryId: "",
-        status: "0",
+        status: "2",
         datepub: "",
         gallery_images: [],
     });
@@ -44,6 +50,8 @@ export default function Create({ editors, writers, categories }) {
     const [images, setImages] = useState([]);
     const [newImageCaption, setNewImageCaption] = useState("");
     const [pendingImageFile, setPendingImageFile] = useState(null);
+
+
 
     const addImage = () => {
         if (!pendingImageFile) {
@@ -94,9 +102,6 @@ export default function Create({ editors, writers, categories }) {
         }));
         post(route('admin.nasional.fotografi.store'), data);
     };
-
-
-
     // Styling khusus untuk react-select agar selaras dengan DaisyUI & tidak tertimpa editor
     const customSelectStyles = {
         control: (base) => ({
@@ -114,7 +119,7 @@ export default function Create({ editors, writers, categories }) {
 
                 {/* --- HEADER --- */}
                 <div className="flex items-center gap-4 bg-base-100 p-6 rounded-2xl shadow-sm border border-base-200">
-                    <button className="btn btn-ghost btn-circle" onClick={() => router.visit("/daftar-fotografi")}>
+                    <button className="btn btn-ghost btn-circle" onClick={() => router.visit(route("admin.nasional.fotografi.index"))}>
                         <ArrowLeft className="h-5 w-5" />
                     </button>
                     <div>
@@ -205,7 +210,7 @@ export default function Create({ editors, writers, categories }) {
                                 <div className="w-full">
                                     <InputLabel value="Fotografer/Pewarta *" className="font-bold mb-2" />
                                     <Select
-                                        value={writers.find(w => w.label === data.writer)}
+                                        value={writers.find(w => String(w.value) === String(data.fotografer_id)) || null}
                                         options={writers}
                                         placeholder="Pilih Fotografer..."
                                         onChange={(val) => {
@@ -213,6 +218,7 @@ export default function Create({ editors, writers, categories }) {
                                             setData('fotografer_id', val?.value);
                                         }}
                                         styles={customSelectStyles}
+                                        isDisabled={isFotografer}
                                         menuPortalTarget={document.body}
                                         menuPosition="fixed"
                                     />
@@ -281,37 +287,47 @@ export default function Create({ editors, writers, categories }) {
                                             Daftar Foto ({images.length})
                                         </h3>
                                         {images.map((img, index) => (
-                                            <div key={img.id} className="flex flex-col sm:flex-row gap-4 p-4 rounded-xl border border-base-200 bg-base-100 shadow-sm hover:shadow-md transition-shadow">
-                                                <div className="relative w-full sm:w-32 h-32 sm:h-24 rounded-lg overflow-hidden flex-shrink-0 bg-base-300">
+                                            <div key={img.id} className="flex flex-col sm:flex-row gap-4 p-4 mt-4 rounded-xl border border-base-200 bg-base-100 shadow-sm hover:shadow-md transition-all">
+
+                                                {/* 1. THUMBNAIL GAMBAR */}
+                                                <div className="relative w-full aspect-video sm:aspect-auto sm:w-32 sm:h-24 rounded-lg overflow-hidden flex-shrink-0 bg-base-300">
                                                     <img src={img.url} alt={img.caption} className="w-full h-full object-cover" />
                                                     {img.isCover && (
-                                                        <span className="badge badge-warning font-bold absolute top-2 left-2">COVER</span>
+                                                        <span className="badge badge-warning font-bold absolute top-2 left-2 shadow-sm text-xs">
+                                                            COVER
+                                                        </span>
                                                     )}
                                                 </div>
+
+                                                {/* 2. AREA TEKS & CAPTION */}
                                                 <div className="flex-1 min-w-0 flex flex-col justify-center">
                                                     <p className="text-sm font-bold text-primary mb-1">Foto {index + 1}</p>
                                                     <p className="text-sm text-base-content/80 italic line-clamp-2">
                                                         {img.caption || "Tidak ada caption."}
                                                     </p>
                                                 </div>
-                                                <div className="flex sm:flex-col gap-2 items-center justify-center border-t sm:border-t-0 sm:border-l border-base-200 pt-3 sm:pt-0 sm:pl-4">
+
+                                                {/* 3. AREA TOMBOL AKSI (Mobile-Friendly Grid) */}
+                                                <div className="grid grid-cols-2 sm:flex sm:flex-col gap-2 items-center justify-center border-t sm:border-t-0 sm:border-l border-base-200 pt-4 sm:pt-0 sm:pl-4 mt-2 sm:mt-0">
                                                     <button
                                                         type="button"
-                                                        className={`btn btn-sm w-full sm:w-auto ${img.isCover ? 'btn-warning' : 'btn-ghost'}`}
+                                                        className={`btn btn-sm w-full ${img.isCover ? 'btn-warning' : 'btn-ghost border-base-300'}`}
                                                         onClick={() => setCover(img.id)}
                                                     >
-                                                        {img.isCover ? <Star className="h-4 w-4 mr-1" /> : <StarOff className="h-4 w-4 mr-1" />}
-                                                        <span className="sm:hidden">Jadikan Cover</span>
+                                                        {img.isCover ? <Star className="h-4 w-4 mr-1 sm:mr-0 lg:mr-1" /> : <StarOff className="h-4 w-4 mr-1 sm:mr-0 lg:mr-1 text-base-content/50" />}
+                                                        <span className="sm:hidden lg:inline">{img.isCover ? 'Cover Aktif' : 'Jadikan Cover'}</span>
                                                     </button>
+
                                                     <button
                                                         type="button"
-                                                        className="btn btn-sm btn-ghost text-error w-full sm:w-auto"
+                                                        className="btn btn-sm w-full btn-outline border-base-300 text-error hover:bg-error hover:border-error hover:text-white"
                                                         onClick={() => removeImage(img.id)}
                                                     >
-                                                        <Trash2 className="h-4 w-4 mr-1" />
-                                                        <span className="sm:hidden">Hapus</span>
+                                                        <Trash2 className="h-4 w-4 mr-1 sm:mr-0 lg:mr-1" />
+                                                        <span className="sm:hidden lg:inline">Hapus</span>
                                                     </button>
                                                 </div>
+
                                             </div>
                                         ))}
                                     </div>
@@ -348,20 +364,24 @@ export default function Create({ editors, writers, categories }) {
                                     <InputError message={errors.datepub} className="mt-1" />
                                 </div>
 
-                                <div>
-                                    <InputLabel value="Status" className="font-bold mb-2" />
-                                    <InputSelect
-                                        options={[
-                                            { value: "0", label: "Pending" },
-                                            { value: "2", label: "Review" },
-                                            { value: "3", label: "On Pro" },
-                                            { value: "1", label: "Publish" }
-                                        ]}
-                                        value={data.status}
-                                        onChange={(e) => setData("status", e.target.value)}
-                                        className="bg-base-100 font-medium"
-                                    />
-                                </div>
+
+                                {isFotografer !== true && (
+                                    <div>
+                                        <InputLabel value="Status" className="font-bold mb-2" />
+                                        <InputSelect
+                                            options={[
+                                                { value: "0", label: "Pending" },
+                                                { value: "2", label: "Review" },
+                                                { value: "3", label: "On Pro" },
+                                                { value: "1", label: "Publish" }
+                                            ]}
+                                            value={data.status}
+                                            onChange={(e) => setData("status", e.target.value)}
+                                            className="bg-base-100 font-medium"
+                                        />
+                                    </div>
+                                )}
+
                             </div>
                         </Card>
 
@@ -383,7 +403,7 @@ export default function Create({ editors, writers, categories }) {
 
                             <button
                                 className="btn btn-ghost btn-block text-base-content/60"
-                                onClick={() => router.visit("/daftar-fotografi")}
+                                onClick={() => router.visit(route("admin.nasional.fotografi.index"))}
                             >
                                 Batal & Kembali
                             </button>

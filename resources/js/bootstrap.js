@@ -9,7 +9,6 @@ import Pusher from 'pusher-js';
 
 window.Pusher = Pusher;
 
-console.log("Mencoba koneksi Reverb ke:", import.meta.env.VITE_REVERB_HOST, "Port:", import.meta.env.VITE_REVERB_PORT);
 Pusher.logToConsole = true;
 
 window.Echo = new Echo({
