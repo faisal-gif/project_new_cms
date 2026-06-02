@@ -11,6 +11,7 @@ class News extends Model
     protected $fillable = [
         'is_code',
         'writer_id',
+        'distribution_status',
         'title',
         'image_thumbnail',
         'image_caption',

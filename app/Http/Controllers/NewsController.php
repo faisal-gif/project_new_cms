@@ -66,7 +66,7 @@ class NewsController extends Controller implements HasMiddleware
         ];
     }
 
-    
+
     /**
      * Display a listing of the resource.
      */
@@ -75,7 +75,7 @@ class NewsController extends Controller implements HasMiddleware
         // 1. Ambil data berita (DB 1 & Relasi DB 2/3)
         try {
             $query = News::query()
-                ->select('id', 'is_code', 'title', 'writer_id', 'created_at')
+                ->select('id', 'is_code', 'title', 'writer_id', 'distribution_status', 'created_at')
                 ->with([
                     'writer:id,name',
                     'newsDaerah.kanal',
@@ -129,6 +129,24 @@ class NewsController extends Controller implements HasMiddleware
             'news'    => $news,
             'writers' => $writers,
             'filters' => $request->only(['search', 'writer', 'status']),
+        ]);
+    }
+
+    public function show($news)
+    {
+        // 1. Ambil data beserta relasinya (Eager Loading)
+        // Gunakan nama relasi persis seperti yang Anda tulis di model News.php
+        $news = News::with([
+            'writer',         // Untuk mengambil nama penulis
+            'tags',           // Untuk mengambil daftar hashtag
+            'newsDaerah',     // Untuk mengecek apakah sudah tayang di daerah
+            'newsNasional'    // Untuk mengecek apakah sudah tayang di nasional
+        ])->findOrFail($news);
+
+        // 2. Kirim data ke frontend React (Inertia)
+        // Pastikan path string di bawah ini sesuai dengan lokasi file Show.jsx Anda
+        return Inertia::render('Admin/News/Show', [
+            'news' => $news,
         ]);
     }
 
@@ -251,6 +269,16 @@ class NewsController extends Controller implements HasMiddleware
         // Gunakan koneksi mysql_daerah untuk transaksi
         DB::connection('mysql_daerah')->beginTransaction();
 
+        $isCode = $request->input('is_code');
+        $masterNews = News::where('is_code', $isCode)->firstOrFail();
+        $isExistInNasional = NewsNasional::where('is_code', $isCode)->exists();
+
+        $newStatus = $isExistInNasional ? 2 : 1;
+
+        $masterNews->update([
+            'distribution_status' => $newStatus,
+        ]);
+
         try {
             // 1. Simpan tabel News (Koneksi Daerah)
             // Sesuaikan nama field 'cat_id', 'fokus_id' dsb sesuai skema DB daerah kamu
@@ -345,6 +373,16 @@ class NewsController extends Controller implements HasMiddleware
     {
         // Gunakan koneksi mysql_nasional untuk transaksi
         DB::connection('mysql_nasional')->beginTransaction();
+
+        $isCode = $request->input('is_code');
+        $masterNews = News::where('is_code', $isCode)->firstOrFail();
+        $isExistInDaerah = NewsDaerah::where('is_code', $isCode)->exists();
+
+        $newStatus = $isExistInDaerah ? 2 : 1;
+
+        $masterNews->update([
+            'distribution_status' => $newStatus,
+        ]);
 
         try {
             // 1. Simpan tabel News (Koneksi Nasional)

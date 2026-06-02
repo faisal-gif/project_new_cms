@@ -67,6 +67,14 @@ export default function AuthenticatedLayout({ header, children }) {
         });
     };
 
+    const handleNotificatiGo = (id) => {
+        // Gunakan router.get bawaan Inertia untuk menembak route 'notifications.go'
+        router.get(route('notifications.go', id), {}, {
+            preserveScroll: true,
+            // Kita tidak perlu memikirkan state dropdown karena kita akan pindah halaman
+        });
+    };
+
     useEffect(() => {
         setNotifications(auth.notifications || []);
     }, [auth.notifications]);
@@ -227,7 +235,7 @@ export default function AuthenticatedLayout({ header, children }) {
                                                        2. LOGIKA UNTUK BERITA BARU (Gunakan <Link> ke rute /go)
                                                        ========================================================= */
                                                     <Link
-                                                        href={route('notifications.go', notif.id)}
+                                                        href={route('admin.notifications.go', notif.id)}
                                                         className="flex flex-col items-start gap-1 p-3 hover:bg-blue-50 outline-none rounded-md transition duration-200"
                                                     >
                                                         <span className="font-bold text-primary text-sm">{notif.data.title}</span>

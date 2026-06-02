@@ -96,19 +96,18 @@ function Index({ news, writers, kanals, filters }) {
     }
   }
 
-  function getHeadlineBadge(status) {
-    switch (status) {
-      case '1':
+  // Fungsi untuk merender badge berdasarkan angka status 0, 1, 2
+  const getDistributionBadge = (status) => {
+    switch (Number(status)) {
+      case 2:
+        return <Badge className="badge bg-success text-white">Sudah di Semua Jaringan</Badge>;
       case 1:
-        return <Badge className="badge badge-primary badge-soft">ON</Badge>;
-      case '0':
+        return <Badge className="badge bg-info text-white">Tayang Parsial (Salah Satu)</Badge>;
       case 0:
-      case null:
-        return <Badge variant="secondary">OFF</Badge>;
       default:
-        return <Badge variant="neutral">{status}</Badge>;
+        return <Badge className="badge bg-secondary text-gray-500">Draft / Belum Tayang</Badge>;
     }
-  }
+  };
 
   return (
     <>
@@ -195,8 +194,6 @@ function Index({ news, writers, kanals, filters }) {
                         {/* Meta Info */}
                         <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-base-content/70 mb-4">
                           <span className="font-semibold text-primary">{n.writer?.name || 'Unknown'}</span>
-                          <span>•</span>
-                          <span>{formatDateTime(n.datepub)}</span>
                         </div>
 
                         {/* Integration Status (Daerah & Nasional) */}
@@ -268,6 +265,9 @@ function Index({ news, writers, kanals, filters }) {
                             </div>
                           )}
                         </div>
+                        <div className="flex items-center justify-center gap-2 text-xs text-base-content/70 mb-2">
+                          <span>{getDistributionBadge(n.distribution_status)}</span>
+                        </div>
 
                         {/* Actions */}
                         <div className="card-actions justify-end mt-2">
@@ -295,6 +295,7 @@ function Index({ news, writers, kanals, filters }) {
                         {hasPermission('import nasional news master') && (
                           <th>Nasional</th>
                         )}
+                        <th className='text-center'>Status Distribusi</th>
                         <th className="text-right">Action</th>
                       </tr>
                     </thead>
@@ -305,7 +306,6 @@ function Index({ news, writers, kanals, filters }) {
                           <td>{n.writer?.name}</td>
                           <td>
                             <p className="font-medium truncate max-w-xs">{n.title}</p>
-                            <span className="text-[10px] text-base-content/60">{formatDateTime(n.datepub)}</span>
                           </td>
 
                           {/* Kolom Daerah */}
@@ -375,10 +375,15 @@ function Index({ news, writers, kanals, filters }) {
                               )}
                             </td>
                           )}
+
+                          <td className='text-center'>
+                            {getDistributionBadge(n.distribution_status)}
+                          </td>
+
                           {hasPermission('edit news master') && (
                             <td>
                               <div className="flex justify-end gap-2">
-                                <Link href={route('admin.news.show', n.id)} className="btn btn-sm btn-primary btn-outline">Edit Induk</Link>
+                                <Link href={route('admin.news.show', n.id)} className="btn btn-sm btn-primary btn-outline">Detail</Link>
                               </div>
                             </td>
                           )}
