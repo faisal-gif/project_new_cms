@@ -15,10 +15,12 @@ import Select from "react-select";
 
 function ImportDaerah({ writers, editors, networks, kanal, fokus, initialData }) {
 
+    console.log('Initial Data:', initialData);
+
     const { data, setData, post, processing, errors, reset } = useForm({
         is_code: initialData?.is_code || '',
         status: '3',
-        editor: '',
+        editor: initialData?.editor_id || '',
         writer: initialData?.writer_id || '',
         pin: '',
         keyword_tool: '',
@@ -96,6 +98,7 @@ function ImportDaerah({ writers, editors, networks, kanal, fokus, initialData })
                                                 value={editors.find(e => e.value === data.editor)}
                                                 options={editors}
                                                 placeholder="Editors"
+                                                isDisabled={initialData?.hasEditor ? true : false} // Disable jika berita sudah memiliki editor
                                                 onChange={(val) => setData('editor', val?.value)}
                                             />
                                             <InputError message={errors.editor} className="mt-2" />

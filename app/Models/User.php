@@ -51,6 +51,10 @@ class User extends Authenticatable
         ];
     }
     
+    public function editor()
+    {
+        return $this->hasOne(Editor::class, 'user_id');
+    }
     
 
 }

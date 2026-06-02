@@ -232,7 +232,7 @@ class NewsController extends Controller implements HasMiddleware
     {
 
         $news = News::with(['writer', 'tags'])->where('is_code', $is_code)->firstOrFail();
-
+        $user = auth()->user();
         // 2. Ambil data pendukung dari DB Daerah untuk dropdown
         $writers = WriterDaerah::select('id as value', 'name as label')->where('status', '1')->get();
         $editors = EditorDaerah::select('id as value', 'name as label')->where('status', '1')->get();
@@ -258,6 +258,8 @@ class NewsController extends Controller implements HasMiddleware
                 'tag' => $news->tags->pluck('name')->toArray(),
                 'image_caption' => $news->image_caption ?? '',
                 'image_thumbnail' => $news->image_thumbnail ?? '',
+                'hasEditor' => $user->hasRole('editor') ? true : false,
+                'editor_id' => $user->editor ? $user->editor->id_daerah : null, // Set editor_id default ke editor yang sedang login, jika ada
 
             ]
         ]);
@@ -333,6 +335,7 @@ class NewsController extends Controller implements HasMiddleware
     {
         // 1. Coba ambil dari DB Daerah dulu
         $news = News::with(['writer', 'tags'])->where('is_code', $is_code)->firstOrFail();
+        $user = auth()->user();
 
         $editors = EditorNasional::select('editor_id as value', 'editor_name as label')->where('status', '1')->get();
         // Pastikan model Writer ini sesuai dengan nama model untuk DB Nasional kamu
@@ -357,7 +360,6 @@ class NewsController extends Controller implements HasMiddleware
                 // Masukkan variabel yang sudah kita racik di atas
                 'writer' => $news->writer->name ?? '', // Jika $initialWriter adalah objek WriterDaerah, ambil namanya
                 'writer_id' => $news->writer->id_nasional ?? '', // Jika $initialWriter adalah objek WriterDaerah, ambil ID-nya
-                'editor_id' => '',
                 'datepub' => $news->datepub ?? '',
                 'locus' => $news->locus ?? '',
                 'description' => $news->description ?? '',
@@ -365,6 +367,8 @@ class NewsController extends Controller implements HasMiddleware
                 'tag' => $news->tags ? $news->tags->pluck('name')->toArray() : [],
                 'image_caption' => $news->caption ?? $news->image_caption ?? '',
                 'image_thumbnail' => $news->image ?? $news->image_thumbnail ?? '',
+                'hasEditor' => $user->hasRole('editor') ? true : false,
+                'editor_id' => $user->editor ? $user->editor->id_ti : null,
             ]
         ]);
     }

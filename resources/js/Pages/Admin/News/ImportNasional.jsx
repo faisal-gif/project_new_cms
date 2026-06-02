@@ -14,7 +14,7 @@ import Select from "react-select";
 
 function ImportNasional({ writers, editors, networks, kanal, fokus, initialData }) {
 
-    
+
     const { data, setData, post, processing, errors } = useForm({
         is_code: initialData?.is_code || '',
         status: '3',
@@ -92,7 +92,8 @@ function ImportNasional({ writers, editors, networks, kanal, fokus, initialData 
                                                 options={editors}
                                                 placeholder="Pilih Editor..."
                                                 onChange={(val) => setData('editor', val?.value)}
-                                            
+                                                isDisabled={initialData?.hasEditor ? true : false} // Disable jika berita sudah memiliki editor
+
                                             />
                                             <InputError message={errors.editor} className="mt-2" />
                                         </div>
@@ -108,7 +109,7 @@ function ImportNasional({ writers, editors, networks, kanal, fokus, initialData 
                                                 options={writers}
                                                 placeholder="Pilih Penulis..."
                                                 onChange={(val) => setData('writer_id', val?.value)}
-                                               isDisabled={true} // Disable input writer karena sudah diambil dari data awal dan tidak bisa diubah
+                                                isDisabled={true} // Disable input writer karena sudah diambil dari data awal dan tidak bisa diubah
                                             />
                                             <InputError message={errors.writer} className="mt-2" />
                                         </div>

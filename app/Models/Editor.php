@@ -10,6 +10,11 @@ class Editor extends Model
 
     protected $fillable = ['name', 'user_id', 'id_ti', 'id_daerah', 'status'];
 
+    public function user()
+    {
+        return $this->belongsTo(User::class, 'user_id');
+    }
+
     public function daerah()
     {
         return $this->belongsTo(EditorDaerah::class, 'id_daerah');
