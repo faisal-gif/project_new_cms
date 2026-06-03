@@ -17,7 +17,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogDescription,
-} from "@/components/ui/dialog";
+} from "@/Components/ui/dialog";
 
 function Index({ permissions, categories, filters }) {
   // ===== STATE FILTER & SEARCH =====
