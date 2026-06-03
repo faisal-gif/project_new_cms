@@ -3,10 +3,10 @@ import { useForm, router, Head } from "@inertiajs/react";
 import { ArrowLeft, Megaphone, Save, BookOpen } from "lucide-react";
 
 // Komponen Kustom
-import Card from "@/components/Card";
-import TextInput from "@/components/TextInput";
-import InputSelect from "@/components/InputSelect";
-import InputLabel from "@/components/InputLabel";
+import Card from "@/Components/Card";
+import TextInput from "@/Components/TextInput";
+import InputSelect from "@/Components/InputSelect";
+import InputLabel from "@/Components/InputLabel";
 import InputError from "@/Components/InputError";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
 import InputMultiImage from "@/Components/InputMultiImage"; // Import komponen baru
