@@ -15,11 +15,11 @@ import {
 import Select from "react-select";
 
 // Komponen Kustom
-import Card from "@/components/Card";
-import TextInput from "@/components/TextInput";
-import InputTextarea from "@/components/InputTextarea";
-import InputSelect from "@/components/InputSelect";
-import InputLabel from "@/components/InputLabel";
+import Card from "@/Components/Card";
+import TextInput from "@/Components/TextInput";
+import InputTextarea from "@/Components/InputTextarea";
+import InputSelect from "@/Components/InputSelect";
+import InputLabel from "@/Components/InputLabel";
 import InputError from "@/Components/InputError";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
 import InputImage from "@/Components/InputImage";
