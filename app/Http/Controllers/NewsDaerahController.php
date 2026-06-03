@@ -290,11 +290,8 @@ class NewsDaerahController extends Controller
         // 2. Ambil data untuk opsi Dropdown & Select
         // Sesuaikan Model ini dengan struktur database daerah kamu
         $writers = WriterDaerah::select('id as value', 'name as label')->get();
-
         $editors = EditorDaerah::select('id as value', 'name as label')->get();
-
         $kanal = KanalDaerah::select('id as value', 'name as label')->get();
-
         $fokus = FokusDaerah::select('id as value', 'name as label')->get();
 
         // Asumsi ada tabel networks
@@ -308,6 +305,7 @@ class NewsDaerahController extends Controller
             'kanal'    => $kanal,
             'fokus'    => $fokus,
             'networks' => $networks,
+            'hasEditor' => auth()->user()->hasRole('editor') ? true : false, // Tambahkan flag untuk role editor
         ]);
     }
     /**

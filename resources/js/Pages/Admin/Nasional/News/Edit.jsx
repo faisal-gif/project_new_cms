@@ -15,7 +15,7 @@ import { CaptionsIcon, GlobeIcon, ImagesIcon, InfoIcon, NotebookPenIcon } from '
 import React from 'react'
 import Select from "react-select";
 
-function Edit({ news, writers, editors, kanal, fokus }) {
+function Edit({ news, writers, editors, kanal, fokus, hasEditor }) {
     // Format date untuk input type datetime-local (YYYY-MM-DDThh:mm)
     const formattedDatePub = news.news_datepub ? new Date(news.news_datepub).toISOString().slice(0, 16) : '';
 
@@ -94,6 +94,7 @@ function Edit({ news, writers, editors, kanal, fokus }) {
                                                 options={editors}
                                                 placeholder="Pilih Editor..."
                                                 onChange={(val) => setData('editor', val?.value)}
+                                                isDisabled={hasEditor} // Disable jika berita sudah memiliki editor
                                             />
                                             <InputError message={errors.editor} className="mt-2" />
                                         </div>

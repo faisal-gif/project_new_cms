@@ -262,6 +262,7 @@ class NewsNasionalController extends Controller
             'editors' => $editors,
             'kanal'   => $kanal,
             'fokus'   => $fokus,
+            'hasEditor' => auth()->user()->hasRole('editor') ? true : false,
         ]);
     }
 
