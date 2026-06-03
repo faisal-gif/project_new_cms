@@ -176,13 +176,8 @@ class NewsDaerahController extends Controller
                 'value' => $e->id,
                 'label' => $e->name,
             ]);
-        if ($auth->role == 3) {
-            $editors = EditorDaerah::where('user_id', $auth->id)->select(['id', 'name'])->first()
-                ->map(fn($e) => [
-                    'value' => $e->id,
-                    'label' => $e->name,
-                ]);
-        }
+
+
 
         return Inertia::render('Admin/Daerah/News/Create', [
             'kanal' => $kanal_daerah,
@@ -190,6 +185,8 @@ class NewsDaerahController extends Controller
             'networks' => $networks,
             'writers' => $writers,
             'editors' => $editors,
+            'hasEditor' => $auth->hasRole('editor') ? true : false,
+            'editor_id' => $auth->editor ? $auth->editor->id_daerah : null,
         ]);
     }
 

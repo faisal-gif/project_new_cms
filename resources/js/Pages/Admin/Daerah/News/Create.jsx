@@ -15,11 +15,11 @@ import { CaptionsIcon, GlobeIcon, ImagesIcon, InfoIcon, NotebookPenIcon } from '
 import React from 'react'
 import Select from "react-select";
 
-function Create({ writers, editors, networks, kanal, fokus }) {
+function Create({ writers, editors, networks, kanal, fokus, hasEditor, editor_id }) {
 
     const { data, setData, post, processing, errors, reset } = useForm({
         status: '',
-        editor: '',
+        editor: editor_id || '',
         writer: '',
         pin: '',
         keyword_tool: '',
@@ -115,6 +115,7 @@ function Create({ writers, editors, networks, kanal, fokus }) {
                                                 options={editors}
                                                 placeholder="Editors"
                                                 onChange={(val) => setData('editor', val?.value)}
+                                                isDisabled={hasEditor}
                                             />
                                             <InputError message={errors.editor} className="mt-2" />
 

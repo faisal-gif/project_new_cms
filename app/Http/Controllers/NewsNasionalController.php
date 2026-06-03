@@ -13,6 +13,7 @@ use App\Models\WriterNasional;
 use App\Services\CdnService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
@@ -101,6 +102,7 @@ class NewsNasionalController extends Controller
      */
     public function create()
     {
+        $user = Auth::user();
         $editors = EditorNasional::select('editor_id as value', 'editor_name as label')->get();
         $writers = WriterNasional::select('id as value', 'name as label')->get();
         $kanals = KanalNasional::select('catnews_id as value', 'catnews_title as label')->get();
@@ -111,6 +113,8 @@ class NewsNasionalController extends Controller
             'writers' => $writers,
             'kanal' => $kanals,
             'fokus' => $fokus,
+            'hasEditor' => $user->hasRole('editor') ? true : false,
+            'editor_id' => $user->editor ? $user->editor->id_ti : null,
         ]);
     }
 

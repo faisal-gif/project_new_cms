@@ -15,12 +15,12 @@ import { CaptionsIcon, GlobeIcon, ImagesIcon, InfoIcon, NotebookPenIcon } from '
 import React from 'react'
 import Select from "react-select";
 
-function Create({ writers, editors, kanal, fokus }) {
+function Create({ writers, editors, kanal, fokus, hasEditor, editor_id }) {
 
     const { data, setData, post, processing, errors } = useForm({
         is_code: '',
         status: '',
-        editor: '', // Menangkap nilai default editor_id dari backend
+        editor: editor_id || '', // Menangkap nilai default editor_id dari backend
         writer: '', // Menangkap nilai default writer_id dari backend
         writer_id: '', // Menangkap nilai default writer_id dari backend
         pin: '',
@@ -109,6 +109,7 @@ function Create({ writers, editors, kanal, fokus }) {
                                                 options={editors}
                                                 placeholder="Pilih Editor..."
                                                 onChange={(val) => setData('editor', val?.value)}
+                                                isDisabled={hasEditor}
                                             />
                                             <InputError message={errors.editor} className="mt-2" />
                                         </div>
