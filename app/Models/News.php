@@ -3,10 +3,13 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Traits\LogsActivity;
 
 class News extends Model
 {
 
+    use LogsActivity;
 
     protected $fillable = [
         'is_code',
@@ -38,5 +41,20 @@ class News extends Model
     public function newsNasional()
     {
         return $this->hasOne(NewsNasional::class, 'is_code', 'is_code');
+    }
+
+    protected static $recordEvents = ['updated', 'deleted'];
+
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->logOnly([
+                'is_code',
+                'distribution_status',
+                'title',
+            ])       
+            ->logOnlyDirty()         // Hanya catat jika datanya benar-benar berubah
+            ->dontSubmitEmptyLogs()  // Jangan buat log jika tidak ada perubahan
+            ->useLogName('News Master'); // Samakan dengan nama log di Controller
     }
 }

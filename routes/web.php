@@ -46,7 +46,7 @@ Route::middleware('auth')->group(function () {
 });
 Route::post('/upload-image', [TextEditorController::class, 'upload']);
 Route::middleware('auth')->prefix('admin')->name('admin.')->group(function () {
-    Route::resource('news', NewsController::class)->only('index', 'create', 'show');
+    Route::resource('news', NewsController::class)->only('index', 'create', 'show','store');
     Route::get('/news/import-daerah/{is_code}', [NewsController::class, 'importDaerah'])->name('news.import.daerah');
     Route::post('/news/import-daerah', [NewsController::class, 'importDaerahStore'])->name('news.import.daerah.store');
     Route::get('/news/import-nasional/{is_code}', [NewsController::class, 'importNasional'])->name('news.import.nasional');

@@ -216,6 +216,18 @@ class NewsController extends Controller implements HasMiddleware
                 $news->tags()->sync($tagIds);
             }
 
+            activity('News Master')
+                ->performedOn($news) // Mengikat log ini ke berita yang baru dibuat
+                ->causedBy(auth()->user()) // Dicatat atas nama user yang login
+                ->withProperties([
+                    'attributes' => [
+                        'title'           => $news->title,
+                        'writer_id'       => $news->writer_id,
+                        'tags'            => $request->tag ?? [], // Menyimpan array tag
+                    ]
+                ])
+                ->log('Membuat berita Master baru');
+
             // Jika semua sukses, simpan permanen ke database
             DB::commit();
 
@@ -302,6 +314,7 @@ class NewsController extends Controller implements HasMiddleware
                 'is_editorial' => $request->is_editorial ? 1 : 0,
                 'is_adv'      => $request->is_adv ? 1 : 0,
                 'pin'         => $request->pin ? 1 : 0,
+                'tag'        => implode(',', $request->tag ?? []), // Simpan tag sebagai string, nanti bisa diubah ke relasi many-to-many jika diperlukan
             ]);
 
             // 3. Simpan Tags (Many-to-Many)
