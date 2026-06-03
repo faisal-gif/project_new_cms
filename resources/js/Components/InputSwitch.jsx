@@ -1,6 +1,6 @@
 import React from "react";
 // Sesuaikan path import ini dengan lokasi file Switch Shadcn Anda
-import { Switch } from "@/components/ui/switch"; 
+import { Switch } from "@/Components/ui/switch"; 
 
 export default function InputSwitch({
     label,
