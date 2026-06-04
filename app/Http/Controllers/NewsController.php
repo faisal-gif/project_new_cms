@@ -334,6 +334,20 @@ class NewsController extends Controller implements HasMiddleware
                 $news->networks()->sync($request->network);
             }
 
+            activity('Import Berita')
+                ->performedOn($masterNews) // Mengikat log ini ke berita Master
+                ->causedBy(auth()->user()) // Siapa yang melakukan import
+                ->withProperties([
+                    'attributes' => [
+                        'action'          => 'Import ke Daerah',
+                        'news_daerah_id'  => $news->is_code,
+                        'title'           => $news->title,
+                        'datepub'         => $news->datepub,
+                        'status'           => $news->status,
+                    ]
+                ])
+                ->log('Import Ke Daerah');
+
             DB::connection('mysql_daerah')->commit();
 
             return redirect()->route('admin.news.index')->with('success', 'Berita Daerah berhasil diterbitkan!');
@@ -435,6 +449,20 @@ class NewsController extends Controller implements HasMiddleware
                 // Pastikan relasi di model News kamu bernama 'tags'
                 $news->tags()->sync($tagIds);
             }
+
+            activity('Import Berita')
+                ->performedOn($masterNews) // Mengikat log ini ke berita Master
+                ->causedBy(auth()->user()) // Siapa yang melakukan import
+                ->withProperties([
+                    'attributes' => [
+                        'action'          => 'Import ke Nasional',
+                        'news_nasional_id'  => $news->is_code,
+                        'title'           => $news->news_title,
+                        'datepub'         => $news->news_datepub,
+                        'status'           => $news->news_status,
+                    ]
+                ])
+                ->log('Import Ke Nasional');
 
             DB::connection('mysql_nasional')->commit();
 

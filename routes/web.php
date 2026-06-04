@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\ActivityLogController;
 use App\Http\Controllers\AdsDaerahController;
 use App\Http\Controllers\AdsLocateController;
 use App\Http\Controllers\AdsNasionalController;
@@ -51,6 +52,7 @@ Route::middleware('auth')->prefix('admin')->name('admin.')->group(function () {
     Route::post('/news/import-daerah', [NewsController::class, 'importDaerahStore'])->name('news.import.daerah.store');
     Route::get('/news/import-nasional/{is_code}', [NewsController::class, 'importNasional'])->name('news.import.nasional');
     Route::post('/news/import-nasional', [NewsController::class, 'importNasionalStore'])->name('news.import.nasional.store');
+    Route::get('/history', [ActivityLogController::class, 'index'])->name('history.index');
     Route::resource('ajp-export', AJPController::class)->only('create', 'store');
     Route::resource('roles', RoleController::class);
     Route::resource('permissions', PermissionController::class);
@@ -61,6 +63,7 @@ Route::middleware('auth')->prefix('admin')->name('admin.')->group(function () {
     Route::get('/notifications/{id}/go', [NotificationController::class, 'open'])->name('notifications.go');
     Route::post('/notifications/clear', [NotificationController::class, 'clear'])->name('notifications.clear');
     Route::post('/notifications/{id}/read', [NotificationController::class, 'markAsRead'])->name('notifications.read');
+
     Route::prefix('daerah')->name('daerah.')->group(
         function () {
             Route::get('news/report', [ReportNewsDaerahController::class, 'index'])->name('news.report.index');

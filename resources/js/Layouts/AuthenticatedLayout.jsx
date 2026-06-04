@@ -369,7 +369,7 @@ export default function AuthenticatedLayout({ header, children }) {
                         </li>
                     )}
                     <li>
-                        <Link href={'#'} className={linkClass(isActive('admin.history.*'))}>
+                        <Link href={route('admin.history.index')} className={linkClass(isActive('admin.history.*'))}>
                             <History size={16} /> System History
                         </Link>
                     </li>
