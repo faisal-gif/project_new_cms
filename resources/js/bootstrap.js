@@ -9,7 +9,7 @@ import Pusher from 'pusher-js';
 
 window.Pusher = Pusher;
 
-Pusher.logToConsole = true;
+// Pusher.logToConsole = true;
 
 window.Echo = new Echo({
     broadcaster: 'reverb',
