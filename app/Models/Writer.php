@@ -3,9 +3,13 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Traits\LogsActivity;
 
 class Writer extends Model
 {
+    use LogsActivity;
+
     protected $fillable = ['id', 'name', 'email', 'password', 'no_whatsapp', 'date_exp', 'network_id', 'id_nasional', 'id_daerah', 'status', 'editor_id'];
 
 
@@ -28,5 +32,20 @@ class Writer extends Model
     public function daerah()
     {
         return $this->belongsTo(WriterDaerah::class, 'id_daerah', 'id');
+    }
+
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            // Gunakan logOnly() untuk mendefinisikan kolom secara eksplisit
+            ->logOnly([
+                'name',
+                'email',
+                'no_whatsapp',
+                'status',
+            ])
+            ->logOnlyDirty()
+            ->dontSubmitEmptyLogs()
+            ->useLogName('Writer Master');
     }
 }

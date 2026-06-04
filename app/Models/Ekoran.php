@@ -3,9 +3,13 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Traits\LogsActivity;
 
 class Ekoran extends Model
 {
+    use LogsActivity;
+
     protected $connection = 'mysql_nasional';
     protected $table = 'ekoran';
 
@@ -42,4 +46,18 @@ class Ekoran extends Model
         'img21',
         'img22'
     ];
+
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            // Gunakan logOnly() untuk mendefinisikan kolom secara eksplisit
+            ->logOnly([
+                'title',
+                'datepub',
+                'status',
+            ])
+            ->logOnlyDirty()
+            ->dontSubmitEmptyLogs()
+            ->useLogName('Ekoran');
+    }
 }

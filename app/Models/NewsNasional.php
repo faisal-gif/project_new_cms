@@ -3,9 +3,14 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Traits\LogsActivity;
 
 class NewsNasional extends Model
 {
+
+    use LogsActivity;
+
     // App\Models\NewsNasional.php
     protected $connection = 'mysql_nasional'; // Sesuaikan nama koneksi di config/database.php
     protected $table = 'news';
@@ -70,5 +75,20 @@ class NewsNasional extends Model
             'news_id',
             'id'
         );
+    }
+
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            // Gunakan logOnly() untuk mendefinisikan kolom secara eksplisit
+            ->logOnly([
+                'is_code',
+                'news_datepub',
+                'news_title',
+                'news_status',
+            ])
+            ->logOnlyDirty()
+            ->dontSubmitEmptyLogs()
+            ->useLogName('News Nasional');
     }
 }

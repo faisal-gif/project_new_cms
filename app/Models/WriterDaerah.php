@@ -4,9 +4,14 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Traits\LogsActivity;
 
 class WriterDaerah extends Model
 {
+
+    use LogsActivity;
+
     protected $connection = 'mysql_daerah';
     protected $table = 'writers';
 
@@ -25,5 +30,20 @@ class WriterDaerah extends Model
     public function network(): BelongsTo
     {
         return $this->belongsTo(NetworkDaerah::class);
+    }
+
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            // Gunakan logOnly() untuk mendefinisikan kolom secara eksplisit
+            ->logOnly([
+                'name',
+                'email',
+                'no_whatsapp',
+                'status',
+            ])
+            ->logOnlyDirty()
+            ->dontSubmitEmptyLogs()
+            ->useLogName('Writer Daerah');
     }
 }

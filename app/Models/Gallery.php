@@ -3,9 +3,13 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Traits\LogsActivity;
 
 class Gallery extends Model
 {
+
+    use LogsActivity;
 
     protected $connection = 'mysql_nasional';
     protected $table = 'gallery';
@@ -38,5 +42,20 @@ class Gallery extends Model
     public function kanal()
     {
         return $this->belongsTo(GalleryCategory::class, 'gal_catid', 'id');
+    }
+
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            // Gunakan logOnly() untuk mendefinisikan kolom secara eksplisit
+            ->logOnly([
+                'gal_title',
+                'gal_description',
+                'gal_status',
+                'gal_datepub',
+            ])
+            ->logOnlyDirty()
+            ->dontSubmitEmptyLogs()
+            ->useLogName('Gallery');
     }
 }

@@ -3,9 +3,12 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Traits\LogsActivity;
 
 class NewsDaerah extends Model
 {
+    use LogsActivity;
 
     protected $connection = 'mysql_daerah';
     protected $table = 'news';
@@ -68,5 +71,20 @@ class NewsDaerah extends Model
     public function tags()
     {
         return $this->belongsToMany(TagsDaerah::class, 'news_tags', 'news_id', 'tag_id');
+    }
+
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            // Gunakan logOnly() untuk mendefinisikan kolom secara eksplisit
+            ->logOnly([
+                'is_code',
+                'datepub',
+                'title',
+                'status',
+            ])
+            ->logOnlyDirty()
+            ->dontSubmitEmptyLogs()
+            ->useLogName('News Daerah');
     }
 }

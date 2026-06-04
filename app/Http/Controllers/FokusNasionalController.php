@@ -99,6 +99,7 @@ class FokusNasionalController extends Controller
                 'focnews_image_body' => $ImageDesktopListUrl,
                 'focnews_image_news' => $ImageDesktopNewsUrl,
                 'focnews_image_mobile' => $ImageMobileUrl,
+                'status' => $request->status,
                 'created_by' => $createdBy,
             ]);
 
@@ -184,7 +185,8 @@ class FokusNasionalController extends Controller
                 'focnews_image_body'   => $ImageDesktopListUrl,
                 'focnews_image_news'   => $ImageDesktopNewsUrl,
                 'focnews_image_mobile' => $ImageMobileUrl,
-                'modified_by'        => $updatedBy,
+                'status'               => $request->status,
+                'modified_by'          => $updatedBy,
             ]);
 
             DB::commit();
