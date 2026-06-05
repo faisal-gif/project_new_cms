@@ -15,7 +15,7 @@ import { CaptionsIcon, GlobeIcon, ImagesIcon, InfoIcon, NotebookPenIcon } from '
 import React from 'react'
 import Select from "react-select";
 
-function Create({ writers, editors, kanal, fokus, hasEditor, editor_id }) {
+function Create({ writers, editors, kanal, fokus, hasEditor, editor_id, initialData }) {
 
     const { data, setData, post, processing, errors } = useForm({
         is_code: '',

@@ -188,8 +188,8 @@ class NewsDaerahController extends Controller
             'hasEditor' => $auth->hasRole('editor') ? true : false,
             'editor_id' => $auth->editor ? $auth->editor->id_daerah : null,
             'initialData' => [
-                 'datepub' => now()->format('Y-m-d\TH:i'), // Format untuk input type="datetime-local"
-             ]
+                'datepub' => now()->format('Y-m-d\TH:i'), // Format untuk input type="datetime-local"
+            ],
         ]);
     }
 
