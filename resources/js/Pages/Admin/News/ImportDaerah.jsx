@@ -33,7 +33,7 @@ function ImportDaerah({ writers, editors, networks, kanal, fokus, initialData })
         is_adv: '',
         image_thumbnail: initialData?.image_thumbnail || '',
         image_caption: initialData?.image_caption || '',
-        datepub: '',
+        datepub: initialData?.datepub ? initialData.datepub.replace(' ', 'T') : '',
         locus: '',
         focus: '',
         kanal: '',

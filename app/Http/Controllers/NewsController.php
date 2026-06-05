@@ -272,7 +272,7 @@ class NewsController extends Controller implements HasMiddleware
                 'image_thumbnail' => $news->image_thumbnail ?? '',
                 'hasEditor' => $user->hasRole('editor') ? true : false,
                 'editor_id' => $user->editor ? $user->editor->id_daerah : null, // Set editor_id default ke editor yang sedang login, jika ada
-
+                'datepub' => now()->format('Y-m-d\TH:i'), // Format untuk input type="datetime-local"
             ]
         ]);
     }
@@ -307,7 +307,7 @@ class NewsController extends Controller implements HasMiddleware
                 'content'     => $request->is_content, // dari state react 'is_content'
                 'image'       => $request->image_thumbnail, // Simpan URL thumbnail di field 'image'
                 'caption'     => $request->image_caption,
-                'status'      => $request->status,
+                'status'      => '1',
                 'locus'       => $request->locus,
                 'datepub'     => $request->datepub ?? now(),
                 'is_headline' => $request->is_headline ? 1 : 0,
@@ -387,7 +387,6 @@ class NewsController extends Controller implements HasMiddleware
                 // Masukkan variabel yang sudah kita racik di atas
                 'writer' => $news->writer->name ?? '', // Jika $initialWriter adalah objek WriterDaerah, ambil namanya
                 'writer_id' => $news->writer->id_nasional ?? '', // Jika $initialWriter adalah objek WriterDaerah, ambil ID-nya
-                'datepub' => $news->datepub ?? '',
                 'locus' => $news->locus ?? '',
                 'description' => $news->description ?? '',
                 'content' => $news->content ?? '',
@@ -396,6 +395,7 @@ class NewsController extends Controller implements HasMiddleware
                 'image_thumbnail' => $news->image ?? $news->image_thumbnail ?? '',
                 'hasEditor' => $user->hasRole('editor') ? true : false,
                 'editor_id' => $user->editor ? $user->editor->id_ti : null,
+                'datepub' => now()->format('Y-m-d\TH:i'),
             ]
         ]);
     }
@@ -430,7 +430,7 @@ class NewsController extends Controller implements HasMiddleware
                 'news_content'      => $request->is_content,
                 'news_image_new'        => $request->image_thumbnail,
                 'news_caption'      => $request->image_caption,
-                'news_status'       => $request->status ?? '3', // Beri default jika status kosong
+                'news_status'       => $request->status ?? '1', // Beri default jika status kosong
                 'news_city'        => $request->locus,
                 'news_datepub'      => $request->datepub ?? now(),
                 'news_headline'  => $request->is_headline ? 1 : 0,
