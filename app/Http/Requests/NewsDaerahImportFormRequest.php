@@ -32,7 +32,7 @@ class NewsDaerahImportFormRequest extends FormRequest
             'writer'        => ['required', 'integer', 'exists:mysql_daerah.writers,id'],
             'editor'        => ['required', 'integer', 'exists:mysql_daerah.editors,id'],
             'kanal'         => ['required', 'integer', 'exists:mysql_daerah.news_cat,id'],
-            'focus'         => ['required', 'integer', 'exists:mysql_daerah.news_fokus,id'],
+            'focus'         => ['nullable', 'integer', 'exists:mysql_daerah.news_fokus,id'],
             'locus'         => ['required', 'string', 'max:255'], // Asumsi locus masih input string biasa
 
             // Multiple Select (Arrays)
@@ -65,7 +65,7 @@ class NewsDaerahImportFormRequest extends FormRequest
             'writer.required'     => 'Penulis wajib dipilih.',
             'editor.required'     => 'Editor wajib dipilih.',
             'kanal.required'      => 'Kanal wajib dipilih.',
-            'focus.required'      => 'Fokus berita wajib dipilih.',
+            'focus.nullable'      => 'Fokus berita bersifat opsional.',
             'locus.required'      => 'Locus wajib diisi.',
             'datepub.required'    => 'Tanggal publikasi wajib diisi.',
             'title.required'      => 'Judul berita wajib diisi.',

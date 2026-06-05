@@ -15,7 +15,7 @@ import { CaptionsIcon, GlobeIcon, ImagesIcon, InfoIcon, NotebookPenIcon } from '
 import React from 'react'
 import Select from "react-select";
 
-function Create({ writers, editors, networks, kanal, fokus, hasEditor, editor_id }) {
+function Create({ writers, editors, networks, kanal, fokus, hasEditor, editor_id, initialData }) {
 
     const { data, setData, post, processing, errors, reset } = useForm({
         status: '',
@@ -33,7 +33,7 @@ function Create({ writers, editors, networks, kanal, fokus, hasEditor, editor_id
         image_thumbnail: '',
         image_watermark: false,
         image_caption: '',
-        datepub: '',
+        datepub: initialData.datepub || '',
         locus: '',
         focus: '',
         kanal: '',

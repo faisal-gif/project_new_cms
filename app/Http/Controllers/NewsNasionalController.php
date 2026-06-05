@@ -114,7 +114,10 @@ class NewsNasionalController extends Controller
             'kanal' => $kanals,
             'fokus' => $fokus,
             'hasEditor' => $user->hasRole('editor') ? true : false,
-            'editor_id' => $user->editor ? $user->editor->id_ti : null,
+            'editor_id' => $user->editor ? $user->editor->id_nasional : null,
+            'initialData' => [
+                'datepub' => now()->format('Y-m-d\TH:i'),
+            ]
         ]);
     }
 

@@ -33,7 +33,7 @@ function Create({ writers, editors, kanal, fokus, hasEditor, editor_id }) {
         image_thumbnail: '',
         image_watermark: false,
         image_caption: '',
-        datepub: '',
+        datepub: initialData.datepub || '', // Menangkap nilai default datepub dari backend
         locus: '',
         focus: '',
         kanal: '',
