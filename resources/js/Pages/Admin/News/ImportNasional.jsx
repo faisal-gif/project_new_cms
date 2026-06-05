@@ -17,7 +17,7 @@ function ImportNasional({ writers, editors, networks, kanal, fokus, initialData 
 
     const { data, setData, post, processing, errors } = useForm({
         is_code: initialData?.is_code || '',
-        status: '3',
+        status: '1',
         editor: initialData?.editor_id || '', // Menangkap nilai default editor_id dari backend
         writer: initialData?.writer || '', // Menangkap nilai default writer_id dari backend
         writer_id: initialData?.writer_id || '', // Menangkap nilai default writer_id dari backend

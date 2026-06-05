@@ -19,7 +19,7 @@ function ImportDaerah({ writers, editors, networks, kanal, fokus, initialData })
 
     const { data, setData, post, processing, errors, reset } = useForm({
         is_code: initialData?.is_code || '',
-        status: '3',
+        status: '1',
         editor: initialData?.editor_id || '',
         writer: initialData?.writer_id || '',
         pin: '',

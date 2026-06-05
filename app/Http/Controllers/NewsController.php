@@ -430,7 +430,7 @@ class NewsController extends Controller implements HasMiddleware
                 'news_content'      => $request->is_content,
                 'news_image_new'        => $request->image_thumbnail,
                 'news_caption'      => $request->image_caption,
-                'news_status'       => $request->status ?? '1', // Beri default jika status kosong
+                'news_status'       => '1', // Beri default jika status kosong
                 'news_city'        => $request->locus,
                 'news_datepub'      => $request->datepub ?? now(),
                 'news_headline'  => $request->is_headline ? 1 : 0,
