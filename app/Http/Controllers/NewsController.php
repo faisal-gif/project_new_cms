@@ -181,24 +181,23 @@ class NewsController extends Controller implements HasMiddleware
         DB::beginTransaction();
 
         try {
-
-
             $applyWatermark = $request->boolean('image_watermark') ? '1' : '0';
 
-            // 2. Proses Upload image_thumbnail ke CDN
+            // 1. Proses Upload image_thumbnail ke CDN
             $thumbnailUrl = null;
 
             // Pastikan input dari frontend (React) bernama 'image_thumbnail'
             if ($request->hasFile('image_thumbnail')) {
                 $file = $request->file('image_thumbnail');
-                $nameThumbnail = Str::slug($request->judul, '-Thumbnail');
+                $nameThumbnail = Str::slug(Str::limit($request->judul, 100, '')) . '-thumbnail';
                 // Ambil URL dari response JSON CDN
                 $thumbnailUrl = $this->cdnService->uploadImage($file, $nameThumbnail, 3, 'convert', $applyWatermark) ?? null;
             }
 
             $content = $request->content;
             $tagIds = [];
-            // 2. Proses Auto-Link Tag ke dalam Konten
+
+            // 2. Proses Auto-Link Tag ke dalam Konten & Koleksi ID Tag
             if ($request->has('tag') && is_array($request->tag)) {
                 foreach ($request->tag as $tagName) {
                     $cleanTagName = strtolower(trim($tagName));
@@ -207,42 +206,43 @@ class NewsController extends Controller implements HasMiddleware
                     $tag = Tags::firstOrCreate([
                         'name' => $cleanTagName
                     ]);
+
+                    // Simpan ID tag ke array untuk proses sync di bawah nanti
                     $tagIds[] = $tag->id;
 
                     // REGEX: Memastikan tidak merusak HTML yang sudah ada
                     $pattern = '/(?!(?:[^<]+>|[^>]+<\/a>))\b(' . preg_quote($tag->name, '/') . ')\b/iu';
 
-                    // Route untuk tag (sesuaikan dengan nama route Anda)
+                    // Route untuk tag (URL statis Times Indonesia)
                     $tagSlug = Str::slug($tag->name);
                     $tagUrl =  'https://timesindonesia.co.id/tag/' . $tagSlug;
 
                     // Template HTML Anchor
                     $replacement = '<a href="' . $tagUrl . '" class="text-blue-600 hover:underline font-semibold" title="Baca lebih lanjut tentang $1">$1</a>';
 
-                    // PERUBAHAN DI SINI:
-                    // Ubah angka 1 menjadi 2 pada parameter ke-4 ($limit)
-                    // Jika kata tersebut muncul 5 kali, hanya 2 yang pertama yang akan menjadi link.
-                    // Jika hanya muncul 1 kali, fungsi tetap aman dan hanya mengubah 1 kata tersebut.
+                    // Limit = 2, maksimal 2 kata pertama yang akan diubah menjadi link
                     $content = preg_replace($pattern, $replacement, $content, 2);
                 }
             }
 
-
-            // 1. Simpan tabel News
+            // 3. Simpan tabel News
             $news = News::create([
-                'is_code'     => Str::random(8),
-                'writer_id'   => $request->writer,
-                'title'       => $request->judul,
-                'description' => $request->description,
+                'is_code'         => Str::random(8),
+                'writer_id'       => $request->writer,
+                'title'           => $request->judul,
+                'description'     => $request->description,
                 'image_thumbnail' => $thumbnailUrl, // Simpan URL thumbnail dari CDN
-                'image_caption' => $request->image_caption,
-                'content'     => $content,
+                'image_caption'   => $request->image_caption,
+                'content'         => $content,      // Konten yang sudah memiliki Link Tag
             ]);
 
+            // 4. Proses Sync Tags (DISEDERHANAKAN)
+            // Tidak perlu query firstOrCreate lagi, cukup gunakan $tagIds dari loop di atas
             if (!empty($tagIds)) {
                 $news->tags()->sync($tagIds);
             }
 
+            // 5. Activity Logging Spatie
             activity('News Master')
                 ->performedOn($news) // Mengikat log ini ke berita yang baru dibuat
                 ->causedBy(auth()->user()) // Dicatat atas nama user yang login
