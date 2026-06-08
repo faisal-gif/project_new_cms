@@ -181,9 +181,11 @@ class NewsController extends Controller implements HasMiddleware
         DB::beginTransaction();
 
         try {
+
+
             $applyWatermark = $request->boolean('image_watermark') ? '1' : '0';
 
-            // 1. Proses Upload image_thumbnail ke CDN
+            // 2. Proses Upload image_thumbnail ke CDN
             $thumbnailUrl = null;
 
             // Pastikan input dari frontend (React) bernama 'image_thumbnail'
@@ -196,8 +198,7 @@ class NewsController extends Controller implements HasMiddleware
 
             $content = $request->content;
             $tagIds = [];
-
-            // 2. Proses Auto-Link Tag ke dalam Konten & Koleksi ID Tag
+            // 2. Proses Auto-Link Tag ke dalam Konten
             if ($request->has('tag') && is_array($request->tag)) {
                 foreach ($request->tag as $tagName) {
                     $cleanTagName = strtolower(trim($tagName));
@@ -206,43 +207,42 @@ class NewsController extends Controller implements HasMiddleware
                     $tag = Tags::firstOrCreate([
                         'name' => $cleanTagName
                     ]);
-
-                    // Simpan ID tag ke array untuk proses sync di bawah nanti
                     $tagIds[] = $tag->id;
 
                     // REGEX: Memastikan tidak merusak HTML yang sudah ada
                     $pattern = '/(?!(?:[^<]+>|[^>]+<\/a>))\b(' . preg_quote($tag->name, '/') . ')\b/iu';
 
-                    // Route untuk tag (URL statis Times Indonesia)
+                    // Route untuk tag (sesuaikan dengan nama route Anda)
                     $tagSlug = Str::slug($tag->name);
                     $tagUrl =  'https://timesindonesia.co.id/tag/' . $tagSlug;
 
                     // Template HTML Anchor
                     $replacement = '<a href="' . $tagUrl . '" class="text-blue-600 hover:underline font-semibold" title="Baca lebih lanjut tentang $1">$1</a>';
 
-                    // Limit = 2, maksimal 2 kata pertama yang akan diubah menjadi link
+                    // PERUBAHAN DI SINI:
+                    // Ubah angka 1 menjadi 2 pada parameter ke-4 ($limit)
+                    // Jika kata tersebut muncul 5 kali, hanya 2 yang pertama yang akan menjadi link.
+                    // Jika hanya muncul 1 kali, fungsi tetap aman dan hanya mengubah 1 kata tersebut.
                     $content = preg_replace($pattern, $replacement, $content, 2);
                 }
             }
 
-            // 3. Simpan tabel News
+
+            // 1. Simpan tabel News
             $news = News::create([
-                'is_code'         => Str::random(8),
-                'writer_id'       => $request->writer,
-                'title'           => $request->judul,
-                'description'     => $request->description,
+                'is_code'     => Str::random(8),
+                'writer_id'   => $request->writer,
+                'title'       => $request->judul,
+                'description' => $request->description,
                 'image_thumbnail' => $thumbnailUrl, // Simpan URL thumbnail dari CDN
-                'image_caption'   => $request->image_caption,
-                'content'         => $content,      // Konten yang sudah memiliki Link Tag
+                'image_caption' => $request->image_caption,
+                'content'     => $content,
             ]);
 
-            // 4. Proses Sync Tags (DISEDERHANAKAN)
-            // Tidak perlu query firstOrCreate lagi, cukup gunakan $tagIds dari loop di atas
             if (!empty($tagIds)) {
                 $news->tags()->sync($tagIds);
             }
 
-            // 5. Activity Logging Spatie
             activity('News Master')
                 ->performedOn($news) // Mengikat log ini ke berita yang baru dibuat
                 ->causedBy(auth()->user()) // Dicatat atas nama user yang login
@@ -260,14 +260,10 @@ class NewsController extends Controller implements HasMiddleware
 
             return redirect()->route('admin.news.index')->with('success', 'Berita berhasil disimpan!');
         } catch (\Exception $e) {
-
+            // Jika ada error (termasuk dari CDN), batalkan insert ke database
             DB::rollBack();
 
-            dd([
-                'pesan_asli' => $e->getMessage(),
-                'baris_error' => $e->getLine(),
-                'file_error' => $e->getFile()
-            ]);
+            return back()->withInput()->withErrors(['error' => 'Gagal menyimpan berita: ' . $e->getMessage()]);
         }
     }
 
