@@ -260,10 +260,14 @@ class NewsController extends Controller implements HasMiddleware
 
             return redirect()->route('admin.news.index')->with('success', 'Berita berhasil disimpan!');
         } catch (\Exception $e) {
-            // Jika ada error (termasuk dari CDN), batalkan insert ke database
+
             DB::rollBack();
 
-            return back()->withInput()->withErrors(['error' => 'Gagal menyimpan berita: ' . $e->getMessage()]);
+            dd([
+                'pesan_asli' => $e->getMessage(),
+                'baris_error' => $e->getLine(),
+                'file_error' => $e->getFile()
+            ]);
         }
     }
 
