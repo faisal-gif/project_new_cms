@@ -17,6 +17,7 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Maatwebsite\Excel\Facades\Excel;
@@ -204,55 +205,84 @@ class NewsDaerahController extends Controller
         try {
             $applyWatermark = $request->boolean('image_watermark') ? '1' : '0';
 
-            // 2. Proses Upload image_thumbnail ke CDN
+            // 1. Proses Upload image_thumbnail ke CDN
             $thumbnailUrl = null;
 
             // Pastikan input dari frontend (React) bernama 'image_thumbnail'
             if ($request->hasFile('image_thumbnail')) {
                 $file = $request->file('image_thumbnail');
+
+                // Pembatasan panjang nama file agar tidak ditolak CDN (Error 422)
                 $nameThumbnail = Str::slug(Str::limit($request->title, 100, '')) . '-thumbnail';
+
                 // Ambil URL dari response JSON CDN
-                $thumbnailUrl =   $this->cdnService->uploadImage($file, $nameThumbnail, 3, 'convert', $applyWatermark) ?? null;
+                $thumbnailUrl = $this->cdnService->uploadImage($file, $nameThumbnail, 3, 'convert', $applyWatermark) ?? null;
             }
 
-            // 1. Simpan tabel News (Koneksi Daerah)
-            // Sesuaikan nama field 'cat_id', 'fokus_id' dsb sesuai skema DB daerah kamu
+            // 2. Inisialisasi Konten dan Tag
+            $content = $request->is_content; // Mengambil dari state React 'is_content'
+            $tagIds = [];
+            $tagNames = []; // Digunakan untuk menyimpan string nama tag di DB
+
+            // Proses Auto-Link Tag ke dalam Konten
+            if ($request->has('tag') && is_array($request->tag)) {
+                foreach ($request->tag as $tagName) {
+                    $cleanTagName = strtolower(trim($tagName));
+
+                    // Simpan nama tag bersih untuk kolom 'tag' di NewsDaerah
+                    $tagNames[] = $cleanTagName;
+
+                    // Simpan atau ambil tag dari database daerah
+                    $tag = TagsDaerah::firstOrCreate([
+                        'name' => $cleanTagName
+                    ]);
+                    $tagIds[] = $tag->id;
+
+                    // REGEX: Memastikan tidak merusak HTML bawaan konten
+                    $pattern = '/(?!(?:[^<]+>|[^>]+<\/a>))\b(' . preg_quote($tag->name, '/') . ')\b/iu';
+
+                    // Route untuk tag (Sesuaikan URL jika portal daerah memiliki format slug tersendiri)
+                    $tagSlug = Str::slug($tag->name);
+                    $tagUrl = 'https://timesindonesia.co.id/tag/' . $tagSlug;
+
+                    // Template HTML Anchor
+                    $replacement = '<a href="' . $tagUrl . '" class="text-blue-600 hover:underline font-semibold" title="Baca lebih lanjut tentang $1">$1</a>';
+
+                    // LIMIT: 1 -> Hanya mengubah kata PERTAMA yang ditemukan di konten
+                    $content = preg_replace($pattern, $replacement, $content, 1);
+                }
+            }
+
+            // 3. Simpan tabel News (Koneksi Daerah)
             $news = NewsDaerah::create([
-                'is_code'     => $request->is_code ?? Str::random(8),
-                'writer_id'   => $request->writer,
-                'editor_id'   => $request->editor,
-                'cat_id'      => $request->kanal, // kanal di form dipetakan ke cat_id
-                'fokus_id'    => $request->focus,
-                'title'       => $request->title,
-                'description' => $request->description,
-                'content'     => $request->is_content, // dari state react 'is_content'
-                'image'       => $thumbnailUrl, // Simpan URL thumbnail di field 'image'
-                'caption'     => $request->image_caption,
-                'status'      => $request->status,
-                'locus'       => $request->locus,
-                'datepub'     => $request->datepub ?? now(),
-                'is_headline' => $request->is_headline ? 1 : 0,
+                'is_code'      => $request->is_code ?? Str::random(8),
+                'writer_id'    => $request->writer,
+                'editor_id'    => $request->editor,
+                'cat_id'       => $request->kanal,
+                'fokus_id'     => $request->focus,
+                'title'        => $request->title,
+                'description'  => $request->description,
+                'content'      => $content, // Menggunakan konten yang sudah terinjeksi tautan Tag
+                'image'        => $thumbnailUrl,
+                'caption'      => $request->image_caption,
+                'status'       => $request->status,
+                'locus'        => $request->locus,
+                'datepub'      => $request->datepub ?? now(),
+                'is_headline'  => $request->is_headline ? 1 : 0,
                 'is_editorial' => $request->is_editorial ? 1 : 0,
-                'is_adv'      => $request->is_adv ? 1 : 0,
-                'pin'         => $request->pin ? 1 : 0,
-                'tag'        => $request->tag ? implode(',', $request->tag) : null,
+                'is_adv'       => $request->is_adv ? 1 : 0,
+                'pin'          => $request->pin ? 1 : 0,
+                'tag'          => !empty($tagNames) ? implode(',', $tagNames) : null, // Menggunakan array tagNames yang sudah dibersihkan
             ]);
 
-
-            // 3. Simpan Tags (Many-to-Many)
-            if ($request->has('tag') && is_array($request->tag)) {
-                $tagIds = collect($request->tag)->map(function ($tagName) {
-                    return TagsDaerah::firstOrCreate([
-                        'name' => strtolower(trim($tagName))
-                    ])->id;
-                });
+            // 4. Simpan Relasi Tags (Many-to-Many)
+            if (!empty($tagIds)) {
+                // Pastikan method relasinya adalah tags() di model NewsDaerah
                 $news->tags()->sync($tagIds);
-                // Catatan: Jika relasi di model NewsDaerah kamu namanya 'tags', ganti news() jadi tags()
             }
 
-            // 4. Simpan Networks (Multiple Select)
+            // 5. Simpan Networks (Multiple Select)
             if ($request->has('network') && is_array($request->network)) {
-                // Karena network biasanya ID yang sudah ada, langsung sync
                 $news->networks()->sync($request->network);
             }
 
@@ -261,6 +291,9 @@ class NewsDaerahController extends Controller
             return redirect()->route('admin.daerah.news.index')->with('success', 'Berita Daerah berhasil diterbitkan!');
         } catch (\Exception $e) {
             DB::connection('mysql_daerah')->rollBack();
+
+            // Catat error di Log untuk keperluan audit backend
+            Log::error('Store NewsDaerah Error: ' . $e->getMessage());
 
             return back()->withInput()->withErrors(['error' => 'Gagal simpan: ' . $e->getMessage()]);
         }
@@ -327,42 +360,63 @@ class NewsDaerahController extends Controller
                 $file = $request->file('image_thumbnail');
                 $nameThumbnail = Str::slug(Str::limit($request->title, 100, '')) . '-thumbnail';
                 // Ambil URL dari response JSON CDN
-                $thumbnailUrl =   $this->cdnService->uploadImage($file, $nameThumbnail, 1, 'convert', $applyWatermark) ?? null;
+                $thumbnailUrl = $this->cdnService->uploadImage($file, $nameThumbnail, 1, 'convert', $applyWatermark) ?? null;
+            }
+
+            // Inisialisasi Konten dan Tag
+            $content = $request->is_content;
+            $tagIds = [];
+            $tagNames = [];
+
+            // Proses Auto-Link Tag ke dalam Konten (Aman untuk Update berkat Regex)
+            if ($request->has('tag') && is_array($request->tag)) {
+                foreach ($request->tag as $tagName) {
+                    $cleanTagName = strtolower(trim($tagName));
+                    $tagNames[] = $cleanTagName;
+
+                    // Simpan atau ambil tag dari database daerah
+                    $tag = TagsDaerah::firstOrCreate([
+                        'name' => $cleanTagName
+                    ]);
+                    $tagIds[] = $tag->id;
+
+                    // REGEX: Mengabaikan teks yang sudah menjadi link <a> sebelumnya
+                    $pattern = '/(?!(?:[^<]+>|[^>]+<\/a>))\b(' . preg_quote($tag->name, '/') . ')\b/iu';
+
+                    $tagSlug = Str::slug($tag->name);
+                    $tagUrl = 'https://timesindonesia.co.id/tag/' . $tagSlug;
+
+                    $replacement = '<a href="' . $tagUrl . '" class="text-blue-600 hover:underline font-semibold" title="Baca lebih lanjut tentang $1">$1</a>';
+
+                    // LIMIT 1: Hanya mengubah 1 kata pertama yang belum memiliki link
+                    $content = preg_replace($pattern, $replacement, $content, 1);
+                }
             }
 
             // 1. Update tabel News
             $news->update([
-                'writer_id'   => $request->writer,
-                'editor_id'   => $request->editor,
-                'cat_id'      => $request->kanal,
-                'fokus_id'    => $request->focus,
-                'title'       => $request->title,
-                'description' => $request->description,
-                'content'     => $request->is_content,
-                'image'       => $thumbnailUrl, // Menyimpan URL baru atau tetap yang lama
-                'caption'     => $request->image_caption,
-                'status'      => $request->status,
-                'locus'       => $request->locus,
-                'datepub'     => $request->datepub ?? now(),
-                'is_headline' => $request->is_headline ? 1 : 0,
+                'writer_id'    => $request->writer,
+                'editor_id'    => $request->editor,
+                'cat_id'       => $request->kanal,
+                'fokus_id'     => $request->focus,
+                'title'        => $request->title,
+                'description'  => $request->description,
+                'content'      => $content, // Menggunakan konten hasil Regex
+                'image'        => $thumbnailUrl,
+                'caption'      => $request->image_caption,
+                'status'       => $request->status,
+                'locus'        => $request->locus,
+                'datepub'      => $request->datepub ?? now(),
+                'is_headline'  => $request->is_headline ? 1 : 0,
                 'is_editorial' => $request->is_editorial ? 1 : 0,
-                'is_adv'      => $request->is_adv ? 1 : 0,
-                'pin'         => $request->pin ? 1 : 0,
-                'tag'        => $request->tag ? implode(',', $request->tag) : null,
+                'is_adv'       => $request->is_adv ? 1 : 0,
+                'pin'          => $request->pin ? 1 : 0,
+                'tag'          => !empty($tagNames) ? implode(',', $tagNames) : null,
             ]);
 
             // 2. Sync Tags (Many-to-Many)
-            if ($request->has('tag') && is_array($request->tag)) {
-                $tagIds = collect($request->tag)->map(function ($tagName) {
-                    return TagsDaerah::firstOrCreate([
-                        'name' => strtolower(trim($tagName))
-                    ])->id;
-                });
-                $news->tags()->sync($tagIds);
-            } else {
-                // Kosongkan tag jika user menghapus semua tag
-                $news->tags()->sync([]);
-            }
+            // Cukup gunakan $tagIds, array kosong otomatis menghapus relasi jika user hapus semua tag di FE
+            $news->tags()->sync($tagIds);
 
             // 3. Sync Networks (Multiple Select)
             if ($request->has('network') && is_array($request->network)) {
@@ -376,6 +430,10 @@ class NewsDaerahController extends Controller
             return redirect()->route('admin.daerah.news.index')->with('success', 'Berita Daerah berhasil diperbarui!');
         } catch (\Exception $e) {
             DB::connection('mysql_daerah')->rollBack();
+
+            // Log error untuk audit
+            Log::error('Update NewsDaerah Error: ' . $e->getMessage());
+
             return back()->withInput()->withErrors(['error' => 'Gagal update: ' . $e->getMessage()]);
         }
     }
