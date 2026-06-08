@@ -271,11 +271,11 @@ export default function AuthenticatedLayout({ header, children }) {
 
 
 
-                                <DropdownMenuItem asChild className="cursor-pointer py-2">
+                                {/* <DropdownMenuItem asChild className="cursor-pointer py-2">
                                     <Link href={route('profile.edit')} className="w-full flex items-center">
                                         Profile
                                     </Link>
-                                </DropdownMenuItem>
+                                </DropdownMenuItem> */}
 
                                 <DropdownMenuItem asChild className="cursor-pointer py-2 text-red-600 focus:text-red-700 focus:bg-red-50">
                                     <Link href={route('logout')} method="post" as="button" className="w-full flex items-center">
