@@ -368,11 +368,13 @@ export default function AuthenticatedLayout({ header, children }) {
                             </details>
                         </li>
                     )}
-                    <li>
-                        <Link href={route('admin.history.index')} className={linkClass(isActive('admin.history.*'))}>
-                            <History size={16} /> System History
-                        </Link>
-                    </li>
+                    {hasPermission('view history') && (
+                        <li>
+                            <Link href={route('admin.history.index')} className={linkClass(isActive('admin.history.*'))}>
+                                <History size={16} /> System History
+                            </Link>
+                        </li>
+                    )}
 
                     {/* ================= 2. NASIONAL ================= */}
                     <div className="divider my-1 bg-white/10 h-[1px]"></div>
