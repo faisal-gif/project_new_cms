@@ -12,7 +12,7 @@ function LoginForm({ canResetPassword }) {
     const { data, setData, post, processing, errors, reset } = useForm({
         email: '',
         password: '',
-        remember: false,
+        remember: true,
     });
 
     const submit = (e) => {
@@ -70,33 +70,8 @@ function LoginForm({ canResetPassword }) {
                         <InputError message={errors.password} className="mt-2" />
                     </div>
 
-                    <div className="mt-4 flex items-center justify-between">
-                        <label className="flex items-center ">
-                            <Checkbox
-                                name="remember"
-                                checked={data.remember}
-                                className='checkbox-xs'
-                                onChange={(e) =>
-                                    setData('remember', e.target.checked)
-                                }
-                            />
-                            <span className="ms-2 text-sm text-gray-600">
-                                Remember me
-                            </span>
-                        </label>
-
-                          {/* {canResetPassword && (
-                            <Link
-                                href={route('password.request')}
-                                className="link link-primary text-xs"
-                            >
-                                Forgot your password?
-                            </Link>
-                        )} */}
-                    </div>
-
                     <div className="mt-4">
-                      
+
 
                         <PrimaryButton className="w-full my-2 rounded-lg" disabled={processing}>
                             Log in
