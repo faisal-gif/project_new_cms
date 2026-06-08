@@ -138,7 +138,7 @@ class NewsNasionalController extends Controller
             // Pastikan input dari frontend (React) bernama 'image_thumbnail'
             if ($request->hasFile('image_thumbnail')) {
                 $file = $request->file('image_thumbnail');
-                $nameThumbnail = Str::slug($request->title, '-Thumbnail');
+                $nameThumbnail = Str::slug(Str::limit($request->title, 100, '')) . '-thumbnail';
                 // Ambil URL dari response JSON CDN
                 $thumbnailUrl =   $this->cdnService->uploadImage($file, $nameThumbnail, 3, 'convert', $applyWatermark) ?? null;
             }
@@ -290,7 +290,7 @@ class NewsNasionalController extends Controller
             // Proses Upload image_thumbnail HANYA jika ada file baru yang diunggah
             if ($request->hasFile('image_thumbnail')) {
                 $file = $request->file('image_thumbnail');
-                $nameThumbnail = Str::slug($request->title, '-Thumbnail');
+                $nameThumbnail = Str::slug(Str::limit($request->title, 100, '')) . '-thumbnail';
                 // Ambil URL dari response JSON CDN
                 $thumbnailUrl =   $this->cdnService->uploadImage($file, $nameThumbnail, 1, 'convert', $applyWatermark) ?? null;
             }
