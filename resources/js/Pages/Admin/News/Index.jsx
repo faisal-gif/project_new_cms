@@ -142,7 +142,7 @@ const NewsDesktopRow = ({ item, hasPermission }) => (
         <th>{item.id}</th>
         <td>{item.writer?.name || 'Unknown'}</td>
         <td>
-            <p className="font-medium truncate max-w-xs" title={item.title}>{item.title}</p>
+            <p className="text-xs font-medium leading-snug whitespace-normal break-words" title={item.title}>{item.title}</p>
         </td>
 
         {/* Kolom Daerah */}
