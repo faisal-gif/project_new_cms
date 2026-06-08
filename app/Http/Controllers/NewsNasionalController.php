@@ -313,46 +313,71 @@ class NewsNasionalController extends Controller
                 $file = $request->file('image_thumbnail');
                 $nameThumbnail = Str::slug(Str::limit($request->title, 100, '')) . '-thumbnail';
                 // Ambil URL dari response JSON CDN
-                $thumbnailUrl =   $this->cdnService->uploadImage($file, $nameThumbnail, 1, 'convert', $applyWatermark) ?? null;
+                $thumbnailUrl = $this->cdnService->uploadImage($file, $nameThumbnail, 1, 'convert', $applyWatermark) ?? null;
+            }
+
+            // Inisialisasi Konten dan Tag
+            $content = $request->is_content;
+            $tagIds = [];
+            $tagNames = [];
+
+            // Proses Auto-Link Tag ke dalam Konten (Aman untuk Update berkat Regex)
+            if ($request->has('tag') && is_array($request->tag)) {
+                foreach ($request->tag as $tagName) {
+                    $cleanTagName = strtolower(trim($tagName));
+                    $tagNames[] = $cleanTagName;
+
+                    // Simpan atau ambil tag dari database nasional
+                    $tag = TagsNasional::on('mysql_nasional')->firstOrCreate([
+                        'name' => $cleanTagName
+                    ]);
+                    $tagIds[] = $tag->id;
+
+                    // REGEX: Mengabaikan teks yang sudah menjadi link <a> sebelumnya
+                    $pattern = '/(?!(?:[^<]+>|[^>]+<\/a>))\b(' . preg_quote($tag->name, '/') . ')\b/iu';
+
+                    $tagSlug = Str::slug($tag->name);
+                    $tagUrl = 'https://timesindonesia.co.id/tag/' . $tagSlug;
+
+                    $replacement = '<a href="' . $tagUrl . '" class="text-blue-600 hover:underline font-semibold" title="Baca lebih lanjut tentang $1">$1</a>';
+
+                    // LIMIT 1: Hanya mengubah 1 kata pertama yang belum memiliki link
+                    $content = preg_replace($pattern, $replacement, $content, 1);
+                }
             }
 
             // 1. Update tabel News Nasional
             $news->update([
                 'news_writer'      => $request->writer,
-                'journalist_id'   => $request->writer_id, // Simpan ID penulis di kolom journalist_id
+                'journalist_id'    => $request->writer_id, // Simpan ID penulis di kolom journalist_id
                 'editor_id'        => $request->editor,
                 'catnews_id'       => $request->kanal,
                 'focnews_id'       => $request->focus,
                 'news_title'       => $request->title,
                 'news_description' => $request->description,
-                'news_content'     => $request->is_content,
+                'news_content'     => $content, // Menggunakan konten hasil Regex
                 'news_image_new'   => $thumbnailUrl, // Akan berisi URL baru atau lama
                 'news_caption'     => $request->image_caption,
                 'news_status'      => $request->status ?? '3',
                 'news_city'        => $request->locus,
                 'news_datepub'     => $request->datepub ?? now(),
                 'news_headline'    => $request->is_headline ? 1 : 0,
-                // Berdasarkan method store Anda sebelumnya, tag disimpan sebagai text di tabel ini juga
-                'news_tags'        => implode(',', $request->tag ?? []),
+                'news_tags'        => !empty($tagNames) ? implode(',', $tagNames) : null, // Sanitasi string tag
             ]);
 
             // 2. Sync Tags (Many-to-Many) ke tabel Tag Nasional
-            if ($request->has('tag') && is_array($request->tag)) {
-                $tagIds = collect($request->tag)->map(function ($tagName) {
-                    return TagsNasional::on('mysql_nasional')->firstOrCreate([
-                        'name' => strtolower(trim($tagName))
-                    ])->id;
-                });
-                $news->tags()->sync($tagIds);
-            } else {
-                $news->tags()->sync([]);
-            }
+            // Fungsi sync() akan secara otomatis menghapus semua relasi jika $tagIds kosong (yaitu ketika user menghapus semua tag)
+            $news->tags()->sync($tagIds);
 
             DB::connection('mysql_nasional')->commit();
 
             return redirect()->route('admin.nasional.news.index')->with('success', 'Berita Nasional berhasil diperbarui!');
         } catch (\Exception $e) {
             DB::connection('mysql_nasional')->rollBack();
+
+            // Mencatat error ke log untuk mempermudah debugging server
+            Log::error('Update NewsNasional Error: ' . $e->getMessage());
+
             return back()->withInput()->withErrors(['error' => 'Gagal update Nasional: ' . $e->getMessage()]);
         }
     }
