@@ -54,11 +54,15 @@ class CdnService
             ]);
 
         if ($response->failed()) {
-            // Log detail error ke file log Laravel (storage/logs/laravel.log) 
-            // agar memudahkan debugging tanpa mengekspos detail ke user.
-            Log::error('CDN Upload API Error', [
-                'status' => $response->status(),
-                'body' => $response->body()
+            dd([
+                'http_status' => $response->status(),
+                'cdn_response' => $response->json() ?? $response->body(),
+                'sent_payload' => [
+                    'name'          => $fileNameToCDN,
+                    'category_id'   => $categoryId,
+                    'process_type'  => $processType,
+                    'add_watermark' => $addWatermark ? '1' : '0',
+                ]
             ]);
 
             throw new Exception('Gagal mengunggah gambar ke peladen CDN.');
