@@ -137,11 +137,15 @@ class NewsController extends Controller implements HasMiddleware
         // 1. Ambil data beserta relasinya (Eager Loading)
         // Gunakan nama relasi persis seperti yang Anda tulis di model News.php
         $news = News::with([
-            'writer',         // Untuk mengambil nama penulis
-            'tags',           // Untuk mengambil daftar hashtag
-            'newsDaerah',     // Untuk mengecek apakah sudah tayang di daerah
-            'newsNasional'    // Untuk mengecek apakah sudah tayang di nasional
+            'tags:id,name',
+            'writer:id,name',
+            'newsDaerah:id,is_code,title,status,cat_id',
+            'newsDaerah.kanal:id,name',
+            'newsNasional:news_id,is_code,news_title,news_status,catnews_id',
+            'newsNasional.kanal:catnews_id,catnews_title',
+            'notes.user:id,full_name' // <--- TAMBAHKAN BARIS INI
         ])->findOrFail($news);
+        
 
         // 2. Kirim data ke frontend React (Inertia)
         // Pastikan path string di bawah ini sesuai dengan lokasi file Show.jsx Anda

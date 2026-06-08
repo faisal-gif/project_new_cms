@@ -43,6 +43,11 @@ class News extends Model
         return $this->hasOne(NewsNasional::class, 'is_code', 'is_code');
     }
 
+    public function notes()
+    {
+        return $this->hasMany(NewsNote::class, 'news_id', 'id')->latest();
+    }
+
     protected static $recordEvents = ['updated', 'deleted'];
 
     public function getActivitylogOptions(): LogOptions
@@ -52,7 +57,7 @@ class News extends Model
                 'is_code',
                 'distribution_status',
                 'title',
-            ])       
+            ])
             ->logOnlyDirty()         // Hanya catat jika datanya benar-benar berubah
             ->dontSubmitEmptyLogs()  // Jangan buat log jika tidak ada perubahan
             ->useLogName('News Master'); // Samakan dengan nama log di Controller

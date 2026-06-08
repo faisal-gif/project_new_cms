@@ -19,6 +19,7 @@ use App\Http\Controllers\NetworkDaerahController;
 use App\Http\Controllers\NewsController;
 use App\Http\Controllers\NewsDaerahController;
 use App\Http\Controllers\NewsNasionalController;
+use App\Http\Controllers\NewsNoteController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\PermissionController;
 use App\Http\Controllers\ProfileController;
@@ -53,6 +54,7 @@ Route::middleware('auth')->prefix('admin')->name('admin.')->group(function () {
     Route::get('/news/import-nasional/{is_code}', [NewsController::class, 'importNasional'])->name('news.import.nasional');
     Route::post('/news/import-nasional', [NewsController::class, 'importNasionalStore'])->name('news.import.nasional.store');
     Route::get('/history', [ActivityLogController::class, 'index'])->name('history.index');
+    Route::post('/news/{news}/notes', [NewsNoteController::class, 'store'])->name('news.notes.store');
     Route::resource('ajp-export', AJPController::class)->only('create', 'store');
     Route::resource('roles', RoleController::class);
     Route::resource('permissions', PermissionController::class);
