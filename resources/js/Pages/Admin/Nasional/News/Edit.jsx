@@ -102,7 +102,7 @@ function Edit({ news, writers, editors, kanal, fokus, hasEditor }) {
                                         <div className='lg:col-span-3 w-full'>
                                             <InputLabel value="Penulis" className='mb-2 label-text font-bold' />
                                             <Select
-                                                value={writers.find(w => w.value === data.writer_id)}
+                                                value={writers.find(w => w.label === data.writer)}
                                                 options={writers}
                                                 placeholder="Pilih Penulis..."
                                                 onChange={(val) => {
