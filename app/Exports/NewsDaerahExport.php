@@ -31,7 +31,7 @@ class NewsDaerahExport implements FromQuery, WithHeadings, WithMapping, ShouldQu
             $query->whereBetween('datepub', [
                 Carbon::parse($this->filters['start_date'])->startOfDay(),
                 Carbon::parse($this->filters['end_date'])->endOfDay(),
-            ])->where('news_status', 1);
+            ])->where('status', 1);
         }
 
         // 3. Terapkan filter opsional lainnya
