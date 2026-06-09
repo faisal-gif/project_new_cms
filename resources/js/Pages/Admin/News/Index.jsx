@@ -9,6 +9,7 @@ import InputWithPrefix from '@/Components/InputWithPrefix';
 import PaginationDaisy from '@/Components/PaginationDaisy';
 import { Badge } from '@/Components/ui/badge';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
+import { formatDateTime } from '@/Utils/formatter';
 
 /* ==============================================================================
    HELPER FUNCTIONS 
@@ -80,6 +81,9 @@ const NewsMobileCard = ({ item, hasPermission }) => (
                                     <span className="text-[11px] text-base-content/70 truncate max-w-[150px]">
                                         {item.news_daerah.kanal?.name || 'Daerah'}
                                     </span>
+                                    <span className="text-[10px] text-base-content/70">
+                                        {formatDateTime(item.news_daerah.datepub)}
+                                    </span>
                                 </div>
                                 <Link href={route('admin.daerah.news.edit', item.news_daerah.id)} className="btn btn-xs btn-warning btn-outline">
                                     Edit
@@ -107,6 +111,9 @@ const NewsMobileCard = ({ item, hasPermission }) => (
                                     </span>
                                     <span className="text-[11px] text-base-content/70 truncate max-w-[150px]">
                                         {item.news_nasional.kanal?.catnews_title || 'Nasional'}
+                                    </span>
+                                    <span className="text-[10px] text-base-content/70">
+                                        {formatDateTime(item.news_nasional.news_datepub)}
                                     </span>
                                 </div>
                                 <Link href={route('admin.nasional.news.edit', item.news_nasional.news_id)} className="btn btn-xs btn-warning btn-outline">
@@ -159,6 +166,9 @@ const NewsDesktopRow = ({ item, hasPermission }) => (
                         <span className="text-[11px] leading-tight text-base-content/80 truncate max-w-[150px]" title={item.news_daerah.title}>
                             {item.news_daerah.title}
                         </span>
+                        <span className="text-[10px] text-base-content/70">
+                            {formatDateTime(item.news_daerah.datepub)} {/* Tanggal publish daerah */}
+                        </span>
                         <div className="flex items-center gap-1">
                             <span className="badge badge-xs badge-ghost italic">{item.news_daerah.kanal?.name}</span>
                             {getStatusBadge(item.news_daerah.status)}
@@ -185,6 +195,9 @@ const NewsDesktopRow = ({ item, hasPermission }) => (
                         </div>
                         <span className="text-[11px] leading-tight text-base-content/80 truncate max-w-[150px]">
                             {item.news_nasional.news_title || '-'}
+                        </span>
+                        <span className="text-[10px] text-base-content/70">
+                            {formatDateTime(item.news_nasional.news_datepub)} {/* Tanggal publish nasional */}
                         </span>
                         <div className="flex items-center gap-1">
                             <span className="badge badge-xs badge-ghost italic">{item.news_nasional.kanal?.catnews_title || 'Nasional'}</span>
@@ -221,7 +234,7 @@ export default function Index({ news, writers, kanals, filters }) {
     const { auth } = usePage().props;
     const userPermissions = auth.permissions || [];
     const isFirst = useRef(true);
-    
+
     // State Filters
     const [search, setSearch] = useState(() => filters.search || '');
     const [writer, setWriter] = useState(() => filters.writer || '');
@@ -264,10 +277,10 @@ export default function Index({ news, writers, kanals, filters }) {
     return (
         <AuthenticatedLayout>
             <Head title="News Management" />
-            
+
             <div className="py-12">
                 <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 space-y-6">
-                    
+
                     {/* Header & Breadcrumbs */}
                     <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
                         <h1 className="text-3xl font-bold text-foreground">Daftar News</h1>

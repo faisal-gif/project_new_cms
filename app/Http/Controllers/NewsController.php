@@ -139,9 +139,9 @@ class NewsController extends Controller implements HasMiddleware
         $news = News::with([
             'tags:id,name',
             'writer:id,name',
-            'newsDaerah:id,is_code,title,status,cat_id',
+            'newsDaerah:id,is_code,title,status,cat_id,datepub',
             'newsDaerah.kanal:id,name',
-            'newsNasional:news_id,is_code,news_title,news_status,catnews_id',
+            'newsNasional:news_id,is_code,news_title,news_status,catnews_id,news_datepub',
             'newsNasional.kanal:catnews_id,catnews_title',
             'notes.user:id,full_name' // <--- TAMBAHKAN BARIS INI
         ])->findOrFail($news);
