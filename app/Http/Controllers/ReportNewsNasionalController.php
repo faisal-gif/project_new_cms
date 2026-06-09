@@ -13,6 +13,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
+use Maatwebsite\Excel\Facades\Excel;
+use Illuminate\Support\Str;
 
 class ReportNewsNasionalController extends Controller
 {
@@ -106,17 +108,41 @@ class ReportNewsNasionalController extends Controller
             'writer'     => 'nullable',
         ]);
 
-        $fileName = 'Laporan_Nasional_' . Auth::id() . '_' . time() . '.xlsx';
+        // 2. Buat Array untuk merangkai nama file
+        $nameParts = ['Laporan-Nasional'];
+
+        // Tambahkan rentang tanggal 
+        $nameParts[] = date('Ymd', strtotime($filters['start_date'])) . '-sd-' . date('Ymd', strtotime($filters['end_date']));
+
+        // Cek dan tambahkan filter Kanal
+        if (!empty($filters['kanal'])) {
+            $nameParts[] = 'kanal-' . Str::slug($filters['kanal']);
+        }
+
+        // Cek dan tambahkan filter Writer
+        if (!empty($filters['writer'])) {
+            $writerName = WriterNasional::where('id', $filters['writer'])->value('name');
+
+            if ($writerName) {
+                $nameParts[] = Str::slug($writerName);
+            } else {
+                $nameParts[] = 'writer-' . $filters['writer'];
+            }
+        }
+
+        // Gabungkan array menjadi satu string dan tambahkan Auth ID serta timestamp
+        $fileName = implode('-', $nameParts) . '_' . Auth::id() . '_' . time() . '.xlsx';
+
         $userId = Auth::id();
 
-        // 2. Queue dan simpan ke folder 'exports' di disk 'public'
-        \Maatwebsite\Excel\Facades\Excel::queue(
+        // 3. Queue dan simpan ke folder 'exports' di disk 'public'
+        Excel::queue(
             new NewsNasionalExport($filters),
             'exports/' . $fileName,
             'public'
         )->chain([
             function () use ($userId, $fileName) {
-                // 3. Cari User dan picu notifikasi real-time via WebSocket Reverb
+                // 4. Cari User dan picu notifikasi real-time via WebSocket Reverb
                 $user = User::find($userId);
 
                 if ($user) {
