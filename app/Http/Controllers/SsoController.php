@@ -31,8 +31,11 @@ class SsoController extends Controller
             abort(404, 'Akun Anda belum tersinkronisasi ke sistem baru.');
         }
 
-        // Login menggunakan facade Auth standar Laravel
-        Auth::login($user);
+        // Parameter kedua adalah $remember (boolean)
+        $rememberMe = true;
+
+        // Login user dengan instruksi "Remember Me"
+        Auth::login($user, $rememberMe);
 
         // Redirect ke halaman utama SPA Inertia/React Anda
         return redirect()->route('dashboard');
