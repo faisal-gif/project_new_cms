@@ -450,6 +450,7 @@ class NewsDaerahController extends Controller
 
     public function export(Request $request)
     {
+        dd($request->all());
         $query = $this->buildQuery($request);
         $fileName = 'laporan-news-daerah';
         if ($request->filled('kanal')) {
