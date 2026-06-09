@@ -450,10 +450,33 @@ class NewsDaerahController extends Controller
 
     public function export(Request $request)
     {
-
-        // Kita passing query yang sudah ter-filter ke dalam class Export
         $query = $this->buildQuery($request);
+        $fileName = 'laporan-news-daerah';
+        if ($request->filled('kanal')) {
+            $fileName .= '-' . Str::slug($request->kanal);
+        }
 
-        return Excel::download(new NewsDaerahExport($query), 'laporan-news-daerah.xlsx');
+        if ($request->filled('status')) {
+            $fileName .= '-' . Str::slug($request->status);
+        }
+
+        if ($request->filled('writer')) {
+
+            $writerName = WriterDaerah::where('id', $request->writer)->value('name'); // Sesuaikan field 'name'
+
+            if ($writerName) {
+                $fileName .= '-' . Str::slug($writerName);
+            } else {
+                $fileName .= '-writer-' . $request->writer;
+            }
+        }
+
+        // 3. Tambahkan format timestamp
+        $fileName .= '-' . now()->format('Ymd-His');
+
+        // 4. Tambahkan ekstensi file
+        $fileName .= '.xlsx';
+
+        return Excel::download(new NewsDaerahExport($query), $fileName);
     }
 }

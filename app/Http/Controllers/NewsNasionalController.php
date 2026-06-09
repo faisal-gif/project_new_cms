@@ -392,12 +392,33 @@ class NewsNasionalController extends Controller
 
     public function export(Request $request)
     {
-
-        // Kita passing query yang sudah ter-filter ke dalam class Export
         $query = $this->buildQuery($request);
 
+        $fileName = 'laporan-news-nasional';
 
+        if ($request->filled('kanal')) {
+            $fileName .= '-' . Str::slug($request->kanal);
+        }
 
-        return Excel::download(new NewsNasionalExport($query), 'laporan-news-nasional.xlsx');
+        if ($request->filled('status')) {
+            $fileName .= '-' . Str::slug($request->status);
+        }
+
+        if ($request->filled('writer')) {
+            $writerName = WriterNasional::where('id', $request->writer)->value('name'); // Sesuaikan field 'name'
+
+            if ($writerName) {
+                $fileName .= '-' . Str::slug($writerName);
+            } else {
+                // Fallback jika ambil nama gagal, pakai ID-nya
+                $fileName .= '-writer-' . $request->writer;
+            }
+        }
+
+        $fileName .= '-' . now()->format('Ymd-His');
+
+        $fileName .= '.xlsx';
+
+        return Excel::download(new NewsNasionalExport($query), $fileName);
     }
 }
