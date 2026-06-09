@@ -15,7 +15,7 @@ import { CaptionsIcon, GlobeIcon, ImagesIcon, InfoIcon, NotebookPenIcon } from '
 import React from 'react'
 import Select from "react-select";
 
-function Edit({ news, writers, editors, networks, kanal, fokus, hasEditor }) {
+function Edit({ news, writers, editors, networks, kanal, fokus, hasEditor, canSelectAllNetwork = false }) {
     // Format datepub untuk input type datetime-local (YYYY-MM-DDThh:mm)
     const formattedDatePub = news.datepub ? new Date(news.datepub).toISOString().slice(0, 16) : '';
 

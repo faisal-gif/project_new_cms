@@ -186,11 +186,12 @@ class NewsDaerahController extends Controller
             'networks' => $networks,
             'writers' => $writers,
             'editors' => $editors,
-            'hasEditor' => $auth->hasRole('editor') ? true : false,
-            'editor_id' => $auth->editor ? $auth->editor->id_daerah : null,
+            'hasEditor' => auth()->user()->hasRole('editor') ? true : false,
+            'editor_id' => auth()->user()->editor ? auth()->user()->editor->id_daerah : null,
             'initialData' => [
                 'datepub' => now()->format('Y-m-d\TH:i'), // Format untuk input type="datetime-local"
             ],
+            'canSelectAllNetwork' => auth()->user()->can('select all networks'),
         ]);
     }
 
@@ -339,6 +340,7 @@ class NewsDaerahController extends Controller
             'fokus'    => $fokus,
             'networks' => $networks,
             'hasEditor' => auth()->user()->hasRole('editor') ? true : false, // Tambahkan flag untuk role editor
+            'canSelectAllNetwork' => auth()->user()->can('select-all-networks'),
         ]);
     }
     /**

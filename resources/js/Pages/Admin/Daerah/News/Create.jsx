@@ -15,7 +15,7 @@ import { CaptionsIcon, GlobeIcon, ImagesIcon, InfoIcon, NotebookPenIcon } from '
 import React from 'react'
 import Select from "react-select";
 
-function Create({ writers, editors, networks, kanal, fokus, hasEditor, editor_id, initialData }) {
+function Create({ writers, editors, networks, kanal, fokus, hasEditor, editor_id, initialData, canSelectAllNetwork = false }) {
 
     const { data, setData, post, processing, errors, reset } = useForm({
         status: '',
@@ -369,13 +369,15 @@ function Create({ writers, editors, networks, kanal, fokus, hasEditor, editor_id
                                             />
 
                                             <div className="flex gap-2 mb-2">
-                                                <button
-                                                    type="button"
-                                                    className="btn btn-xs btn-outline"
-                                                    onClick={() => setData('network', networks.map(n => n.value))}
-                                                >
-                                                    Select All
-                                                </button>
+                                                {canSelectAllNetwork && (
+                                                    <button
+                                                        type="button"
+                                                        className="btn btn-xs btn-outline"
+                                                        onClick={() => setData('network', networks.map(n => n.value))}
+                                                    >
+                                                        Select All
+                                                    </button>
+                                                )}
 
                                                 <button
                                                     type="button"
@@ -391,12 +393,19 @@ function Create({ writers, editors, networks, kanal, fokus, hasEditor, editor_id
                                                 options={networks}
                                                 placeholder="Network"
                                                 isMulti
-                                                onChange={(vals) =>
+                                                isOptionDisabled={(option) => {
+                                                    if (canSelectAllNetwork) return false;
+                                                    return data.network?.length >= 3 && !data.network?.includes(option.value);
+                                                }}
+                                                onChange={(vals) => {
+                                                    if (!canSelectAllNetwork && vals && vals.length > 3) {
+                                                        return;
+                                                    }
                                                     setData(
                                                         'network',
                                                         vals ? vals.map(v => v.value) : []
                                                     )
-                                                }
+                                                }}
                                             />
 
                                             <InputError message={errors.network} className="mt-2" />

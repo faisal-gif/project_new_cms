@@ -300,7 +300,8 @@ class NewsController extends Controller implements HasMiddleware
                 'hasEditor' => $user->hasRole('editor') ? true : false,
                 'editor_id' => $user->editor ? $user->editor->id_daerah : null, // Set editor_id default ke editor yang sedang login, jika ada
                 'datepub' => now()->format('Y-m-d\TH:i'), // Format untuk input type="datetime-local"
-            ]
+            ],
+            'canSelectAllNetwork' => $user->can('select all networks'),
         ]);
     }
 
