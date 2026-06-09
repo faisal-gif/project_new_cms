@@ -26,6 +26,7 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ReportNewsDaerahController;
 use App\Http\Controllers\ReportNewsNasionalController;
 use App\Http\Controllers\RoleController;
+use App\Http\Controllers\SsoController;
 use App\Http\Controllers\TextEditorController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\WriterController;
@@ -38,7 +39,7 @@ use Inertia\Inertia;
 Route::get('/', function () {
     return redirect()->route('dashboard');
 });
-
+Route::get('/sso-login', [SsoController::class, 'handleSso'])->name('sso.login');
 Route::get('/dashboard', [DashboardController::class, 'index'])->middleware(['auth', 'verified'])->name('dashboard');
 
 Route::middleware('auth')->group(function () {
