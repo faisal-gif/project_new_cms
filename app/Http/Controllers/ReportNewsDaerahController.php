@@ -14,6 +14,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 use Maatwebsite\Excel\Facades\Excel;
+use Illuminate\Support\Str;
 
 class ReportNewsDaerahController extends Controller
 {
@@ -97,55 +98,56 @@ class ReportNewsDaerahController extends Controller
         ]);
     }
 
-public function export(Request $request)
-{
-    // 1. Validasi Input
-    $filters = $request->validate([
-        'start_date' => 'required|date',
-        'end_date'   => 'required|date|after_or_equal:start_date',
-        'kanal'      => 'nullable',
-        'writer'     => 'nullable',
-    ]);
+    public function export(Request $request)
+    {
+        // 1. Validasi Input
+        $filters = $request->validate([
+            'start_date' => 'required|date',
+            'end_date'   => 'required|date|after_or_equal:start_date',
+            'kanal'      => 'nullable',
+            'writer'     => 'nullable',
+        ]);
 
-    // 2. Buat Array untuk merangkai nama file
-    $nameParts = ['Laporan-Daerah'];
+        // 2. Buat Array untuk merangkai nama file
+        $nameParts = ['Laporan-Daerah'];
 
-    // Tambahkan rentang tanggal (karena required, datanya pasti ada)
-    // Diubah formatnya dari 2026-06-01 menjadi 20260601 agar nama file tidak terlalu panjang
-    $nameParts[] = date('Ymd', strtotime($filters['start_date'])) . '-sd-' . date('Ymd', strtotime($filters['end_date']));
+        // Tambahkan rentang tanggal (karena required, datanya pasti ada)
+        // Diubah formatnya dari 2026-06-01 menjadi 20260601 agar nama file tidak terlalu panjang
+        $nameParts[] = date('Ymd', strtotime($filters['start_date'])) . '-sd-' . date('Ymd', strtotime($filters['end_date']));
 
-    // Cek dan tambahkan filter Kanal
-    if (!empty($filters['kanal'])) {
-        $nameParts[] = 'kanal-' . Str::slug($filters['kanal']);
-    }
-
-    // Cek dan tambahkan filter Writer (Ambil nama asli dari DB jika yang dikirim ID)
-    if (!empty($filters['writer'])) {
-        $writerName = WriterDaerah::where('id', $filters['writer'])->value('name');
-        
-        if ($writerName) {
-            $nameParts[] = Str::slug($writerName);
-        } else {
-            $nameParts[] = 'writer-' . $filters['writer'];
+        // Cek dan tambahkan filter Kanal
+        if (!empty($filters['kanal'])) {
+            $nameParts[] = 'kanal-' . Str::slug($filters['kanal']);
         }
-    }
 
-    // Gabungkan array $nameParts menggunakan tanda strip (-)
-    // Lalu tambahkan Auth ID dan time() di paling belakang agar file tetap unik dan tidak tertimpa
-    $fileName = implode('-', $nameParts) . '_' . Auth::id() . '_' . time() . '.xlsx';
-    
-    $userId = Auth::id();
+        // Cek dan tambahkan filter Writer (Ambil nama asli dari DB jika yang dikirim ID)
+        if (!empty($filters['writer'])) {
+            $writerName = WriterDaerah::where('id', $filters['writer'])->value('name');
 
-    // 3. Operkan $filters (tipe data Array murni) ke dalam NewsDaerahExport
-    Excel::queue(new NewsDaerahExport($filters), 'exports/' . $fileName, 'public')->chain([
-        function () use ($userId, $fileName) {
-            $user = User::find($userId);
-
-            if ($user) {
-                $user->notify(new ExportReadyNotification($fileName));
+            if ($writerName) {
+                $nameParts[] = Str::slug($writerName);
+            } else {
+                $nameParts[] = 'writer-' . $filters['writer'];
             }
         }
-    ]);
 
-    return back()->with('success', 'Laporan Berita Daerah sedang diproses di belakang layar. Silakan cek lonceng notifikasi dalam beberapa saat.');
+        // Gabungkan array $nameParts menggunakan tanda strip (-)
+        // Lalu tambahkan Auth ID dan time() di paling belakang agar file tetap unik dan tidak tertimpa
+        $fileName = implode('-', $nameParts) . '_' . Auth::id() . '_' . time() . '.xlsx';
+
+        $userId = Auth::id();
+
+        // 3. Operkan $filters (tipe data Array murni) ke dalam NewsDaerahExport
+        Excel::queue(new NewsDaerahExport($filters), 'exports/' . $fileName, 'public')->chain([
+            function () use ($userId, $fileName) {
+                $user = User::find($userId);
+
+                if ($user) {
+                    $user->notify(new ExportReadyNotification($fileName));
+                }
+            }
+        ]);
+
+        return back()->with('success', 'Laporan Berita Daerah sedang diproses di belakang layar. Silakan cek lonceng notifikasi dalam beberapa saat.');
+    }
 }
