@@ -199,9 +199,9 @@ function Index({ writers, filters }) {
                           <td>{writer.network?.name}</td>
                           <td>
                             {writer.redirect_new_web ? (
-                              <span className="badge badge-success">Ya</span>
+                              <Badge className="badge badge-success">Ya</Badge>
                             ) : (
-                              <span className="badge badge-error">Tidak</span>
+                              <Badge className="badge badge-error">Tidak</Badge>
                             )}
                           </td>
                           <td>
