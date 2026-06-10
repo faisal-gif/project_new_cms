@@ -184,6 +184,7 @@ function Index({ writers, filters }) {
                         <th>Email</th>
                         <th>Masa Berlaku</th>
                         <th>Wilayah</th>
+                        <th>Redirect New Website</th>
                         <th>Status</th>
                         <th className="text-right">Action</th>
                       </tr>
@@ -196,6 +197,13 @@ function Index({ writers, filters }) {
                           <td>{writer.email}</td>
                           <td>{formatDate(writer.date_exp)}</td>
                           <td>{writer.network?.name}</td>
+                          <td>
+                            {writer.redirect_new_web ? (
+                              <span className="badge badge-success">Ya</span>
+                            ) : (
+                              <span className="badge badge-error">Tidak</span>
+                            )}
+                          </td>
                           <td>
                             {getStatusBadge(writer.status)}
                           </td>
