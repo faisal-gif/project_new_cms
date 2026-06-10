@@ -270,7 +270,7 @@ class NewsController extends Controller implements HasMiddleware
     public function importDaerah($is_code)
     {
 
-        $news = News::with(['writer', 'tags'])->where('is_code', $is_code)->firstOrFail();
+        $news = News::with(['writer','writer.daerah.network:name', 'tags'])->where('is_code', $is_code)->firstOrFail();
         $user = auth()->user();
         // 2. Ambil data pendukung dari DB Daerah untuk dropdown
         $writers = WriterDaerah::select('id as value', 'name as label')->where('status', '1')->get();
@@ -300,6 +300,7 @@ class NewsController extends Controller implements HasMiddleware
                 'hasEditor' => $user->hasRole('editor') ? true : false,
                 'editor_id' => $user->editor ? $user->editor->id_daerah : null, // Set editor_id default ke editor yang sedang login, jika ada
                 'datepub' => now()->format('Y-m-d\TH:i'), // Format untuk input type="datetime-local"
+                'locus' => $news->writer->daerah->network->name ?? '', 
             ],
             'canSelectAllNetwork' => $user->can('select all networks'),
         ]);

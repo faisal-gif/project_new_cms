@@ -15,6 +15,9 @@ import Select from "react-select";
 
 function ImportDaerah({ writers, editors, networks, kanal, fokus, initialData, canSelectAllNetwork = false }) {
 
+    console.log(initialData);
+    
+
     const { data, setData, post, processing, errors, reset } = useForm({
         is_code: initialData?.is_code || '',
         status: '1',
