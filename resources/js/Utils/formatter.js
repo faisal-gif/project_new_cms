@@ -68,3 +68,15 @@ export function formatDateTime(date) {
 
     return `${YYYY}-${MM}-${DD} ${hh}:${mm}:${ss}`;
 }
+
+// format tanggal : 24 November 2025, 10:30
+export function formatDateTimeLong(date) {
+    if (!date) return "-";
+    return new Intl.DateTimeFormat("id-ID", {
+        day: "2-digit",
+        month: "long",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+    }).format(new Date(date));
+}

@@ -9,7 +9,7 @@ import InputWithPrefix from '@/Components/InputWithPrefix';
 import PaginationDaisy from '@/Components/PaginationDaisy';
 import { Badge } from '@/Components/ui/badge';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { formatDateTime } from '@/Utils/formatter';
+import { formatDateTime, formatDateTimeLong } from '@/Utils/formatter';
 
 /* ==============================================================================
    HELPER FUNCTIONS 
@@ -64,6 +64,8 @@ const NewsMobileCard = ({ item, hasPermission }) => (
             {/* Meta Info */}
             <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-base-content/70 mb-4">
                 <span className="font-semibold text-primary">{item.writer?.name || 'Unknown'}</span>
+                <span>•</span>
+                <span>{formatDateTimeLong(item.created_at)}</span>
             </div>
 
             {/* Integration Status */}
@@ -82,7 +84,7 @@ const NewsMobileCard = ({ item, hasPermission }) => (
                                         {item.news_daerah.kanal?.name || 'Daerah'}
                                     </span>
                                     <span className="text-[10px] text-base-content/70">
-                                        {formatDateTime(item.news_daerah.datepub)}
+                                        {formatDateTimeLong(item.news_daerah.datepub)}
                                     </span>
                                 </div>
                                 <Link href={route('admin.daerah.news.edit', item.news_daerah.id)} className="btn btn-xs btn-warning btn-outline">
@@ -113,7 +115,7 @@ const NewsMobileCard = ({ item, hasPermission }) => (
                                         {item.news_nasional.kanal?.catnews_title || 'Nasional'}
                                     </span>
                                     <span className="text-[10px] text-base-content/70">
-                                        {formatDateTime(item.news_nasional.news_datepub)}
+                                        {formatDateTimeLong(item.news_nasional.news_datepub)}
                                     </span>
                                 </div>
                                 <Link href={route('admin.nasional.news.edit', item.news_nasional.news_id)} className="btn btn-xs btn-warning btn-outline">
@@ -167,7 +169,7 @@ const NewsDesktopRow = ({ item, hasPermission }) => (
                             {item.news_daerah.title}
                         </span>
                         <span className="text-[10px] text-base-content/70">
-                            {formatDateTime(item.news_daerah.datepub)} {/* Tanggal publish daerah */}
+                            {formatDateTimeLong(item.news_daerah.datepub)} {/* Tanggal publish daerah */}
                         </span>
                         <div className="flex items-center gap-1">
                             <span className="badge badge-xs badge-ghost italic">{item.news_daerah.kanal?.name}</span>
@@ -197,7 +199,7 @@ const NewsDesktopRow = ({ item, hasPermission }) => (
                             {item.news_nasional.news_title || '-'}
                         </span>
                         <span className="text-[10px] text-base-content/70">
-                            {formatDateTime(item.news_nasional.news_datepub)} {/* Tanggal publish nasional */}
+                            {formatDateTimeLong(item.news_nasional.news_datepub)} {/* Tanggal publish nasional */}
                         </span>
                         <div className="flex items-center gap-1">
                             <span className="badge badge-xs badge-ghost italic">{item.news_nasional.kanal?.catnews_title || 'Nasional'}</span>
