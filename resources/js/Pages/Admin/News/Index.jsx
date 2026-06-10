@@ -152,6 +152,9 @@ const NewsDesktopRow = ({ item, hasPermission }) => (
         <td>{item.writer?.name || 'Unknown'}</td>
         <td>
             <p className="text-xs font-medium leading-snug whitespace-normal break-words" title={item.title}>{item.title}</p>
+            <p className="text-xs text-base-content/70">
+                {formatDateTimeLong(item.created_at)}
+            </p>
         </td>
 
         {/* Kolom Daerah */}
@@ -350,7 +353,7 @@ export default function Index({ news, writers, kanals, filters }) {
                                     <tr>
                                         <th>#</th>
                                         <th>Penulis</th>
-                                        <th className="w-1/3">Judul</th>
+                                        <th className="w-1/3">Judul & Tanggal Masuk</th>
                                         {hasPermission('import daerah news master') && <th>Daerah</th>}
                                         {hasPermission('import nasional news master') && <th>Nasional</th>}
                                         <th className="text-center">Status Distribusi</th>
