@@ -81,7 +81,6 @@ function Edit({ news, writers, editors, kanal, fokus, hasEditor }) {
                                                     { label: "Pending", value: 0, color: "secondary" },
                                                     { label: "Publish", value: 1, color: "success" },
                                                     { label: "Review", value: 2, color: "warning" },
-                                                    { label: "On Pro", value: 3, color: "error" },
                                                 ]}
                                             />
                                             <InputError message={errors.status} className="mt-2" />

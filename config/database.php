@@ -85,6 +85,17 @@ return [
             'collation' => env('DB_COLLATION', 'utf8mb4_unicode_ci'),
         ],
 
+        'mysql_berbayar' => [
+            'driver' => 'mysql',
+            'host' => env('DB_HOST_BERBAYAR'),
+            'port' => env('DB_PORT_BERBAYAR', '3306'),
+            'database' => env('DB_DATABASE_BERBAYAR'),
+            'username' => env('DB_USERNAME_BERBAYAR'),
+            'password' => env('DB_PASSWORD_BERBAYAR'),
+            'charset' => env('DB_CHARSET', 'utf8mb4'),
+            'collation' => env('DB_COLLATION', 'utf8mb4_unicode_ci'),
+        ],
+
 
 
         'mariadb' => [

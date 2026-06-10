@@ -91,7 +91,6 @@ function Create({ writers, editors, kanal, fokus, hasEditor, editor_id, initialD
                                                 options={[
                                                     { label: "Pending", value: 0, color: "secondary" },
                                                     { label: "Review", value: 2, color: "warning" },
-                                                    { label: "On Pro", value: 3, color: "error" },
                                                     { label: "Publish", value: 1, color: "success" },
                                                 ]}
                                             />
