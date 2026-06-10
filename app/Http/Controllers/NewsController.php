@@ -270,7 +270,7 @@ class NewsController extends Controller implements HasMiddleware
     public function importDaerah($is_code)
     {
 
-        $news = News::with(['writer:id,name','writer.daerah.network:id,name', 'tags'])->where('is_code', $is_code)->firstOrFail();
+        $news = News::with(['writer','writer.daerah.network:id,name', 'tags'])->where('is_code', $is_code)->firstOrFail();
        
         $user = auth()->user();
         // 2. Ambil data pendukung dari DB Daerah untuk dropdown
