@@ -24,14 +24,17 @@ class WriterRequest extends FormRequest
     {
         // Mengambil instance model Writer dari Route parameters jika ini adalah proses Update (PUT/PATCH).
         // Asumsi nama parameter di route Anda adalah 'writer', cth: Route::put('/writers/{writer}', ...)
-        $writer = $this->route('writers');
-        $writerId = $writer ? $writer->id : null;
+        $writer = $this->route('writer');
+        $writerId = is_object($writer) ? $writer->id : $writer;
 
         // Aturan dasar yang berlaku untuk Create dan Update
         $rules = [
             'name'        => ['required', 'string', 'max:255'],
             'email'       => [
-                'required', 'string', 'email', 'max:255',
+                'required',
+                'string',
+                'email',
+                'max:255',
                 Rule::unique('writers', 'email')->ignore($writerId)
             ],
             'no_whatsapp' => ['required', 'string', 'max:20'],
@@ -41,13 +44,13 @@ class WriterRequest extends FormRequest
 
             // Validasi krusial untuk fitur pilihan opsional (Cross-DB & Unique Ignore)
             'id_nasional' => [
-                'nullable', 
-                'exists:mysql_nasional.journalist,id', 
+                'nullable',
+                'exists:mysql_nasional.journalist,id',
                 Rule::unique('writers', 'id_nasional')->ignore($writerId)
             ],
             'id_daerah'   => [
-                'nullable', 
-                'exists:mysql_daerah.writers,id', 
+                'nullable',
+                'exists:mysql_daerah.writers,id',
                 Rule::unique('writers', 'id_daerah')->ignore($writerId)
             ],
         ];
