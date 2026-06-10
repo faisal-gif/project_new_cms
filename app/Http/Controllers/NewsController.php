@@ -271,7 +271,7 @@ class NewsController extends Controller implements HasMiddleware
     {
 
         $news = News::with(['writer','writer.daerah.network', 'tags'])->where('is_code', $is_code)->firstOrFail();
-        dd($news);
+       
         $user = auth()->user();
         // 2. Ambil data pendukung dari DB Daerah untuk dropdown
         $writers = WriterDaerah::select('id as value', 'name as label')->where('status', '1')->get();
