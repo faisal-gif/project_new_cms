@@ -200,53 +200,49 @@ class NewsDaerahController extends Controller
      */
     public function store(NewsDaerahFormRequest $request)
     {
-        // Gunakan koneksi mysql_daerah untuk transaksi
+        $applyWatermark = $request->boolean('image_watermark') ? '1' : '0';
+
+        // 1. Proses Upload image_thumbnail ke CDN (DI LUAR DB TRANSACTION)
+        // Menghindari penguncian (locking) row DB saat menunggu respons HTTP CDN
+        $thumbnailUrl = null;
+        if ($request->hasFile('image_thumbnail')) {
+            try {
+                $file = $request->file('image_thumbnail');
+                $nameThumbnail = Str::slug(Str::limit($request->title, 100, '')) . '-thumbnail';
+                $thumbnailUrl = $this->cdnService->uploadImage($file, $nameThumbnail, 3, 'convert', $applyWatermark) ?? null;
+            } catch (\Exception $e) {
+                return back()->withInput()->withErrors(['error' => 'Gagal mengunggah gambar ke CDN: ' . $e->getMessage()]);
+            }
+        }
+
+        // Gunakan koneksi mysql_daerah untuk transaksi database yang cepat
         DB::connection('mysql_daerah')->beginTransaction();
 
         try {
-            $applyWatermark = $request->boolean('image_watermark') ? '1' : '0';
+            $content = $request->is_content;
+            $syncData = []; // Menggunakan array asosiatif untuk menyimpan data pivot dengan urutan
+            $tagNames = [];
 
-            // 1. Proses Upload image_thumbnail ke CDN
-            $thumbnailUrl = null;
-
-            // Pastikan input dari frontend (React) bernama 'image_thumbnail'
-            if ($request->hasFile('image_thumbnail')) {
-                $file = $request->file('image_thumbnail');
-
-                // Pembatasan panjang nama file agar tidak ditolak CDN (Error 422)
-                $nameThumbnail = Str::slug(Str::limit($request->title, 100, '')) . '-thumbnail';
-
-                // Ambil URL dari response JSON CDN
-                $thumbnailUrl = $this->cdnService->uploadImage($file, $nameThumbnail, 3, 'convert', $applyWatermark) ?? null;
-            }
-
-            // 2. Inisialisasi Konten dan Tag
-            $content = $request->is_content; // Mengambil dari state React 'is_content'
-            $tagIds = [];
-            $tagNames = []; // Digunakan untuk menyimpan string nama tag di DB
-
-            // Proses Auto-Link Tag ke dalam Konten
+            // 2. Proses Auto-Link Tag ke dalam Konten
             if ($request->has('tag') && is_array($request->tag)) {
-                foreach ($request->tag as $tagName) {
+                foreach ($request->tag as $index => $tagName) {
                     $cleanTagName = strtolower(trim($tagName));
-
-                    // Simpan nama tag bersih untuk kolom 'tag' di NewsDaerah
                     $tagNames[] = $cleanTagName;
 
                     // Simpan atau ambil tag dari database daerah
                     $tag = TagsDaerah::firstOrCreate([
                         'name' => $cleanTagName
                     ]);
-                    $tagIds[] = $tag->id;
+
+                    // Simpan ID tag beserta urutan indeks input dari frontend ke array syncData
+                    $syncData[$tag->id] = ['sort_order' => $index];
 
                     // REGEX: Memastikan tidak merusak HTML bawaan konten
                     $pattern = '/(?!(?:[^<]+>|[^>]+<\/a>))\b(' . preg_quote($tag->name, '/') . ')\b/iu';
 
-                    // Route untuk tag (Sesuaikan URL jika portal daerah memiliki format slug tersendiri)
                     $tagSlug = Str::slug($tag->name);
                     $tagUrl = 'https://timesindonesia.co.id/tag/' . $tagSlug;
 
-                    // Template HTML Anchor
                     $replacement = '<a href="' . $tagUrl . '" class="text-blue-600 hover:underline font-semibold" title="Baca lebih lanjut tentang $1">$1</a>';
 
                     // LIMIT: 1 -> Hanya mengubah kata PERTAMA yang ditemukan di konten
@@ -263,7 +259,7 @@ class NewsDaerahController extends Controller
                 'fokus_id'     => $request->focus,
                 'title'        => $request->title,
                 'description'  => $request->description,
-                'content'      => $content, // Menggunakan konten yang sudah terinjeksi tautan Tag
+                'content'      => $content,
                 'image'        => $thumbnailUrl,
                 'caption'      => $request->image_caption,
                 'status'       => $request->status,
@@ -273,13 +269,12 @@ class NewsDaerahController extends Controller
                 'is_editorial' => $request->is_editorial ? 1 : 0,
                 'is_adv'       => $request->is_adv ? 1 : 0,
                 'pin'          => $request->pin ? 1 : 0,
-                'tag'          => !empty($tagNames) ? implode(',', $tagNames) : null, // Menggunakan array tagNames yang sudah dibersihkan
+                'tag'          => !empty($tagNames) ? implode(',', $tagNames) : null,
             ]);
 
-            // 4. Simpan Relasi Tags (Many-to-Many)
-            if (!empty($tagIds)) {
-                // Pastikan method relasinya adalah tags() di model NewsDaerah
-                $news->tags()->sync($tagIds);
+            // 4. Simpan Relasi Tags (Many-to-Many) dengan urutan terpelihara
+            if (!empty($syncData)) {
+                $news->tags()->sync($syncData);
             }
 
             // 5. Simpan Networks (Multiple Select)
@@ -292,8 +287,6 @@ class NewsDaerahController extends Controller
             return redirect()->route('admin.daerah.news.index')->with('success', 'Berita Daerah berhasil diterbitkan!');
         } catch (\Exception $e) {
             DB::connection('mysql_daerah')->rollBack();
-
-            // Catat error di Log untuk keperluan audit backend
             Log::error('Store NewsDaerah Error: ' . $e->getMessage());
 
             return back()->withInput()->withErrors(['error' => 'Gagal simpan: ' . $e->getMessage()]);
@@ -348,41 +341,45 @@ class NewsDaerahController extends Controller
      */
     public function update(NewsDaerahFormRequest $request, $id)
     {
+        // Cari data lama di luar transaksi DB untuk mendapatkan path gambar lama
+        $news = NewsDaerah::findOrFail($id);
+        $applyWatermark = $request->boolean('image_watermark') ? '1' : '0';
+
+        // Default gunakan URL lama
+        $thumbnailUrl = $news->image;
+
+        // 1. Proses Upload image_thumbnail (DI LUAR DB TRANSACTION)
+        if ($request->hasFile('image_thumbnail')) {
+            try {
+                $file = $request->file('image_thumbnail');
+                $nameThumbnail = Str::slug(Str::limit($request->title, 100, '')) . '-thumbnail';
+                $thumbnailUrl = $this->cdnService->uploadImage($file, $nameThumbnail, 1, 'convert', $applyWatermark) ?? null;
+            } catch (\Exception $e) {
+                return back()->withInput()->withErrors(['error' => 'Gagal mengunggah gambar baru ke CDN: ' . $e->getMessage()]);
+            }
+        }
+
+        // Mulai transaksi database daerah
         DB::connection('mysql_daerah')->beginTransaction();
 
         try {
-            $news = NewsDaerah::findOrFail($id);
-            $applyWatermark = $request->boolean('image_watermark') ? '1' : '0';
-
-            // Default gunakan URL lama
-            $thumbnailUrl = $news->image;
-
-            // Proses Upload image_thumbnail HANYA jika ada file baru yang diunggah
-            if ($request->hasFile('image_thumbnail')) {
-                $file = $request->file('image_thumbnail');
-                $nameThumbnail = Str::slug(Str::limit($request->title, 100, '')) . '-thumbnail';
-                // Ambil URL dari response JSON CDN
-                $thumbnailUrl = $this->cdnService->uploadImage($file, $nameThumbnail, 1, 'convert', $applyWatermark) ?? null;
-            }
-
-            // Inisialisasi Konten dan Tag
             $content = $request->is_content;
-            $tagIds = [];
+            $syncData = [];
             $tagNames = [];
 
-            // Proses Auto-Link Tag ke dalam Konten (Aman untuk Update berkat Regex)
+            // 2. Proses Auto-Link Tag ke dalam Konten
             if ($request->has('tag') && is_array($request->tag)) {
-                foreach ($request->tag as $tagName) {
+                foreach ($request->tag as $index => $tagName) {
                     $cleanTagName = strtolower(trim($tagName));
                     $tagNames[] = $cleanTagName;
 
-                    // Simpan atau ambil tag dari database daerah
                     $tag = TagsDaerah::firstOrCreate([
                         'name' => $cleanTagName
                     ]);
-                    $tagIds[] = $tag->id;
 
-                    // REGEX: Mengabaikan teks yang sudah menjadi link <a> sebelumnya
+                    // Definisikan struktur pivot sort_order untuk update
+                    $syncData[$tag->id] = ['sort_order' => $index];
+
                     $pattern = '/(?!(?:[^<]+>|[^>]+<\/a>))\b(' . preg_quote($tag->name, '/') . ')\b/iu';
 
                     $tagSlug = Str::slug($tag->name);
@@ -390,12 +387,11 @@ class NewsDaerahController extends Controller
 
                     $replacement = '<a href="' . $tagUrl . '" class="text-blue-600 hover:underline font-semibold" title="Baca lebih lanjut tentang $1">$1</a>';
 
-                    // LIMIT 1: Hanya mengubah 1 kata pertama yang belum memiliki link
                     $content = preg_replace($pattern, $replacement, $content, 1);
                 }
             }
 
-            // 1. Update tabel News
+            // 3. Update tabel News Daerah
             $news->update([
                 'writer_id'    => $request->writer,
                 'editor_id'    => $request->editor,
@@ -403,7 +399,7 @@ class NewsDaerahController extends Controller
                 'fokus_id'     => $request->focus,
                 'title'        => $request->title,
                 'description'  => $request->description,
-                'content'      => $content, // Menggunakan konten hasil Regex
+                'content'      => $content,
                 'image'        => $thumbnailUrl,
                 'caption'      => $request->image_caption,
                 'status'       => $request->status,
@@ -416,11 +412,10 @@ class NewsDaerahController extends Controller
                 'tag'          => !empty($tagNames) ? implode(',', $tagNames) : null,
             ]);
 
-            // 2. Sync Tags (Many-to-Many)
-            // Cukup gunakan $tagIds, array kosong otomatis menghapus relasi jika user hapus semua tag di FE
-            $news->tags()->sync($tagIds);
+            // 4. Sync urutan Tags ke tabel pivot Daerah
+            $news->tags()->sync($syncData);
 
-            // 3. Sync Networks (Multiple Select)
+            // 5. Sync Networks (Multiple Select)
             if ($request->has('network') && is_array($request->network)) {
                 $news->networks()->sync($request->network);
             } else {
@@ -432,8 +427,6 @@ class NewsDaerahController extends Controller
             return redirect()->route('admin.daerah.news.index')->with('success', 'Berita Daerah berhasil diperbarui!');
         } catch (\Exception $e) {
             DB::connection('mysql_daerah')->rollBack();
-
-            // Log error untuk audit
             Log::error('Update NewsDaerah Error: ' . $e->getMessage());
 
             return back()->withInput()->withErrors(['error' => 'Gagal update: ' . $e->getMessage()]);
@@ -450,7 +443,7 @@ class NewsDaerahController extends Controller
 
     public function export(Request $request)
     {
-      
+
         $query = $this->buildQuery($request);
         $fileName = 'laporan-news-daerah';
         if ($request->filled('kanal')) {
