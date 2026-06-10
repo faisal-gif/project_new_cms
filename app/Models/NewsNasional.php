@@ -74,7 +74,8 @@ class NewsNasional extends Model
             'tag_id',
             'news_id',
             'id'
-        );
+        )->withPivot('sort_order')
+            ->orderByPivot('sort_order', 'asc');
     }
 
     public function getActivitylogOptions(): LogOptions

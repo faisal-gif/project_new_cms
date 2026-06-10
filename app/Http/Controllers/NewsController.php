@@ -177,29 +177,38 @@ class NewsController extends Controller implements HasMiddleware
      */
     public function store(NewsFormRequest $request)
     {
-        // Memulai Database Transaction
+        $applyWatermark = $request->boolean('image_watermark') ? '1' : '0';
+
+        // 1. Proses Upload image_thumbnail ke CDN (DI LUAR DB TRANSACTION)
+        // Kita tidak boleh menahan koneksi DB saat menunggu respon jaringan dari CDN.
+        $thumbnailUrl = null;
+        if ($request->hasFile('image_thumbnail')) {
+            try {
+                $file = $request->file('image_thumbnail');
+                $nameThumbnail = Str::slug(Str::limit($request->judul, 100, '')) . '-thumbnail';
+
+                // Ambil URL dari response JSON CDN
+                $thumbnailUrl = $this->cdnService->uploadImage($file, $nameThumbnail, 3, 'convert', $applyWatermark) ?? null;
+            } catch (\Exception $e) {
+                // Jika upload gagal, kembalikan response sebelum menyentuh database sama sekali
+                return back()->withInput()->withErrors(['error' => 'Gagal mengunggah gambar ke CDN: ' . $e->getMessage()]);
+            }
+        }
+
+        // Memulai Database Transaction HANYA untuk operasi database yang cepat (I/O memory/disk)
         DB::beginTransaction();
 
         try {
-            $applyWatermark = $request->boolean('image_watermark') ? '1' : '0';
-
-            // 1. Proses Upload image_thumbnail ke CDN
-            $thumbnailUrl = null;
-
-            // Pastikan input dari frontend (React) bernama 'image_thumbnail'
-            if ($request->hasFile('image_thumbnail')) {
-                $file = $request->file('image_thumbnail');
-                $nameThumbnail = Str::slug(Str::limit($request->judul, 100, '')) . '-thumbnail';
-                // Ambil URL dari response JSON CDN
-                $thumbnailUrl = $this->cdnService->uploadImage($file, $nameThumbnail, 3, 'convert', $applyWatermark) ?? null;
-            }
-
             $content = $request->content;
-            $tagIds = [];
+
+            // Ubah penampung array menjadi format sync pivot
+            $syncData = [];
 
             // 2. Proses Auto-Link Tag ke dalam Konten & Koleksi ID Tag
             if ($request->has('tag') && is_array($request->tag)) {
-                foreach ($request->tag as $tagName) {
+
+                // Ambil index ($index) untuk dijadikan acuan urutan
+                foreach ($request->tag as $index => $tagName) {
                     $cleanTagName = strtolower(trim($tagName));
 
                     // Simpan atau ambil tag dari database
@@ -207,21 +216,21 @@ class NewsController extends Controller implements HasMiddleware
                         'name' => $cleanTagName
                     ]);
 
-                    // Simpan ID tag ke array untuk proses sync di bawah nanti
-                    $tagIds[] = $tag->id;
+                    // Simpan ID tag beserta urutan index-nya ke dalam array sync
+                    $syncData[$tag->id] = ['sort_order' => $index];
 
                     // REGEX: Memastikan tidak merusak HTML yang sudah ada
                     $pattern = '/(?!(?:[^<]+>|[^>]+<\/a>))\b(' . preg_quote($tag->name, '/') . ')\b/iu';
 
                     // Route untuk tag (URL statis Times Indonesia)
                     $tagSlug = Str::slug($tag->name);
-                    $tagUrl =  'https://timesindonesia.co.id/tag/' . $tagSlug;
+                    $tagUrl  = 'https://timesindonesia.co.id/tag/' . $tagSlug;
 
                     // Template HTML Anchor
                     $replacement = '<a href="' . $tagUrl . '" class="text-blue-600 hover:underline font-semibold" title="Baca lebih lanjut tentang $1">$1</a>';
 
                     // Limit = 2, maksimal 2 kata pertama yang akan diubah menjadi link
-                    $content = preg_replace($pattern, $replacement, $content, 1);
+                    $content = preg_replace($pattern, $replacement, $content, 2); // Saya set limit sesuai komentar Anda
                 }
             }
 
@@ -231,36 +240,35 @@ class NewsController extends Controller implements HasMiddleware
                 'writer_id'       => $request->writer,
                 'title'           => $request->judul,
                 'description'     => $request->description,
-                'image_thumbnail' => $thumbnailUrl, // Simpan URL thumbnail dari CDN
+                'image_thumbnail' => $thumbnailUrl,
                 'image_caption'   => $request->image_caption,
-                'content'         => $content,      // Konten yang sudah memiliki Link Tag
+                'content'         => $content,
             ]);
 
-            // 4. Proses Sync Tags (DISEDERHANAKAN)
-            // Tidak perlu query firstOrCreate lagi, cukup gunakan $tagIds dari loop di atas
-            if (!empty($tagIds)) {
-                $news->tags()->sync($tagIds);
+            // 4. Proses Sync Tags dengan urutan (Sort Order)
+            if (!empty($syncData)) {
+                $news->tags()->sync($syncData);
             }
 
             // 5. Activity Logging Spatie
             activity('News Master')
-                ->performedOn($news) // Mengikat log ini ke berita yang baru dibuat
-                ->causedBy(auth()->user()) // Dicatat atas nama user yang login
+                ->performedOn($news)
+                ->causedBy(auth()->user())
                 ->withProperties([
                     'attributes' => [
-                        'title'           => $news->title,
-                        'writer_id'       => $news->writer_id,
-                        'tags'            => $request->tag ?? [], // Menyimpan array tag
+                        'title'     => $news->title,
+                        'writer_id' => $news->writer_id,
+                        'tags'      => $request->tag ?? [],
                     ]
                 ])
                 ->log('Membuat berita Master baru');
 
-            // Jika semua sukses, simpan permanen ke database
+            // Jika semua operasi DB sukses, simpan permanen ke database
             DB::commit();
 
             return redirect()->route('admin.news.index')->with('success', 'Berita berhasil disimpan!');
         } catch (\Exception $e) {
-            // Jika ada error (termasuk dari CDN), batalkan insert ke database
+            // Batalkan semua operasi insert/update di database jika ada script yang gagal
             DB::rollBack();
 
             return back()->withInput()->withErrors(['error' => 'Gagal menyimpan berita: ' . $e->getMessage()]);
@@ -270,8 +278,8 @@ class NewsController extends Controller implements HasMiddleware
     public function importDaerah($is_code)
     {
 
-        $news = News::with(['writer','writer.daerah.network:id,name', 'tags'])->where('is_code', $is_code)->firstOrFail();
-       
+        $news = News::with(['writer', 'writer.daerah.network:id,name', 'tags'])->where('is_code', $is_code)->firstOrFail();
+
         $user = auth()->user();
         // 2. Ambil data pendukung dari DB Daerah untuk dropdown
         $writers = WriterDaerah::select('id as value', 'name as label')->where('status', '1')->get();
@@ -301,7 +309,7 @@ class NewsController extends Controller implements HasMiddleware
                 'hasEditor' => $user->hasRole('editor') ? true : false,
                 'editor_id' => $user->editor ? $user->editor->id_daerah : null, // Set editor_id default ke editor yang sedang login, jika ada
                 'datepub' => $news->created_at->format('Y-m-d\TH:i'), // Format untuk input type="datetime-local"
-                'locus' => strtoupper($news->writer->daerah->network->name ?? ''), 
+                'locus' => strtoupper($news->writer->daerah->network->name ?? ''),
             ],
             'canSelectAllNetwork' => $user->can('select all networks'),
         ]);
@@ -391,7 +399,7 @@ class NewsController extends Controller implements HasMiddleware
     public function importNasional($is_code)
     {
         // 1. Coba ambil dari DB Daerah dulu
-        $news = News::with(['writer','writer.daerah.network:id,name', 'tags'])->where('is_code', $is_code)->firstOrFail();
+        $news = News::with(['writer', 'writer.daerah.network:id,name', 'tags'])->where('is_code', $is_code)->firstOrFail();
         $user = auth()->user();
 
         $editors = EditorNasional::select('editor_id as value', 'editor_name as label')->where('status', '1')->get();

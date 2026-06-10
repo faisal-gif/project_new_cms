@@ -70,7 +70,8 @@ class NewsDaerah extends Model
 
     public function tags()
     {
-        return $this->belongsToMany(TagsDaerah::class, 'news_tags', 'news_id', 'tag_id');
+        return $this->belongsToMany(TagsDaerah::class, 'news_tags', 'news_id', 'tag_id')->withPivot('sort_order')
+            ->orderByPivot('sort_order', 'asc');
     }
 
     public function getActivitylogOptions(): LogOptions
