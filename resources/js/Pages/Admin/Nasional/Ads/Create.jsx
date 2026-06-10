@@ -6,7 +6,8 @@ import TextInput from '@/Components/TextInput'
 import InputImage from '@/Components/InputImage'
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout'
 import { Head, useForm } from '@inertiajs/react'
-import React from 'react'
+import React, { useMemo } from 'react'
+import Select from 'react-select'
 
 function Create({ desktopLocations = [], mobileLocations = [] }) {
 
@@ -21,47 +22,50 @@ function Create({ desktopLocations = [], mobileLocations = [] }) {
         
         // --- STATE DESKTOP ---
         d_img: null,
-        d_format: 'banner', // Default format
-        locate_desktop: [], 
+        locate_desktop: '', // Berubah dari [] menjadi string kosong
         
         // --- STATE MOBILE ---
         m_img: null,
-        m_format: 'banner', // Default format
-        locate_mobile: [],  
+        locate_mobile: '',  // Berubah dari [] menjadi string kosong
     });
 
-    // 💡 HELPER: Menentukan dimensi berdasarkan platform dan format yang dipilih
-    const getDimensions = (platform, format) => {
-        if (platform === 'desktop') {
-            return format === 'banner' 
-                ? { width: 728, height: 90, label: 'Banner Horizontal (728x90)' } 
-                : { width: 300, height: 250, label: 'Kotak / Medium Rectangle (300x250)' };
-        } else {
-            return format === 'banner' 
-                ? { width: 320, height: 50, label: 'Mobile Banner (320x50)' } 
-                : { width: 300, height: 250, label: 'Mobile Kotak (300x250)' };
-        }
-    };
+    // 💡 HELPER: Transformasi data dari Database untuk React-Select
+    const desktopOptions = useMemo(() => desktopLocations.map(loc => ({
+        value: loc.id,
+        label: `${loc.name} (${loc.width}x${loc.height})`,
+        width: loc.width,
+        height: loc.height
+    })), [desktopLocations]);
 
-    const handleMultiSelect = (e, fieldName) => {
-        const options = e.target.options;
-        const selectedValues = [];
-        for (let i = 0; i < options.length; i++) {
-            if (options[i].selected) {
-                selectedValues.push(options[i].value);
-            }
-        }
-        setData(fieldName, selectedValues);
-    };
+    const mobileOptions = useMemo(() => mobileLocations.map(loc => ({
+        value: loc.id,
+        label: `${loc.name} (${loc.width}x${loc.height})`,
+        width: loc.width,
+        height: loc.height
+    })), [mobileLocations]);
+
+    // 💡 HELPER: Ambil dimensi secara dinamis dari lokasi yang dipilih
+    const activeDesktopDim = useMemo(() => {
+        // Jika belum ada yang dipilih (state kosong), kembalikan nilai default
+        if (!data.locate_desktop) return { width: 0, height: 0, label: 'Pilih Lokasi Desktop Terlebih Dahulu' };
+        
+        // Cari opsi yang ID-nya sama persis dengan state
+        const selected = desktopOptions.find(opt => opt.value === data.locate_desktop);
+        return selected ? { width: selected.width, height: selected.height, label: `Ukuran Wajib: ${selected.width}x${selected.height}` } : null;
+    }, [data.locate_desktop, desktopOptions]);
+
+    const activeMobileDim = useMemo(() => {
+        if (!data.locate_mobile) return { width: 0, height: 0, label: 'Pilih Lokasi Mobile Terlebih Dahulu' };
+        
+        const selected = mobileOptions.find(opt => opt.value === data.locate_mobile);
+        return selected ? { width: selected.width, height: selected.height, label: `Ukuran Wajib: ${selected.width}x${selected.height}` } : null;
+    }, [data.locate_mobile, mobileOptions]);
+
 
     const submit = (e) => {
         e.preventDefault();
         post(route('admin.nasional.ads.store'));
     };
-
-    // Eksekusi dimensi secara reaktif saat state berubah
-    const desktopDim = getDimensions('desktop', data.d_format);
-    const mobileDim = getDimensions('mobile', data.m_format);
 
     return (
         <AuthenticatedLayout>
@@ -79,6 +83,7 @@ function Create({ desktopLocations = [], mobileLocations = [] }) {
                             {/* --- KARTU INFORMASI DASAR --- */}
                             <Card>
                                 <div className='grid grid-cols-1 lg:grid-cols-6 gap-6'>
+                                    {/* Kolom Input Standard */}
                                     <div className='lg:col-span-3'>
                                         <InputLabel htmlFor="title" value="Judul Iklan" className='mb-2 font-bold' />
                                         <TextInput
@@ -144,46 +149,31 @@ function Create({ desktopLocations = [], mobileLocations = [] }) {
                                     <h2 className="text-xl font-bold mb-4 text-blue-600 border-b pb-2">Platform Desktop</h2>
                                     <div className='space-y-6'>
                                         
-                                        {/* Dropdown Pemilihan Format Dinamis */}
                                         <div className='w-full'>
-                                            <InputSelect
-                                                label="Pilih Format Tampilan Desktop"
-                                                value={data.d_format}
-                                                onChange={(e) => setData('d_format', e.target.value)}
-                                                options={[
-                                                    { label: "Banner Horizontal", value: "banner" },
-                                                    { label: "Kotak (Medium Rectangle)", value: "box" }
-                                                ]}
+                                            <InputLabel value="Cari & Pilih Lokasi Desktop" className='mb-2 font-bold' />
+                                            <Select
+                                                // isMulti dihilangkan
+                                                options={desktopOptions}
+                                                className="basic-single"
+                                                classNamePrefix="select"
+                                                isClearable={true} // Opsional: Tambahkan fitur hapus pilihan (tanda silang)
+                                                placeholder="Ketik untuk mencari lokasi..."
+                                                // Jika 'selected' null (karena dihapus), simpan string kosong
+                                                onChange={(selected) => setData('locate_desktop', selected ? selected.value : '')}
                                             />
+                                            <InputError message={errors.locate_desktop} className="mt-2" />
                                         </div>
 
-                                        {/* Komponen Gambar yang Merespon Pilihan Format */}
+                                        {/* Komponen Gambar */}
                                         <div className='w-full bg-slate-50 p-4 rounded border'>
                                             <InputImage
-                                                label={`Upload ${desktopDim.label}`}
+                                                label={activeDesktopDim.label}
                                                 value={data.d_img}
                                                 onChange={(file) => setData('d_img', file)}
-                                                targetWidth={desktopDim.width}
-                                                targetHeight={desktopDim.height}
+                                                targetWidth={activeDesktopDim.width}
+                                                targetHeight={activeDesktopDim.height}
                                             />
                                             <InputError message={errors.d_img} className="mt-2" />
-                                        </div>
-
-                                        <div className='w-full'>
-                                            <InputLabel htmlFor="locate_desktop" value="Pilih Lokasi Tayang Desktop" className='mb-2 font-bold' />
-                                            <select
-                                                id="locate_desktop" multiple
-                                                className="border-gray-300 focus:border-blue-500 focus:ring-blue-500 rounded-md shadow-sm block w-full"
-                                                value={data.locate_desktop}
-                                                onChange={(e) => handleMultiSelect(e, 'locate_desktop')}
-                                                size="5"
-                                            >
-                                                {desktopLocations.map((loc) => (
-                                                    <option key={loc.id} value={loc.id}>{loc.name}</option>
-                                                ))}
-                                            </select>
-                                            <p className="text-xs text-gray-500 mt-1">Tahan CTRL/CMD untuk memilih banyak.</p>
-                                            <InputError message={errors.locate_desktop} className="mt-2" />
                                         </div>
                                     </div>
                                 </Card>
@@ -193,46 +183,30 @@ function Create({ desktopLocations = [], mobileLocations = [] }) {
                                     <h2 className="text-xl font-bold mb-4 text-green-600 border-b pb-2">Platform Mobile</h2>
                                     <div className='space-y-6'>
                                         
-                                        {/* Dropdown Pemilihan Format Dinamis */}
                                         <div className='w-full'>
-                                            <InputSelect
-                                                label="Pilih Format Tampilan Mobile"
-                                                value={data.m_format}
-                                                onChange={(e) => setData('m_format', e.target.value)}
-                                                options={[
-                                                    { label: "Mobile Banner", value: "banner" },
-                                                    { label: "Kotak (Medium Rectangle)", value: "box" }
-                                                ]}
+                                            <InputLabel value="Cari & Pilih Lokasi Mobile" className='mb-2 font-bold' />
+                                            <Select
+                                                // isMulti dihilangkan
+                                                options={mobileOptions}
+                                                className="basic-single"
+                                                classNamePrefix="select"
+                                                isClearable={true}
+                                                placeholder="Ketik untuk mencari lokasi..."
+                                                onChange={(selected) => setData('locate_mobile', selected ? selected.value : '')}
                                             />
+                                            <InputError message={errors.locate_mobile} className="mt-2" />
                                         </div>
 
-                                        {/* Komponen Gambar yang Merespon Pilihan Format */}
+                                        {/* Komponen Gambar */}
                                         <div className='w-full bg-slate-50 p-4 rounded border'>
                                             <InputImage
-                                                label={`Upload ${mobileDim.label}`}
+                                                label={activeMobileDim.label}
                                                 value={data.m_img}
                                                 onChange={(file) => setData('m_img', file)}
-                                                targetWidth={mobileDim.width}
-                                                targetHeight={mobileDim.height}
+                                                targetWidth={activeMobileDim.width}
+                                                targetHeight={activeMobileDim.height}
                                             />
                                             <InputError message={errors.m_img} className="mt-2" />
-                                        </div>
-
-                                        <div className='w-full'>
-                                            <InputLabel htmlFor="locate_mobile" value="Pilih Lokasi Tayang Mobile" className='mb-2 font-bold' />
-                                            <select
-                                                id="locate_mobile" multiple
-                                                className="border-gray-300 focus:border-green-500 focus:ring-green-500 rounded-md shadow-sm block w-full"
-                                                value={data.locate_mobile}
-                                                onChange={(e) => handleMultiSelect(e, 'locate_mobile')}
-                                                size="5"
-                                            >
-                                                {mobileLocations.map((loc) => (
-                                                    <option key={loc.id} value={loc.id}>{loc.name}</option>
-                                                ))}
-                                            </select>
-                                            <p className="text-xs text-gray-500 mt-1">Tahan CTRL/CMD untuk memilih banyak.</p>
-                                            <InputError message={errors.locate_mobile} className="mt-2" />
                                         </div>
                                     </div>
                                 </Card>
@@ -241,7 +215,7 @@ function Create({ desktopLocations = [], mobileLocations = [] }) {
                             <div className='flex justify-end mt-4'>
                                 <button
                                     type="submit"
-                                    className="btn btn-primary"
+                                    className="btn btn-primary bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-md transition-colors"
                                     disabled={processing}
                                 >
                                     {processing ? 'Menyimpan...' : 'Simpan Iklan'}

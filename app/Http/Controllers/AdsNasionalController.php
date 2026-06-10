@@ -42,8 +42,8 @@ class AdsNasionalController extends Controller
      */
     public function create()
     {
-        $desktopLocations = AdsNasionalLocateMaster::where('type', 'd')->where('is_status', 1)->get();
-        $mobileLocations = AdsNasionalLocateMaster::where('type', 'm')->where('is_status', 1)->get();
+        $desktopLocations = AdsNasionalLocateMaster::where('type', 'd')->where('is_status', 1)->where('is_page','home')->get();
+        $mobileLocations = AdsNasionalLocateMaster::where('type', 'm')->where('is_status', 1)->where('is_page','home')->get();
 
 
         return Inertia::render('Admin/Nasional/Ads/Create', [
