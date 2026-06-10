@@ -317,71 +317,95 @@ class NewsController extends Controller implements HasMiddleware
 
     public function importDaerahStore(NewsDaerahImportFormRequest $request)
     {
-
         // Gunakan koneksi mysql_daerah untuk transaksi
         DB::connection('mysql_daerah')->beginTransaction();
 
-        $isCode = $request->input('is_code');
-        $masterNews = News::where('is_code', $isCode)->firstOrFail();
-        $isExistInNasional = NewsNasional::where('is_code', $isCode)->exists();
-
-        $newStatus = $isExistInNasional ? 2 : 1;
-
-        $masterNews->update([
-            'distribution_status' => $newStatus,
-        ]);
-
         try {
-            // 1. Simpan tabel News (Koneksi Daerah)
-            // Sesuaikan nama field 'cat_id', 'fokus_id' dsb sesuai skema DB daerah kamu
-            $news = NewsDaerah::create([
-                'is_code'     => $request->is_code,
-                'writer_id'   => $request->writer,
-                'editor_id'   => $request->editor,
-                'cat_id'      => $request->kanal, // kanal di form dipetakan ke cat_id
-                'fokus_id'    => $request->focus,
-                'title'       => $request->title,
-                'description' => $request->description,
-                'content'     => $request->is_content, // dari state react 'is_content'
-                'image'       => $request->image_thumbnail, // Simpan URL thumbnail di field 'image'
-                'caption'     => $request->image_caption,
-                'status'      => '1',
-                'locus'       => $request->locus,
-                'datepub'     => $request->datepub ?? now(),
-                'is_headline' => $request->is_headline ? 1 : 0,
-                'is_editorial' => $request->is_editorial ? 1 : 0,
-                'is_adv'      => $request->is_adv ? 1 : 0,
-                'pin'         => $request->pin ? 1 : 0,
-                'tag'        => implode(',', $request->tag ?? []), // Simpan tag sebagai string, nanti bisa diubah ke relasi many-to-many jika diperlukan
+            $isCode = $request->input('is_code');
+            $masterNews = News::where('is_code', $isCode)->firstOrFail();
+            $isExistInNasional = NewsNasional::where('is_code', $isCode)->exists();
+
+            $newStatus = $isExistInNasional ? 2 : 1;
+
+            $masterNews->update([
+                'distribution_status' => $newStatus,
             ]);
 
-            // 3. Simpan Tags (Many-to-Many)
+            // Inisialisasi Konten dan Penampung Tag
+            $content = $request->is_content; // dari state react 'is_content'
+            $syncData = []; // Menggunakan array asosiatif untuk melacak id tag & urutannya
+            $tagNames = []; // Digunakan untuk menyimpan string nama tag di DB
+
+            // 1. Proses Auto-Link Tag ke dalam Konten & Koleksi ID Tag
             if ($request->has('tag') && is_array($request->tag)) {
-                $tagIds = collect($request->tag)->map(function ($tagName) {
-                    return TagsDaerah::firstOrCreate([
-                        'name' => strtolower(trim($tagName))
-                    ])->id;
-                });
-                $news->tags()->sync($tagIds);
-                // Catatan: Jika relasi di model NewsDaerah kamu namanya 'tags', ganti news() jadi tags()
+                foreach ($request->tag as $index => $tagName) {
+                    $cleanTagName = strtolower(trim($tagName));
+                    $tagNames[] = $cleanTagName;
+
+                    // Simpan atau ambil tag dari database daerah
+                    $tag = TagsDaerah::firstOrCreate([
+                        'name' => $cleanTagName
+                    ]);
+
+                    // Simpan ID tag beserta indeks urutan (sort_order)
+                    $syncData[$tag->id] = ['sort_order' => $index];
+
+                    // REGEX: Memastikan tidak merusak HTML bawaan konten
+                    $pattern = '/(?!(?:[^<]+>|[^>]+<\/a>))\b(' . preg_quote($tag->name, '/') . ')\b/iu';
+
+                    $tagSlug = Str::slug($tag->name);
+                    $tagUrl = 'https://timesindonesia.co.id/tag/' . $tagSlug;
+
+                    // Template HTML Anchor
+                    $replacement = '<a href="' . $tagUrl . '" class="text-blue-600 hover:underline font-semibold" title="Baca lebih lanjut tentang $1">$1</a>';
+
+                    // LIMIT: 1 -> Hanya mengubah kata PERTAMA yang ditemukan di konten
+                    $content = preg_replace($pattern, $replacement, $content, 1);
+                }
+            }
+
+            // 2. Simpan tabel News (Koneksi Daerah)
+            $news = NewsDaerah::create([
+                'is_code'      => $request->is_code,
+                'writer_id'    => $request->writer,
+                'editor_id'    => $request->editor,
+                'cat_id'       => $request->kanal,
+                'fokus_id'     => $request->focus,
+                'title'        => $request->title,
+                'description'  => $request->description,
+                'content'      => $content, // 🔴 Menggunakan konten yang sudah terinjeksi tautan Tag
+                'image'        => $request->image_thumbnail,
+                'caption'      => $request->image_caption,
+                'status'       => '1',
+                'locus'        => $request->locus,
+                'datepub'      => $request->datepub ?? now(),
+                'is_headline'  => $request->is_headline ? 1 : 0,
+                'is_editorial' => $request->is_editorial ? 1 : 0,
+                'is_adv'       => $request->is_adv ? 1 : 0,
+                'pin'          => $request->pin ? 1 : 0,
+                'tag'          => !empty($tagNames) ? implode(',', $tagNames) : null, // Menggunakan array tag yang sudah dibersihkan
+            ]);
+
+            // 3. Simpan Tags (Many-to-Many) dengan Urutan yang Terpelihara
+            if (!empty($syncData)) {
+                $news->tags()->sync($syncData);
             }
 
             // 4. Simpan Networks (Multiple Select)
             if ($request->has('network') && is_array($request->network)) {
-                // Karena network biasanya ID yang sudah ada, langsung sync
                 $news->networks()->sync($request->network);
             }
 
             activity('Import Berita')
-                ->performedOn($masterNews) // Mengikat log ini ke berita Master
-                ->causedBy(auth()->user()) // Siapa yang melakukan import
+                ->performedOn($masterNews)
+                ->causedBy(auth()->user())
                 ->withProperties([
                     'attributes' => [
                         'action'          => 'Import ke Daerah',
                         'news_daerah_id'  => $news->is_code,
                         'title'           => $news->title,
                         'datepub'         => $news->datepub,
-                        'status'           => $news->status,
+                        'status'          => $news->status,
                     ]
                 ])
                 ->log('Import Ke Daerah');
@@ -443,49 +467,73 @@ class NewsController extends Controller implements HasMiddleware
         // Gunakan koneksi mysql_nasional untuk transaksi
         DB::connection('mysql_nasional')->beginTransaction();
 
-        $isCode = $request->input('is_code');
-        $masterNews = News::where('is_code', $isCode)->firstOrFail();
-        $isExistInDaerah = NewsDaerah::where('is_code', $isCode)->exists();
-
-        $newStatus = $isExistInDaerah ? 2 : 1;
-
-        $masterNews->update([
-            'distribution_status' => $newStatus,
-        ]);
-
         try {
-            // 1. Simpan tabel News (Koneksi Nasional)
-            // Asumsi nama modelnya adalah NewsNasional (berdasarkan kode controller sebelumnya)
-            $news = NewsNasional::create([
-                'is_code'      => $request->is_code ?? Str::random(8),
-                'news_writer'    => $request->writer,
-                'journalist_id'   => $request->writer_id, // Simpan ID penulis di kolom journalist_id
-                'editor_id'    => $request->editor,
-                'catnews_id'       => $request->kanal,
-                'focnews_id'     => $request->focus,
-                'news_title'        => $request->title,
-                'news_description'  => $request->description,
-                'news_content'      => $request->is_content,
-                'news_image_new'        => $request->image_thumbnail,
-                'news_caption'      => $request->image_caption,
-                'news_status'       => '1', // Beri default jika status kosong
-                'news_city'        => $request->locus,
-                'news_datepub'      => $request->datepub ?? now(),
-                'news_headline'  => $request->is_headline ? 1 : 0,
-                'news_tags' => implode(',', $request->tag ?? []), // Simpan tag sebagai string, nanti bisa diubah ke relasi many-to-many jika diperlukan
+            $isCode = $request->input('is_code');
+            $masterNews = News::where('is_code', $isCode)->firstOrFail();
+            $isExistInDaerah = NewsDaerah::where('is_code', $isCode)->exists();
+
+            $newStatus = $isExistInDaerah ? 2 : 1;
+
+            $masterNews->update([
+                'distribution_status' => $newStatus,
             ]);
 
-            // 2. Simpan Tags (Many-to-Many) ke tabel Tag Nasional
-            if ($request->has('tag') && is_array($request->tag)) {
-                $tagIds = collect($request->tag)->map(function ($tagName) {
-                    // Gunakan model Tag (Nasional)
-                    return TagsNasional::firstOrCreate([
-                        'name' => strtolower(trim($tagName))
-                    ])->id;
-                });
+            // Inisialisasi Konten dan Penampung Tag
+            $content = $request->is_content;
+            $syncData = []; // Menggunakan array asosiatif untuk menyimpan data pivot dengan urutan
+            $tagNames = []; // Digunakan untuk menyimpan string nama tag di DB
 
-                // Pastikan relasi di model News kamu bernama 'tags'
-                $news->tags()->sync($tagIds);
+            // 1. Proses Auto-Link Tag ke dalam Konten & Koleksi ID Tag
+            if ($request->has('tag') && is_array($request->tag)) {
+                foreach ($request->tag as $index => $tagName) {
+                    $cleanTagName = strtolower(trim($tagName));
+                    $tagNames[] = $cleanTagName;
+
+                    // Simpan atau ambil tag dari database nasional
+                    $tag = TagsNasional::on('mysql_nasional')->firstOrCreate([
+                        'name' => $cleanTagName
+                    ]);
+
+                    // Simpan ID tag beserta indeks urutan (sort_order)
+                    $syncData[$tag->id] = ['sort_order' => $index];
+
+                    // REGEX: Memastikan tidak merusak HTML bawaan konten
+                    $pattern = '/(?!(?:[^<]+>|[^>]+<\/a>))\b(' . preg_quote($tag->name, '/') . ')\b/iu';
+
+                    $tagSlug = Str::slug($tag->name);
+                    $tagUrl = 'https://timesindonesia.co.id/tag/' . $tagSlug;
+
+                    // Template HTML Anchor
+                    $replacement = '<a href="' . $tagUrl . '" class="text-blue-600 hover:underline font-semibold" title="Baca lebih lanjut tentang $1">$1</a>';
+
+                    // LIMIT: 1 -> Hanya mengubah kata PERTAMA yang ditemukan di konten
+                    $content = preg_replace($pattern, $replacement, $content, 1);
+                }
+            }
+
+            // 2. Simpan tabel News (Koneksi Nasional)
+            $news = NewsNasional::create([
+                'is_code'          => $request->is_code ?? Str::random(8),
+                'news_writer'      => $request->writer,
+                'journalist_id'    => $request->writer_id, // Simpan ID penulis di kolom journalist_id
+                'editor_id'        => $request->editor,
+                'catnews_id'       => $request->kanal,
+                'focnews_id'       => $request->focus,
+                'news_title'       => $request->title,
+                'news_description' => $request->description,
+                'news_content'     => $content, // 🔴 Menggunakan konten yang sudah terinjeksi tautan Tag
+                'news_image_new'   => $request->image_thumbnail,
+                'news_caption'     => $request->image_caption,
+                'news_status'      => '1',
+                'news_city'        => $request->locus,
+                'news_datepub'     => $request->datepub ?? now(),
+                'news_headline'    => $request->is_headline ? 1 : 0,
+                'news_tags'        => !empty($tagNames) ? implode(',', $tagNames) : null, // Menggunakan array tag yang sudah dibersihkan
+            ]);
+
+            // 3. Simpan Tags (Many-to-Many) ke tabel Tag Nasional dengan Urutan yang Terpelihara
+            if (!empty($syncData)) {
+                $news->tags()->sync($syncData);
             }
 
             activity('Import Berita')
@@ -493,10 +541,10 @@ class NewsController extends Controller implements HasMiddleware
                 ->causedBy(auth()->user()) // Siapa yang melakukan import
                 ->withProperties([
                     'attributes' => [
-                        'action'          => 'Import ke Nasional',
-                        'news_nasional_id'  => $news->is_code,
-                        'title'           => $news->news_title,
-                        'datepub'         => $news->news_datepub,
+                        'action'           => 'Import ke Nasional',
+                        'news_nasional_id' => $news->is_code,
+                        'title'            => $news->news_title,
+                        'datepub'          => $news->news_datepub,
                         'status'           => $news->news_status,
                     ]
                 ])
@@ -504,10 +552,8 @@ class NewsController extends Controller implements HasMiddleware
 
             DB::connection('mysql_nasional')->commit();
 
-            // Ubah route tujuan sesuai dengan halaman index berita nasional kamu
             return redirect()->route('admin.news.index')->with('success', 'Berita Nasional berhasil diterbitkan!');
         } catch (\Exception $e) {
-
             DB::connection('mysql_nasional')->rollBack();
 
             return back()->withInput()->withErrors(['error' => 'Gagal simpan ke Nasional: ' . $e->getMessage()]);
