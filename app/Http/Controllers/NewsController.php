@@ -300,7 +300,7 @@ class NewsController extends Controller implements HasMiddleware
                 'image_thumbnail' => $news->image_thumbnail ?? '',
                 'hasEditor' => $user->hasRole('editor') ? true : false,
                 'editor_id' => $user->editor ? $user->editor->id_daerah : null, // Set editor_id default ke editor yang sedang login, jika ada
-                'datepub' => now()->format('Y-m-d\TH:i'), // Format untuk input type="datetime-local"
+                'datepub' => $news->created_at->format('Y-m-d\TH:i'), // Format untuk input type="datetime-local"
                 'locus' => strtoupper($news->writer->daerah->network->name ?? ''), 
             ],
             'canSelectAllNetwork' => $user->can('select all networks'),
@@ -391,7 +391,7 @@ class NewsController extends Controller implements HasMiddleware
     public function importNasional($is_code)
     {
         // 1. Coba ambil dari DB Daerah dulu
-        $news = News::with(['writer', 'tags'])->where('is_code', $is_code)->firstOrFail();
+        $news = News::with(['writer','writer.daerah.network:id,name', 'tags'])->where('is_code', $is_code)->firstOrFail();
         $user = auth()->user();
 
         $editors = EditorNasional::select('editor_id as value', 'editor_name as label')->where('status', '1')->get();
@@ -417,7 +417,6 @@ class NewsController extends Controller implements HasMiddleware
                 // Masukkan variabel yang sudah kita racik di atas
                 'writer' => $news->writer->name ?? '', // Jika $initialWriter adalah objek WriterDaerah, ambil namanya
                 'writer_id' => $news->writer->id_nasional ?? '', // Jika $initialWriter adalah objek WriterDaerah, ambil ID-nya
-                'locus' => $news->locus ?? '',
                 'description' => $news->description ?? '',
                 'content' => $news->content ?? '',
                 'tag' => $news->tags ? $news->tags->pluck('name')->toArray() : [],
@@ -425,7 +424,8 @@ class NewsController extends Controller implements HasMiddleware
                 'image_thumbnail' => $news->image ?? $news->image_thumbnail ?? '',
                 'hasEditor' => $user->hasRole('editor') ? true : false,
                 'editor_id' => $user->editor ? $user->editor->id_ti : null,
-                'datepub' => now()->format('Y-m-d\TH:i'),
+                'datepub' => $news->created_at->format('Y-m-d\TH:i'),
+                'locus' => strtoupper($news->writer->daerah->network->name ?? ''),
             ]
         ]);
     }
