@@ -15,9 +15,6 @@ import Select from "react-select";
 
 function ImportDaerah({ writers, editors, networks, kanal, fokus, initialData, canSelectAllNetwork = false }) {
 
-    console.log(initialData);
-    
-
     const { data, setData, post, processing, errors, reset } = useForm({
         is_code: initialData?.is_code || '',
         status: '1',
@@ -35,7 +32,7 @@ function ImportDaerah({ writers, editors, networks, kanal, fokus, initialData, c
         image_thumbnail: initialData?.image_thumbnail || '',
         image_caption: initialData?.image_caption || '',
         datepub: initialData?.datepub ? initialData.datepub.replace(' ', 'T') : '',
-        locus: '',
+        locus: initialData?.locus || '',
         focus: '',
         kanal: '',
         network: [initialData?.writer_network_id || ''],
