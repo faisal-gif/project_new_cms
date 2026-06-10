@@ -58,7 +58,8 @@ class AJPController extends Controller
             'news_content' => $data['data']['content'],
             'news_city' => $data['data']['city'],
             'created_by' => $request->publisher,
-            'news_status' => '0',
+
+            'news_status' => '2',
         ]);
 
         return back()->with('success', 'News export successfully');
