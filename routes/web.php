@@ -29,6 +29,7 @@ use App\Http\Controllers\RoleController;
 use App\Http\Controllers\SsoController;
 use App\Http\Controllers\TextEditorController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\WriterAjpController;
 use App\Http\Controllers\WriterController;
 use App\Http\Controllers\WriterDaerahController;
 use App\Http\Controllers\WriterNasionalController;
@@ -49,14 +50,14 @@ Route::middleware('auth')->group(function () {
 });
 Route::post('/upload-image', [TextEditorController::class, 'upload']);
 Route::middleware('auth')->prefix('admin')->name('admin.')->group(function () {
-    Route::resource('news', NewsController::class)->only('index', 'create', 'show','store');
+    Route::resource('news', NewsController::class)->only('index', 'create', 'show', 'store');
     Route::get('/news/import-daerah/{is_code}', [NewsController::class, 'importDaerah'])->name('news.import.daerah');
     Route::post('/news/import-daerah', [NewsController::class, 'importDaerahStore'])->name('news.import.daerah.store');
     Route::get('/news/import-nasional/{is_code}', [NewsController::class, 'importNasional'])->name('news.import.nasional');
     Route::post('/news/import-nasional', [NewsController::class, 'importNasionalStore'])->name('news.import.nasional.store');
     Route::get('/history', [ActivityLogController::class, 'index'])->name('history.index');
     Route::post('/news/{news}/notes', [NewsNoteController::class, 'store'])->name('news.notes.store');
-    Route::resource('ajp-export', AJPController::class)->only('create', 'store');
+    Route::resource('ajp-export', AJPController::class)->only('create', 'index', 'store');
     Route::resource('roles', RoleController::class);
     Route::resource('permissions', PermissionController::class);
     Route::resource('users', UserController::class);
@@ -95,6 +96,11 @@ Route::middleware('auth')->prefix('admin')->name('admin.')->group(function () {
             Route::resource('editor', EditorNasionalController::class);
             Route::resource('fotografi', GalleryController::class);
             Route::resource('ekoran', EKoranController::class);
+        }
+    );
+    Route::prefix('ajp')->name('ajp.')->group(
+        function () {
+            Route::resource('writer', WriterAjpController::class);
         }
     );
 });

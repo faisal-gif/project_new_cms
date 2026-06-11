@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\AJPRequest;
 use App\Models\AJP;
 use App\Models\NewsNasional;
+use App\Models\WriterBerbayar;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Validator;
@@ -18,7 +19,7 @@ class AJPController extends Controller
      */
     public function index()
     {
-        //
+        
     }
 
     /**
@@ -42,7 +43,7 @@ class AJPController extends Controller
         $duplicate =  NewsNasional::where('news_title', $response['data']['title'])->first();
 
         if ($duplicate != null) {
-             return back()->with('error', 'News Sudah Pernah Di Export');
+            return back()->with('error', 'News Sudah Pernah Di Export');
         }
 
         $data = $response->json();

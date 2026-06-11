@@ -17,7 +17,7 @@ import Select from "react-select";
 
 function Edit({ news, writers, editors, kanal, fokus, hasEditor }) {
     // Format date untuk input type datetime-local (YYYY-MM-DDThh:mm)
-    const formattedDatePub = news.news_datepub ? new Date(news.news_datepub).toISOString().slice(0, 16) : '';
+  
 
     const { data, setData, post, processing, errors } = useForm({
         _method: 'PUT', // Wajib untuk file upload (gambar) saat update di Inertia
@@ -36,7 +36,7 @@ function Edit({ news, writers, editors, kanal, fokus, hasEditor }) {
         image_thumbnail: '', // Dikosongkan, hanya diisi jika user upload ulang
         image_watermark: false,
         image_caption: news.news_caption ?? '',
-        datepub: formattedDatePub,
+        datepub: news.news_datepub,
         locus: news.news_city ?? '',
         focus: news.focnews_id ?? '',
         kanal: news.catnews_id ?? '',
