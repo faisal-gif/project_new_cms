@@ -221,8 +221,8 @@ class NewsController extends Controller implements HasMiddleware
                     $tagUrl  = 'https://timesindonesia.co.id/tag/' . $tagSlug;
 
                     $replacedCount = 0;
-                    $maxLimit = 1; 
-                    
+                    $maxLimit = 1;
+
                     $content = preg_replace_callback($pattern, function ($matches) use ($tagUrl, &$replacedCount, $maxLimit) {
                         // Jika teks berada di dalam Grup 1 (figcaption) atau Grup 2 (tag HTML/Anchor lain)
                         // Kembalikan teks asli apa adanya tanpa modifikasi.
@@ -360,20 +360,41 @@ class NewsController extends Controller implements HasMiddleware
                     // Simpan ID tag beserta indeks urutan (sort_order)
                     $syncData[$tag->id] = ['sort_order' => $index];
 
-                    // REGEX: Memastikan tidak merusak HTML bawaan konten
-                    $pattern = '/(?!(?:[^<]+>|[^>]+<\/a>))\b(' . preg_quote($tag->name, '/') . ')\b/iu';
+                    $escapedTag = preg_quote($tag->name, '/');
+
+                    // REGEX: Grup 1 mengisolasi figcaption, Grup 2 mengisolasi tag HTML biasa, Grup 3 menangkap teks murni target Anda
+                    // Menggunakan modifier 's' (dotall) agar tetap mendeteksi jika figcaption memiliki baris baru (newline)
+                    $pattern = '/(<figcaption\b[^>]*>.*?<\/figcaption>)|(<[^>]+>)|(\b' . $escapedTag . '\b)/isu';
 
                     $tagSlug = Str::slug($tag->name);
                     $tagUrl = 'https://timesindonesia.co.id/tag/' . $tagSlug;
 
-                    // Template HTML Anchor
-                    $replacement = '<a href="' . $tagUrl . '" class="text-blue-600 hover:underline font-semibold" title="Baca lebih lanjut tentang $1">$1</a>';
+                    // Inisialisasi variabel counter untuk membatasi jumlah link per kata kunci
+                    $replacedCount = 0;
+                    $maxLimit = 1; // Mengubah hanya 1 kata PERTAMA yang ditemukan di konten
 
-                    // LIMIT: 1 -> Hanya mengubah kata PERTAMA yang ditemukan di konten
-                    $content = preg_replace($pattern, $replacement, $content, 1);
+                    // Eksekusi callback untuk penyisiran yang aman
+                    $content = preg_replace_callback($pattern, function ($matches) use ($tagUrl, &$replacedCount, $maxLimit) {
+                        // Jika teks yang cocok berada di Grup 1 (figcaption) atau Grup 2 (tag HTML/Anchor biasa)
+                        // Kembalikan teks asli apa adanya tanpa modifikasi
+                        if (!empty($matches[1]) || !empty($matches[2])) {
+                            return $matches[0];
+                        }
+
+                        // Jika cocok dengan teks murni di Grup 3
+                        if (!empty($matches[3])) {
+                            // Cek apakah kuota batasan link untuk kata ini masih tersedia
+                            if ($replacedCount < $maxLimit) {
+                                $replacedCount++; // Naikkan counter penanda
+                                return '<a href="' . $tagUrl . '" class="text-blue-600 hover:underline font-semibold" title="Baca lebih lanjut tentang ' . $matches[3] . '">' . $matches[3] . '</a>';
+                            }
+                        }
+
+                        // Jika kuota limit link untuk kata ini sudah habis, kembalikan teks aslinya
+                        return $matches[0];
+                    }, $content); // PENTING: Tanpa parameter limit numerik di sini agar Regex menyisir seluruh dokumen
                 }
             }
-
             // 2. Simpan tabel News (Koneksi Daerah)
             $news = NewsDaerah::create([
                 'is_code'      => $request->is_code,
@@ -507,17 +528,39 @@ class NewsController extends Controller implements HasMiddleware
                     // Simpan ID tag beserta indeks urutan (sort_order)
                     $syncData[$tag->id] = ['sort_order' => $index];
 
-                    // REGEX: Memastikan tidak merusak HTML bawaan konten
-                    $pattern = '/(?!(?:[^<]+>|[^>]+<\/a>))\b(' . preg_quote($tag->name, '/') . ')\b/iu';
+                    $escapedTag = preg_quote($tag->name, '/');
+
+                    // REGEX: Grup 1 mengisolasi figcaption, Grup 2 mengisolasi tag HTML biasa, Grup 3 menangkap teks murni target Anda
+                    // Modifier 's' (dotall) memastikan penolakan tetap bekerja jika figcaption ditulis dalam beberapa baris (newline)
+                    $pattern = '/(<figcaption\b[^>]*>.*?<\/figcaption>)|(<[^>]+>)|(\b' . $escapedTag . '\b)/isu';
 
                     $tagSlug = Str::slug($tag->name);
                     $tagUrl = 'https://timesindonesia.co.id/tag/' . $tagSlug;
 
-                    // Template HTML Anchor
-                    $replacement = '<a href="' . $tagUrl . '" class="text-blue-600 hover:underline font-semibold" title="Baca lebih lanjut tentang $1">$1</a>';
+                    // Inisialisasi variabel counter untuk membatasi jumlah link per kata kunci
+                    $replacedCount = 0;
+                    $maxLimit = 1; // LIMIT: 1 -> Hanya mengubah kata PERTAMA yang ditemukan di konten
 
-                    // LIMIT: 1 -> Hanya mengubah kata PERTAMA yang ditemukan di konten
-                    $content = preg_replace($pattern, $replacement, $content, 1);
+                    // Eksekusi callback untuk penyisiran dokumen yang menyeluruh dan aman
+                    $content = preg_replace_callback($pattern, function ($matches) use ($tagUrl, &$replacedCount, $maxLimit) {
+                        // Jika teks yang cocok berada di Grup 1 (figcaption) atau Grup 2 (tag HTML/Anchor biasa)
+                        // Kembalikan teks asli apa adanya tanpa modifikasi
+                        if (!empty($matches[1]) || !empty($matches[2])) {
+                            return $matches[0];
+                        }
+
+                        // Jika cocok dengan teks murni di Grup 3 (di luar figcaption & HTML tag)
+                        if (!empty($matches[3])) {
+                            // Cek apakah kuota batasan link untuk kata ini masih tersedia
+                            if ($replacedCount < $maxLimit) {
+                                $replacedCount++; // Naikkan counter penanda
+                                return '<a href="' . $tagUrl . '" class="text-blue-600 hover:underline font-semibold" title="Baca lebih lanjut tentang ' . $matches[3] . '">' . $matches[3] . '</a>';
+                            }
+                        }
+
+                        // Jika kuota limit link untuk kata ini sudah habis, kembalikan teks aslinya
+                        return $matches[0];
+                    }, $content); // PENTING: Tanpa parameter limit numerik di sini agar Regex menyisir seluruh dokumen
                 }
             }
 
