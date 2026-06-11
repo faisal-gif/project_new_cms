@@ -199,43 +199,51 @@ class NewsController extends Controller implements HasMiddleware
         DB::beginTransaction();
 
         try {
-            $content = $request->content;
-
-            // Ubah penampung array menjadi format sync pivot
+            $content = $request->content; // atau $request->is_content sesuaikan dengan form Anda
             $syncData = [];
 
-            // 2. Proses Auto-Link Tag ke dalam Konten & Koleksi ID Tag
-            foreach ($request->tag as $index => $tagName) {
-                $cleanTagName = strtolower(trim($tagName));
+            if ($request->has('tag') && is_array($request->tag)) {
 
-                $tag = Tags::firstOrCreate([
-                    'name' => $cleanTagName
-                ]);
+                foreach ($request->tag as $index => $tagName) {
+                    $cleanTagName = strtolower(trim($tagName));
 
-                $syncData[$tag->id] = ['sort_order' => $index];
+                    $tag = Tags::firstOrCreate([
+                        'name' => $cleanTagName
+                    ]);
 
-                
-                $escapedTag = preg_quote($tag->name, '/');
-                $pattern = '/(<figcaption\b[^>]*>.*?<\/figcaption>)|(<[^>]+>)|(\b' . $escapedTag . '\b)/iu';
+                    $syncData[$tag->id] = ['sort_order' => $index];
 
-                // Route untuk tag
-                $tagSlug = Str::slug($tag->name);
-                $tagUrl  = 'https://timesindonesia.co.id/tag/' . $tagSlug;
+                    $escapedTag = preg_quote($tag->name, '/');
 
-                // Eksekusi preg_replace_callback untuk kontrol mutasi yang presisi
-                $content = preg_replace_callback($pattern, function ($matches) use ($tagUrl) {
-                    // Jika teks ditemukan di dalam Grup 1 (figcaption) atau Grup 2 (tag HTML/Anchor biasa)
-                    // Kembalikan teks asli apa adanya tanpa mengubah apa pun.
-                    if (!empty($matches[1]) || !empty($matches[2])) {
+                    $pattern = '/(<figcaption\b[^>]*>.*?<\/figcaption>)|(<[^>]+>)|(\b' . $escapedTag . '\b)/isu';
+
+                    $tagSlug = Str::slug($tag->name);
+                    $tagUrl  = 'https://timesindonesia.co.id/tag/' . $tagSlug;
+
+                    $replacedCount = 0;
+                    $maxLimit = 1; 
+                    
+                    $content = preg_replace_callback($pattern, function ($matches) use ($tagUrl, &$replacedCount, $maxLimit) {
+                        // Jika teks berada di dalam Grup 1 (figcaption) atau Grup 2 (tag HTML/Anchor lain)
+                        // Kembalikan teks asli apa adanya tanpa modifikasi.
+                        if (!empty($matches[1]) || !empty($matches[2])) {
+                            return $matches[0];
+                        }
+
+                        // Jika cocok dengan Grup 3 (Kata kunci murni di luar figcaption & HTML tag)
+                        if (!empty($matches[3])) {
+                            // Periksa apakah kuota limit link untuk kata ini masih tersedia
+                            if ($replacedCount < $maxLimit) {
+                                $replacedCount++; // Naikkan counter penanda
+                                return '<a href="' . $tagUrl . '" class="text-blue-600 hover:underline font-semibold" title="Baca lebih lanjut tentang ' . $matches[3] . '">' . $matches[3] . '</a>';
+                            }
+                        }
+
+                        // Jika kuota limit sudah habis, kembalikan kata kunci asli tanpa di-link
                         return $matches[0];
-                    }
-
-                    // Jika teks ditemukan di Grup 3 (teks murni di luar figcaption & tag), ubah menjadi anchor link.
-                    // $matches[3] berisi teks asli yang sesuai dengan casing-nya (misal: "Laravel" atau "laravel")
-                    return '<a href="' . $tagUrl . '" class="text-blue-600 hover:underline font-semibold" title="Baca lebih lanjut tentang ' . $matches[3] . '">' . $matches[3] . '</a>';
-                }, $content, 1); // Limit tetap 1 sesuai kebutuhan Anda
+                    }, $content); // 🔴 PENTING: Parameter limit di sini DIHAPUS agar menyisir seluruh dokumen
+                }
             }
-
             // 3. Simpan tabel News
             $news = News::create([
                 'is_code'         => Str::random(8),
