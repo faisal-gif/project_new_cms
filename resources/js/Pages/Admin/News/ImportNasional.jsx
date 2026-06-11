@@ -109,7 +109,6 @@ function ImportNasional({ writers, editors, networks, kanal, fokus, initialData 
                                                 options={writers}
                                                 placeholder="Pilih Penulis..."
                                                 onChange={(val) => setData('writer_id', val?.value)}
-                                                isDisabled={true} // Disable input writer karena sudah diambil dari data awal dan tidak bisa diubah
                                             />
                                             <InputError message={errors.writer} className="mt-2" />
                                         </div>
