@@ -205,41 +205,35 @@ class NewsController extends Controller implements HasMiddleware
             $syncData = [];
 
             // 2. Proses Auto-Link Tag ke dalam Konten & Koleksi ID Tag
-            if ($request->has('tag') && is_array($request->tag)) {
+            foreach ($request->tag as $index => $tagName) {
+                $cleanTagName = strtolower(trim($tagName));
 
-                // Ambil index ($index) untuk dijadikan acuan urutan
-                foreach ($request->tag as $index => $tagName) {
-                    $cleanTagName = strtolower(trim($tagName));
+                $tag = Tags::firstOrCreate([
+                    'name' => $cleanTagName
+                ]);
 
-                    // Simpan atau ambil tag dari database
-                    $tag = Tags::firstOrCreate([
-                        'name' => $cleanTagName
-                    ]);
+                $syncData[$tag->id] = ['sort_order' => $index];
 
-                    // Simpan ID tag beserta urutan index-nya ke dalam array sync
-                    $syncData[$tag->id] = ['sort_order' => $index];
+                
+                $escapedTag = preg_quote($tag->name, '/');
+                $pattern = '/(<figcaption\b[^>]*>.*?<\/figcaption>)|(<[^>]+>)|(\b' . $escapedTag . '\b)/iu';
 
-                    // REGEX: Memastikan tidak merusak HTML yang sudah ada
-                    $escapedTag = preg_quote($tag->name, '/');
-                    $pattern = '/(<figcaption\b[^>]*>.*?<\/figcaption>)|(<[^>]+>)|(\b' . $escapedTag . '\b)/iu';
+                // Route untuk tag
+                $tagSlug = Str::slug($tag->name);
+                $tagUrl  = 'https://timesindonesia.co.id/tag/' . $tagSlug;
 
-                    // Route untuk tag (URL statis Times Indonesia)
-                    $tagSlug = Str::slug($tag->name);
-                    $tagUrl  = 'https://timesindonesia.co.id/tag/' . $tagSlug;
+                // Eksekusi preg_replace_callback untuk kontrol mutasi yang presisi
+                $content = preg_replace_callback($pattern, function ($matches) use ($tagUrl) {
+                    // Jika teks ditemukan di dalam Grup 1 (figcaption) atau Grup 2 (tag HTML/Anchor biasa)
+                    // Kembalikan teks asli apa adanya tanpa mengubah apa pun.
+                    if (!empty($matches[1]) || !empty($matches[2])) {
+                        return $matches[0];
+                    }
 
-                    // Limit = 2, maksimal 2 kata pertama yang akan diubah menjadi link
-                    $content = preg_replace_callback($pattern, function ($matches) use ($tagUrl) {
-                        // Jika teks ditemukan di dalam Grup 1 (figcaption) atau Grup 2 (tag HTML/Anchor biasa)
-                        // Kembalikan teks asli apa adanya tanpa mengubah apa pun.
-                        if (!empty($matches[1]) || !empty($matches[2])) {
-                            return $matches[0];
-                        }
-
-                        // Jika teks ditemukan di Grup 3 (teks murni di luar figcaption & tag), ubah menjadi anchor link.
-                        // $matches[3] berisi teks asli yang sesuai dengan casing-nya (misal: "Laravel" atau "laravel")
-                        return '<a href="' . $tagUrl . '" class="text-blue-600 hover:underline font-semibold" title="Baca lebih lanjut tentang ' . $matches[3] . '">' . $matches[3] . '</a>';
-                    }, $content, 1);
-                }
+                    // Jika teks ditemukan di Grup 3 (teks murni di luar figcaption & tag), ubah menjadi anchor link.
+                    // $matches[3] berisi teks asli yang sesuai dengan casing-nya (misal: "Laravel" atau "laravel")
+                    return '<a href="' . $tagUrl . '" class="text-blue-600 hover:underline font-semibold" title="Baca lebih lanjut tentang ' . $matches[3] . '">' . $matches[3] . '</a>';
+                }, $content, 1); // Limit tetap 1 sesuai kebutuhan Anda
             }
 
             // 3. Simpan tabel News
