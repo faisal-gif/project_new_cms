@@ -230,7 +230,7 @@ class NewsController extends Controller implements HasMiddleware
                     $replacement = '<a href="' . $tagUrl . '" class="text-blue-600 hover:underline font-semibold" title="Baca lebih lanjut tentang $1">$1</a>';
 
                     // Limit = 2, maksimal 2 kata pertama yang akan diubah menjadi link
-                    $content = preg_replace($pattern, $replacement, $content, 2); // Saya set limit sesuai komentar Anda
+                    $content = preg_replace($pattern, $replacement, $content, 1); // Saya set limit sesuai komentar Anda
                 }
             }
 
