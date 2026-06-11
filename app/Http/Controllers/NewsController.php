@@ -220,17 +220,25 @@ class NewsController extends Controller implements HasMiddleware
                     $syncData[$tag->id] = ['sort_order' => $index];
 
                     // REGEX: Memastikan tidak merusak HTML yang sudah ada
-                    $pattern = '/(?!(?:[^<]+>|[^>]+<\/a>))\b(' . preg_quote($tag->name, '/') . ')\b/iu';
+                    $escapedTag = preg_quote($tag->name, '/');
+                    $pattern = '/(<figcaption\b[^>]*>.*?<\/figcaption>)|(<[^>]+>)|(\b' . $escapedTag . '\b)/iu';
 
                     // Route untuk tag (URL statis Times Indonesia)
                     $tagSlug = Str::slug($tag->name);
                     $tagUrl  = 'https://timesindonesia.co.id/tag/' . $tagSlug;
 
-                    // Template HTML Anchor
-                    $replacement = '<a href="' . $tagUrl . '" class="text-blue-600 hover:underline font-semibold" title="Baca lebih lanjut tentang $1">$1</a>';
-
                     // Limit = 2, maksimal 2 kata pertama yang akan diubah menjadi link
-                    $content = preg_replace($pattern, $replacement, $content, 1); // Saya set limit sesuai komentar Anda
+                    $content = preg_replace_callback($pattern, function ($matches) use ($tagUrl) {
+                        // Jika teks ditemukan di dalam Grup 1 (figcaption) atau Grup 2 (tag HTML/Anchor biasa)
+                        // Kembalikan teks asli apa adanya tanpa mengubah apa pun.
+                        if (!empty($matches[1]) || !empty($matches[2])) {
+                            return $matches[0];
+                        }
+
+                        // Jika teks ditemukan di Grup 3 (teks murni di luar figcaption & tag), ubah menjadi anchor link.
+                        // $matches[3] berisi teks asli yang sesuai dengan casing-nya (misal: "Laravel" atau "laravel")
+                        return '<a href="' . $tagUrl . '" class="text-blue-600 hover:underline font-semibold" title="Baca lebih lanjut tentang ' . $matches[3] . '">' . $matches[3] . '</a>';
+                    }, $content, 1);
                 }
             }
 
