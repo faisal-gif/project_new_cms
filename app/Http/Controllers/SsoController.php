@@ -40,4 +40,6 @@ class SsoController extends Controller
         // Redirect ke halaman utama SPA Inertia/React Anda
         return redirect()->route('dashboard');
     }
+
+    
 }
