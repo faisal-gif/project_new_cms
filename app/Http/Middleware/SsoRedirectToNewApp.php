@@ -24,7 +24,7 @@ class SsoRedirectToNewApp
             $user = auth()->user();
 
             // 2. Cek apakah kolom redirect_new_web bernilai true untuk user ini
-            if ($user->redirect_new_web === true) {
+            if ($user->redirect_new_back === true) {
 
                 // 3. Mencegah Infinite Loop: Izinkan user melakukan aksi logout di web lama
                 // Sesuaikan 'logout' dengan nama route logout Anda yang sebenarnya
