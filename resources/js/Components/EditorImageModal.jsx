@@ -16,7 +16,11 @@ export default function EditorImageModal() {
 
     const [file, setFile] = useState(null); 
     const [originalFileName, setOriginalFileName] = useState(""); 
-    const [imageName, setImageName] = useState("");
+    
+    // --- 💡 DUA FIELD TERPISAH ---
+    const [imageName, setImageName] = useState(""); // Untuk Alt Text & Nama File (SEO)
+    const [caption, setCaption] = useState("");     // Untuk Keterangan Gambar (Figcaption)
+    
     const [imageUrl, setImageUrl] = useState("");
     const [loading, setLoading] = useState(false);
     const [watermark, setWatermark] = useState(true);
@@ -44,6 +48,7 @@ export default function EditorImageModal() {
         setOriginalFileName("");
         setImageUrl("");
         setImageName("");
+        setCaption(""); // 💡 Reset state caption baru
         setTab("upload");
         setError("");
         setCrop(undefined);
@@ -62,7 +67,8 @@ export default function EditorImageModal() {
         return doc.querySelectorAll("img").length;
     };
 
-    const insertImage = (src, name) => {
+    // 💡 UPDATE: Menerima 3 parameter (src, name, imageCaption)
+    const insertImage = (src, name, imageCaption) => {
         if (countImages() >= 2) {
             editor.notificationManager.open({
                 text: "Maksimal 2 gambar dalam artikel",
@@ -74,18 +80,15 @@ export default function EditorImageModal() {
         editor.insertContent(
             ` <figure class="image">
                 <img src="${src}" alt="${name}" title="${name}" />
-                <figcaption>${name}</figcaption>
+                <figcaption>${imageCaption}</figcaption>
               </figure>`
         );
     };
 
-    // Fungsi utilitas untuk memotong gambar menggunakan Canvas API
     const getCroppedImg = async (imageElement, cropArea, fileNameToUse) => {
         const canvas = document.createElement('canvas');
-
         const scaleX = imageElement.naturalWidth / imageElement.width;
         const scaleY = imageElement.naturalHeight / imageElement.height;
-
         const actualWidth = cropArea.width * scaleX;
         const actualHeight = cropArea.height * scaleY;
 
@@ -132,7 +135,6 @@ export default function EditorImageModal() {
         });
     };
 
-    // Kompresi awal saat file dipilih agar browser tidak berat saat proses cropping
     const handleFileChange = async (e) => {
         const selectedFile = e.target.files[0];
         if (!selectedFile) return;
@@ -163,12 +165,15 @@ export default function EditorImageModal() {
     const upload = async () => {
         if (!file || !editor) return;
 
+        // Validasi berlapis untuk kedua field baru
         if (!imageName.trim()) {
-            setError("Nama gambar wajib diisi");
+            setError("Nama gambar (Alt Text) wajib diisi");
             return;
         }
-
-        // 💡 WAJIB CROP: Hentikan jika tidak ada area crop yang terdefinisi
+        if (!caption.trim()) {
+            setError("Caption keterangan gambar wajib diisi");
+            return;
+        }
         if (!completedCrop?.width || !completedCrop?.height || !imgRef.current) {
             setError("Silakan sesuaikan (crop) gambar terlebih dahulu.");
             return;
@@ -187,7 +192,6 @@ export default function EditorImageModal() {
         }
 
         try {
-            // Ekstrak hasil crop menjadi WebP secara absolut
             const finalFileToUpload = await getCroppedImg(imgRef.current, completedCrop, originalFileName);
 
             const formData = new FormData();
@@ -215,7 +219,8 @@ export default function EditorImageModal() {
             }
 
             if (json?.location) {
-                insertImage(json.location, imageName);
+                // 💡 Oper imageName dan caption ke editor
+                insertImage(json.location, imageName, caption);
                 resetAndClose();
             }
         } catch (e) {
@@ -230,11 +235,16 @@ export default function EditorImageModal() {
         if (!imageUrl || !editor) return;
         
         if (!imageName.trim()) {
-            setError("Nama gambar wajib diisi");
+            setError("Nama gambar (Alt Text) wajib diisi");
+            return;
+        }
+        if (!caption.trim()) {
+            setError("Caption keterangan gambar wajib diisi");
             return;
         }
 
-        insertImage(imageUrl, imageName);
+        // 💡 Oper imageName dan caption dari URL ke editor
+        insertImage(imageUrl, imageName, caption);
         resetAndClose();
     };
 
@@ -243,10 +253,7 @@ export default function EditorImageModal() {
     return (
         <div className="fixed inset-0 z-[10000] flex items-center justify-center">
             {/* overlay */}
-            <div
-                className="absolute inset-0 bg-black/50 backdrop-blur-sm transition-opacity"
-                onClick={resetAndClose}
-            />
+            <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={resetAndClose} />
 
             {/* modal */}
             <div className="relative bg-white rounded-xl shadow-2xl w-full max-w-xl p-6 space-y-4 max-h-[90vh] overflow-y-auto">
@@ -268,52 +275,28 @@ export default function EditorImageModal() {
                     full
                 />
 
+                {/* --- TAB UPLOAD --- */}
                 {tab === "upload" && (
                     <div className="space-y-4 pt-2">
                         {previewUrl ? (
                             <div className="space-y-3">
                                 <div className="border rounded-lg bg-base-200 flex justify-center items-center overflow-hidden" style={{ maxHeight: "400px" }}>
-                                    <ReactCrop
-                                        crop={crop}
-                                        onChange={(_, percentCrop) => setCrop(percentCrop)}
-                                        onComplete={(c) => setCompletedCrop(c)}
-                                    >
-                                        <img
-                                            ref={imgRef}
-                                            src={previewUrl}
-                                            alt="Crop preview"
-                                            style={{ maxHeight: "400px", maxWidth: "100%", objectFit: "contain" }}
-                                            onLoad={onImageLoad}
-                                        />
+                                    <ReactCrop crop={crop} onChange={(_, percentCrop) => setCrop(percentCrop)} onComplete={(c) => setCompletedCrop(c)}>
+                                        <img ref={imgRef} src={previewUrl} alt="Crop preview" style={{ maxHeight: "400px", maxWidth: "100%", objectFit: "contain" }} onLoad={onImageLoad} />
                                     </ReactCrop>
                                 </div>
                                 <div className="flex justify-between items-center gap-2 px-1">
                                     <p className="text-sm font-medium text-gray-600 truncate flex-1">{originalFileName}</p>
-                                    <button
-                                        className="btn btn-sm btn-outline btn-error"
-                                        onClick={() => {
-                                            URL.revokeObjectURL(previewUrl);
-                                            setPreviewUrl(null);
-                                            setFile(null);
-                                            setOriginalFileName("");
-                                            setCrop(undefined);
-                                            setCompletedCrop(null);
-                                        }}
-                                        disabled={loading}
-                                    >
+                                    <button className="btn btn-sm btn-outline btn-error" onClick={() => {
+                                        URL.revokeObjectURL(previewUrl);
+                                        setPreviewUrl(null); setFile(null); setOriginalFileName(""); setCrop(undefined); setCompletedCrop(null);
+                                    }} disabled={loading}>
                                         Ganti File
                                     </button>
                                 </div>
                             </div>
                         ) : (
-                            <input
-                                key={show ? "open" : "closed"}
-                                type="file"
-                                accept="image/*"
-                                className="file-input file-input-bordered w-full"
-                                onChange={handleFileChange} 
-                                disabled={loading}
-                            />
+                            <input key={show ? "open" : "closed"} type="file" accept="image/*" className="file-input file-input-bordered w-full" onChange={handleFileChange} disabled={loading} />
                         )}
 
                         {error && (
@@ -323,48 +306,42 @@ export default function EditorImageModal() {
                         )}
 
                         <label className="flex items-center gap-2 cursor-pointer mt-2">
-                            <Checkbox
-                                checked={watermark}
-                                onChange={(e) => setWatermark(e.target.checked)}
-                            />
+                            <Checkbox checked={watermark} onChange={(e) => setWatermark(e.target.checked)} />
                             <span className="text-sm font-medium text-gray-700">Apakah ini foto original? (Tambahkan Watermark)</span>
                         </label>
 
-                        <div className="space-y-2">
-                            <InputLabel value={"Caption / Nama Gambar (Wajib diisi)"} />
+                        {/* FIELD 1: NAMA GAMBAR */}
+                        <div className="space-y-1">
+                            <InputLabel value={"Nama Gambar / Alt Text (Wajib diisi untuk SEO)"} />
                             <TextInput
-                                type="text"
-                                className="w-full"
-                                placeholder="Contoh: Presiden saat konferensi pers di Jakarta"
-                                value={imageName}
-                                onChange={(e) => setImageName(e.target.value)}
+                                type="text" className="w-full"
+                                placeholder="Contoh: presiden-jokowi-konferensi-pers"
+                                value={imageName} onChange={(e) => setImageName(e.target.value)}
                             />
                         </div>
 
-                        <button
-                            className="btn btn-primary w-full flex items-center justify-center gap-2"
-                            type="button"
-                            onClick={upload}
-                            // Tombol dikunci jika tidak ada file, sedang loading, ATAU belum ada area crop yang valid
-                            disabled={!file || loading || !completedCrop?.width}
-                        >
+                        {/* FIELD 2: CAPTION GAMBAR */}
+                        <div className="space-y-1">
+                            <InputLabel value={"Caption Keterangan Foto (Muncul di bawah gambar)"} />
+                            <TextInput
+                                type="text" className="w-full"
+                                placeholder="Contoh: Presiden Joko Widodo saat memberikan keterangan pers di Istana Negara, Jakarta."
+                                value={caption} onChange={(e) => setCaption(e.target.value)}
+                            />
+                        </div>
+
+                        <button className="btn btn-primary w-full" type="button" onClick={upload} disabled={!file || loading || !completedCrop?.width}>
                             {loading ? "Memproses Upload..." : "Crop & Upload Gambar"}
                         </button>
                     </div>
                 )}
 
-                {/* TAB URL */}
+                {/* --- TAB URL --- */}
                 {tab === "url" && (
                     <div className="space-y-4 pt-2">
                         <div className="space-y-2">
                             <InputLabel value={"URL Gambar"} />
-                            <input
-                                type="text"
-                                className="input input-bordered w-full"
-                                placeholder="https://example.com/image.jpg"
-                                value={imageUrl}
-                                onChange={(e) => setImageUrl(e.target.value)}
-                            />
+                            <input type="text" className="input input-bordered w-full" placeholder="https://example.com/image.jpg" value={imageUrl} onChange={(e) => setImageUrl(e.target.value)} />
                         </div>
                         
                         {error && (
@@ -373,23 +350,27 @@ export default function EditorImageModal() {
                             </div>
                         )}
 
-                        <div className="space-y-2">
-                            <InputLabel value={"Caption / Nama Gambar (Wajib diisi)"} />
+                        {/* FIELD 1: NAMA GAMBAR (URL) */}
+                        <div className="space-y-1">
+                            <InputLabel value={"Nama Gambar / Alt Text (Wajib diisi untuk SEO)"} />
                             <TextInput
-                                type="text"
-                                className="w-full"
-                                placeholder="Contoh: Presiden saat konferensi pers di Jakarta"
-                                value={imageName}
-                                onChange={(e) => setImageName(e.target.value)}
+                                type="text" className="w-full"
+                                placeholder="Contoh: presiden-jokowi-konferensi-pers"
+                                value={imageName} onChange={(e) => setImageName(e.target.value)}
                             />
                         </div>
 
-                        <button
-                            className="btn btn-secondary w-full"
-                            type="button"
-                            onClick={insertFromUrl}
-                            disabled={!imageUrl || loading}
-                        >
+                        {/* FIELD 2: CAPTION GAMBAR (URL) */}
+                        <div className="space-y-1">
+                            <InputLabel value={"Caption Keterangan Foto (Muncul di bawah gambar)"} />
+                            <TextInput
+                                type="text" className="w-full"
+                                placeholder="Contoh: Presiden Joko Widodo saat memberikan keterangan pers di Istana Negara, Jakarta."
+                                value={caption} onChange={(e) => setCaption(e.target.value)}
+                            />
+                        </div>
+
+                        <button className="btn btn-secondary w-full" type="button" onClick={insertFromUrl} disabled={!imageUrl || loading}>
                             Gunakan URL
                         </button>
                     </div>
