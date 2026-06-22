@@ -30,7 +30,7 @@ export default function InputEditor({
                     min_height: 300,
                     max_height: height,
                     mobile: {
-                        max_height: 450,
+                        max_height: 600,
                         toolbar_mode: 'sliding', // Di mobile, mode sliding lebih rapi jika Array digunakan
                     },
                     menubar: false,
