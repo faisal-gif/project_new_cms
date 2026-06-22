@@ -14,20 +14,20 @@ export default function EditorImageModal() {
     const [editor, setEditor] = useState(null);
     const [tab, setTab] = useState("upload");
 
-    const [file, setFile] = useState(null); 
-    const [originalFileName, setOriginalFileName] = useState(""); 
-    
+    const [file, setFile] = useState(null);
+    const [originalFileName, setOriginalFileName] = useState("");
+
     // --- 💡 DUA FIELD TERPISAH ---
     const [imageName, setImageName] = useState(""); // Untuk Alt Text & Nama File (SEO)
     const [caption, setCaption] = useState("");     // Untuk Keterangan Gambar (Figcaption)
-    
+
     const [imageUrl, setImageUrl] = useState("");
     const [loading, setLoading] = useState(false);
     const [watermark, setWatermark] = useState(true);
     const [error, setError] = useState("");
 
     // --- State & Ref untuk react-image-crop ---
-    const [previewUrl, setPreviewUrl] = useState(null); 
+    const [previewUrl, setPreviewUrl] = useState(null);
     const imgRef = useRef(null);
     const [crop, setCrop] = useState();
     const [completedCrop, setCompletedCrop] = useState(null);
@@ -121,7 +121,7 @@ export default function EditorImageModal() {
                     lastModified: Date.now(),
                 });
                 resolve(newFile);
-            }, 'image/webp', 1.0); 
+            }, 'image/webp', 1.0);
         });
     };
 
@@ -150,7 +150,7 @@ export default function EditorImageModal() {
             };
 
             const compressedFile = await imageCompression(selectedFile, options);
-            
+
             setFile(compressedFile);
             setOriginalFileName(selectedFile.name);
             setPreviewUrl(URL.createObjectURL(compressedFile));
@@ -198,6 +198,7 @@ export default function EditorImageModal() {
             formData.append("file", finalFileToUpload, originalFileName);
             formData.append("watermark", watermark ? "1" : "0");
             formData.append("name", imageName);
+            formData.append("caption", caption);
 
             const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute("content");
 
@@ -233,7 +234,7 @@ export default function EditorImageModal() {
 
     const insertFromUrl = () => {
         if (!imageUrl || !editor) return;
-        
+
         if (!imageName.trim()) {
             setError("Nama gambar (Alt Text) wajib diisi");
             return;
@@ -343,7 +344,7 @@ export default function EditorImageModal() {
                             <InputLabel value={"URL Gambar"} />
                             <input type="text" className="input input-bordered w-full" placeholder="https://example.com/image.jpg" value={imageUrl} onChange={(e) => setImageUrl(e.target.value)} />
                         </div>
-                        
+
                         {error && (
                             <div className="p-3 bg-red-50 border border-red-200 rounded-md">
                                 <p className="text-error text-sm font-medium">{error}</p>
