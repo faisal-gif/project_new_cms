@@ -15,9 +15,8 @@ class TextEditorController extends Controller
 
     public function upload(Request $request)
     {
-        dd($request->file);
         $request->validate([
-            'file'      => 'required|image|mimes:jpeg,png,jpg,webp',
+            'file'      => 'required|image|mimes:jpeg,png,jpg,webp|max:2048',
             'name'      => 'required|string|min:3|max:120',
             'caption'   => 'required|string|max:255', // 💡 Menerima payload caption baru
             'watermark' => 'sometimes|boolean',
