@@ -8,9 +8,9 @@ export default function InputEditor({
     height = 800, 
     enableImageUpload = true 
 }) {
-    // 💡 REKOMENDASI: Gunakan Array dengan menu esensial yang sudah dikelompokkan
+    // 💡 UPDATE: Menambahkan 'searchreplace' di sebelah 'undo redo'
     const toolbarConfig = [
-        'undo redo | styles | bold italic underline | alignleft aligncenter alignright alignjustify',
+        'undo redo searchreplace | styles | bold italic underline | alignleft aligncenter alignright alignjustify',
         'bullist numlist outdent indent | ' + (enableImageUpload ? 'customImage ' : '') + 'media link | blockquote table hr'
     ];
 
@@ -30,8 +30,8 @@ export default function InputEditor({
                     min_height: 300,
                     max_height: height,
                     mobile: {
-                        max_height: 600,
-                        toolbar_mode: 'sliding', // Di mobile, mode sliding lebih rapi jika Array digunakan
+                        max_height: 450,
+                        toolbar_mode: 'sliding', 
                     },
                     menubar: false,
                     toolbar_mode: 'wrap',
@@ -69,7 +69,7 @@ export default function InputEditor({
                     valid_elements: '*[*]',   
                     invalid_elements: 'span,o:p', 
 
-                    // 💡 Memanggil Array Toolbar
+                    // Memanggil Array Toolbar yang baru
                     toolbar: toolbarConfig,
 
                     style_formats: [
