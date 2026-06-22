@@ -21,7 +21,7 @@ function Create({ writers }) {
         judul: '',
         description: '',
         image_thumbnail: '',
-        image_watermark: true,
+        image_watermark: false,
         image_caption: '',
 
         tag: [],
