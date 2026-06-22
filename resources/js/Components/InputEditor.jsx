@@ -59,7 +59,6 @@ export default function InputEditor({
                     },
                     
                     image_dimensions: false,
-                    image_default_style: 'width:100%;height:500px;',
                     plugins: [
                         'searchreplace', 'lists', 'advlist', 'link', 'image',
                         'charmap', 'preview', 'anchor', 'pagebreak', 'nonbreaking',
