@@ -5,8 +5,8 @@ import EditorImageModal from './EditorImageModal';
 export default function InputEditor({
     value,
     onChange,
-    height = 800, 
-    enableImageUpload = true 
+    height = 800,
+    enableImageUpload = true
 }) {
     // 💡 UPDATE: Menambahkan 'searchreplace' di sebelah 'undo redo'
     const toolbarConfig = [
@@ -31,7 +31,7 @@ export default function InputEditor({
                     max_height: height,
                     mobile: {
                         max_height: 450,
-                        toolbar_mode: 'sliding', 
+                        toolbar_mode: 'sliding',
                     },
                     menubar: false,
                     toolbar_mode: 'wrap',
@@ -66,8 +66,8 @@ export default function InputEditor({
                         'insertdatetime', 'media', 'table', 'emoticons', 'help',
                         'wordcount', 'directionality'
                     ],
-                    valid_elements: '*[*]',   
-                    invalid_elements: 'span,o:p', 
+                    valid_elements: '*[*]',
+                    invalid_elements: 'span,o:p',
 
                     // Memanggil Array Toolbar yang baru
                     toolbar: toolbarConfig,
@@ -83,15 +83,21 @@ export default function InputEditor({
                     automatic_uploads: false,
                     branding: false,
                     promotion: false,
-                    paste_data_images: false,   
+                    paste_data_images: false,
                     images_upload_handler: null,
-                    images_file_types: "",      
-                    block_unsupported_drop: true, 
+                    images_file_types: "",
+                    block_unsupported_drop: true,
                     paste_postprocess: (plugin, args) => {
                         args.node.querySelectorAll("span").forEach(el => {
-                            el.replaceWith(...el.childNodes); 
+                            el.replaceWith(...el.childNodes);
                         });
                         args.node.querySelectorAll("o\\:p").forEach(el => el.remove());
+                        args.node.querySelectorAll("div").forEach(el => {
+                            const p = document.createElement("p");
+                            p.innerHTML = el.innerHTML;
+                            el.replaceWith(p);
+                        });
+
                         args.node.querySelectorAll("*").forEach(el => {
                             el.removeAttribute("class");
                             el.style.fontFamily = "";
