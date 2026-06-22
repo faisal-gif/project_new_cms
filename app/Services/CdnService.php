@@ -37,7 +37,7 @@ class CdnService
         string $processType = 'convert',
         bool $addWatermark = false
     ): string {
-        $response = Http::timeout(30)
+        $response = Http::timeout(120)
             ->withHeaders([
                 'x-api-key' => $this->apiKey
             ])
