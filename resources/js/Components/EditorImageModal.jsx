@@ -14,8 +14,8 @@ export default function EditorImageModal() {
     const [editor, setEditor] = useState(null);
     const [tab, setTab] = useState("upload");
 
-    const [file, setFile] = useState(null); // File yang sudah dikompresi
-    const [originalFileName, setOriginalFileName] = useState(""); // Menyimpan nama file asli
+    const [file, setFile] = useState(null); 
+    const [originalFileName, setOriginalFileName] = useState(""); 
     const [imageName, setImageName] = useState("");
     const [imageUrl, setImageUrl] = useState("");
     const [loading, setLoading] = useState(false);
@@ -23,7 +23,7 @@ export default function EditorImageModal() {
     const [error, setError] = useState("");
 
     // --- State & Ref untuk react-image-crop ---
-    const [previewUrl, setPreviewUrl] = useState(null); // URL pratinjau dari file yang terkompresi
+    const [previewUrl, setPreviewUrl] = useState(null); 
     const imgRef = useRef(null);
     const [crop, setCrop] = useState();
     const [completedCrop, setCompletedCrop] = useState(null);
@@ -35,8 +35,7 @@ export default function EditorImageModal() {
         };
 
         window.addEventListener("open-editor-image-modal", handler);
-        return () =>
-            window.removeEventListener("open-editor-image-modal", handler);
+        return () => window.removeEventListener("open-editor-image-modal", handler);
     }, []);
 
     const resetAndClose = () => {
@@ -74,34 +73,32 @@ export default function EditorImageModal() {
 
         editor.insertContent(
             ` <figure class="image">
-                    <img src="${src}" alt="${name}" title="${name}" />
-                    <figcaption>${name}</figcaption>
-                </figure>`
+                <img src="${src}" alt="${name}" title="${name}" />
+                <figcaption>${name}</figcaption>
+              </figure>`
         );
     };
 
     // Fungsi utilitas untuk memotong gambar menggunakan Canvas API
-    const getCroppedImg = async (imageElement, crop, fileNameToUse) => {
+    const getCroppedImg = async (imageElement, cropArea, fileNameToUse) => {
         const canvas = document.createElement('canvas');
 
-        // 1. Hitung skala: Ukuran Asli File dibagi Ukuran Tampilan di Layar
         const scaleX = imageElement.naturalWidth / imageElement.width;
         const scaleY = imageElement.naturalHeight / imageElement.height;
 
-        // 2. Hitung ukuran resolusi tinggi yang sebenarnya
-        const actualWidth = crop.width * scaleX;
-        const actualHeight = crop.height * scaleY;
+        const actualWidth = cropArea.width * scaleX;
+        const actualHeight = cropArea.height * scaleY;
 
-        // 3. Set kanvas menggunakan ukuran resolusi tinggi
         canvas.width = actualWidth;
         canvas.height = actualHeight;
 
         const ctx = canvas.getContext('2d');
+        ctx.imageSmoothingQuality = 'high';
 
         ctx.drawImage(
             imageElement,
-            crop.x * scaleX,
-            crop.y * scaleY,
+            cropArea.x * scaleX,
+            cropArea.y * scaleY,
             actualWidth,
             actualHeight,
             0,
@@ -135,7 +132,7 @@ export default function EditorImageModal() {
         });
     };
 
-    // --- FUNGSI BARU: Kompresi saat memilih file ---
+    // Kompresi awal saat file dipilih agar browser tidak berat saat proses cropping
     const handleFileChange = async (e) => {
         const selectedFile = e.target.files[0];
         if (!selectedFile) return;
@@ -144,14 +141,12 @@ export default function EditorImageModal() {
         setError("");
 
         try {
-            // Opsi kompresi
             const options = {
                 maxSizeMB: 1.5,
                 maxWidthOrHeight: 1920,
                 useWebWorker: true,
             };
 
-            // Kompres gambar SEBELUM masuk ke preview/crop
             const compressedFile = await imageCompression(selectedFile, options);
             
             setFile(compressedFile);
@@ -173,6 +168,12 @@ export default function EditorImageModal() {
             return;
         }
 
+        // 💡 WAJIB CROP: Hentikan jika tidak ada area crop yang terdefinisi
+        if (!completedCrop?.width || !completedCrop?.height || !imgRef.current) {
+            setError("Silakan sesuaikan (crop) gambar terlebih dahulu.");
+            return;
+        }
+
         setError("");
         setLoading(true);
 
@@ -186,23 +187,15 @@ export default function EditorImageModal() {
         }
 
         try {
-            // ⭐ Karena gambar SUDAH dikompresi di awal, kita hanya perlu mengekstrak hasil crop
-            let finalFileToUpload = file;
+            // Ekstrak hasil crop menjadi WebP secara absolut
+            const finalFileToUpload = await getCroppedImg(imgRef.current, completedCrop, originalFileName);
 
-            if (completedCrop?.width && completedCrop?.height && imgRef.current) {
-                // Crop gambar yang sudah dikompresi
-                finalFileToUpload = await getCroppedImg(imgRef.current, completedCrop, originalFileName);
-            }
-
-            // --- Upload ke Server ---
             const formData = new FormData();
             formData.append("file", finalFileToUpload, originalFileName);
             formData.append("watermark", watermark ? "1" : "0");
             formData.append("name", imageName);
 
-            const token = document
-                .querySelector('meta[name="csrf-token"]')
-                ?.getAttribute("content");
+            const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute("content");
 
             const res = await fetch("/upload-image", {
                 method: "POST",
@@ -235,6 +228,12 @@ export default function EditorImageModal() {
 
     const insertFromUrl = () => {
         if (!imageUrl || !editor) return;
+        
+        if (!imageName.trim()) {
+            setError("Nama gambar wajib diisi");
+            return;
+        }
+
         insertImage(imageUrl, imageName);
         resetAndClose();
     };
@@ -245,7 +244,7 @@ export default function EditorImageModal() {
         <div className="fixed inset-0 z-[10000] flex items-center justify-center">
             {/* overlay */}
             <div
-                className="absolute inset-0 bg-black/30"
+                className="absolute inset-0 bg-black/50 backdrop-blur-sm transition-opacity"
                 onClick={resetAndClose}
             />
 
@@ -256,7 +255,7 @@ export default function EditorImageModal() {
                         <span className="loading loading-spinner loading-lg text-primary"></span>
                     </div>
                 )}
-                <h3 className="text-lg font-semibold">Tambah Gambar</h3>
+                <h3 className="text-lg font-semibold text-gray-800">Tambah Gambar Artikel</h3>
 
                 <Tabs
                     tabs={[
@@ -270,7 +269,7 @@ export default function EditorImageModal() {
                 />
 
                 {tab === "upload" && (
-                    <div className="space-y-3 pt-2">
+                    <div className="space-y-4 pt-2">
                         {previewUrl ? (
                             <div className="space-y-3">
                                 <div className="border rounded-lg bg-base-200 flex justify-center items-center overflow-hidden" style={{ maxHeight: "400px" }}>
@@ -288,8 +287,8 @@ export default function EditorImageModal() {
                                         />
                                     </ReactCrop>
                                 </div>
-                                <div className="flex justify-between items-center gap-2">
-                                    <p className="text-sm font-medium truncate flex-1">{originalFileName}</p>
+                                <div className="flex justify-between items-center gap-2 px-1">
+                                    <p className="text-sm font-medium text-gray-600 truncate flex-1">{originalFileName}</p>
                                     <button
                                         className="btn btn-sm btn-outline btn-error"
                                         onClick={() => {
@@ -312,29 +311,31 @@ export default function EditorImageModal() {
                                 type="file"
                                 accept="image/*"
                                 className="file-input file-input-bordered w-full"
-                                onChange={handleFileChange} // Menggunakan fungsi baru
+                                onChange={handleFileChange} 
                                 disabled={loading}
                             />
                         )}
 
                         {error && (
-                            <p className="text-error text-sm font-medium">{error}</p>
+                            <div className="p-3 bg-red-50 border border-red-200 rounded-md">
+                                <p className="text-error text-sm font-medium">{error}</p>
+                            </div>
                         )}
 
-                        <label className="flex items-center gap-2">
+                        <label className="flex items-center gap-2 cursor-pointer mt-2">
                             <Checkbox
                                 checked={watermark}
                                 onChange={(e) => setWatermark(e.target.checked)}
                             />
-                            Apakah ini foto original?
+                            <span className="text-sm font-medium text-gray-700">Apakah ini foto original? (Tambahkan Watermark)</span>
                         </label>
 
                         <div className="space-y-2">
-                            <InputLabel value={"Nama Gambar (Wajib diisi)"} />
+                            <InputLabel value={"Caption / Nama Gambar (Wajib diisi)"} />
                             <TextInput
                                 type="text"
                                 className="w-full"
-                                placeholder="Contoh: Presiden saat konferensi"
+                                placeholder="Contoh: Presiden saat konferensi pers di Jakarta"
                                 value={imageName}
                                 onChange={(e) => setImageName(e.target.value)}
                             />
@@ -344,33 +345,45 @@ export default function EditorImageModal() {
                             className="btn btn-primary w-full flex items-center justify-center gap-2"
                             type="button"
                             onClick={upload}
-                            disabled={!file || loading}
+                            // Tombol dikunci jika tidak ada file, sedang loading, ATAU belum ada area crop yang valid
+                            disabled={!file || loading || !completedCrop?.width}
                         >
-                            {loading ? "Memproses..." : "Upload Gambar"}
+                            {loading ? "Memproses Upload..." : "Crop & Upload Gambar"}
                         </button>
                     </div>
                 )}
 
-                {/* TAB URL (Tidak berubah) */}
+                {/* TAB URL */}
                 {tab === "url" && (
-                    <div className="space-y-3 pt-2">
-                        <input
-                            type="text"
-                            className="input input-bordered w-full"
-                            placeholder="https://example.com/image.jpg"
-                            value={imageUrl}
-                            onChange={(e) => setImageUrl(e.target.value)}
-                        />
+                    <div className="space-y-4 pt-2">
                         <div className="space-y-2">
-                            <InputLabel value={"Nama Gambar (Wajib diisi)"} />
+                            <InputLabel value={"URL Gambar"} />
+                            <input
+                                type="text"
+                                className="input input-bordered w-full"
+                                placeholder="https://example.com/image.jpg"
+                                value={imageUrl}
+                                onChange={(e) => setImageUrl(e.target.value)}
+                            />
+                        </div>
+                        
+                        {error && (
+                            <div className="p-3 bg-red-50 border border-red-200 rounded-md">
+                                <p className="text-error text-sm font-medium">{error}</p>
+                            </div>
+                        )}
+
+                        <div className="space-y-2">
+                            <InputLabel value={"Caption / Nama Gambar (Wajib diisi)"} />
                             <TextInput
                                 type="text"
                                 className="w-full"
-                                placeholder="Contoh: Presiden saat konferensi"
+                                placeholder="Contoh: Presiden saat konferensi pers di Jakarta"
                                 value={imageName}
                                 onChange={(e) => setImageName(e.target.value)}
                             />
                         </div>
+
                         <button
                             className="btn btn-secondary w-full"
                             type="button"
@@ -382,12 +395,11 @@ export default function EditorImageModal() {
                     </div>
                 )}
 
-                <div className="text-xs opacity-60">
-                    Maksimal 2 gambar dalam artikel
-                </div>
-
-                <div className="flex justify-end relative z-20">
-                    <button className="btn" onClick={resetAndClose} disabled={loading}>
+                <div className="flex items-center justify-between mt-6 pt-4 border-t border-gray-100">
+                    <div className="text-xs font-semibold text-orange-600 bg-orange-50 px-2 py-1 rounded">
+                        Maksimal 2 gambar dalam artikel
+                    </div>
+                    <button className="btn btn-ghost btn-sm" onClick={resetAndClose} disabled={loading}>
                         Tutup
                     </button>
                 </div>
