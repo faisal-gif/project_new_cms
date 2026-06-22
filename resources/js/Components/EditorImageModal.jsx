@@ -143,17 +143,29 @@ export default function EditorImageModal() {
         setError("");
 
         try {
-            const options = {
-                maxSizeMB: 1.5,
-                maxWidthOrHeight: 1920,
-                useWebWorker: true,
-            };
+            // 💡 CEK UKURAN & FORMAT FILE
+            // Jika ukuran file di bawah 1.5MB (1536000 bytes) ATAU formatnya avif/webp,
+            // kita BYPASS (lewati) proses kompresi awal untuk menjaga ketajaman gambar.
+            const isSmallFile = selectedFile.size <= 1.5 * 1024 * 1024;
+            const isOptimizedFormat = selectedFile.type === 'image/avif' || selectedFile.type === 'image/webp';
 
-            const compressedFile = await imageCompression(selectedFile, options);
+            let fileForCrop = selectedFile;
 
-            setFile(compressedFile);
+            if (!isSmallFile && !isOptimizedFormat) {
+                // Hanya kompres jika file JPEG/PNG besar (misal dari kamera HP / DSLR)
+                const options = {
+                    maxSizeMB: 1.5,
+                    maxWidthOrHeight: 1920,
+                    useWebWorker: true,
+                };
+                fileForCrop = await imageCompression(selectedFile, options);
+            }
+
+            // Set file ke state
+            setFile(fileForCrop);
             setOriginalFileName(selectedFile.name);
-            setPreviewUrl(URL.createObjectURL(compressedFile));
+            setPreviewUrl(URL.createObjectURL(fileForCrop));
+
         } catch (error) {
             console.error(error);
             setError("Gagal memproses gambar saat dipilih.");
