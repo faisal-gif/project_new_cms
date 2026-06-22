@@ -37,7 +37,7 @@ class TextEditorController extends Controller
             $applyWatermark = $request->boolean('watermark') ? '1' : '0';
 
             // 3. Proses Upload ke CDN
-            $imageUrl = $this->cdnService->uploadImage($file, $nameImage, 4, 'convert', $applyWatermark);
+            $imageUrl = $this->cdnService->uploadImage($file, $nameImage, 4, 'raw', $applyWatermark);
 
             // Validasi proteksi jika CDN gagal merespons atau mengembalikan null
             if (!$imageUrl) {
