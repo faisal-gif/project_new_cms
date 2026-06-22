@@ -23,6 +23,7 @@ class TextEditorController extends Controller
         ], [
             // Parameter ketiga adalah array custom messages
             'file.required'    => 'File gambar wajib diunggah.',
+            'file.max' =>'File Terlalu Besar',
             'name.required'    => 'Nama gambar (Alt Text) wajib diisi.',
             'caption.required' => 'Caption keterangan gambar wajib diisi.'
         ]);
