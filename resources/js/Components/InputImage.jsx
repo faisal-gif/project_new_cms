@@ -6,7 +6,7 @@ import ReactCrop, { centerCrop, makeAspectCrop } from "react-image-crop";
 import "react-image-crop/dist/ReactCrop.css";
 import imageCompression from "browser-image-compression";
 
-// --- Helper: Ekstrak area crop (Tetap sama) ---
+// --- Helper: Ekstrak area crop ---
 const getCroppedImg = async (image, crop, fileName, targetWidth, targetHeight) => {
   const canvas = document.createElement("canvas");
   const scaleX = image.naturalWidth / image.width;
@@ -27,10 +27,10 @@ const getCroppedImg = async (image, crop, fileName, targetWidth, targetHeight) =
 
 export default function InputImage({
   label = "Upload Image",
-  value = null,          // HANYA berisi File/Blob jika ada upload baru
-  existingImage = null,  // PROP BARU: URL string dari database
+  value = null,          
+  existingImage = null,  
   onChange,
-  onRemove,              // PROP BARU: Beritahu parent jika user menekan (X)
+  onRemove,              
   className = "",
   enableCrop = true,
   targetWidth = 1200,
@@ -40,7 +40,7 @@ export default function InputImage({
   const imgRef = useRef(null);
 
   const [preview, setPreview] = useState(null);
-  const [isDeleted, setIsDeleted] = useState(false); // Melacak jika gambar lama dihapus
+  const [isDeleted, setIsDeleted] = useState(false);
   const [cropData, setCropData] = useState({ src: null, fileName: "", originalFile: null });
   const [crop, setCrop] = useState();
   const [completedCrop, setCompletedCrop] = useState(null);
@@ -50,20 +50,17 @@ export default function InputImage({
 
   // Manajemen State Preview
   useEffect(() => {
-    // 1. Jika ada file baru (User Upload/Crop)
     if (value instanceof File || value instanceof Blob) {
       const objectUrl = URL.createObjectURL(value);
       setPreview(objectUrl);
       return () => URL.revokeObjectURL(objectUrl);
     }
 
-    // 2. Jika tidak ada file baru, TAPI ada existingImage dan user BELUM menghapusnya
     if (!value && existingImage && !isDeleted) {
       setPreview(existingImage);
       return;
     }
 
-    // 3. Kondisi kosong (Tidak ada gambar atau sudah dihapus)
     setPreview(null);
   }, [value, existingImage, isDeleted]);
 
@@ -71,7 +68,6 @@ export default function InputImage({
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Reset status deleted karena user memilih file baru
     setIsDeleted(false);
 
     if (!enableCrop) {
@@ -141,9 +137,9 @@ export default function InputImage({
   };
 
   const removeImage = () => {
-    onChange?.(null);       // 1. Kosongkan file baru jika ada
-    setIsDeleted(true);     // 2. Tandai bahwa tampilan dikosongkan
-    onRemove?.();           // 3. Beritahu parent form jika diperlukan
+    onChange?.(null);       
+    setIsDeleted(true);     
+    onRemove?.();           
     if (inputRef.current) inputRef.current.value = "";
   };
 
@@ -187,27 +183,36 @@ export default function InputImage({
 
       <input ref={inputRef} type="file" accept="image/*" className="hidden" onChange={handleSelect} />
 
-      {/* Modal Crop (Tetap Sama) */}
+      {/* Modal Crop */}
       {cropData.src && (
         <div className="modal modal-open z-[9999] bg-black/60">
-          {/* ... Konten Modal sama seperti sebelumnya ... */}
           <div className="modal-box max-w-3xl bg-base-100">
             <h3 className="font-bold text-lg mb-4">Sesuaikan Gambar</h3>
+            
             <div className="flex justify-center items-center bg-base-200 overflow-auto max-h-[60vh] rounded-lg">
               <ReactCrop crop={crop} onChange={(_, p) => setCrop(p)} onComplete={(c) => setCompletedCrop(c)} aspect={ASPECT_RATIO}>
                 <img src={cropData.src} alt="Crop" onLoad={onImageLoad} className="max-h-[60vh] object-contain" />
               </ReactCrop>
             </div>
-            <div className="modal-action flex flex-col sm:flex-row gap-2 justify-between items-center w-full mt-6">
-              <button type="button" className="btn btn-outline w-full sm:w-auto" onClick={() => processOriginalImage()} disabled={isProcessing}>
-                {isProcessing ? <span className="loading loading-spinner loading-sm"></span> : "Gunakan Gambar Asli"}
+            
+            {/* Layout tombol yang sudah disesuaikan ke kanan */}
+            <div className="modal-action flex w-full justify-end gap-2 mt-6">
+              <button 
+                type="button" 
+                className="btn btn-ghost flex-1 sm:flex-none" 
+                onClick={() => setCropData({ src: null, fileName: "", originalFile: null })} 
+                disabled={isProcessing}
+              >
+                Batal
               </button>
-              <div className="flex w-full sm:w-auto gap-2">
-                <button type="button" className="btn btn-ghost flex-1 sm:flex-none" onClick={() => setCropData({ src: null, fileName: "", originalFile: null })} disabled={isProcessing}>Batal</button>
-                <button type="button" className="btn btn-primary flex-1 sm:flex-none" onClick={handleSaveCrop} disabled={isProcessing || !completedCrop?.width}>
-                  {isProcessing ? <span className="loading loading-spinner loading-sm"></span> : `Crop & Kompres`}
-                </button>
-              </div>
+              <button 
+                type="button" 
+                className="btn btn-primary flex-1 sm:flex-none" 
+                onClick={handleSaveCrop} 
+                disabled={isProcessing || !completedCrop?.width}
+              >
+                {isProcessing ? <span className="loading loading-spinner loading-sm"></span> : `Crop & Kompres`}
+              </button>
             </div>
           </div>
         </div>
