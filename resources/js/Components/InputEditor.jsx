@@ -2,19 +2,16 @@ import React from 'react';
 import { Editor } from '@tinymce/tinymce-react';
 import EditorImageModal from './EditorImageModal';
 
-export default function InputEditor({ 
-    value, 
+export default function InputEditor({
+    value,
     onChange,
     height = 800, 
     enableImageUpload = true 
 }) {
-    // 💡 PERBAIKAN: Ubah string panjang menjadi Array of Strings.
-    // Setiap elemen di dalam array akan dirender sebagai satu baris (row) baru.
-    // Ini menjamin toolbar tidak akan pernah scroll ke samping.
+    // 💡 REKOMENDASI: Gunakan Array dengan menu esensial yang sudah dikelompokkan
     const toolbarConfig = [
-        'undo redo | searchreplace | blocks styles align | numlist bullist',
-        (enableImageUpload ? 'customImage ' : '') + 'media link | outdent indent | blockquote | ltr rtl',
-        'table | hr pagebreak | charmap emoticons | forecolor backcolor | removeformat code'
+        'undo redo | styles | bold italic underline | alignleft aligncenter alignright alignjustify',
+        'bullist numlist outdent indent | ' + (enableImageUpload ? 'customImage ' : '') + 'media link | blockquote table hr'
     ];
 
     return (
@@ -22,7 +19,7 @@ export default function InputEditor({
             <Editor
                 tinymceScriptSrc="/vendor/tinymce/tinymce.min.js"
                 referrerPolicy='origin'
-                
+
                 value={value}
                 onEditorChange={(content, editor) => {
                     onChange(content);
@@ -30,18 +27,20 @@ export default function InputEditor({
 
                 init={{
                     license_key: 'gpl',
-                    height: height,
+                    min_height: 300,
+                    max_height: height,
+                    mobile: {
+                        max_height: 450,
+                        toolbar_mode: 'sliding', // Di mobile, mode sliding lebih rapi jika Array digunakan
+                    },
                     menubar: false,
-                    
-                    // Kita bisa tetap menyalakan fitur sliding/wrap sebagai jaga-jaga
-                    toolbar_mode: 'sliding', 
-                    
+                    toolbar_mode: 'wrap',
                     forced_root_block: 'p',
                     noneditable_class: 'instagram-media',
                     extended_valid_elements: '+script[language|type|src]',
                     file_picker_types: 'image',
                     contextmenu: false,
-                    
+
                     setup: (editor) => {
                         if (enableImageUpload) {
                             editor.ui.registry.addButton('customImage', {
@@ -57,8 +56,9 @@ export default function InputEditor({
                             });
                         }
                     },
-                    
+
                     image_dimensions: false,
+                    image_default_style: 'width:100%;height:auto;max-height:500px;object-fit:cover;',
                     plugins: [
                         'searchreplace', 'lists', 'advlist', 'link', 'image',
                         'charmap', 'preview', 'anchor', 'pagebreak', 'nonbreaking',
@@ -66,27 +66,27 @@ export default function InputEditor({
                         'insertdatetime', 'media', 'table', 'emoticons', 'help',
                         'wordcount', 'directionality'
                     ],
-                    valid_elements: '*[*]',
-                    invalid_elements: 'span,o:p',
-                    
-                    // 💡 Terapkan Array Toolbar di sini
+                    valid_elements: '*[*]',   
+                    invalid_elements: 'span,o:p', 
+
+                    // 💡 Memanggil Array Toolbar
                     toolbar: toolbarConfig,
-                    
+
                     style_formats: [
-                        { title: 'Bold', inline: 'strong' },
-                        { title: 'Italic', inline: 'em' },
-                        { title: 'Underline', inline: 'u' },
-                        { title: 'Strikethrough', inline: 'strike' }
+                        { title: 'Heading 2', format: 'h2' },
+                        { title: 'Heading 3', format: 'h3' },
+                        { title: 'Paragraph', format: 'p' },
+                        { title: 'Quote', format: 'blockquote' }
                     ],
                     image_title: true,
                     image_advtab: false,
                     automatic_uploads: false,
                     branding: false,
                     promotion: false,
-                    paste_data_images: false,
+                    paste_data_images: false,   
                     images_upload_handler: null,
-                    images_file_types: "",
-                    block_unsupported_drop: true,
+                    images_file_types: "",      
+                    block_unsupported_drop: true, 
                     paste_postprocess: (plugin, args) => {
                         args.node.querySelectorAll("span").forEach(el => {
                             el.replaceWith(...el.childNodes); 
@@ -100,10 +100,10 @@ export default function InputEditor({
                         });
                     },
 
-                    content_style: 'body { font-size:14px } img { max-width:100%; height:auto; }',
+                    content_style: 'body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; font-size:16px; line-height: 1.6; } img { max-width:100%; height:auto; display: block; margin: 1rem auto; }',
                 }}
             />
-            
+
             {enableImageUpload && <EditorImageModal />}
         </>
     );
