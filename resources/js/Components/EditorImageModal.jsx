@@ -89,8 +89,19 @@ export default function EditorImageModal() {
         const canvas = document.createElement('canvas');
         const scaleX = imageElement.naturalWidth / imageElement.width;
         const scaleY = imageElement.naturalHeight / imageElement.height;
-        const actualWidth = cropArea.width * scaleX;
-        const actualHeight = cropArea.height * scaleY;
+
+        // 💡 KUNCI: Batasi dimensi maksimal (misalnya 1200px lebar)
+        // Ini adalah cara paling efektif menekan ukuran file agar selalu di bawah 2MB
+        const MAX_WIDTH = 1200;
+        let actualWidth = cropArea.width * scaleX;
+        let actualHeight = cropArea.height * scaleY;
+
+        // Jika hasil crop lebih besar dari 1200px, kecilkan dimensinya
+        if (actualWidth > MAX_WIDTH) {
+            const ratio = MAX_WIDTH / actualWidth;
+            actualWidth = MAX_WIDTH;
+            actualHeight = actualHeight * ratio;
+        }
 
         canvas.width = actualWidth;
         canvas.height = actualHeight;
@@ -102,29 +113,21 @@ export default function EditorImageModal() {
             imageElement,
             cropArea.x * scaleX,
             cropArea.y * scaleY,
-            actualWidth,
-            actualHeight,
-            0,
-            0,
-            actualWidth,
-            actualHeight
+            cropArea.width * scaleX,
+            cropArea.height * scaleY,
+            0, 0, actualWidth, actualHeight
         );
 
         return new Promise((resolve, reject) => {
+            // Gunakan kualitas 0.8 untuk hasil yang sangat tajam tapi ringan
             canvas.toBlob((blob) => {
-                if (!blob) {
-                    reject(new Error('Canvas is empty'));
-                    return;
-                }
-                const newFile = new File([blob], fileNameToUse, {
+                if (!blob) return reject(new Error('Canvas is empty'));
+                resolve(new File([blob], fileNameToUse.replace(/\.[^/.]+$/, ".webp"), {
                     type: 'image/webp',
-                    lastModified: Date.now(),
-                });
-                resolve(newFile);
-            }, 'image/webp', 1.0);
+                }));
+            }, 'image/webp', 0.8);
         });
     };
-
     const onImageLoad = (e) => {
         setCrop({
             unit: '%',
@@ -143,17 +146,29 @@ export default function EditorImageModal() {
         setError("");
 
         try {
-            const options = {
-                maxSizeMB: 1.5,
-                maxWidthOrHeight: 1920,
-                useWebWorker: true,
-            };
+            // 💡 CEK UKURAN & FORMAT FILE
+            // Jika ukuran file di bawah 1.5MB (1536000 bytes) ATAU formatnya avif/webp,
+            // kita BYPASS (lewati) proses kompresi awal untuk menjaga ketajaman gambar.
+            const isSmallFile = selectedFile.size <= 1.5 * 1024 * 1024;
+            const isOptimizedFormat = selectedFile.type === 'image/avif' || selectedFile.type === 'image/webp';
 
-            const compressedFile = await imageCompression(selectedFile, options);
+            let fileForCrop = selectedFile;
 
-            setFile(compressedFile);
+            if (!isSmallFile && !isOptimizedFormat) {
+                // Hanya kompres jika file JPEG/PNG besar (misal dari kamera HP / DSLR)
+                const options = {
+                    maxSizeMB: 1.5,
+                    maxWidthOrHeight: 1920,
+                    useWebWorker: true,
+                };
+                fileForCrop = await imageCompression(selectedFile, options);
+            }
+
+            // Set file ke state
+            setFile(fileForCrop);
             setOriginalFileName(selectedFile.name);
-            setPreviewUrl(URL.createObjectURL(compressedFile));
+            setPreviewUrl(URL.createObjectURL(fileForCrop));
+
         } catch (error) {
             console.error(error);
             setError("Gagal memproses gambar saat dipilih.");
