@@ -15,6 +15,7 @@ class TextEditorController extends Controller
 
     public function upload(Request $request)
     {
+        dd($request->file);
         $request->validate([
             'file'      => 'required|image|mimes:jpeg,png,jpg,webp',
             'name'      => 'required|string|min:3|max:120',
