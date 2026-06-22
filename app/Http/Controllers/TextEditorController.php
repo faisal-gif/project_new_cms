@@ -20,6 +20,11 @@ class TextEditorController extends Controller
             'name'      => 'required|string|min:3|max:120',
             'caption'   => 'required|string|max:255', // 💡 Menerima payload caption baru
             'watermark' => 'sometimes|boolean',
+        ], [
+            // Parameter ketiga adalah array custom messages
+            'file.required'    => 'File gambar wajib diunggah.',
+            'name.required'    => 'Nama gambar (Alt Text) wajib diisi.',
+            'caption.required' => 'Caption keterangan gambar wajib diisi.'
         ]);
 
         try {
