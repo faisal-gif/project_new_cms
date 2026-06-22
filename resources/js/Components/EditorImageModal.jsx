@@ -154,7 +154,7 @@ export default function EditorImageModal() {
             if (!isSmallFile && !isOptimizedFormat) {
                 // Hanya kompres jika file JPEG/PNG besar (misal dari kamera HP / DSLR)
                 const options = {
-                    maxSizeMB: 1.5,
+                    maxSizeMB: 1,
                     maxWidthOrHeight: 1920,
                     useWebWorker: true,
                 };
