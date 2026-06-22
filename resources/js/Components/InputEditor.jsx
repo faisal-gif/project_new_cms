@@ -5,44 +5,37 @@ import EditorImageModal from './EditorImageModal';
 export default function InputEditor({ 
     value, 
     onChange,
-    height = 800, // Prop baru untuk mengatur tinggi editor 
-    enableImageUpload = true // Prop baru, default ON
+    height = 800, 
+    enableImageUpload = true 
 }) {
-    // Susun toolbar secara dinamis berdasarkan prop
-    const toolbarConfig = 
-        'undo redo | searchreplace | ' +
-        'blocks styles align  | ' +
-        'numlist bullist | ' +
-        (enableImageUpload ? 'customImage ' : '') + 'media link |' +
-        'outdent indent | ' +
-        'blockquote | ' +
-        'ltr rtl | ' +
-        'table | ' +
-        'hr pagebreak | ' +
-        'charmap emoticons | ' +
-        'forecolor backcolor | ' +
-        'removeformat code ';
+    // 💡 PERBAIKAN: Ubah string panjang menjadi Array of Strings.
+    // Setiap elemen di dalam array akan dirender sebagai satu baris (row) baru.
+    // Ini menjamin toolbar tidak akan pernah scroll ke samping.
+    const toolbarConfig = [
+        'undo redo | searchreplace | blocks styles align | numlist bullist',
+        (enableImageUpload ? 'customImage ' : '') + 'media link | outdent indent | blockquote | ltr rtl',
+        'table | hr pagebreak | charmap emoticons | forecolor backcolor | removeformat code'
+    ];
 
     return (
         <>
             <Editor
-                // 1. GUNAKAN API KEY (Daftar di tiny.cloud untuk dapat gratis)
-                // Atau kosongkan jika ingin pakai mode warning/self-hosted
                 tinymceScriptSrc="/vendor/tinymce/tinymce.min.js"
                 referrerPolicy='origin'
                 
-                // 2. Binding Data
                 value={value}
                 onEditorChange={(content, editor) => {
                     onChange(content);
                 }}
 
-                // 3. Konfigurasi Fitur Lengkap
                 init={{
                     license_key: 'gpl',
                     height: height,
                     menubar: false,
-                    toolbar_mode: 'wrap',
+                    
+                    // Kita bisa tetap menyalakan fitur sliding/wrap sebagai jaga-jaga
+                    toolbar_mode: 'sliding', 
+                    
                     forced_root_block: 'p',
                     noneditable_class: 'instagram-media',
                     extended_valid_elements: '+script[language|type|src]',
@@ -50,7 +43,6 @@ export default function InputEditor({
                     contextmenu: false,
                     
                     setup: (editor) => {
-                        // Daftarkan custom button hanya jika fitur aktif
                         if (enableImageUpload) {
                             editor.ui.registry.addButton('customImage', {
                                 icon: 'image',
@@ -75,10 +67,10 @@ export default function InputEditor({
                         'insertdatetime', 'media', 'table', 'emoticons', 'help',
                         'wordcount', 'directionality'
                     ],
-                    valid_elements: '*[*]',   // izinkan semua dulu
-                    invalid_elements: 'span,o:p', // lalu larang span
+                    valid_elements: '*[*]',
+                    invalid_elements: 'span,o:p',
                     
-                    // Gunakan variabel toolbar yang sudah dibuat dinamis
+                    // 💡 Terapkan Array Toolbar di sini
                     toolbar: toolbarConfig,
                     
                     style_formats: [
@@ -92,13 +84,13 @@ export default function InputEditor({
                     automatic_uploads: false,
                     branding: false,
                     promotion: false,
-                    paste_data_images: false,   // blok paste gambar (Ctrl+V)
+                    paste_data_images: false,
                     images_upload_handler: null,
-                    images_file_types: "",      // opsional: blok semua tipe
-                    block_unsupported_drop: true, // 🔴 ini kunci utama
+                    images_file_types: "",
+                    block_unsupported_drop: true,
                     paste_postprocess: (plugin, args) => {
                         args.node.querySelectorAll("span").forEach(el => {
-                            el.replaceWith(...el.childNodes); // unwrap span
+                            el.replaceWith(...el.childNodes); 
                         });
                         args.node.querySelectorAll("o\\:p").forEach(el => el.remove());
                         args.node.querySelectorAll("*").forEach(el => {
@@ -113,7 +105,6 @@ export default function InputEditor({
                 }}
             />
             
-            {/* Hanya render modal jika upload image diizinkan */}
             {enableImageUpload && <EditorImageModal />}
         </>
     );
