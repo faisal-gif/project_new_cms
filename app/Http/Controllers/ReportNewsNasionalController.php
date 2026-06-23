@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Exports\NewsNasionalExport;
+use App\Models\EditorNasional;
 use App\Models\KanalNasional;
 use App\Models\NewsNasional;
 use App\Models\User;
@@ -37,6 +38,10 @@ class ReportNewsNasionalController extends Controller
         }
         if ($request->filled('writer')) {
             $query->where('news_writer', $request->writer);
+        }
+
+        if ($request->filled('editor')) {
+            $query->where('editor_id', $request->editor);
         }
 
         return $query;
@@ -78,6 +83,9 @@ class ReportNewsNasionalController extends Controller
         $writers = WriterNasional::select('id', 'name')->where('status', '1')->get()
             ->map(fn($u) => ['value' => $u->name, 'label' => $u->name]);
 
+        $editors = EditorNasional::select('editor_id', 'editor_name')->where('status', '1')->get()
+            ->map(fn($u) => ['value' => $u->editor_id, 'label' => $u->editor_name]);
+
         $kanals = KanalNasional::select('catnews_id', 'catnews_title')->get()
             ->map(fn($u) => ['value' => $u->catnews_id, 'label' => $u->catnews_title]);
 
@@ -90,10 +98,11 @@ class ReportNewsNasionalController extends Controller
             ],
             'chart_data' => $chartData,
             'writers' => $writers,
+            'editors' => $editors,
             'kanals' => $kanals,
             // Variabel 'filters' ini sekarang PASTI berisi tanggal bulan ini
             // sehingga React di sisi depan akan otomatis mengisi input kolom tanggal.
-            'filters' => $request->only(['start_date', 'end_date', 'kanal', 'writer']),
+            'filters' => $request->only(['start_date', 'end_date', 'kanal', 'writer', 'editor']),
         ]);
     }
 
