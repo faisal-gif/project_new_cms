@@ -136,7 +136,7 @@ class ReportNewsDaerahController extends Controller
             $writerName = WriterDaerah::where('id', $filters['writer'])->value('name');
 
             if ($writerName) {
-                $nameParts[] = Str::slug($writerName);
+                $nameParts[] = 'writer-' . Str::slug($writerName);
             } else {
                 $nameParts[] = 'writer-' . $filters['writer'];
             }
@@ -146,7 +146,7 @@ class ReportNewsDaerahController extends Controller
             $editorName = EditorDaerah::where('id', $filters['editor'])->value('name');
 
             if ($editorName) {
-                $nameParts[] = Str::slug($editorName);
+                $nameParts[] = 'editor-' . Str::slug($editorName);
             } else {
                 $nameParts[] = 'editor-' . $filters['editor'];
             }
