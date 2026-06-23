@@ -90,8 +90,8 @@ function ImportDaerah({ writers, editors, networks, kanal, fokus, initialData, c
                                                 value={data.status}
                                                 onChange={(e) => setData('status', e)}
                                                 options={[
-                                                    { label: "Review", value: 2, color: "warning" },
-                                                    { label: "Publish", value: 1, color: "success" },
+                                                    { label: "Review", value: '2', color: "warning" },
+                                                    { label: "Publish", value: '1', color: "success" },
                                                 ]}
                                             />
 
