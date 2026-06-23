@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Models\Editor;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -12,6 +13,7 @@ class EditorRequest extends FormRequest
      */
     public function authorize(): bool
     {
+        // Pastikan Anda menambahkan logic otorisasi yang sesuai dengan ACL Anda jika diperlukan.
         return true;
     }
 
@@ -22,31 +24,37 @@ class EditorRequest extends FormRequest
      */
     public function rules(): array
     {
-        // Mengambil instance model Editor dari Route parameters jika ini adalah proses Update (PUT/PATCH).
-        // Asumsi nama parameter di route Anda adalah 'editor', cth: Route::put('/editors/{editor}', ...)
-        $editor = $this->route('editors');
-        $editorId = $editor ? $editor->id : null;
+        // 1. Ambil parameter route dengan nama singular (standar Laravel).
+        $routeParameter = $this->route('editor');
 
-        // Aturan dasar yang berlaku untuk Create dan Update
-        $rules = [
-            'name'        => ['required', 'string', 'max:255'],
-            'status'      => ['required', 'in:0,1'],
-            // Validasi krusial untuk fitur pilihan opsional (Cross-DB & Unique Ignore)
+        // 2. Ambil ID dengan aman. Mendukung Route Model Binding (Object) maupun parameter murni (String/Int).
+        $editorId = $routeParameter instanceof Editor 
+            ? $routeParameter->id 
+            : $routeParameter;
+
+        return [
+            'name'   => ['required', 'string', 'max:255'],
+            'status' => ['required', 'in:0,1'],
+            
+            // Validasi Cross-DB & Unique Ignore
             'id_nasional' => [
                 'nullable',
                 'exists:mysql_nasional.journalist,id',
+                // Pastikan kolom database yang dicek benar 'id_nasional', ubah jika memang menggunakan 'id_ti'
                 Rule::unique('editors', 'id_ti')->ignore($editorId)
             ],
-            'id_daerah'   => [
+            
+            'id_daerah' => [
                 'nullable',
                 'exists:mysql_daerah.editors,id',
                 Rule::unique('editors', 'id_daerah')->ignore($editorId)
             ],
         ];
-
-        return $rules;
     }
 
+    /**
+     * Get custom messages for validator errors.
+     */
     public function messages(): array
     {
         return [
@@ -55,10 +63,10 @@ class EditorRequest extends FormRequest
             'name.max' => 'Nama editor tidak boleh lebih dari 255 karakter.',
             'status.required' => 'Status editor wajib diisi.',
             'status.in' => 'Status editor harus bernilai 0 (non-aktif) atau 1 (aktif).',
-            'id_nasional.exists' => 'Editor nasional yang dipilih tidak valid.',
-            'id_nasional.unique' => 'Editor nasional yang dipilih sudah terdaftar sebagai editor lain.',
-            'id_daerah.exists' => 'Editor daerah yang dipilih tidak valid.',
-            'id_daerah.unique' => 'Editor daerah yang dipilih sudah terdaftar sebagai editor lain.',
+            'id_nasional.exists' => 'Editor nasional yang dipilih tidak valid atau tidak ditemukan di sistem.',
+            'id_nasional.unique' => 'Editor nasional ini sudah terhubung dengan entitas editor lain.',
+            'id_daerah.exists' => 'Editor daerah yang dipilih tidak valid atau tidak ditemukan di sistem.',
+            'id_daerah.unique' => 'Editor daerah ini sudah terhubung dengan entitas editor lain.',
         ];
     }
 }
