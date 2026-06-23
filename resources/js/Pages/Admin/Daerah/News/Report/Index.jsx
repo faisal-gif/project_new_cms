@@ -86,7 +86,7 @@ export default function ReportDaerahIndex({ summary, chart_data, writers, editor
 
                             <div className="w-full md:w-1/5">
                                 <label className="text-xs font-semibold text-gray-700 mb-1 block">Editor Daerah</label>
-                                <Select options={editors} isClearable placeholder="Semua Penulis"
+                                <Select options={editors} isClearable placeholder="Semua Editor"
                                     value={editors.find(d => d.value === data.editor) || null}
                                     onChange={e => setData({ ...data, editor: e ? e.value : '' })} />
                             </div>

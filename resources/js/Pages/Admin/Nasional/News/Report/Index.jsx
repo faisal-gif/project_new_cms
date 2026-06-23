@@ -120,11 +120,11 @@ export default function ReportIndex({ summary, chart_data, writers, editors, kan
               </div>
 
               <div className="w-full md:w-1/5">
-                <label className="text-xs font-semibold text-gray-700 mb-1 block">Penulis</label>
+                <label className="text-xs font-semibold text-gray-700 mb-1 block">Editor</label>
                 <Select
                   options={editors}
                   isClearable
-                  placeholder="Semua Penulis"
+                  placeholder="Semua Editor"
                   value={editors.find(d => d.value === data.editor) || null}
                   onChange={e => setData('editor', e ? e.value : '')}
                 />
