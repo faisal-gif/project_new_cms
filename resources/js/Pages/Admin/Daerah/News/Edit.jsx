@@ -94,7 +94,6 @@ function Edit({ news, writers, editors, networks, kanal, fokus, hasEditor, canSe
                                                 options={editors}
                                                 placeholder="Editors"
                                                 onChange={(val) => setData('editor', val?.value)}
-                                                isDisabled={hasEditor}
                                             />
                                             <InputError message={errors.editor} className="mt-2" />
                                         </div>
