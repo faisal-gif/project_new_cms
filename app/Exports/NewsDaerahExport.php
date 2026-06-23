@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Exports;
 
 use App\Models\NewsDaerah;
@@ -24,7 +25,7 @@ class NewsDaerahExport implements FromQuery, WithHeadings, WithMapping, ShouldQu
     public function query()
     {
         // 1. Inisialisasi Query dasar dengan Eager Loading
-        $query = NewsDaerah::query()->with(['kanal:id,name', 'writer:id,name']);
+        $query = NewsDaerah::query()->with(['kanal:id,name', 'writer:id,name', 'editor:id,name']);
 
         // 2. Terapkan filter tanggal
         if (!empty($this->filters['start_date']) && !empty($this->filters['end_date'])) {
@@ -42,6 +43,10 @@ class NewsDaerahExport implements FromQuery, WithHeadings, WithMapping, ShouldQu
             $query->where('writer_id', $this->filters['writer']);
         }
 
+        if (!empty($this->filters['editor'])) {
+            $query->where('editor_id', $this->filters['editor']);
+        }
+
         // 4. Batasi maksimal 5000 data agar memory aman, dan urutkan
         return $query->limit(5000)->orderBy('datepub', 'desc');
     }
@@ -52,6 +57,7 @@ class NewsDaerahExport implements FromQuery, WithHeadings, WithMapping, ShouldQu
             'ID',
             'Judul Berita',
             'Penulis',
+            'Editor',
             'Kanal',
             'Tanggal Publish',
             'Views',
@@ -73,6 +79,7 @@ class NewsDaerahExport implements FromQuery, WithHeadings, WithMapping, ShouldQu
             $news->id,
             $news->title,
             $news->writer ? $news->writer->name : 'Unknown Writer',
+            $news->editor ? $news->editor->name : 'Unknown Editor',
             $news->kanal ? $news->kanal->name : '-',
             Carbon::parse($news->datepub)->format('d-m-Y H:i'),
             $news->views ?? 0,

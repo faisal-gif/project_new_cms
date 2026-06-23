@@ -116,6 +116,7 @@ class ReportNewsDaerahController extends Controller
             'end_date'   => 'required|date|after_or_equal:start_date',
             'kanal'      => 'nullable',
             'writer'     => 'nullable',
+            'editor'     => 'nullable',
         ]);
 
         // 2. Buat Array untuk merangkai nama file
@@ -138,6 +139,16 @@ class ReportNewsDaerahController extends Controller
                 $nameParts[] = Str::slug($writerName);
             } else {
                 $nameParts[] = 'writer-' . $filters['writer'];
+            }
+        }
+
+        if (!empty($filters['editor'])) {
+            $editorName = EditorDaerah::where('id', $filters['editor'])->value('name');
+
+            if ($editorName) {
+                $nameParts[] = Str::slug($editorName);
+            } else {
+                $nameParts[] = 'editor-' . $filters['editor'];
             }
         }
 
