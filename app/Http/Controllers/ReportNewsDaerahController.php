@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Exports\NewsDaerahExport;
+use App\Models\EditorDaerah;
 use App\Models\KanalDaerah;
 use App\Models\NewsDaerah;
 use App\Models\User;
@@ -38,6 +39,11 @@ class ReportNewsDaerahController extends Controller
         if ($request->filled('writer')) {
             $query->where('writer_id', $request->writer);
         }
+
+        if ($request->filled('editor')) {
+            $query->where('editor_id', $request->editor);
+        }
+
 
         return $query;
     }
@@ -80,6 +86,9 @@ class ReportNewsDaerahController extends Controller
         $writers = WriterDaerah::select('id', 'name')->where('status', '1')->get()
             ->map(fn($u) => ['value' => $u->id, 'label' => $u->name]);
 
+        $editors = EditorDaerah::select('id', 'name')->where('status', '1')->get()
+            ->map(fn($u) => ['value' => $u->id, 'label' => $u->name]);
+
         $kanals = KanalDaerah::select('id', 'name')->get()
             ->map(fn($u) => ['value' => $u->id, 'label' => $u->name]);
 
@@ -92,9 +101,10 @@ class ReportNewsDaerahController extends Controller
             ],
             'chart_data' => $chartData,
             'writers' => $writers,
+            'editors' => $editors,
             'kanals' => $kanals,
             // Properti filters ini akan melempar tanggal "Bulan Ini" ke Input React Anda
-            'filters' => $request->only(['start_date', 'end_date', 'kanal', 'writer']),
+            'filters' => $request->only(['start_date', 'end_date', 'kanal', 'writer', 'editor']),
         ]);
     }
 

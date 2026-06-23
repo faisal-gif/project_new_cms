@@ -9,7 +9,7 @@ import Select from "react-select"
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from "recharts"
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/Components/ui/chart"
 
-export default function ReportDaerahIndex({ summary, chart_data, writers, kanals, filters }) {
+export default function ReportDaerahIndex({ summary, chart_data, writers, editors, kanals, filters }) {
     const { flash } = usePage().props;
 
     const { data, setData, post, processing: exportProcessing } = useForm({
@@ -17,6 +17,7 @@ export default function ReportDaerahIndex({ summary, chart_data, writers, kanals
         end_date: filters.end_date || '',
         kanal: filters.kanal || '',
         writer: filters.writer || '',
+        editor: filters.editor || '',
     });
 
     const handleApplyFilter = () => {
@@ -81,6 +82,13 @@ export default function ReportDaerahIndex({ summary, chart_data, writers, kanals
                                 <Select options={writers} isClearable placeholder="Semua Penulis"
                                     value={writers.find(w => w.value === data.writer) || null}
                                     onChange={e => setData({ ...data, writer: e ? e.value : '' })} />
+                            </div>
+
+                            <div className="w-full md:w-1/5">
+                                <label className="text-xs font-semibold text-gray-700 mb-1 block">Editor Daerah</label>
+                                <Select options={editors} isClearable placeholder="Semua Penulis"
+                                    value={editors.find(d => d.value === data.editor) || null}
+                                    onChange={e => setData({ ...data, editor: e ? e.value : '' })} />
                             </div>
 
                             <div className="w-full md:w-1/5">
