@@ -35,7 +35,7 @@ class EditorRequest extends FormRequest
             'id_nasional' => [
                 'nullable',
                 'exists:mysql_nasional.journalist,id',
-                Rule::unique('editors', 'id_nasional')->ignore($editorId)
+                Rule::unique('editors', 'id_ti')->ignore($editorId)
             ],
             'id_daerah'   => [
                 'nullable',
