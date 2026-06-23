@@ -2,6 +2,7 @@ import Card from '@/Components/Card'
 import InputEditor from '@/Components/InputEditor'
 import InputError from '@/Components/InputError'
 import InputLabel from '@/Components/InputLabel'
+import InputRadioGroup from '@/Components/InputRadioGroup'
 import InputSwitch from '@/Components/InputSwitch'
 import InputTag from '@/Components/InputTag'
 import InputTextarea from '@/Components/InputTextarea'
@@ -80,6 +81,20 @@ function ImportNasional({ writers, editors, networks, kanal, fokus, initialData 
                                     }
                                 >
                                     <div className='grid grid-cols-1 lg:grid-cols-6 gap-4 mt-4'>
+
+                                        <div className="lg:col-span-6">
+                                            <InputRadioGroup
+                                                label="Status"
+                                                value={data.status}
+                                                onChange={(e) => setData('status', e)}
+                                                options={[
+                                                    { label: "Review", value: 2, color: "warning" },
+                                                    { label: "Publish", value: 1, color: "success" },
+                                                ]}
+                                            />
+
+                                            <InputError message={errors.status} className="mt-2" />
+                                        </div>
 
                                         <div className='lg:col-span-3 w-full'>
                                             <InputLabel

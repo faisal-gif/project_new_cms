@@ -84,7 +84,19 @@ function ImportDaerah({ writers, editors, networks, kanal, fokus, initialData, c
                                     <div className='grid grid-cols-1 lg:grid-cols-6 gap-4 mt-4'>
 
 
+                                        <div className="lg:col-span-6">
+                                            <InputRadioGroup
+                                                label="Status"
+                                                value={data.status}
+                                                onChange={(e) => setData('status', e)}
+                                                options={[
+                                                    { label: "Review", value: 2, color: "warning" },
+                                                    { label: "Publish", value: 1, color: "success" },
+                                                ]}
+                                            />
 
+                                            <InputError message={errors.status} className="mt-2" />
+                                        </div>
                                         <div className='lg:col-span-3 w-full'>
                                             <InputLabel
                                                 htmlFor="editor"
@@ -118,6 +130,8 @@ function ImportDaerah({ writers, editors, networks, kanal, fokus, initialData, c
                                             <InputError message={errors.writer} className="mt-2" />
 
                                         </div>
+
+
                                     </div>
 
                                 </Card>
