@@ -93,7 +93,7 @@ function Edit({ news, writers, editors, kanal, fokus, hasEditor, editor_id }) {
                                                 options={editors}
                                                 placeholder="Pilih Editor..."
                                                 onChange={(val) => setData('editor', val?.value)}
-                                                isDisabled={hasEditor} // Disable jika berita sudah memiliki editor
+                                            // Disable jika berita sudah memiliki editor
                                             />
                                             <InputError message={errors.editor} className="mt-2" />
                                         </div>
