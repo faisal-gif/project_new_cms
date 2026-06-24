@@ -312,6 +312,7 @@ function Index({ news, writers, kanals, filters }) {
                         {hasPermission('edit news nasional') && (
                           <Link href={route('admin.nasional.news.edit', n.news_id)} className="btn btn-sm btn-warning btn-outline">Edit</Link>
                         )}
+                        <Link href={route('admin.nasional.news.show', n.news_id)} className="btn btn-sm btn-primary btn-outline">Detail</Link>
                       </div>
                     </div>
                   ))}
@@ -356,6 +357,7 @@ function Index({ news, writers, kanals, filters }) {
                               {hasPermission('edit news nasional') && (
                                 <Link href={route('admin.nasional.news.edit', n.news_id)} className="btn btn-sm btn-warning btn-outline">Edit</Link>
                               )}
+                              <Link href={route('admin.nasional.news.edit', n.news_id)} className="btn btn-sm btn-primary btn-outline">Detail</Link>
                               <button
                                 onClick={() => handleCopyLink(n)}
                                 className="btn btn-primary btn-sm btn-outline"
