@@ -88,6 +88,7 @@ Route::middleware('auth')->prefix('admin')->name('admin.')->group(function () {
             Route::get('news/diagnoze', [NewsNasionalController::class, 'diagnose'])->name('news.diagnose');
             Route::get('news/report', [ReportNewsNasionalController::class, 'index'])->name('news.report.index');
             Route::post('news/export', [ReportNewsNasionalController::class, 'export'])->name('news.report.export');
+            Route::get('tags/search', [NewsNasionalController::class, 'searchTags'])->name('tags.search');
             Route::resource('ads', AdsNasionalController::class);
             Route::resource('news', NewsNasionalController::class);
             Route::resource('kanal', KanalNasionalController::class);

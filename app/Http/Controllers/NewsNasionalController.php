@@ -45,6 +45,13 @@ class NewsNasionalController extends Controller
             });
         }
 
+        if ($request->filled('tag')) {
+            $query->whereHas('tags', function ($q) use ($request) {
+                // Gunakan ID agar query eksekusi lebih cepat pada relasi many-to-many
+                $q->where('tags.id', $request->tag);
+            });
+        }
+
         if ($request->writer) $query->where('news_writer', $request->writer);
         if ($request->kanal) $query->where('catnews_id', $request->kanal);
         if ($request->filled('status')) $query->where('news_status', $request->status);
@@ -90,12 +97,40 @@ class NewsNasionalController extends Controller
                 'label' => $u->catnews_title,
             ]);
 
+        $selectedTag = null;
+        if ($request->filled('tag')) {
+            $tagData = TagsNasional::find($request->tag);
+            if ($tagData) {
+                $selectedTag = [
+                    'value' => $tagData->id,
+                    'label' => $tagData->name
+                ];
+            }
+        }
+
         return Inertia::render('Admin/Nasional/News/Index', [
             'news'    => $news,
             'writers' => $writers,
             'kanals' => $kanals,
-            'filters' => $request->only(['search', 'writer', 'kanal', 'status', 'start_date', 'end_date']),
+            'filters' => array_merge(
+                $request->only(['search', 'writer', 'kanal', 'status', 'start_date', 'end_date']),
+                ['tag' => $selectedTag]
+            ),
         ]);
+    }
+
+    public function searchTags(Request $request)
+    {
+        $tags = TagsNasional::select('id', 'name')
+            // Ubah dari "%{$search}%" menjadi "{$search}%"
+            ->where('name', 'like', "{$request->search}%")
+            ->limit(30)
+            ->get()
+            ->map(fn($t) => [
+                'value' => $t->id,
+                'label' => $t->name,
+            ]);
+        return response()->json($tags);
     }
 
     /**

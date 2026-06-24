@@ -7,12 +7,15 @@ import { Badge } from '@/Components/ui/badge'
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout'
 import { formatDateTime, formatNumber } from '@/Utils/formatter'
 import { Head, Link, router, usePage } from '@inertiajs/react'
+import axios from 'axios'
 import { Check, Download, Link2, Plus, Search } from 'lucide-react'
 import React, { useEffect, useRef, useState } from 'react'
 import Select from "react-select";
+import AsyncSelect from 'react-select/async'
 
 function Index({ news, writers, kanals, filters }) {
   const [search, setSearch] = useState(() => filters.search || '');
+  const [tag, setTag] = useState(() => filters.tag || null);
   const [status, setStatus] = useState(() => filters.status || '');
   const [writer, setWriter] = useState(() => filters.writer || '');
   const [kanal, setKanal] = useState(() => filters.kanal || '');
@@ -54,9 +57,13 @@ function Index({ news, writers, kanals, filters }) {
 
     let timeout = null;
 
-    // Gabungkan semua payload filter
+    // Ambil ID dari object tag untuk dikirim ke backend
+    const tagId = tag ? tag.value : '';
+    const initialTagId = filters.tag ? filters.tag.value : '';
+
     const queryPayload = {
       search,
+      tag: tagId,
       status,
       writer,
       kanal,
@@ -65,7 +72,8 @@ function Index({ news, writers, kanals, filters }) {
       page: 1
     };
 
-    if (search !== filters.search) {
+    // Trigger debounce jika text pencarian atau tag berubah
+    if (search !== filters.search || tagId !== initialTagId) {
       timeout = setTimeout(() => {
         router.get(INDEX_ROUTE, queryPayload, { preserveState: true, replace: true });
       }, 400);
@@ -74,14 +82,12 @@ function Index({ news, writers, kanals, filters }) {
     }
 
     return () => timeout && clearTimeout(timeout);
-
-    // Pastikan startDate dan endDate masuk ke dependency array
-  }, [search, status, writer, kanal, startDate, endDate]);
-
+  }, [search, tag, status, writer, kanal, startDate, endDate]);
 
   // 3. Update fungsi Reset
   function handleReset() {
     setSearch('');
+    setTag(null);
     setStatus('');
     setWriter('');
     setKanal('');
@@ -90,10 +96,23 @@ function Index({ news, writers, kanals, filters }) {
 
     router.get(
       INDEX_ROUTE,
-      { search: '', status: '', writer: '', kanal: '', start_date: '', end_date: '', page: 1 },
+      { search: '', tag: '', status: '', writer: '', kanal: '', start_date: '', end_date: '', page: 1 },
       { preserveState: true, replace: true }
     );
   }
+
+  const loadTagOptions = async (inputValue) => {
+    if (!inputValue) return []; // Jangan hit backend jika input kosong
+    try {
+      const response = await axios.get(route('admin.nasional.tags.search'), {
+        params: { search: inputValue }
+      });
+      return response.data;
+    } catch (error) {
+      console.error("Gagal mengambil data tag:", error);
+      return [];
+    }
+  };
 
   function getStatusBadge(status) {
     switch (status) {
@@ -203,38 +222,73 @@ function Index({ news, writers, kanals, filters }) {
               {/* Start Filter */}
               <Card>
                 {/* Field Search And Filter */}
-                <div className="flex flex-col gap-4">
-                  <div className="flex flex-col md:flex-row gap-4 w-full md:w-auto">
-                    <div className="w-full md:w-96">
+                <div className="flex flex-col gap-5 w-full">
+
+                  {/* BARIS 1: Area Pencarian Utama (Grid 2 Kolom di Desktop) */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
+                    {/* Input Search Title/ID */}
+                    <div className="w-full flex flex-col justify-end">
                       <InputWithPrefix
                         prefix={<Search size={16} />}
                         placeholder="Search Title and Id..."
-                        className='w-full'
+                        className="w-full"
                         value={search}
                         onChange={(e) => setSearch(e.target.value)}
                       />
                     </div>
-                    <div className="w-full md:w-48">
+
+                    {/* Input Search Tag */}
+                    <div className="w-full flex flex-col justify-end">
+                      <AsyncSelect
+                        cacheOptions
+                        defaultOptions={false}
+                        loadOptions={loadTagOptions}
+                        value={tag}
+                        onChange={(selectedOption) => setTag(selectedOption)}
+                        placeholder="Cari Tag..."
+                        isClearable
+                        className="w-full"
+                        styles={{
+                          menu: (base) => ({ ...base, zIndex: 50 }),
+                          control: (base) => ({ ...base, minHeight: '38px' }) // Menyesuaikan tinggi agar presisi dengan input sebelahnya
+                        }}
+                      />
+                    </div>
+                  </div>
+
+                  {/* BARIS 2: Area Filter & Rentang Tanggal (Grid 6 Kolom di Desktop Besar) */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-4 items-end w-full">
+
+                    <div className="w-full">
+                      <label className="text-xs text-gray-500 mb-1 block">Penulis</label>
                       <Select
                         options={writers}
-                        placeholder="Penulis"
+                        placeholder="Semua Penulis"
                         value={writers.find(option => option.value === writer) || null}
-                        onChange={(e) => setWriter(e.value)} />
+                        onChange={(e) => setWriter(e ? e.value : '')} // Aman jika di-clear
+                        isClearable
+                      />
                     </div>
-                    <div className="w-full md:w-48">
+
+                    <div className="w-full">
+                      <label className="text-xs text-gray-500 mb-1 block">Kanal</label>
                       <Select
                         options={kanals}
-                        placeholder="Kanal"
+                        placeholder="Semua Kanal"
                         value={kanals.find(option => option.value === kanal) || null}
-                        onChange={(e) => setKanal(e.value)} />
+                        onChange={(e) => setKanal(e ? e.value : '')} // Aman jika di-clear
+                        isClearable
+                      />
                     </div>
-                    <div className="w-full md:w-48">
+
+                    <div className="w-full">
+                      <label className="text-xs text-gray-500 mb-1 block">Status</label>
                       <InputSelect
                         value={status}
-                        placeholder='Status'
                         onChange={(e) => setStatus(e.target.value)}
+                        className="w-full"
                         options={[
-                          { label: "All", value: "" },
+                          { label: "Semua Status", value: "" },
                           { label: "Pending", value: "0" },
                           { label: "Review", value: "2" },
                           { label: "On Pro", value: "3" },
@@ -242,12 +296,8 @@ function Index({ news, writers, kanals, filters }) {
                         ]}
                       />
                     </div>
-                  </div>
 
-
-                  {/* Baris 2: Date Range & Buttons */}
-                  <div className="flex flex-col md:flex-row items-end gap-4 w-full md:w-auto mt-2">
-                    <div className="w-full md:w-48">
+                    <div className="w-full">
                       <label className="text-xs text-gray-500 mb-1 block">Dari Tanggal</label>
                       <TextInput
                         type="date"
@@ -256,20 +306,28 @@ function Index({ news, writers, kanals, filters }) {
                         onChange={(e) => setStartDate(e.target.value)}
                       />
                     </div>
-                    <div className="w-full md:w-48">
+
+                    <div className="w-full">
                       <label className="text-xs text-gray-500 mb-1 block">Sampai Tanggal</label>
                       <TextInput
                         type="date"
                         className="w-full"
                         value={endDate}
-                        min={startDate} // Mencegah user memilih end_date sebelum start_date
+                        min={startDate}
                         onChange={(e) => setEndDate(e.target.value)}
                       />
                     </div>
 
-                    <button type="button" className="btn btn-neutral" onClick={handleReset}>
-                      Reset Filter
-                    </button>
+                    <div className="w-full">
+                      <button
+                        type="button"
+                        className="btn btn-neutral w-full"
+                        onClick={handleReset}
+                      >
+                        Reset Filter
+                      </button>
+                    </div>
+
                   </div>
                 </div>
               </Card>
