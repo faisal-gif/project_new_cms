@@ -96,14 +96,7 @@ class NewsDaerahController extends Controller
         }
 
         // Optimized sorting
-        return $query->orderByRaw("
-        CASE status
-            WHEN 2 THEN 1
-            WHEN 3 THEN 2
-            WHEN 1 THEN 3
-            WHEN 0 THEN 4
-        END
-        ")->orderBy('datepub', 'DESC');
+        return $query->orderBy('datepub', 'DESC');
     }
 
 
