@@ -15,12 +15,12 @@ import { CaptionsIcon, GlobeIcon, ImagesIcon, InfoIcon, NotebookPenIcon } from '
 import React from 'react'
 import Select from "react-select";
 
-function Edit({ news, writers, editors, networks, kanal, fokus, hasEditor, canSelectAllNetwork = false }) {
- 
+function Edit({ news, writers, editors, networks, kanal, fokus, hasEditor, editor_id, canSelectAllNetwork = false }) {
+
     const { data, setData, post, processing, errors } = useForm({
         _method: 'PUT', // Wajib untuk file upload via Inertia saat update
         status: news.status ?? '',
-        editor: news.editor_id ?? '',
+        editor: editor_id ?? '',
         writer: news.writer_id ?? '',
         pin: news.pin ?? '',
         keyword_tool: news.keyword_tool ?? '',

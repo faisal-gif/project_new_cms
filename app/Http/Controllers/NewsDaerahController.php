@@ -306,6 +306,7 @@ class NewsDaerahController extends Controller
      */
     public function edit($id)
     {
+        $user = auth()->user();
         // 1. Ambil data berita beserta relasi tag dan network
         // Pastikan koneksi dan nama relasi sesuai dengan model NewsDaerah kamu
         $news = NewsDaerah::on('mysql_daerah')->with(['tags', 'networks'])->findOrFail($id);
@@ -333,6 +334,7 @@ class NewsDaerahController extends Controller
             'fokus'    => $fokus,
             'networks' => $networks,
             'hasEditor' => auth()->user()->hasRole('editor') ? true : false, // Tambahkan flag untuk role editor
+            'editor_id' => $news->editor_id ?: ($user->hasRole('editor') ? $user->editor?->id_ti : null),
             'canSelectAllNetwork' => auth()->user()->can('select-all-networks'),
         ]);
     }
