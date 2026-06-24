@@ -81,7 +81,7 @@ export default function Show({ news }) {
 
                                             {/* Foto Utama */}
                                             <img
-                                                src={`/storage/${news.news_image_new}`}
+                                                src={news.news_image_new}
                                                 alt={news.news_caption || news.news_title}
                                                 className="w-full h-auto max-h-[600px] object-cover rounded-xl shadow-sm"
                                             />
