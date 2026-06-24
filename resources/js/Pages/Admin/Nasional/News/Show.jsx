@@ -75,20 +75,23 @@ export default function Show({ news }) {
                                     </header>
 
                                     {/* Gambar Thumbnail */}
-                                    {news.news_image_new && (
-                                        <figure className="w-full">
-                                            <img
-                                                src={news.news_image_new} // Pastikan php artisan storage:link sudah dijalankan
-                                                alt={news.news_caption || news.news_title}
-                                                className="w-full max-h-[600px] object-cover rounded-xl shadow-sm"
-                                            />
-                                            {news.news_caption && (
-                                                <figcaption className="text-sm text-center text-gray-500 mt-3 italic">
-                                                    {news.news_caption}
-                                                </figcaption>
-                                            )}
-                                        </figure>
-                                    )}
+                                    <div className='flex flex-col gap-2'>
+                                        {news.news_image_new && (
+                                            <figure className="w-full">
+                                                <img
+                                                    src={news.news_image_new} // Pastikan php artisan storage:link sudah dijalankan
+                                                    alt={news.news_caption || news.news_title}
+                                                    className="w-full max-h-[600px] object-cover rounded-xl shadow-sm"
+                                                />
+                                                {news.news_caption && (
+                                                    <figcaption className="text-sm text-center text-gray-500 mt-3 italic">
+                                                        {news.news_caption}
+                                                    </figcaption>
+                                                )}
+                                            </figure>
+                                        )}
+                                    </div>
+
 
                                     {/* Isi Konten Berita */}
                                     {/* Menggunakan Tailwind Typography (prose) untuk styling otomatis tag HTML */}
