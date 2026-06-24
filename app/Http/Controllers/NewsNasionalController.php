@@ -262,11 +262,11 @@ class NewsNasionalController extends Controller
     {
         // Menggunakan eager loading untuk optimasi performa database
         $news = NewsNasional::with([
-            'kanal:id,name', // Sesuaikan kolom nama pada tabel Anda
-            'fokus:id,name',
+            'kanal:catnews_id,catnews_title', // Sesuaikan kolom nama pada tabel Anda
+            'fokus:focnews_id,focnews_title',
             'writer:id,name',
             'tags'
-        ])->findOrFail($id);
+        ]);
 
         return inertia('Admin/Nasional/News/Show', [
             'news' => $news
