@@ -15,15 +15,15 @@ import { CaptionsIcon, GlobeIcon, ImagesIcon, InfoIcon, NotebookPenIcon } from '
 import React from 'react'
 import Select from "react-select";
 
-function Edit({ news, writers, editors, kanal, fokus, hasEditor }) {
+function Edit({ news, writers, editors, kanal, fokus, hasEditor, editor_id }) {
     // Format date untuk input type datetime-local (YYYY-MM-DDThh:mm)
-  
+
 
     const { data, setData, post, processing, errors } = useForm({
         _method: 'PUT', // Wajib untuk file upload (gambar) saat update di Inertia
         is_code: news.is_code ?? '',
         status: news.news_status ?? '',
-        editor: news.editor_id ?? '',
+        editor: editor_id ?? '',
         writer: news.news_writer ?? '',
         writer_id: news.journalist_id ?? '',
         pin: news.pin ?? '',
