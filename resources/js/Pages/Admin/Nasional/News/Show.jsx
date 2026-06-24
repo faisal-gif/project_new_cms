@@ -75,22 +75,34 @@ export default function Show({ news }) {
                                     </header>
 
                                     {/* Gambar Thumbnail */}
-                                    <div className='flex flex-row gap-2'>
-                                        {news.news_image_new && (
-                                            <figure className="w-full">
+
+                                    {news.news_image_new && (
+                                        // Gunakan md:flex-row agar sejajar di tablet/desktop, dan tetap bertumpuk (flex-col) di mobile
+                                        <figure className="flex flex-col md:flex-row gap-6 items-start w-full my-6">
+
+                                            {/* Kolom Kiri: Gambar (Mengambil porsi 2/3 layar) */}
+                                            <div className="w-full md:w-2/3 shrink-0">
                                                 <img
-                                                    src={news.news_image_new} // Pastikan php artisan storage:link sudah dijalankan
+                                                    src={news.news_image_new}
                                                     alt={news.news_caption || news.news_title}
-                                                    className="w-full max-h-[600px] object-cover rounded-xl shadow-sm"
+                                                    className="w-full h-auto max-h-[500px] object-cover rounded-xl shadow-sm"
                                                 />
-                                                {news.news_caption && (
-                                                    <figcaption className="text-sm text-center text-gray-500 mt-3 italic">
+                                            </div>
+
+                                            {/* Kolom Kanan: Caption (Mengambil sisa porsi 1/3 layar) */}
+                                            {news.news_caption && (
+                                                <figcaption className="w-full md:w-1/3 text-sm text-gray-700 bg-gray-50 p-5 rounded-xl border border-gray-100 shadow-sm">
+                                                    <span className="font-bold text-gray-900 block mb-2 border-b pb-2">
+                                                        Keterangan Foto
+                                                    </span>
+                                                    <p className="leading-relaxed italic">
                                                         {news.news_caption}
-                                                    </figcaption>
-                                                )}
-                                            </figure>
-                                        )}
-                                    </div>
+                                                    </p>
+                                                </figcaption>
+                                            )}
+
+                                        </figure>
+                                    )}
 
 
                                     {/* Isi Konten Berita */}
