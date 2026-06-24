@@ -318,7 +318,7 @@ class NewsNasionalController extends Controller
 
         // Format tags menjadi array string biasa untuk input frontend
         $news->tags_array = $news->tags->pluck('name')->toArray();
-
+        $user = auth()->user();
         // 2. Ambil data dropdown dari database mysql_nasional
         $editors = EditorNasional::select('editor_id as value', 'editor_name as label')->get();
         $writers = WriterNasional::select('id as value', 'name as label')->get();
@@ -333,7 +333,7 @@ class NewsNasionalController extends Controller
             'kanal'   => $kanal,
             'fokus'   => $fokus,
             'hasEditor' => auth()->user()->hasRole('editor') ? true : false,
-            'editor_id' => $news->editor_id ? auth()->user()->editor->id_ti : null,
+            'editor_id' => $news->editor_id ?: $user->editor->id_ti,
         ]);
     }
 
