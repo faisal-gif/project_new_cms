@@ -266,7 +266,7 @@ class NewsNasionalController extends Controller
             'fokus:focnews_id,focnews_title',
             'writer:id,name',
             'tags'
-        ]);
+        ])->findOrFail($id);
 
         return inertia('Admin/Nasional/News/Show', [
             'news' => $news
