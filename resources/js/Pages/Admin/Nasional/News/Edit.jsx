@@ -23,7 +23,7 @@ function Edit({ news, writers, editors, kanal, fokus, hasEditor, editor_id }) {
         _method: 'PUT', // Wajib untuk file upload (gambar) saat update di Inertia
         is_code: news.is_code ?? '',
         status: news.news_status ?? '',
-        editor: editor_id ?? '',
+        editor: editor_id,
         writer: news.news_writer ?? '',
         writer_id: news.journalist_id ?? '',
         pin: news.pin ?? '',
