@@ -75,7 +75,7 @@ export default function Show({ news }) {
                                     </header>
 
                                     {/* Gambar Thumbnail */}
-                                    <div className='flex flex-col gap-2'>
+                                    <div className='flex flex-row gap-2'>
                                         {news.news_image_new && (
                                             <figure className="w-full">
                                                 <img
