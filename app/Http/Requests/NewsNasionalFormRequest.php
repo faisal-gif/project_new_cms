@@ -23,7 +23,7 @@ class NewsNasionalFormRequest extends FormRequest
     public function rules(): array
     {
         $rules = [
-            'status'          => 'nullable',
+            'status'          => 'required',
             'editor'          => 'required',
             'writer_id'       => 'nullable',
             'writer'          => 'nullable',
