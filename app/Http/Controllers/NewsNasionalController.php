@@ -333,7 +333,7 @@ class NewsNasionalController extends Controller
             'kanal'   => $kanal,
             'fokus'   => $fokus,
             'hasEditor' => auth()->user()->hasRole('editor') ? true : false,
-            'editor_id' => $news->editor_id ?: $user->editor->id_ti,
+            'editor_id' => $news->editor_id ?: ($user->hasRole('editor') ? $user->editor?->id_ti : null),
         ]);
     }
 
