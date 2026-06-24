@@ -66,7 +66,7 @@ export default function Show({ news }) {
                                             </span>
                                             <span className="flex items-center gap-2">
                                                 <FolderIcon className="w-4 h-4 text-gray-400" />
-                                                {news.kanal?.name || 'Tanpa Kanal'}
+                                                {news.kanal?.catnews_title || 'Tanpa Kanal'}
                                             </span>
                                             <span className="flex items-center gap-2">
                                                 <EyeIcon className="w-4 h-4 text-gray-400" />
