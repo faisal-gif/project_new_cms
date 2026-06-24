@@ -103,7 +103,7 @@ class NewsDaerahController extends Controller
             WHEN 1 THEN 3
             WHEN 0 THEN 4
         END
-        ")->orderBy('created_at', 'DESC');
+        ")->orderBy('datepub', 'DESC');
     }
 
 
