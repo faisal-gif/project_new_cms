@@ -334,7 +334,7 @@ class NewsDaerahController extends Controller
             'fokus'    => $fokus,
             'networks' => $networks,
             'hasEditor' => auth()->user()->hasRole('editor') ? true : false, // Tambahkan flag untuk role editor
-            'editor_id' => $news->editor_id ?: ($user->hasRole('editor') ? $user->editor?->id_ti : null),
+            'editor_id' => $news->editor_id ?: ($user->hasRole('editor') ? $user->editor?->id_daerah : null),
             'canSelectAllNetwork' => auth()->user()->can('select-all-networks'),
         ]);
     }
