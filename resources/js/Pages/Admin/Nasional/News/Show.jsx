@@ -11,6 +11,7 @@ import {
 } from 'lucide-react';
 import React from 'react';
 import { formatDateTimeLong } from '@/Utils/formatter';
+import { Badge } from '@/Components/ui/badge';
 
 export default function Show({ news }) {
 
@@ -90,7 +91,7 @@ export default function Show({ news }) {
                                             {news.news_caption && (
                                                 <figcaption className="w-full mt-4 text-sm text-gray-700 bg-gray-50 p-4 rounded-xl border border-gray-100 shadow-sm">
                                                     <span className="font-bold text-gray-900 block mb-1">
-                                                        Keterangan Foto
+                                                       Caption Foto
                                                     </span>
                                                     <p className="leading-relaxed italic">
                                                         {news.news_caption}
@@ -117,9 +118,9 @@ export default function Show({ news }) {
                                                 <span className="font-semibold text-gray-700 text-sm">Tags:</span>
                                                 {news.tags.map((tag) => (
                                                     // Sesuaikan tag.name dengan field di tabel tags Anda
-                                                    <span key={tag.id} className="badge badge-outline badge-md">
+                                                    <Badge key={tag.id} className="badge badge-outline badge-md">
                                                         {tag.name}
-                                                    </span>
+                                                    </Badge>
                                                 ))}
                                             </div>
                                         </div>
