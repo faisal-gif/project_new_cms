@@ -255,7 +255,7 @@ class NewsDaerahController extends Controller
                 'content'      => $content,
                 'image'        => $thumbnailUrl,
                 'caption'      => $request->image_caption,
-                'status'       => $request->status,
+                'status'       => $request->status || '1',
                 'locus'        => $request->locus,
                 'datepub'      => $request->datepub ?? now(),
                 'is_headline'  => $request->is_headline ? 1 : 0,

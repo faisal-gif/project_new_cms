@@ -68,11 +68,7 @@ class NewsNasionalController extends Controller
             $query->where('news_datepub', '<=', Carbon::parse($request->end_date)->endOfDay());
         }
 
-        return $query->orderByRaw("
-            CASE news_status
-                WHEN 2 THEN 1 WHEN 3 THEN 2 WHEN 1 THEN 3 WHEN 0 THEN 4
-            END
-        ")->orderBy('created', 'DESC');
+        return $query->orderBy('news_datepub', 'DESC');
     }
 
     /**
@@ -224,7 +220,7 @@ class NewsNasionalController extends Controller
                 'news_content'     => $content,
                 'news_image_new'   => $thumbnailUrl,
                 'news_caption'     => $request->image_caption,
-                'news_status'      => $request->status ?? '3',
+                'news_status'      => $request->status ?? '1',
                 'news_city'        => $request->locus,
                 'news_datepub'     => $request->datepub ?? now(),
                 'news_headline'    => $request->is_headline ? 1 : 0,
