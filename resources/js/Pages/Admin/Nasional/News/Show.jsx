@@ -77,22 +77,19 @@ export default function Show({ news }) {
                                     {/* Gambar Thumbnail */}
 
                                     {news.news_image_new && (
-                                        // Gunakan md:flex-row agar sejajar di tablet/desktop, dan tetap bertumpuk (flex-col) di mobile
-                                        <figure className="flex flex-col md:flex-row gap-6 items-start w-full my-6">
+                                        <figure className="flex flex-col w-full my-6">
 
-                                            {/* Kolom Kiri: Gambar (Mengambil porsi 2/3 layar) */}
-                                            <div className="w-full md:w-2/3 shrink-0">
-                                                <img
-                                                    src={news.news_image_new}
-                                                    alt={news.news_caption || news.news_title}
-                                                    className="w-full h-auto max-h-[500px] object-cover rounded-xl shadow-sm"
-                                                />
-                                            </div>
+                                            {/* Foto Utama */}
+                                            <img
+                                                src={`/storage/${news.news_image_new}`}
+                                                alt={news.news_caption || news.news_title}
+                                                className="w-full h-auto max-h-[600px] object-cover rounded-xl shadow-sm"
+                                            />
 
-                                            {/* Kolom Kanan: Caption (Mengambil sisa porsi 1/3 layar) */}
+                                            {/* Caption di Bawah Foto */}
                                             {news.news_caption && (
-                                                <figcaption className="w-full md:w-1/3 text-sm text-gray-700 bg-gray-50 p-5 rounded-xl border border-gray-100 shadow-sm">
-                                                    <span className="font-bold text-gray-900 block mb-2 border-b pb-2">
+                                                <figcaption className="w-full mt-4 text-sm text-gray-700 bg-gray-50 p-4 rounded-xl border border-gray-100 shadow-sm">
+                                                    <span className="font-bold text-gray-900 block mb-1">
                                                         Keterangan Foto
                                                     </span>
                                                     <p className="leading-relaxed italic">
