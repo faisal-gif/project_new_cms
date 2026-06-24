@@ -1,13 +1,13 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import Card from '@/Components/Card';
 import { Head, Link } from '@inertiajs/react';
-import { 
-    CalendarIcon, 
-    FolderIcon, 
-    TagIcon, 
-    UserIcon, 
-    ArrowLeftIcon, 
-    EyeIcon 
+import {
+    CalendarIcon,
+    FolderIcon,
+    TagIcon,
+    UserIcon,
+    ArrowLeftIcon,
+    EyeIcon
 } from 'lucide-react';
 import React from 'react';
 import { formatDateTimeLong } from '@/Utils/formatter';
@@ -21,7 +21,7 @@ export default function Show({ news }) {
                 <div className="py-12">
                     <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
                         <div className="space-y-6">
-                            
+
                             {/* Header & Breadcrumbs */}
                             <div className='flex flex-col md:flex-row justify-between md:items-center gap-4'>
                                 <div className="flex items-center gap-3">
@@ -42,7 +42,7 @@ export default function Show({ news }) {
 
                             <Card>
                                 <article className="flex flex-col space-y-8 p-4">
-                                    
+
                                     {/* Judul & Meta Informasi */}
                                     <header className="border-b pb-6">
                                         <h2 className="text-4xl font-extrabold text-gray-900 leading-tight">
@@ -56,19 +56,19 @@ export default function Show({ news }) {
 
                                         <div className="flex flex-wrap items-center gap-6 mt-6 text-sm text-gray-600">
                                             <span className="flex items-center gap-2 bg-gray-100 px-3 py-1 rounded-full">
-                                                <UserIcon className="w-4 h-4 text-primary"/> 
+                                                <UserIcon className="w-4 h-4 text-primary" />
                                                 {news.writer?.name || news.news_writer || 'Penulis Tidak Diketahui'}
                                             </span>
                                             <span className="flex items-center gap-2">
-                                                <CalendarIcon className="w-4 h-4 text-gray-400"/> 
+                                                <CalendarIcon className="w-4 h-4 text-gray-400" />
                                                 {formatDateTimeLong(news.news_datepub)} WIB
                                             </span>
                                             <span className="flex items-center gap-2">
-                                                <FolderIcon className="w-4 h-4 text-gray-400"/> 
+                                                <FolderIcon className="w-4 h-4 text-gray-400" />
                                                 {news.kanal?.name || 'Tanpa Kanal'}
                                             </span>
                                             <span className="flex items-center gap-2">
-                                                <EyeIcon className="w-4 h-4 text-gray-400"/> 
+                                                <EyeIcon className="w-4 h-4 text-gray-400" />
                                                 Dilihat
                                             </span>
                                         </div>
@@ -78,7 +78,7 @@ export default function Show({ news }) {
                                     {news.news_image_new && (
                                         <figure className="w-full">
                                             <img
-                                                src={`/storage/${news.news_image_new}`} // Pastikan php artisan storage:link sudah dijalankan
+                                                src={news.news_image_new} // Pastikan php artisan storage:link sudah dijalankan
                                                 alt={news.news_caption || news.news_title}
                                                 className="w-full max-h-[600px] object-cover rounded-xl shadow-sm"
                                             />
@@ -92,7 +92,7 @@ export default function Show({ news }) {
 
                                     {/* Isi Konten Berita */}
                                     {/* Menggunakan Tailwind Typography (prose) untuk styling otomatis tag HTML */}
-                                    <div 
+                                    <div
                                         className="prose prose-lg max-w-none prose-img:rounded-xl prose-a:text-primary"
                                         dangerouslySetInnerHTML={{ __html: news.news_content }}
                                     />
@@ -106,7 +106,7 @@ export default function Show({ news }) {
                                                 {news.tags.map((tag) => (
                                                     // Sesuaikan tag.name dengan field di tabel tags Anda
                                                     <span key={tag.id} className="badge badge-outline badge-md">
-                                                        {tag.name} 
+                                                        {tag.name}
                                                     </span>
                                                 ))}
                                             </div>
