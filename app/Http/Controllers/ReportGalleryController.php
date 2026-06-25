@@ -75,14 +75,14 @@ class ReportGalleryController extends Controller
             ->get();
 
         // 4. Data Master untuk Dropdown (Sesuaikan Model Fotografer & Editor dengan milik Anda)
-        $kanals = GalleryCategory::select('id', 'name')->get()
-            ->map(fn($k) => ['value' => $k->id, 'label' => $k->name]);
+        $kanals = GalleryCategory::select('id', 'title')->get()
+            ->map(fn($k) => ['value' => $k->id, 'label' => $k->title]);
 
         // Catatan: Jika Fotografer & Editor diambil dari tabel User
-        $fotografers = WriterNasional::select('id', 'name')->where('role', 'fotografer')->where('status', '1')->get()
+        $fotografers = WriterNasional::select('id', 'name')->where('status', '1')->get()
             ->map(fn($u) => ['value' => $u->id, 'label' => $u->name]);
 
-        $editors = EditorNasional::select('id', 'name')->where('role', 'editor')->where('status', '1')->get()
+        $editors = EditorNasional::select('editor_id', 'editor_name')->where('status', '1')->get()
             ->map(fn($u) => ['value' => $u->editor_id, 'label' => $u->editor_name]);
 
         return Inertia::render('Admin/Nasional/Fotografi/Report/Index', [

@@ -27,8 +27,8 @@ class EkoranRequest extends FormRequest
             'datepub'       => ['required', 'date'],
             'emagazine_id'  => ['nullable', 'string', 'max:255'],
             'status'        => ['required', 'in:0,1'],
-            'regular_pages' => ['required', 'array', 'min:4', 'max:20'],
-            'spesial_pages' => ['nullable', 'array', 'max:2'],
+            'regular_pages' => ['required', 'array', 'min:1', 'max:20'],
+            'spesial_pages' => ['nullable', 'array', 'max:1'],
         ];
 
         // 2. Deteksi Mode Update yang lebih akurat
@@ -55,7 +55,7 @@ class EkoranRequest extends FormRequest
             'datepub.required' => 'Tanggal terbit wajib diisi.',
             'status.required' => 'Status wajib diisi.',
             'regular_pages.required' => 'Halaman reguler wajib diisi.',
-            'regular_pages.min' => 'Edisi eKoran wajib memiliki minimal 4 halaman.',
+            'regular_pages.min' => 'Edisi eKoran wajib memiliki minimal 1 halaman.',
             'regular_pages.*.mimes' => 'Halaman reguler harus berupa file gambar (jpeg, png, jpg).',
             'regular_pages.*.max' => 'Ukuran gambar maksimal 5MB.',
             'spesial_pages.max' => 'Jumlah halaman iklan/promo tidak boleh lebih dari 2.',
