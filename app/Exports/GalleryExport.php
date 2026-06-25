@@ -26,7 +26,7 @@ class GalleryExport implements FromQuery, WithHeadings, WithMapping, ShouldQueue
         // 1. [OPTIMASI]: Gunakan withCount('images') untuk mendapatkan kolom 'images_count' secara otomatis
         //    tanpa membebani memory server dengan meload seluruh baris tabel gambar.
         $query = Gallery::query()
-            ->with(['kanal:id,title']) // Pastikan relasi 'kanal' sudah ada di Model Gallery Anda
+            ->with(['kanal:id,title','fotografer:id,name']) // Pastikan relasi 'kanal' sudah ada di Model Gallery Anda
             ->withCount('images');
 
         // 2. Terapkan filter tanggal (Berdasarkan gal_datepub)
@@ -57,8 +57,7 @@ class GalleryExport implements FromQuery, WithHeadings, WithMapping, ShouldQueue
         return [
             'ID',
             'Judul Galeri',
-            'Fotografer ID',
-            'Editor ID',
+            'Fotografer',
             'Kanal',
             'Tanggal Publish',
             'Total Gambar', // <--- Headings baru
@@ -82,8 +81,7 @@ class GalleryExport implements FromQuery, WithHeadings, WithMapping, ShouldQueue
             $gallery->gal_title,
             // Jika Anda sudah mendaftarkan relasi fotografer() dan editor() di Model Gallery, 
             // Anda bisa mengubah ini menjadi $gallery->fotografer->name, dll.
-            $gallery->fotografer_id, 
-            $gallery->editor_id, 
+            $gallery->fotografer ? $gallery->fotografer->name : '-', 
             $gallery->kanal ? $gallery->kanal->title : '-',
             $gallery->gal_datepub ? Carbon::parse($gallery->gal_datepub)->format('d-m-Y H:i') : '-',
             

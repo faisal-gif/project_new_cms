@@ -14,7 +14,7 @@ class Gallery extends Model
     protected $connection = 'mysql_nasional';
     protected $table = 'gallery';
     protected $primaryKey = 'gal_id';
-  
+
 
     protected $fillable = [
         'gal_catid',
@@ -46,6 +46,12 @@ class Gallery extends Model
     {
         return $this->belongsTo(GalleryCategory::class, 'gal_catid', 'id');
     }
+
+    public function fotografer()
+    {
+        return $this->belongsTo(WriterNasional::class, 'fotografer_id', 'id');
+    }
+
 
     public function getActivitylogOptions(): LogOptions
     {
