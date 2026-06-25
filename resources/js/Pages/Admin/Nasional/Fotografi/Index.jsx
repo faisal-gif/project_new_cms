@@ -147,6 +147,10 @@ function Index({ galleries, writers, categories, filters }) {
                     <Plus size={16} /> Tambah Galeri
                   </Link>
                 )}
+
+                <Link href={route('admin.nasional.fotografi.report.index')} className="btn btn-primary rounded-lg">
+                    <Plus size={16} /> Report Galeri
+                  </Link>
               </div>
               {/* End Head */}
 

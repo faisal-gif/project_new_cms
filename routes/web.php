@@ -23,6 +23,7 @@ use App\Http\Controllers\NewsNoteController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\PermissionController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\ReportGalleryController;
 use App\Http\Controllers\ReportNewsDaerahController;
 use App\Http\Controllers\ReportNewsNasionalController;
 use App\Http\Controllers\RoleController;
@@ -87,6 +88,7 @@ Route::middleware('auth')->prefix('admin')->name('admin.')->group(function () {
         function () {
             Route::get('news/diagnoze', [NewsNasionalController::class, 'diagnose'])->name('news.diagnose');
             Route::get('news/report', [ReportNewsNasionalController::class, 'index'])->name('news.report.index');
+            Route::get('fotografi/report', [ReportGalleryController::class, 'index'])->name('fotografi.report.index');
             Route::post('news/export', [ReportNewsNasionalController::class, 'export'])->name('news.report.export');
             Route::get('tags/search', [NewsNasionalController::class, 'searchTags'])->name('tags.search');
             Route::resource('ads', AdsNasionalController::class);
