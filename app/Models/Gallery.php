@@ -14,7 +14,7 @@ class Gallery extends Model
     protected $connection = 'mysql_nasional';
     protected $table = 'gallery';
     protected $primaryKey = 'gal_id';
-    public $timestamps = false; // Kita akan set manual kolom 'created' & 'modified'
+  
 
     protected $fillable = [
         'gal_catid',
@@ -33,6 +33,9 @@ class Gallery extends Model
         'gal_view',
     ];
 
+
+    const CREATED_AT = 'created';
+    const UPDATED_AT = 'modified';
     // Relasi ke tabel gambar
     public function images()
     {

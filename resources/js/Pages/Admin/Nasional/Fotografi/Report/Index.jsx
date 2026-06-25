@@ -21,7 +21,7 @@ export default function ReportGalleryIndex({ summary, chart_data, fotografers, e
     });
 
     const handleApplyFilter = () => {
-        router.get(route('admin.gallery.report.index'), data, {
+        router.get(route('admin.nasional.fotografi.report.index'), data, {
             preserveState: true,
             replace: true,
         });

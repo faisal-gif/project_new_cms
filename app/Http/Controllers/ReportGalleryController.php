@@ -6,8 +6,9 @@ use App\Models\EditorNasional;
 use App\Models\Gallery;
 use App\Models\GalleryCategory;
 use App\Models\WriterNasional;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
-use Illuminate\Support\Carbon;
+
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 
@@ -54,12 +55,13 @@ class ReportGalleryController extends Controller
 
         $baseQuery = $this->buildQuery($request);
 
+    
         // 2. Kalkulasi Ringan di sisi Database (Menggunakan clone agar baseQuery tidak termutasi)
         $totalGallery = (clone $baseQuery)->count();
         // Asumsi gal_status: 1 = Publish, 2 = Review (Sesuaikan dengan sistem Anda)
         $totalPublish = (clone $baseQuery)->where('gal_status', 1)->count();
         $totalReview  = (clone $baseQuery)->where('gal_status', 2)->count();
-        
+
         // Sum langsung dari kolom gal_view
         $totalViews   = (clone $baseQuery)->sum('gal_view');
 

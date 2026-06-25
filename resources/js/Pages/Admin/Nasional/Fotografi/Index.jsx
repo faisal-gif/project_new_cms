@@ -140,7 +140,7 @@ function Index({ galleries, writers, categories, filters }) {
               </div>
 
               {/* Start Head */}
-              <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+              <div className="flex flex-col md:flex-row items-start md:items-center gap-4">
                 {/* Button Tambah Galeri */}
                 {hasPermission('create gallery nasional') && (
                   <Link href={route('admin.nasional.fotografi.create')} className="btn btn-primary rounded-lg">
@@ -148,9 +148,9 @@ function Index({ galleries, writers, categories, filters }) {
                   </Link>
                 )}
 
-                <Link href={route('admin.nasional.fotografi.report.index')} className="btn btn-primary rounded-lg">
-                    <Plus size={16} /> Report Galeri
-                  </Link>
+                <Link href={route('admin.nasional.fotografi.report.index')} className="btn btn-success rounded-lg">
+                  Report Galeri
+                </Link>
               </div>
               {/* End Head */}
 
@@ -167,7 +167,7 @@ function Index({ galleries, writers, categories, filters }) {
                       onChange={(e) => setSearch(e.target.value)}
                     />
                   </div>
-                  {hasAnyRole(['super admin', 'admin','editor']) && (
+                  {hasAnyRole(['super admin', 'admin', 'editor']) && (
                     <div className="w-full md:w-48">
                       <Select
                         options={writers}
