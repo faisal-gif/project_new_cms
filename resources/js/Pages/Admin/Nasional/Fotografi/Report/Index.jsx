@@ -27,16 +27,16 @@ export default function ReportGalleryIndex({ summary, chart_data, fotografers, e
         });
     };
 
-    // const handleExportExcel = () => {
-    //     if (!data.start_date || !data.end_date) {
-    //         alert("Rentang tanggal wajib diisi untuk melakukan export data.");
-    //         return;
-    //     }
+    const handleExportExcel = () => {
+        if (!data.start_date || !data.end_date) {
+            alert("Rentang tanggal wajib diisi untuk melakukan export data.");
+            return;
+        }
 
-    //     post(route('admin.gallery.report.export'), {
-    //         preserveScroll: true,
-    //     });
-    // };
+        post(route('admin.nasional.fotografi.report.export'), {
+            preserveScroll: true,
+        });
+    };
 
     const chartConfig = {
         total_galeri: {
@@ -172,7 +172,7 @@ export default function ReportGalleryIndex({ summary, chart_data, fotografers, e
                     </Card>
 
                     {/* SECTION 4: EXPORT AKSI */}
-                    {/* <Card className="mt-6 flex flex-col md:flex-row justify-between items-start md:items-center bg-gray-50 border border-gray-200 p-6 gap-4">
+                    <Card className="mt-6 flex flex-col md:flex-row justify-between items-start md:items-center bg-gray-50 border border-gray-200 p-6 gap-4">
                         <div>
                             <h3 className="font-bold text-lg text-foreground">Unduh Data Mentah (Raw Data)</h3>
                             <p className="text-sm text-gray-600 mt-1">Export laporan galeri ini ke format Excel.</p>
@@ -184,7 +184,7 @@ export default function ReportGalleryIndex({ summary, chart_data, fotografers, e
                             {exportProcessing ? <span className="loading loading-spinner loading-sm"></span> : <Download size={18} />}
                             {exportProcessing ? 'Memproses ke Queue...' : 'Export Excel Galeri'}
                         </button>
-                    </Card> */}
+                    </Card>
 
                 </div>
             </div>

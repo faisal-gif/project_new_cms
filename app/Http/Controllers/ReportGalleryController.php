@@ -2,15 +2,20 @@
 
 namespace App\Http\Controllers;
 
+use App\Exports\GalleryExport;
 use App\Models\EditorNasional;
 use App\Models\Gallery;
 use App\Models\GalleryCategory;
+use App\Models\User;
 use App\Models\WriterNasional;
+use App\Notifications\ExportReadyNotification;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
-
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
+use Maatwebsite\Excel\Facades\Excel;
 
 class ReportGalleryController extends Controller
 {
@@ -55,7 +60,7 @@ class ReportGalleryController extends Controller
 
         $baseQuery = $this->buildQuery($request);
 
-    
+
         // 2. Kalkulasi Ringan di sisi Database (Menggunakan clone agar baseQuery tidak termutasi)
         $totalGallery = (clone $baseQuery)->count();
         // Asumsi gal_status: 1 = Publish, 2 = Review (Sesuaikan dengan sistem Anda)
@@ -100,5 +105,56 @@ class ReportGalleryController extends Controller
             'editors'     => $editors,
             'filters'     => $request->only(['start_date', 'end_date', 'kanal', 'fotografer', 'editor']),
         ]);
+    }
+
+    public function export(Request $request)
+    {
+        // 1. Validasi Input
+        $filters = $request->validate([
+            'start_date' => 'required|date',
+            'end_date'   => 'required|date|after_or_equal:start_date',
+            'kanal'      => 'nullable',
+            'fotografer' => 'nullable', // Menyesuaikan input dari React
+            'editor'     => 'nullable',
+        ]);
+
+        // 2. Buat Array untuk merangkai nama file
+        $nameParts = ['Laporan-Galeri-Nasional'];
+
+        $nameParts[] = date('Ymd', strtotime($filters['start_date'])) . '-sd-' . date('Ymd', strtotime($filters['end_date']));
+
+        // Cek dan tambahkan filter Kanal
+        if (!empty($filters['kanal'])) {
+            $nameParts[] = 'kanal-' . Str::slug($filters['kanal']);
+        }
+
+        // Cek dan tambahkan filter Fotografer
+        if (!empty($filters['fotografer'])) {
+            $fotoName = WriterNasional::where('id', $filters['fotografer'])->value('name');
+            $nameParts[] = 'fotografer-' . ($fotoName ? Str::slug($fotoName) : $filters['fotografer']);
+        }
+
+        // Cek dan tambahkan filter Editor
+        if (!empty($filters['editor'])) {
+            $editorName = EditorNasional::where('editor_id', $filters['editor'])->value('editor_name');
+            $nameParts[] = 'editor-' . ($editorName ? Str::slug($editorName) : $filters['editor']);
+        }
+
+        // Gabungkan string dan pastikan file unik
+        $fileName = implode('-', $nameParts) . '_' . Auth::id() . '_' . time() . '.xlsx';
+        $userId = Auth::id();
+
+        // 3. Masukkan ke Queue menggunakan GalleryExport
+        Excel::queue(new GalleryExport($filters), 'exports/' . $fileName, 'public')->chain([
+            function () use ($userId, $fileName) {
+                $user = User::find($userId); // Pastikan Model User sesuai sistem Anda
+
+                if ($user) {
+                    $user->notify(new ExportReadyNotification($fileName));
+                }
+            }
+        ]);
+
+        return back()->with('success', 'Laporan Galeri Nasional sedang diproses di belakang layar. Silakan cek lonceng notifikasi dalam beberapa saat.');
     }
 }
