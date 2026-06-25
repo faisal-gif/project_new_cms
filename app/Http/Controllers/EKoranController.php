@@ -117,7 +117,7 @@ class EKoranController extends Controller
     public function update(EkoranRequest $request, string $id)
     {
         // Cegah timeout untuk proses upload gambar yang mungkin memakan waktu
-        set_time_limit(0);
+        ini_set('max_execution_time', '300');
 
         $ekoran = Ekoran::findOrFail($id);
         $validated = $request->validated();
