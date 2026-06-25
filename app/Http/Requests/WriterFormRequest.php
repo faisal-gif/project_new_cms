@@ -6,7 +6,7 @@ use Illuminate\Foundation\Http\FormRequest;
 
 class WriterFormRequest extends FormRequest
 {
-   
+
     /**
      * Get the validation rules that apply to the request.
      *
@@ -20,7 +20,7 @@ class WriterFormRequest extends FormRequest
         return [
             'name' => 'required|string|max:100',
             'no_whatsapp' => 'required|string',
-            'email' => 'required|unique:writers,email,' . $writerId . '|email',
+            'email' => 'required|unique:mysql_daerah.writers,email,' . $writerId . '|email',
             'password' =>  $this->isMethod('POST')
                 ? 'required|string|min:8'
                 : 'nullable|string|min:8',
