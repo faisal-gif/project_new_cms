@@ -164,7 +164,7 @@ function Index({ writers, filters }) {
                                             {/* Actions */}
                                             <div className="flex gap-2 mt-4">
                                                 {hasPermission('edit penulis daerah') && (
-                                                    <Link href={route('admin.daerah.writer.edit', writer)} className="btn btn-sm btn-warning btn-outline">Edit</Link>
+                                                    <Link href={route('admin.daerah.writer.edit', writer.id)} className="btn btn-sm btn-warning btn-outline">Edit</Link>
                                                 )}
                                             </div>
                                         </div>
@@ -199,7 +199,7 @@ function Index({ writers, filters }) {
                                                     </td>
                                                     <td>
                                                         <div className="flex justify-end gap-2">
-                                                            <Link href={route('admin.ajp.writer.edit', writer)} className="btn btn-sm btn-warning btn-outline">Edit</Link>
+                                                            <Link href={route('admin.ajp.writer.edit', writer.id)} className="btn btn-sm btn-warning btn-outline">Edit</Link>
                                                         </div>
                                                     </td>
                                                 </tr>
