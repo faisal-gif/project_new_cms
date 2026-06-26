@@ -33,6 +33,7 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\WriterAjpController;
 use App\Http\Controllers\WriterController;
 use App\Http\Controllers\WriterDaerahController;
+use App\Http\Controllers\WriterKtController;
 use App\Http\Controllers\WriterNasionalController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
@@ -105,6 +106,12 @@ Route::middleware('auth')->prefix('admin')->name('admin.')->group(function () {
     Route::prefix('ajp')->name('ajp.')->group(
         function () {
             Route::resource('writer', WriterAjpController::class);
+        }
+    );
+
+    Route::prefix('kopi-times')->name('kopi-times.')->group(
+        function () {
+            Route::resource('writer', WriterKtController::class);
         }
     );
 });
