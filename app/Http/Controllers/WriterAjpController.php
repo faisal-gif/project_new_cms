@@ -80,6 +80,7 @@ class WriterAjpController extends Controller
             'package_id' => $paket->id,
             'quota_news' => $packageData['quota'],
             'dateexp'    => $packageData['dateexp'],
+            'type'       => 1,
 
         ]);
 
@@ -135,6 +136,7 @@ class WriterAjpController extends Controller
             'package_id' => $paket->id,
             'quota_news' => $packageData['quota'],
             'dateexp'    => $packageData['dateexp'],
+            'type'       => 1,
         ];
 
         // Hanya update password jika admin mengisinya di form edit
