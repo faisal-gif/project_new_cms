@@ -68,7 +68,7 @@ function TagItem({ id, text, onRemove, onEdit }) {
                 <input
                     autoFocus
                     value={editValue}
-                    className="bg-neutral outline-none w-24"
+                    className="bg-secondary outline-none w-24"
                     onChange={(e) => setEditValue(e.target.value)}
                     onBlur={saveEdit}
                     onKeyDown={(e) => {
