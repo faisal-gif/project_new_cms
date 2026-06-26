@@ -17,6 +17,7 @@ import {
 } from "@dnd-kit/sortable";
 
 import { CSS } from "@dnd-kit/utilities";
+import { Badge } from "./ui/badge";
 
 function TagItem({ id, text, onRemove, onEdit }) {
     const [isEditing, setIsEditing] = useState(false);
@@ -47,10 +48,10 @@ function TagItem({ id, text, onRemove, onEdit }) {
     };
 
     return (
-        <div
+        <Badge
             ref={setNodeRef}
             style={style}
-            className="flex items-center gap-2 bg-blue-500 text-white px-3 text-xs rounded-full"
+            className="flex items-center gap-2 bg-blue-500 px-3 text-xs rounded-full"
         >
             {/* DRAG HANDLE */}
             {!isEditing && (
@@ -68,7 +69,7 @@ function TagItem({ id, text, onRemove, onEdit }) {
                 <input
                     autoFocus
                     value={editValue}
-                    className="bg-neutral text-white outline-none w-24"
+                    className="bg-neutral outline-none w-24"
                     onChange={(e) => setEditValue(e.target.value)}
                     onBlur={saveEdit}
                     onKeyDown={(e) => {
@@ -93,7 +94,7 @@ function TagItem({ id, text, onRemove, onEdit }) {
             >
                 <XIcon className="w-4 h-4" />
             </button>
-        </div>
+        </Badge>
     );
 }
 
