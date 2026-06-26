@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Enum\WriterBerbayarType;
+use App\Models\PaketBerita;
 use App\Models\WriterBerbayar;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -12,26 +13,26 @@ class WriterAjpController extends Controller
     /**
      * Display a listing of the resource.
      */
-public function index(Request $request)
+    public function index(Request $request)
     {
         // 1. Ubah nama variabel menjadi jamak ($writers) karena ini adalah kumpulan data
         $writers = WriterBerbayar::query()
             // 2. Hindari "Magic Number". Gunakan Enum (direkomendasikan) 
             // Atau tetap gunakan ->where('type', 1) jika belum memakai Enum
-            ->where('type', WriterBerbayarType::AJP->value) 
-            
+            ->where('type', WriterBerbayarType::AJP->value)
+
             // 3. Gunakan method when() untuk menggantikan blok if()
             ->when($request->search, function ($query, $search) {
                 // Tidak perlu nested closure jika hanya mencari di satu kolom
                 $query->where('nama', 'like', "%{$search}%");
             })
-            
+
             ->when($request->filled('status'), function ($query) use ($request) {
                 $query->where('status', $request->status);
             })
-            
+
             // 4. Gunakan helper method untuk urutan descending yang lebih ringkas
-            ->orderByDesc('id') 
+            ->orderByDesc('id')
             ->paginate(10)
             ->withQueryString();
 
@@ -46,7 +47,10 @@ public function index(Request $request)
      */
     public function create()
     {
-        //
+        $paket = PaketBerita::where('status', 1)->where('type', '1')->get();
+        return Inertia::render('Admin/AJP/Writer/Create', [
+            'paket' => $paket
+        ]);
     }
 
     /**

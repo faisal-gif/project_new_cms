@@ -10,16 +10,66 @@ import { Head, useForm } from '@inertiajs/react'
 import React from 'react'
 import Select from "react-select";
 
-function Create({ networks, nasionals, daerahs }) {
-
-    // Menambahkan state id_nasional dan id_daerah
-    const { data, setData, post, processing, errors, reset } = useForm({
+function Create({ paket }) {
+    const { data, setData, post, processing, errors } = useForm({
         name: '',
-        date_exp: '',
         email: '',
         password: '',
-        status: '',
+        status: '1', // Set default active
+        instansi: '',
+        phone: '',
+        provinsi: '',
+        kota: '',
+        alamat: '',
+        paket_berita: null, // Diubah menjadi ID untuk dikirim ke backend
+        quota_news: '',
+        date_exp: '',
     });
+
+    // 1. Format data Paket Berita agar sesuai dengan react-select
+    const paketOptions = paket ? paket.map(paket => ({
+        value: paket.id,
+        label: `${paket.name} (Kuota: ${paket.quota} | Masa Aktif: ${paket.period} ${paket.jenis_periode})`,
+        paketDetail: paket // Kita simpan objek aslinya untuk kalkulasi UI
+    })) : [];
+
+    // 2. Logika Reactive: Hitung preview saat paket dipilih
+    const handlePaketChange = (selectedOption) => {
+        if (!selectedOption) {
+            // Jika dikosongkan (clear), reset nilainya
+            setData(prevData => ({ ...prevData, paket_berita_id: null, quota_news: '', date_exp: '' }));
+            return;
+        }
+
+        const pkg = selectedOption.paketDetail;
+        let expDate = new Date();
+
+        // Kalkulasi tanggal berbasis Javascript murni untuk UI Preview
+        switch (pkg.jenis_periode.toLowerCase()) {
+            case 'hari':
+                expDate.setDate(expDate.getDate() + pkg.period);
+                break;
+            case 'minggu':
+                expDate.setDate(expDate.getDate() + (pkg.period * 7));
+                break;
+            case 'bulan':
+                expDate.setMonth(expDate.getMonth() + pkg.period);
+                break;
+            case 'tahun':
+                expDate.setFullYear(expDate.getFullYear() + pkg.period);
+                break;
+            default:
+                break;
+        }
+
+        // 3. Update State Inertia secara massal
+        setData(prevData => ({
+            ...prevData,
+            paket_berita_id: selectedOption.value,
+            quota_news: pkg.quota,
+            date_exp: expDate.toISOString().split('T')[0] // Format ke YYYY-MM-DD
+        }));
+    };
 
     const submit = (e) => {
         e.preventDefault();
@@ -29,7 +79,7 @@ function Create({ networks, nasionals, daerahs }) {
     return (
         <>
             <Head title="Tambah Penulis" />
-            <AuthenticatedLayout >
+            <AuthenticatedLayout>
                 <div className="py-12">
                     <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
 
@@ -53,103 +103,122 @@ function Create({ networks, nasionals, daerahs }) {
                                 {/* end breadcrumbs */}
                             </div>
 
-
                             {/* START: Main Form */}
                             <Card>
-                                <form onSubmit={submit} className='grid grid-cols-1 lg:grid-cols-6 gap-4'>
-                                    <div className="lg:col-span-6 w-60">
-                                        <InputSelect
-                                            label="Status"
-                                            value={data.status}
-                                            onChange={(e) => setData('status', e.target.value)}
-                                            options={[
-                                                { label: "Active", value: "1" },
-                                                { label: "Inactive", value: "0" },
-                                            ]}
-                                        />
-                                        <InputError message={errors.status} className="mt-2" />
+                                <form onSubmit={submit} className='space-y-8'>
+
+                                    {/* SECTION 1: INFORMASI AKUN */}
+                                    <div>
+                                        <h2 className="text-xl font-bold text-gray-800 border-b pb-2 mb-4">Informasi Akun</h2>
+                                        <div className='grid grid-cols-1 lg:grid-cols-6 gap-4'>
+
+                                            <div className="lg:col-span-3">
+                                                <InputLabel htmlFor="name" value="Nama Lengkap" className='mb-2 font-bold' />
+                                                <TextInput id="name" name="name" type="text" value={data.name} onChange={(e) => setData('name', e.target.value)} className="mt-1 block w-full" autoComplete="name" />
+                                                <InputError message={errors.name} className="mt-2" />
+                                            </div>
+
+                                            <div className="lg:col-span-3">
+                                                <InputLabel htmlFor="email" value="Email" className='mb-2 font-bold' />
+                                                <TextInput id="email" name="email" type="email" value={data.email} onChange={(e) => setData('email', e.target.value)} className="mt-1 block w-full" autoComplete="email" />
+                                                <InputError message={errors.email} className="mt-2" />
+                                            </div>
+
+                                            <div className='lg:col-span-3 w-full'>
+                                                <InputLabel htmlFor="password" value="Password" className='mb-2 font-bold' />
+                                                <InputPassword id="password" name="password" value={data.password} className="mt-1 w-full" autoComplete="new-password" onChange={(e) => setData('password', e.target.value)} />
+                                                <InputError message={errors.password} className="mt-2" />
+                                            </div>
+
+                                            <div className="lg:col-span-3 w-full">
+                                                <InputLabel htmlFor="status" value="Status" className='mb-2 font-bold' />
+                                                <InputSelect id="status" value={data.status} onChange={(e) => setData('status', e.target.value)} className="mt-1 block w-full" options={[{ label: "Active", value: "1" }, { label: "Inactive", value: "0" }]} />
+                                                <InputError message={errors.status} className="mt-2" />
+                                            </div>
+
+                                        </div>
                                     </div>
 
-                                    <div className="lg:col-span-3 w-full">
-                                        <InputLabel
-                                            htmlFor="date_exp"
-                                            value="Tanggal Kadaluarsa"
-                                            className='mb-2 label-text font-bold'
-                                        />
-                                        <TextInput
-                                            id="date_exp"
-                                            name="date_exp"
-                                            type="date"
-                                            className="mt-1 block w-full"
-                                            value={data.date_exp}
-                                            onChange={(e) => setData('date_exp', e.target.value)}
-                                            autoComplete="date_exp"
-                                        />
-                                        <InputError message={errors.date_exp} className="mt-2" />
+                                    {/* SECTION 2: INFORMASI DETAIL */}
+                                    <div>
+                                        <h2 className="text-xl font-bold text-gray-800 border-b pb-2 mb-4">Informasi Detail</h2>
+                                        <div className='grid grid-cols-1 lg:grid-cols-6 gap-4'>
+
+                                            <div className="lg:col-span-3">
+                                                <InputLabel htmlFor="instansi" value="Instansi" className='mb-2 font-bold' />
+                                                <TextInput id="instansi" name="instansi" type="text" value={data.instansi} onChange={(e) => setData('instansi', e.target.value)} className="mt-1 block w-full" />
+                                                <InputError message={errors.instansi} className="mt-2" />
+                                            </div>
+
+                                            <div className="lg:col-span-3">
+                                                <InputLabel htmlFor="phone" value="No Tlp/Hp" className='mb-2 font-bold' />
+                                                <InputPhoneNumber id="phone" name="phone" value={data.phone} onChange={(e) => setData('phone', e.target.value)} className="mt-1 block w-full" />
+                                                <InputError message={errors.phone} className="mt-2" />
+                                            </div>
+
+                                            <div className="lg:col-span-3">
+                                                <InputLabel htmlFor="provinsi" value="Provinsi" className='mb-2 font-bold' />
+                                                <TextInput id="provinsi" name="provinsi" type="text" value={data.provinsi} onChange={(e) => setData('provinsi', e.target.value)} className="mt-1 block w-full" />
+                                                <InputError message={errors.provinsi} className="mt-2" />
+                                            </div>
+
+                                            <div className="lg:col-span-3">
+                                                <InputLabel htmlFor="kota" value="Kota" className='mb-2 font-bold' />
+                                                <TextInput id="kota" name="kota" type="text" value={data.kota} onChange={(e) => setData('kota', e.target.value)} className="mt-1 block w-full" />
+                                                <InputError message={errors.kota} className="mt-2" />
+                                            </div>
+
+                                            <div className="lg:col-span-6">
+                                                <InputLabel htmlFor="alamat" value="Alamat Lengkap" className='mb-2 font-bold' />
+                                                <TextInput id="alamat" name="alamat" type="text" value={data.alamat} onChange={(e) => setData('alamat', e.target.value)} className="mt-1 block w-full" />
+                                                <InputError message={errors.alamat} className="mt-2" />
+                                            </div>
+
+                                            <div className="lg:col-span-6 w-full">
+                                                <InputLabel htmlFor="paket_berita" value="Pilih Paket Berita" className='mb-2 font-bold text-blue-600' />
+                                                <Select
+                                                    id="paket_berita"
+                                                    options={paketOptions}
+                                                    isClearable
+                                                    placeholder="-- Cari dan Pilih Paket --"
+                                                    onChange={handlePaketChange}
+                                                    className="mt-1"
+                                                />
+                                                <InputError message={errors.paket_berita} className="mt-2" />
+                                            </div>
+
+                                            {/* Field ini kita buat ReadOnly / Disabled */}
+                                            <div className="lg:col-span-3">
+                                                <InputLabel htmlFor="quota_news" value="Quota News (Otomatis)" className='mb-2 font-bold text-gray-500' />
+                                                <TextInput
+                                                    id="quota_news"
+                                                    type="number"
+                                                    value={data.quota_news}
+                                                    isDisable
+                                                    className="mt-1 block w-full bg-gray-100 cursor-not-allowed border-gray-300 text-gray-500"
+                                                    placeholder="Terisi otomatis..."
+                                                />
+                                            </div>
+
+                                            {/* Field ini kita buat ReadOnly / Disabled */}
+                                            <div className="lg:col-span-3">
+                                                <InputLabel htmlFor="date_exp" value="Tanggal Kadaluarsa (Otomatis)" className='mb-2 font-bold text-gray-500' />
+                                                <TextInput
+                                                    id="date_exp"
+                                                    type="date"
+                                                    value={data.date_exp}
+                                                    isDisable
+                                                    className="mt-1 block w-full bg-gray-100 cursor-not-allowed border-gray-300 text-gray-500"
+                                                />
+                                            </div>
+
+                                        </div>
                                     </div>
 
-                                    <div className='lg:col-span-3'>
-                                        <InputLabel
-                                            htmlFor="name"
-                                            value="Nama"
-                                            className='mb-2 font-bold'
-                                        />
-                                        <TextInput
-                                            id="name"
-                                            name="name"
-                                            type="text"
-                                            value={data.name}
-                                            onChange={(e) => setData('name', e.target.value)}
-                                            className="mt-1 block w-full"
-                                            autoComplete="name"
-                                        />
-                                        <InputError message={errors.name} className="mt-2" />
-                                    </div>
-
-                                    <div className='lg:col-span-3'>
-                                        <InputLabel
-                                            htmlFor="email"
-                                            value="Email"
-                                            className='mb-2 font-bold'
-                                        />
-                                        <TextInput
-                                            id="email"
-                                            name="email"
-                                            type="email" // Typo fix: disesuaikan menjadi type="email"
-                                            value={data.email}
-                                            onChange={(e) => setData('email', e.target.value)}
-                                            className="mt-1 block w-full"
-                                            autoComplete="email"
-                                        />
-                                        <InputError message={errors.email} className="mt-2" />
-                                    </div>
-
-                                    <div className='lg:col-span-6 w-full'>
-                                        <InputLabel
-                                            htmlFor="password"
-                                            value="Password"
-                                            className='mb-2 font-bold'
-                                        />
-                                        <InputPassword
-                                            id="password"
-                                            name="password"
-                                            value={data.password}
-                                            className="mt-1 w-80 md:w-full"
-                                            autoComplete="new-password"
-                                            onChange={(e) => setData('password', e.target.value)}
-                                        />
-                                        <InputError message={errors.password} className="mt-2" />
-                                    </div>
-
-
-
-                                    <div className='lg:col-span-6 flex flex-row justify-end mt-4'>
-                                        <button
-                                            type="submit"
-                                            className="btn btn-primary"
-                                            disabled={processing}
-                                        >
-                                            Simpan
+                                    {/* Action Buttons */}
+                                    <div className='flex flex-row justify-end mt-8 border-t pt-4'>
+                                        <button type="submit" className="btn btn-primary px-8" disabled={processing}>
+                                            Simpan Data Penulis
                                         </button>
                                     </div>
                                 </form>

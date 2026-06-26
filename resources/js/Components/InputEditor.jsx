@@ -22,9 +22,11 @@ export default function InputEditor({
 
                 value={value}
                 onEditorChange={(content, editor) => {
-                    onChange(content);
+                    const cleanedContent = content
+                        .replace(/<span;[^>]*>/gi, '')
+                        .replace(/<\/span;/gi, '');
+                    onChange(cleanedContent);
                 }}
-
                 init={{
                     license_key: 'gpl',
                     min_height: 300,

@@ -46,12 +46,9 @@ class AdsNasionalRequest extends FormRequest
             ],
 
             // Validasi Lokasi: Setidaknya salah satu platform harus dipilih
-            'locate_desktop'   => ['array', 'nullable', 'required_without:locate_mobile'],
-            'locate_desktop.*' => ['integer'],
-            
-            'locate_mobile'    => ['array', 'nullable', 'required_without:locate_desktop'],
-            'locate_mobile.*'  => ['integer'],
-        ];
+            'locate_desktop'   => ['nullable', 'required_without:locate_mobile'],   
+            'locate_mobile'    => ['nullable', 'required_without:locate_desktop'],
+          ];
     }
 
     public function messages(): array

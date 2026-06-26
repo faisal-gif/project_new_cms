@@ -42,8 +42,8 @@ class AdsNasionalController extends Controller
      */
     public function create()
     {
-        $desktopLocations = AdsNasionalLocateMaster::where('type', 'd')->where('is_status', 1)->where('is_page','home')->get();
-        $mobileLocations = AdsNasionalLocateMaster::where('type', 'm')->where('is_status', 1)->where('is_page','home')->get();
+        $desktopLocations = AdsNasionalLocateMaster::where('type', 'd')->where('is_status', 1)->where('is_page', 'home')->get();
+        $mobileLocations = AdsNasionalLocateMaster::where('type', 'm')->where('is_status', 1)->where('is_page', 'home')->get();
 
 
         return Inertia::render('Admin/Nasional/Ads/Create', [
@@ -59,16 +59,20 @@ class AdsNasionalController extends Controller
     {
         $user = Auth::user();
 
-        // Mulai transaksi untuk KEDUA database
-
-
         try {
-            // Asumsi Anda menggunakan CDN Service seperti sebelumnya
             $baseSlug = Str::slug($request->title);
-            $desktopImgUrl = $this->cdnService->uploadImage($request->file('d_img'), "{$baseSlug}-desktop", 1, 'convert', 0);
-            $mobileImgUrl  = $this->cdnService->uploadImage($request->file('m_img'), "{$baseSlug}-mobile", 1, 'convert', 0);
+
+            // PERBAIKAN 1: Gunakan hasFile() agar tidak error jika salah satu gambar tidak diunggah
+            $desktopImgUrl = $request->hasFile('d_img')
+                ? $this->cdnService->uploadImage($request->file('d_img'), "{$baseSlug}-desktop", 1, 'convert', 0)
+                : null;
+
+            $mobileImgUrl  = $request->hasFile('m_img')
+                ? $this->cdnService->uploadImage($request->file('m_img'), "{$baseSlug}-mobile", 1, 'convert', 0)
+                : null;
 
             DB::beginTransaction();
+
             // 1. Insert ke Database Utama
             $adsTi = AdsNasional::create([
                 'unique_id'  => Str::random(20),
@@ -94,23 +98,26 @@ class AdsNasionalController extends Controller
                 'net_id' => 1,
             ]);
 
-            // 3. Batch Insert untuk Locate (Desktop + Mobile)
-            $desktopLocates = $request->locate_desktop ?? [];
-            $mobileLocates  = $request->locate_mobile ?? [];
+            // PERBAIKAN 2: Penanganan untuk locate yang bukan array (single value)
+            // Masukkan value ke dalam array, lalu gunakan array_filter untuk membuang nilai null/kosong
+            $allLocates = array_filter([
+                $request->locate_desktop,
+                $request->locate_mobile
+            ]);
 
-            $allLocates = array_unique(array_merge($desktopLocates, $mobileLocates));
+            // Hapus duplikasi jika ID lokasi desktop dan mobile ternyata sama
+            $allLocates = array_unique($allLocates);
 
             if (!empty($allLocates)) {
-                // Kita petakan (map) menjadi Array Multidimensi
+                // Map menjadi Array Multidimensi
                 $locateData = collect($allLocates)->map(function ($locate_id) use ($adsTi) {
                     return [
-                        'ads_id'     => $adsTi->id,
-                        'locate_id'  => $locate_id,
-                       
+                        'ads_id'    => $adsTi->id,
+                        'locate_id' => $locate_id,
                     ];
                 })->toArray(); // Konversi ke bentuk array murni
 
-                // Eksekusi INSERT HANYA 1 KALI (Performa ultra-cepat)
+                // Eksekusi INSERT HANYA 1 KALI
                 AdsNasionalLocate::insert($locateData);
             }
 
@@ -122,8 +129,7 @@ class AdsNasionalController extends Controller
             // Rollback KEDUA database jika ada SALAH SATU yang gagal
             DB::rollBack();
 
-
-            return back()->withInput()->withErrors(['error' => 'Gagal menyimpan iklan. Kesalahan sistem. :' . $e->getMessage()]);
+            return back()->withInput()->withErrors(['error' => 'Gagal menyimpan iklan. Kesalahan sistem: ' . $e->getMessage()]);
         }
     }
 
@@ -225,7 +231,7 @@ class AdsNasionalController extends Controller
                 $locateData = collect($allLocates)->map(function ($locate_id) use ($ad) {
                     return [
                         'ads_id'     => $ad->id,
-                        'locate_id'  => $locate_id,                     
+                        'locate_id'  => $locate_id,
                     ];
                 })->toArray();
 
