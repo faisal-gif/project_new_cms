@@ -29,8 +29,8 @@ export default function InputEditor({
                 }}
                 init={{
                     license_key: 'gpl',
-                    min_height: 300,
-                    max_height: height,
+                    min_height: 300, 
+                    max_height: height, // Maksimal tinggi 800px sebelum muncul scrollbar
                     mobile: {
                         max_height: 450,
                         toolbar_mode: 'sliding',
@@ -62,12 +62,16 @@ export default function InputEditor({
                     image_dimensions: false,
                     image_default_style: 'width:100%;height:auto;max-height:500px;object-fit:cover;',
                     plugins: [
+                        'autoresize', // 💡 UPDATE: Tambahkan autoresize di sini
                         'searchreplace', 'lists', 'advlist', 'link', 'image',
                         'charmap', 'preview', 'anchor', 'pagebreak', 'nonbreaking',
                         'visualblocks', 'visualchars', 'code', 'fullscreen', 'code',
                         'insertdatetime', 'media', 'table', 'emoticons', 'help',
                         'wordcount', 'directionality'
                     ],
+                    // Opsional: Jarak kosong di bawah teks saat auto-resize (default 50)
+                    autoresize_bottom_margin: 20, 
+                    
                     valid_elements: '*[*]',
                     invalid_elements: 'span,o:p',
 
