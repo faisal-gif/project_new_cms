@@ -5,7 +5,7 @@ import EditorImageModal from './EditorImageModal';
 export default function InputEditor({
     value,
     onChange,
-    height = 800,
+    height = 1200,
     enableImageUpload = true
 }) {
     // 💡 UPDATE: Menambahkan 'searchreplace' di sebelah 'undo redo'
@@ -32,7 +32,7 @@ export default function InputEditor({
                     min_height: 300, 
                     max_height: height, // Maksimal tinggi 800px sebelum muncul scrollbar
                     mobile: {
-                        max_height: 450,
+                        max_height: 600,
                         toolbar_mode: 'sliding',
                     },
                     menubar: false,
