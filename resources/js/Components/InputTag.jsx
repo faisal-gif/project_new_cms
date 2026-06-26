@@ -50,7 +50,7 @@ function TagItem({ id, text, onRemove, onEdit }) {
         <div
             ref={setNodeRef}
             style={style}
-            className="flex items-center gap-2 bg-neutral text-white px-3 text-xs rounded-full"
+            className="flex items-center gap-2 bg-blue-500 text-white px-3 text-xs rounded-full"
         >
             {/* DRAG HANDLE */}
             {!isEditing && (
