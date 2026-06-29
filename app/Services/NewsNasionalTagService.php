@@ -7,6 +7,19 @@ use Illuminate\Support\Str;
 
 class NewsNasionalTagService
 {
+
+    /**
+     * Menghapus link HTML tag dan mengembalikannya menjadi teks biasa.
+     */
+    private function stripTagLinks(string $content): string
+    {
+        // Regex untuk mencari tag <a> yang menuju ke URL tag timesindonesia
+        // dan mengambil kata di dalamnya ($1)
+        $pattern = '/<a href="https:\/\/timesindonesia\.co\.id\/tag\/[^"\r\n]*"[^>]*>(.*?)<\/a>/si';
+
+        return preg_replace($pattern, '$1', $content);
+    }
+
     /**
      * Create a new class instance.
      */
@@ -14,7 +27,7 @@ class NewsNasionalTagService
     {
         $syncData = [];
         $tagNames = [];
-        $processedContent = $content ?? '';
+        $processedContent = $content ? $this->stripTagLinks($content) : '';
 
         // Jika tidak ada tag, langsung kembalikan default kosong
         if (empty($tags)) {
