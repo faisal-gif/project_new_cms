@@ -8,6 +8,7 @@ use App\Models\PaketBerita;
 use App\Models\WriterBerbayar;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Inertia\Inertia;
 
@@ -64,28 +65,34 @@ class WriterAjpController extends Controller
         $validated = $request->validated();
         $paket = PaketBerita::findOrFail($validated['paket_berita']);
 
-        // Resolve Quota dan Date Expired (Mencegah manipulasi FE)
-        $packageData = $this->resolvePackageData($paket, $validated);
+        try {
+            DB::beginTransaction();
+            // Resolve Quota dan Date Expired (Mencegah manipulasi FE)
+            $packageData = $this->resolvePackageData($paket, $validated);
 
-        WriterBerbayar::create([
-            'nama'       => $validated['name'],
-            'email'      => $validated['email'],
-            'password'   => Hash::make($validated['password']),
-            'contact'    => $validated['phone'],
-            'instansi'   => $validated['instansi'],
-            'prov'       => $validated['provinsi'],
-            'city'       => $validated['kota'],
-            'address'    => $validated['alamat'],
-            'status'     => $validated['status'],
-            'package_id' => $paket->id,
-            'quota_news' => $packageData['quota'],
-            'dateexp'    => $packageData['dateexp'],
-            'type'       => 1,
+            WriterBerbayar::create([
+                'nama'       => $validated['name'],
+                'email'      => $validated['email'],
+                'password'   => Hash::make($validated['password']),
+                'contact'    => $validated['phone'],
+                'instansi'   => $validated['instansi'],
+                'prov'       => $validated['provinsi'],
+                'city'       => $validated['kota'],
+                'address'    => $validated['alamat'],
+                'status'     => $validated['status'],
+                'package_id' => $paket->id,
+                'quota_news' => $packageData['quota'],
+                'dateexp'    => $packageData['dateexp'],
+                'type'       => 1,
 
-        ]);
+            ]);
 
-        return redirect()->route('admin.ajp.writer.index')
-            ->with('success', 'Penulis AJP berhasil ditambahkan.');
+            DB::commit();
+            return redirect()->route('admin.ajp.writer.index')->with('success', 'Penulis AJP berhasil ditambahkan.');
+        } catch (\Exception $e) {
+            DB::rollback();
+            return back()->withErrors(['error' => 'Terjadi kesalahan saat menyimpan data: ' . $e->getMessage()]);
+        }
     }
 
     /**
@@ -124,30 +131,37 @@ class WriterAjpController extends Controller
         // Resolve Quota dan Date Expired
         $packageData = $this->resolvePackageData($paket, $validated);
 
-        $updateData = [
-            'nama'       => $validated['name'],
-            'email'      => $validated['email'],
-            'contact'    => $validated['phone'],
-            'instansi'   => $validated['instansi'],
-            'prov'       => $validated['provinsi'],
-            'city'       => $validated['kota'],
-            'address'    => $validated['alamat'],
-            'status'     => $validated['status'],
-            'package_id' => $paket->id,
-            'quota_news' => $packageData['quota'],
-            'dateexp'    => $packageData['dateexp'],
-            'type'       => 1,
-        ];
+        try {
+            DB::beginTransaction();
+            
+            $updateData = [
+                'nama'       => $validated['name'],
+                'email'      => $validated['email'],
+                'contact'    => $validated['phone'],
+                'instansi'   => $validated['instansi'],
+                'prov'       => $validated['provinsi'],
+                'city'       => $validated['kota'],
+                'address'    => $validated['alamat'],
+                'status'     => $validated['status'],
+                'package_id' => $paket->id,
+                'quota_news' => $packageData['quota'],
+                'dateexp'    => $packageData['dateexp'],
+                'type'       => 1,
+            ];
 
-        // Hanya update password jika admin mengisinya di form edit
-        if (!empty($validated['password'])) {
-            $updateData['password'] = Hash::make($validated['password']);
+            // Hanya update password jika admin mengisinya di form edit
+            if (!empty($validated['password'])) {
+                $updateData['password'] = Hash::make($validated['password']);
+            }
+
+            $writer->update($updateData);
+
+            DB::commit();
+            return redirect()->route('admin.ajp.writer.index')->with('success', 'Data penulis AJP berhasil diperbarui.');
+        } catch (\Exception $e) {
+            DB::rollback();
+            return back()->withErrors(['error' => 'Terjadi kesalahan saat menyimpan data: ' . $e->getMessage()]);
         }
-
-        $writer->update($updateData);
-
-        return redirect()->route('admin.ajp.writer.index')
-            ->with('success', 'Data penulis AJP berhasil diperbarui.');
     }
 
     private function resolvePackageData(PaketBerita $paket, array $validated): array
