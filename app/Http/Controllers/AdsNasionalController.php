@@ -234,8 +234,6 @@ class AdsNasionalController extends Controller
                     return [
                         'ads_id'    => $adsTi->id,
                         'locate_id' => $locate_id,
-                        'created_at' => now(),
-                        'updated_at' => now(),
                     ];
                 })->toArray();
 
