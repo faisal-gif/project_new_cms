@@ -1,3 +1,5 @@
+
+
 "use client";
 
 import { useRef, useState, useEffect } from "react";
@@ -17,15 +19,11 @@ const getCroppedImg = async (image, crop, fileName, targetWidth, targetHeight) =
   ctx.imageSmoothingQuality = "high";
   ctx.drawImage(image, crop.x * scaleX, crop.y * scaleY, crop.width * scaleX, crop.height * scaleY, 0, 0, targetWidth, targetHeight);
 
-  // Ubah ekstensi file asli menjadi .webp
-  const newFileName = fileName.replace(/\.[^/.]+$/, "") + ".webp";
-
   return new Promise((resolve, reject) => {
-    // Gunakan image/webp dengan kualitas 1 (100%)
     canvas.toBlob((blob) => {
       if (!blob) return reject(new Error("Canvas is empty"));
-      resolve(new File([blob], newFileName, { type: "image/webp" }));
-    }, "image/webp", 1);
+      resolve(new File([blob], fileName, { type: "image/jpeg" }));
+    }, "image/jpeg", 1);
   });
 };
 
@@ -125,21 +123,16 @@ export default function InputImage({
     if (!completedCrop || !imgRef.current) return;
     setIsProcessing(true);
     try {
-      // 1. Dapatkan hasil crop langsung sesuai resolusi target
-      const croppedFile = await getCroppedImg(
-        imgRef.current,
-        completedCrop,
-        cropData.fileName,
-        targetWidth,
-        targetHeight
-      );
-
-      // 2. BYPASS KOMPRESI! Langsung kirim file hasil crop ke state form
-      // Karena resolusinya sudah dipaskan di canvas, ukurannya pasti aman.
-      onChange?.(croppedFile);
+      const croppedFile = await getCroppedImg(imgRef.current, completedCrop, cropData.fileName, targetWidth, targetHeight);
+      const compressedFile = await imageCompression(croppedFile, {
+        maxSizeMB: 1.5,
+        maxWidthOrHeight: Math.max(targetWidth, targetHeight),
+        useWebWorker: true,
+      });
+      onChange?.(compressedFile);
       setCropData({ src: null, fileName: "", originalFile: null });
     } catch (error) {
-      console.error("Gagal crop:", error);
+      console.error("Gagal crop/kompresi:", error);
     } finally {
       setIsProcessing(false);
     }
@@ -220,7 +213,7 @@ export default function InputImage({
                 onClick={handleSaveCrop}
                 disabled={isProcessing || !completedCrop?.width}
               >
-                {isProcessing ? <span className="loading loading-spinner loading-sm"></span> : `Crop`}
+                {isProcessing ? <span className="loading loading-spinner loading-sm"></span> : `Crop & Kompres`}
               </button>
             </div>
           </div>
