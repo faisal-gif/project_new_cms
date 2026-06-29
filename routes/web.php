@@ -16,6 +16,7 @@ use App\Http\Controllers\GalleryController;
 use App\Http\Controllers\KanalDaerahController;
 use App\Http\Controllers\KanalNasionalController;
 use App\Http\Controllers\NetworkDaerahController;
+use App\Http\Controllers\NewsAJPController;
 use App\Http\Controllers\NewsController;
 use App\Http\Controllers\NewsDaerahController;
 use App\Http\Controllers\NewsNasionalController;
@@ -105,6 +106,7 @@ Route::middleware('auth')->prefix('admin')->name('admin.')->group(function () {
     );
     Route::prefix('ajp')->name('ajp.')->group(
         function () {
+            Route::resource('news', NewsAJPController::class);
             Route::resource('writer', WriterAjpController::class);
         }
     );

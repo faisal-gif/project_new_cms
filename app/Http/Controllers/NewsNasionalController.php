@@ -11,6 +11,7 @@ use App\Models\NewsNasional;
 use App\Models\TagsNasional;
 use App\Models\WriterNasional;
 use App\Services\CdnService;
+use App\Services\NewsNasionalTagService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
@@ -25,7 +26,8 @@ class NewsNasionalController extends Controller
 {
 
     public function __construct(
-        protected CdnService $cdnService
+        protected CdnService $cdnService,
+        protected NewsNasionalTagService $tagService
     ) {}
 
     // Ekstrak query builder agar reusable
@@ -176,37 +178,8 @@ class NewsNasionalController extends Controller
         DB::connection('mysql_nasional')->beginTransaction();
 
         try {
-            $content = $request->is_content;
-            $syncData = []; // Menggunakan array asosiatif untuk menyimpan data pivot dengan urutan
-            $tagNames = [];
 
-            // 2. Proses Auto-Link Tag ke dalam Konten
-            if ($request->has('tag') && is_array($request->tag)) {
-                foreach ($request->tag as $index => $tagName) {
-                    $cleanTagName = strtolower(trim($tagName));
-                    $tagNames[] = $cleanTagName;
-
-                    // Simpan atau ambil tag dari database nasional
-                    $tag = TagsNasional::on('mysql_nasional')->firstOrCreate([
-                        'name' => $cleanTagName
-                    ]);
-
-                    // Simpan ID tag beserta urutan index-nya ke array syncData
-                    $syncData[$tag->id] = ['sort_order' => $index];
-
-                    // REGEX: Memastikan tidak merusak HTML bawaan konten
-                    $pattern = '/(?!(?:[^<]+>|[^>]+<\/a>))\b(' . preg_quote($tag->name, '/') . ')\b/iu';
-
-                    $tagSlug = Str::slug($tag->name);
-                    $tagUrl = 'https://timesindonesia.co.id/tag/' . $tagSlug;
-
-                    $replacement = '<a href="' . $tagUrl . '" class="text-blue-600 hover:underline font-semibold" title="Baca lebih lanjut tentang $1">$1</a>';
-
-                    // LIMIT: 1 -> Hanya mengubah 1 kata PERTAMA yang ditemukan di konten
-                    $content = preg_replace($pattern, $replacement, $content, 1);
-                }
-            }
-
+            $tagData = $this->tagService->processTags($request->tag, $request->is_content);
             // 3. Simpan tabel News (Koneksi Nasional)
             $news = NewsNasional::create([
                 'is_code'          => Str::random(8),
@@ -217,19 +190,19 @@ class NewsNasionalController extends Controller
                 'focnews_id'       => $request->focus,
                 'news_title'       => $request->title,
                 'news_description' => $request->description,
-                'news_content'     => $content,
+                'news_content'     => $tagData['content'],
                 'news_image_new'   => $thumbnailUrl,
                 'news_caption'     => $request->image_caption,
                 'news_status'      => $request->status ?? '1',
                 'news_city'        => $request->locus,
                 'news_datepub'     => $request->datepub ?? now(),
                 'news_headline'    => $request->is_headline ? 1 : 0,
-                'news_tags'        => !empty($tagNames) ? implode(',', $tagNames) : null,
+                'news_tags'        => $tagData['tagString'],
             ]);
 
             // 4. Simpan Tags dengan urutan ke tabel pivot Tag Nasional
-            if (!empty($syncData)) {
-                $news->tags()->sync($syncData);
+            if (!empty($tagData['syncData'])) {
+                $news->tags()->sync($tagData['syncData']);
             }
 
             DB::connection('mysql_nasional')->commit();
@@ -360,33 +333,8 @@ class NewsNasionalController extends Controller
         DB::connection('mysql_nasional')->beginTransaction();
 
         try {
-            $content = $request->is_content;
-            $syncData = [];
-            $tagNames = [];
 
-            // 2. Proses Auto-Link Tag ke dalam Konten
-            if ($request->has('tag') && is_array($request->tag)) {
-                foreach ($request->tag as $index => $tagName) {
-                    $cleanTagName = strtolower(trim($tagName));
-                    $tagNames[] = $cleanTagName;
-
-                    $tag = TagsNasional::on('mysql_nasional')->firstOrCreate([
-                        'name' => $cleanTagName
-                    ]);
-
-                    // Simpan ID tag beserta urutan index-nya ke array syncData
-                    $syncData[$tag->id] = ['sort_order' => $index];
-
-                    $pattern = '/(?!(?:[^<]+>|[^>]+<\/a>))\b(' . preg_quote($tag->name, '/') . ')\b/iu';
-
-                    $tagSlug = Str::slug($tag->name);
-                    $tagUrl = 'https://timesindonesia.co.id/tag/' . $tagSlug;
-
-                    $replacement = '<a href="' . $tagUrl . '" class="text-blue-600 hover:underline font-semibold" title="Baca lebih lanjut tentang $1">$1</a>';
-
-                    $content = preg_replace($pattern, $replacement, $content, 1);
-                }
-            }
+            $tagData = $this->tagService->processTags($request->tag, $request->is_content);
 
             // 3. Update tabel News Nasional
             $news->update([
@@ -397,19 +345,19 @@ class NewsNasionalController extends Controller
                 'focnews_id'       => $request->focus,
                 'news_title'       => $request->title,
                 'news_description' => $request->description,
-                'news_content'     => $content,
+                'news_content'     => $tagData['content'],
                 'news_image_new'   => $thumbnailUrl,
                 'news_caption'     => $request->image_caption,
                 'news_status'      => $request->status ?? '3',
                 'news_city'        => $request->locus,
                 'news_datepub'     => $request->datepub ?? now(),
                 'news_headline'    => $request->is_headline ? 1 : 0,
-                'news_tags'        => !empty($tagNames) ? implode(',', $tagNames) : null,
+                'news_tags'        => $tagData['tagString'],
             ]);
 
             // 4. Sync urutan Tags ke tabel pivot Nasional
             // Fungsi sync() akan mengosongkan relasi jika $syncData kosong (user menghapus semua tag)
-            $news->tags()->sync($syncData);
+            $news->tags()->sync($tagData['syncData']);
 
             DB::connection('mysql_nasional')->commit();
 
