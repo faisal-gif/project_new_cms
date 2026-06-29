@@ -150,10 +150,10 @@ class AdsNasionalController extends Controller
         $ad = AdsNasional::with('locates')->findOrFail($id);
 
         $desktopLocations = AdsNasionalLocateMaster::where('type', 'd')
-            ->where('is_status', 1)->get(['id', 'name', 'width', 'height']);
+            ->where('is_status', 1)->where('is_page', 'home')->get(['id', 'name', 'width', 'height']);
 
         $mobileLocations  = AdsNasionalLocateMaster::where('type', 'm')
-            ->where('is_status', 1)->get(['id', 'name', 'width', 'height']);
+            ->where('is_status', 1)->where('is_page', 'home')->get(['id', 'name', 'width', 'height']);
 
         $selectedLocateIds = $ad->locates->pluck('locate_id')->toArray();
 
