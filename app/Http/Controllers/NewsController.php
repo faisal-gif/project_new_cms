@@ -15,16 +15,13 @@ use App\Models\NetworkDaerah;
 use App\Models\News;
 use App\Models\NewsDaerah;
 use App\Models\NewsNasional;
-use App\Models\NewsNasionalTags;
-use App\Models\NewsTags;
 use App\Models\Tags;
-use App\Models\TagsDaerah;
-use App\Models\TagsNasional;
 use App\Models\Writer;
 use App\Models\WriterDaerah;
 use App\Models\WriterNasional;
 use App\Services\CdnService;
 use App\Services\NewsDaerahTagService;
+use App\Services\NewsNasionalTagService;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\Paginator;
@@ -44,7 +41,7 @@ class NewsController extends Controller implements HasMiddleware
     public function __construct(
         protected CdnService $cdnService,
         protected NewsDaerahTagService $tagDaerahService,
-        protected NewsNasionalTags $tagNasionalService
+        protected NewsNasionalTagService $tagNasionalService
     ) {}
 
     public static function middleware(): array
