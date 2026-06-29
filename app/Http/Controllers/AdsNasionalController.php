@@ -12,6 +12,7 @@ use App\Services\CdnService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
 
@@ -144,22 +145,22 @@ class AdsNasionalController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-   public function edit($id)
+    public function edit($id)
     {
         $ad = AdsNasional::with('locates')->findOrFail($id);
 
         $desktopLocations = AdsNasionalLocateMaster::where('type', 'd')
-                            ->get(['id', 'name', 'width', 'height']);
-                            
+            ->get(['id', 'name', 'width', 'height']);
+
         $mobileLocations  = AdsNasionalLocateMaster::where('type', 'm')
-                            ->get(['id', 'name', 'width', 'height']);
+            ->get(['id', 'name', 'width', 'height']);
 
         $selectedLocateIds = $ad->locates->pluck('locate_id')->toArray();
 
         $selectedDesktopLocate = collect($desktopLocations)
             ->whereIn('id', $selectedLocateIds)
             ->pluck('id')
-            ->first() ?? ''; 
+            ->first() ?? '';
 
         $selectedMobileLocate = collect($mobileLocations)
             ->whereIn('id', $selectedLocateIds)
