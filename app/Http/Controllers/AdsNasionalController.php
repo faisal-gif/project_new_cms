@@ -144,64 +144,65 @@ class AdsNasionalController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit($id)
+   public function edit($id)
     {
-        // 1. Ambil data iklan beserta relasi lokasinya (Eager Loading)
-        // Pastikan Anda sudah mendefinisikan relasi 'locates' di model AdsNasional
         $ad = AdsNasional::with('locates')->findOrFail($id);
 
-
-
-        $desktopLocations = AdsNasionalLocateMaster::where('type', 'd')->get(['id', 'name']);
-        $mobileLocations  = AdsNasionalLocateMaster::where('type', 'm')->get(['id', 'name']);
+        $desktopLocations = AdsNasionalLocateMaster::where('type', 'd')
+                            ->get(['id', 'name', 'width', 'height']);
+                            
+        $mobileLocations  = AdsNasionalLocateMaster::where('type', 'm')
+                            ->get(['id', 'name', 'width', 'height']);
 
         $selectedLocateIds = $ad->locates->pluck('locate_id')->toArray();
 
-        $selectedDesktopLocates = collect($desktopLocations)
+        $selectedDesktopLocate = collect($desktopLocations)
             ->whereIn('id', $selectedLocateIds)
             ->pluck('id')
-            ->toArray();
+            ->first() ?? ''; 
 
-        $selectedMobileLocates = collect($mobileLocations)
+        $selectedMobileLocate = collect($mobileLocations)
             ->whereIn('id', $selectedLocateIds)
             ->pluck('id')
-            ->toArray();
+            ->first() ?? '';
 
-        // 5. Render ke Inertia Component (Frontend)
+        // 5. Render ke Inertia Component
         return inertia('Admin/Nasional/Ads/Edit', [
-            'ad'                     => $ad,
-            'desktopLocations'       => $desktopLocations,
-            'mobileLocations'        => $mobileLocations,
-            'selectedDesktopLocates' => $selectedDesktopLocates,
-            'selectedMobileLocates'  => $selectedMobileLocates,
+            'ads'                   => $ad,
+            'desktopLocations'      => $desktopLocations,
+            'mobileLocations'       => $mobileLocations,
+            'selectedDesktopLocate' => $selectedDesktopLocate,
+            'selectedMobileLocate'  => $selectedMobileLocate,
         ]);
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(AdsNasionalRequest $request, $id)
+    public function update(AdsNasionalRequest $request, string $id)
     {
-        $ad = AdsNasional::findOrFail($id);
-
-        DB::beginTransaction();
-
         try {
-            // 1. Cek dan Upload Gambar (Hanya jika ada file baru yang diunggah)
-            $desktopImgUrl = $ad->d_img; // Gunakan gambar lama sebagai default
+            // Kita lock baris ini dengan instance object
+            $adsTi = AdsNasional::findOrFail($id);
+            $baseSlug = Str::slug($request->title);
+
+            // Logika Gambar: Hanya upload jika ada file baru di-request
+            $desktopImgUrl = $adsTi->d_img;
             if ($request->hasFile('d_img')) {
-                $baseSlug = Str::slug($request->title);
-                $desktopImgUrl = $this->cdnService->uploadImage($request->file('d_img'), "{$baseSlug}-desktop-edit", 1, 'convert', 0);
+                // Opsional: Implementasikan fungsi delete gambar lama di CDN jika diperlukan
+                $desktopImgUrl = $this->cdnService->uploadImage($request->file('d_img'), "{$baseSlug}-desktop", 1, 'convert', 0);
             }
 
-            $mobileImgUrl = $ad->m_img; // Gunakan gambar lama sebagai default
+            $mobileImgUrl = $adsTi->m_img;
             if ($request->hasFile('m_img')) {
-                $baseSlug = Str::slug($request->title);
-                $mobileImgUrl = $this->cdnService->uploadImage($request->file('m_img'), "{$baseSlug}-mobile-edit", 1, 'convert', 0);
+                // Opsional: Implementasikan fungsi delete gambar lama di CDN jika diperlukan
+                $mobileImgUrl = $this->cdnService->uploadImage($request->file('m_img'), "{$baseSlug}-mobile", 1, 'convert', 0);
             }
 
-            // 2. Update Data Master
-            $ad->update([
+            DB::beginTransaction();
+
+            // 1. Update Tabel Utama
+            $adsTi->update([
                 'title'      => $request->title,
                 'datestart'  => $request->datestart,
                 'dateend'    => $request->dateend,
@@ -213,28 +214,31 @@ class AdsNasionalController extends Controller
                 'is_status'  => $request->status,
             ]);
 
-            // 3. Update Cost (Asumsi ads_id adalah foreign key)
-            AdsNasionalCost::where('ads_id', $ad->id)->update([
-                'cost_end' => $request->cost,
+            // 2. Update Cost (Gunakan updateOrCreate untuk keamanan jika data sebelumnya anomali/hilang)
+            AdsNasionalCost::updateOrCreate(
+                ['ads_id'   => $adsTi->id],
+                ['cost_end' => $adsTi->cost]
+            );
+
+            AdsNasionalLocate::where('ads_id', $adsTi->id)->delete();
+
+            $allLocates = array_filter([
+                $request->locate_desktop,
+                $request->locate_mobile
             ]);
-
-            // 4. Sinkronisasi Lokasi (Delete old, Batch Insert new)
-            // Ini jauh lebih cepat dan aman daripada mengecek satu per satu
-            AdsNasionalLocate::where('ads_id', $ad->id)->delete();
-
-            $desktopLocates = $request->locate_desktop ?? [];
-            $mobileLocates  = $request->locate_mobile ?? [];
-            $allLocates     = array_unique(array_merge($desktopLocates, $mobileLocates));
+            $allLocates = array_unique($allLocates);
 
             if (!empty($allLocates)) {
-                // BATCH INSERT YANG BENAR (1 kali query eksekusi)
-                $locateData = collect($allLocates)->map(function ($locate_id) use ($ad) {
+                $locateData = collect($allLocates)->map(function ($locate_id) use ($adsTi) {
                     return [
-                        'ads_id'     => $ad->id,
-                        'locate_id'  => $locate_id,
+                        'ads_id'    => $adsTi->id,
+                        'locate_id' => $locate_id,
+                        'created_at' => now(),
+                        'updated_at' => now(),
                     ];
                 })->toArray();
 
+                // Insert kembali relasi terbaru
                 AdsNasionalLocate::insert($locateData);
             }
 
@@ -244,7 +248,9 @@ class AdsNasionalController extends Controller
                 ->with('success', 'Campaign Iklan berhasil diperbarui.');
         } catch (\Exception $e) {
             DB::rollBack();
-            return back()->withInput()->withErrors(['error' => 'Gagal memperbarui iklan: ' . $e->getMessage()]);
+            Log::error('Update Ads Failed: ' . $e->getMessage()); // Catat ke log server
+
+            return back()->withInput()->withErrors(['error' => 'Gagal memperbarui iklan. Kesalahan sistem: ' . $e->getMessage()]);
         }
     }
 
