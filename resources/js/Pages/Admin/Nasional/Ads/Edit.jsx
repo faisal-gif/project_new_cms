@@ -1,9 +1,10 @@
 import Card from '@/Components/Card'
+import InputAdsImage from '@/Components/InputAdsImage'
 import InputError from '@/Components/InputError'
 import InputLabel from '@/Components/InputLabel'
 import InputSelect from '@/Components/InputSelect'
 import TextInput from '@/Components/TextInput'
-import InputImage from '@/Components/InputImage'
+
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout'
 import { Head, useForm } from '@inertiajs/react'
 import React, { useMemo } from 'react'
@@ -172,7 +173,7 @@ function Edit({ desktopLocations = [], mobileLocations = [], ads, selectedDeskto
                                                 </div>
                                             )}
 
-                                            <InputImage
+                                            <InputAdsImage
                                                 label={ads.d_img ? `${activeDesktopDim.label} (Opsional - Upload untuk mengganti)` : activeDesktopDim.label}
                                                 value={data.d_img}
                                                 onChange={(file) => setData('d_img', file)}
@@ -210,7 +211,7 @@ function Edit({ desktopLocations = [], mobileLocations = [], ads, selectedDeskto
                                                 </div>
                                             )}
 
-                                            <InputImage
+                                            <InputAdsImage
                                                 label={ads.m_img ? `${activeMobileDim.label} (Opsional - Upload untuk mengganti)` : activeMobileDim.label}
                                                 value={data.m_img}
                                                 onChange={(file) => setData('m_img', file)}
