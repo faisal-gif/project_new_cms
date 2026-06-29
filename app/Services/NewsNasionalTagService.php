@@ -56,7 +56,7 @@ class NewsNasionalTagService
         });
 
         foreach ($tagsForLink as $cleanTagName) {
-            $pattern = '/(?!(?:[^<]+>|[^>]+<\/a>))\b(' . preg_quote($cleanTagName, '/') . ')\b/iu';
+            $pattern = '/(<figcaption\b[^>]*>.*?<\/figcaption>|<a\b[^>]*>.*?<\/a>|<[^>]+>)|(\b' . preg_quote($cleanTagName, '/') . '\b)/isu';
             $tagSlug = Str::slug($cleanTagName);
             $tagUrl  = 'https://timesindonesia.co.id/tag/' . $tagSlug;
 
