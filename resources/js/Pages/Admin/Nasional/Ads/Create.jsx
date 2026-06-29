@@ -1,9 +1,9 @@
 import Card from '@/Components/Card'
+import InputAdsImage from '@/Components/InputAdsImage'
 import InputError from '@/Components/InputError'
 import InputLabel from '@/Components/InputLabel'
 import InputSelect from '@/Components/InputSelect'
 import TextInput from '@/Components/TextInput'
-import InputImage from '@/Components/InputImage'
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout'
 import { Head, useForm } from '@inertiajs/react'
 import React, { useMemo } from 'react'
@@ -166,7 +166,7 @@ function Create({ desktopLocations = [], mobileLocations = [] }) {
 
                                         {/* Komponen Gambar */}
                                         <div className='w-full bg-slate-50 p-4 rounded border'>
-                                            <InputImage
+                                            <InputAdsImage
                                                 label={activeDesktopDim.label}
                                                 value={data.d_img}
                                                 onChange={(file) => setData('d_img', file)}
@@ -199,7 +199,7 @@ function Create({ desktopLocations = [], mobileLocations = [] }) {
 
                                         {/* Komponen Gambar */}
                                         <div className='w-full bg-slate-50 p-4 rounded border'>
-                                            <InputImage
+                                            <InputAdsImage
                                                 label={activeMobileDim.label}
                                                 value={data.m_img}
                                                 onChange={(file) => setData('m_img', file)}
