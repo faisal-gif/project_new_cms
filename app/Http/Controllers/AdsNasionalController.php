@@ -191,13 +191,13 @@ class AdsNasionalController extends Controller
             $desktopImgUrl = $adsTi->d_img;
             if ($request->hasFile('d_img')) {
                 // Opsional: Implementasikan fungsi delete gambar lama di CDN jika diperlukan
-                $desktopImgUrl = $this->cdnService->uploadImage($request->file('d_img'), "{$baseSlug}-desktop", 5, 'convert', 0);
+                $desktopImgUrl = $this->cdnService->uploadImage($request->file('d_img'), "{$baseSlug}-desktop", 5, 'raw', 0);
             }
 
             $mobileImgUrl = $adsTi->m_img;
             if ($request->hasFile('m_img')) {
                 // Opsional: Implementasikan fungsi delete gambar lama di CDN jika diperlukan
-                $mobileImgUrl = $this->cdnService->uploadImage($request->file('m_img'), "{$baseSlug}-mobile", 5, 'convert', 0);
+                $mobileImgUrl = $this->cdnService->uploadImage($request->file('m_img'), "{$baseSlug}-mobile", 5, 'raw', 0);
             }
 
             DB::beginTransaction();
