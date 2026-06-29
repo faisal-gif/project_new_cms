@@ -450,8 +450,8 @@ class NewsController extends Controller implements HasMiddleware
             ]);
 
             // 3. Simpan Tags (Many-to-Many) ke tabel Tag Nasional dengan Urutan yang Terpelihara
-            if (!empty($syncData)) {
-                $news->tags()->sync($syncData);
+            if (!empty($tagData['syncData'])) {
+                $news->tags()->sync($tagData['syncData']);
             }
 
             activity('Import Berita')
