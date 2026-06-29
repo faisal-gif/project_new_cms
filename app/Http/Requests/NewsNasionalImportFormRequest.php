@@ -23,7 +23,7 @@ class NewsNasionalImportFormRequest extends FormRequest
     {
         return [
             'is_code'         => 'required|string',
-            'status'          => 'nullable|string',
+            'status'          => 'required|string',
             'editor'          => 'required',
             'writer'          => 'required',
             'writer_id'       => 'required|exists:mysql_nasional.journalist,id',

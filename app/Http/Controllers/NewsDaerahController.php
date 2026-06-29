@@ -12,6 +12,7 @@ use App\Models\NewsDaerah;
 use App\Models\TagsDaerah;
 use App\Models\WriterDaerah;
 use App\Services\CdnService;
+use App\Services\NewsDaerahTagService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
@@ -26,7 +27,8 @@ class NewsDaerahController extends Controller
 {
 
     public function __construct(
-        protected CdnService $cdnService
+        protected CdnService $cdnService,
+        protected NewsDaerahTagService $tagService
     ) {}
 
     // Ekstrak query builder agar reusable
@@ -212,37 +214,9 @@ class NewsDaerahController extends Controller
         DB::connection('mysql_daerah')->beginTransaction();
 
         try {
-            $content = $request->is_content;
-            $syncData = []; // Menggunakan array asosiatif untuk menyimpan data pivot dengan urutan
-            $tagNames = [];
 
-            // 2. Proses Auto-Link Tag ke dalam Konten
-            if ($request->has('tag') && is_array($request->tag)) {
-                foreach ($request->tag as $index => $tagName) {
-                    $cleanTagName = strtolower(trim($tagName));
-                    $tagNames[] = $cleanTagName;
-
-                    // Simpan atau ambil tag dari database daerah
-                    $tag = TagsDaerah::firstOrCreate([
-                        'name' => $cleanTagName
-                    ]);
-
-                    // Simpan ID tag beserta urutan indeks input dari frontend ke array syncData
-                    $syncData[$tag->id] = ['sort_order' => $index];
-
-                    // REGEX: Memastikan tidak merusak HTML bawaan konten
-                    $pattern = '/(?!(?:[^<]+>|[^>]+<\/a>))\b(' . preg_quote($tag->name, '/') . ')\b/iu';
-
-                    $tagSlug = Str::slug($tag->name);
-                    $tagUrl = 'https://timesindonesia.co.id/tag/' . $tagSlug;
-
-                    $replacement = '<a href="' . $tagUrl . '" class="text-blue-600 hover:underline font-semibold" title="Baca lebih lanjut tentang $1">$1</a>';
-
-                    // LIMIT: 1 -> Hanya mengubah kata PERTAMA yang ditemukan di konten
-                    $content = preg_replace($pattern, $replacement, $content, 1);
-                }
-            }
-
+            // 2. Pemrosesan Tag Melalui Service 
+            $tagData = $this->tagService->processTags($request->tag, $request->is_content);
             // 3. Simpan tabel News (Koneksi Daerah)
             $news = NewsDaerah::create([
                 'is_code'      => $request->is_code ?? Str::random(8),
@@ -252,7 +226,7 @@ class NewsDaerahController extends Controller
                 'fokus_id'     => $request->focus,
                 'title'        => $request->title,
                 'description'  => $request->description,
-                'content'      => $content,
+                'content'      => $tagData['content'],
                 'image'        => $thumbnailUrl,
                 'caption'      => $request->image_caption,
                 'status'       => $request->status || '1',
@@ -262,12 +236,12 @@ class NewsDaerahController extends Controller
                 'is_editorial' => $request->is_editorial ? 1 : 0,
                 'is_adv'       => $request->is_adv ? 1 : 0,
                 'pin'          => $request->pin ? 1 : 0,
-                'tag'          => !empty($tagNames) ? implode(',', $tagNames) : null,
+                'tag'          => $tagData['tagString'],
             ]);
 
             // 4. Simpan Relasi Tags (Many-to-Many) dengan urutan terpelihara
-            if (!empty($syncData)) {
-                $news->tags()->sync($syncData);
+            if (!empty($tagData['syncData'])) {
+                $news->tags()->sync($tagData['syncData']);
             }
 
             // 5. Simpan Networks (Multiple Select)
@@ -358,34 +332,9 @@ class NewsDaerahController extends Controller
         DB::connection('mysql_daerah')->beginTransaction();
 
         try {
-            $content = $request->is_content;
-            $syncData = [];
-            $tagNames = [];
 
             // 2. Proses Auto-Link Tag ke dalam Konten
-            if ($request->has('tag') && is_array($request->tag)) {
-                foreach ($request->tag as $index => $tagName) {
-                    $cleanTagName = strtolower(trim($tagName));
-                    $tagNames[] = $cleanTagName;
-
-                    $tag = TagsDaerah::firstOrCreate([
-                        'name' => $cleanTagName
-                    ]);
-
-                    // Definisikan struktur pivot sort_order untuk update
-                    $syncData[$tag->id] = ['sort_order' => $index];
-
-                    $pattern = '/(?!(?:[^<]+>|[^>]+<\/a>))\b(' . preg_quote($tag->name, '/') . ')\b/iu';
-
-                    $tagSlug = Str::slug($tag->name);
-                    $tagUrl = 'https://timesindonesia.co.id/tag/' . $tagSlug;
-
-                    $replacement = '<a href="' . $tagUrl . '" class="text-blue-600 hover:underline font-semibold" title="Baca lebih lanjut tentang $1">$1</a>';
-
-                    $content = preg_replace($pattern, $replacement, $content, 1);
-                }
-            }
-
+            $tagData = $this->tagService->processTags($request->tag, $request->is_content);
             // 3. Update tabel News Daerah
             $news->update([
                 'writer_id'    => $request->writer,
@@ -394,7 +343,7 @@ class NewsDaerahController extends Controller
                 'fokus_id'     => $request->focus,
                 'title'        => $request->title,
                 'description'  => $request->description,
-                'content'      => $content,
+                'content'      => $tagData['content'],
                 'image'        => $thumbnailUrl,
                 'caption'      => $request->image_caption,
                 'status'       => $request->status,
@@ -404,11 +353,11 @@ class NewsDaerahController extends Controller
                 'is_editorial' => $request->is_editorial ? 1 : 0,
                 'is_adv'       => $request->is_adv ? 1 : 0,
                 'pin'          => $request->pin ? 1 : 0,
-                'tag'          => !empty($tagNames) ? implode(',', $tagNames) : null,
+                'tag'          => $tagData['tagString'],
             ]);
 
             // 4. Sync urutan Tags ke tabel pivot Daerah
-            $news->tags()->sync($syncData);
+            $news->tags()->sync($tagData['syncData']);
 
             // 5. Sync Networks (Multiple Select)
             if ($request->has('network') && is_array($request->network)) {

@@ -15,6 +15,7 @@ use App\Models\NetworkDaerah;
 use App\Models\News;
 use App\Models\NewsDaerah;
 use App\Models\NewsNasional;
+use App\Models\NewsNasionalTags;
 use App\Models\NewsTags;
 use App\Models\Tags;
 use App\Models\TagsDaerah;
@@ -23,6 +24,7 @@ use App\Models\Writer;
 use App\Models\WriterDaerah;
 use App\Models\WriterNasional;
 use App\Services\CdnService;
+use App\Services\NewsDaerahTagService;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\Paginator;
@@ -40,7 +42,9 @@ class NewsController extends Controller implements HasMiddleware
 {
 
     public function __construct(
-        protected CdnService $cdnService
+        protected CdnService $cdnService,
+        protected NewsDaerahTagService $tagDaerahService,
+        protected NewsNasionalTags $tagNasionalService
     ) {}
 
     public static function middleware(): array
@@ -199,11 +203,9 @@ class NewsController extends Controller implements HasMiddleware
         DB::beginTransaction();
 
         try {
-            $content = $request->content; // atau $request->is_content sesuaikan dengan form Anda
             $syncData = [];
 
             if ($request->has('tag') && is_array($request->tag)) {
-
                 foreach ($request->tag as $index => $tagName) {
                     $cleanTagName = strtolower(trim($tagName));
 
@@ -212,36 +214,6 @@ class NewsController extends Controller implements HasMiddleware
                     ]);
 
                     $syncData[$tag->id] = ['sort_order' => $index];
-
-                    $escapedTag = preg_quote($tag->name, '/');
-
-                    $pattern = '/(<figcaption\b[^>]*>.*?<\/figcaption>)|(<[^>]+>)|(\b' . $escapedTag . '\b)/isu';
-
-                    $tagSlug = Str::slug($tag->name);
-                    $tagUrl  = 'https://timesindonesia.co.id/tag/' . $tagSlug;
-
-                    $replacedCount = 0;
-                    $maxLimit = 1;
-
-                    $content = preg_replace_callback($pattern, function ($matches) use ($tagUrl, &$replacedCount, $maxLimit) {
-                        // Jika teks berada di dalam Grup 1 (figcaption) atau Grup 2 (tag HTML/Anchor lain)
-                        // Kembalikan teks asli apa adanya tanpa modifikasi.
-                        if (!empty($matches[1]) || !empty($matches[2])) {
-                            return $matches[0];
-                        }
-
-                        // Jika cocok dengan Grup 3 (Kata kunci murni di luar figcaption & HTML tag)
-                        if (!empty($matches[3])) {
-                            // Periksa apakah kuota limit link untuk kata ini masih tersedia
-                            if ($replacedCount < $maxLimit) {
-                                $replacedCount++; // Naikkan counter penanda
-                                return '<a href="' . $tagUrl . '" class="text-blue-600 hover:underline font-semibold" title="Baca lebih lanjut tentang ' . $matches[3] . '">' . $matches[3] . '</a>';
-                            }
-                        }
-
-                        // Jika kuota limit sudah habis, kembalikan kata kunci asli tanpa di-link
-                        return $matches[0];
-                    }, $content); // 🔴 PENTING: Parameter limit di sini DIHAPUS agar menyisir seluruh dokumen
                 }
             }
             // 3. Simpan tabel News
@@ -252,7 +224,7 @@ class NewsController extends Controller implements HasMiddleware
                 'description'     => $request->description,
                 'image_thumbnail' => $thumbnailUrl,
                 'image_caption'   => $request->image_caption,
-                'content'         => $content,
+                'content'         => $request->content,
             ]);
 
             // 4. Proses Sync Tags dengan urutan (Sort Order)
@@ -341,60 +313,8 @@ class NewsController extends Controller implements HasMiddleware
                 'distribution_status' => $newStatus,
             ]);
 
-            // Inisialisasi Konten dan Penampung Tag
-            $content = $request->is_content; // dari state react 'is_content'
-            $syncData = []; // Menggunakan array asosiatif untuk melacak id tag & urutannya
-            $tagNames = []; // Digunakan untuk menyimpan string nama tag di DB
-
             // 1. Proses Auto-Link Tag ke dalam Konten & Koleksi ID Tag
-            if ($request->has('tag') && is_array($request->tag)) {
-                foreach ($request->tag as $index => $tagName) {
-                    $cleanTagName = strtolower(trim($tagName));
-                    $tagNames[] = $cleanTagName;
-
-                    // Simpan atau ambil tag dari database daerah
-                    $tag = TagsDaerah::firstOrCreate([
-                        'name' => $cleanTagName
-                    ]);
-
-                    // Simpan ID tag beserta indeks urutan (sort_order)
-                    $syncData[$tag->id] = ['sort_order' => $index];
-
-                    $escapedTag = preg_quote($tag->name, '/');
-
-                    // REGEX: Grup 1 mengisolasi figcaption, Grup 2 mengisolasi tag HTML biasa, Grup 3 menangkap teks murni target Anda
-                    // Menggunakan modifier 's' (dotall) agar tetap mendeteksi jika figcaption memiliki baris baru (newline)
-                    $pattern = '/(<figcaption\b[^>]*>.*?<\/figcaption>)|(<[^>]+>)|(\b' . $escapedTag . '\b)/isu';
-
-                    $tagSlug = Str::slug($tag->name);
-                    $tagUrl = 'https://timesindonesia.co.id/tag/' . $tagSlug;
-
-                    // Inisialisasi variabel counter untuk membatasi jumlah link per kata kunci
-                    $replacedCount = 0;
-                    $maxLimit = 1; // Mengubah hanya 1 kata PERTAMA yang ditemukan di konten
-
-                    // Eksekusi callback untuk penyisiran yang aman
-                    $content = preg_replace_callback($pattern, function ($matches) use ($tagUrl, &$replacedCount, $maxLimit) {
-                        // Jika teks yang cocok berada di Grup 1 (figcaption) atau Grup 2 (tag HTML/Anchor biasa)
-                        // Kembalikan teks asli apa adanya tanpa modifikasi
-                        if (!empty($matches[1]) || !empty($matches[2])) {
-                            return $matches[0];
-                        }
-
-                        // Jika cocok dengan teks murni di Grup 3
-                        if (!empty($matches[3])) {
-                            // Cek apakah kuota batasan link untuk kata ini masih tersedia
-                            if ($replacedCount < $maxLimit) {
-                                $replacedCount++; // Naikkan counter penanda
-                                return '<a href="' . $tagUrl . '" class="text-blue-600 hover:underline font-semibold" title="Baca lebih lanjut tentang ' . $matches[3] . '">' . $matches[3] . '</a>';
-                            }
-                        }
-
-                        // Jika kuota limit link untuk kata ini sudah habis, kembalikan teks aslinya
-                        return $matches[0];
-                    }, $content); // PENTING: Tanpa parameter limit numerik di sini agar Regex menyisir seluruh dokumen
-                }
-            }
+            $tagData = $this->tagDaerahService->processTags($request->tag, $request->is_content);
             // 2. Simpan tabel News (Koneksi Daerah)
             $news = NewsDaerah::create([
                 'is_code'      => $request->is_code,
@@ -404,22 +324,22 @@ class NewsController extends Controller implements HasMiddleware
                 'fokus_id'     => $request->focus,
                 'title'        => $request->title,
                 'description'  => $request->description,
-                'content'      => $content, // 🔴 Menggunakan konten yang sudah terinjeksi tautan Tag
+                'content'      => $tagData['content'], // Menggunakan konten yang sudah terinjeksi tautan Tag
                 'image'        => $request->image_thumbnail,
                 'caption'      => $request->image_caption,
-                'status'       => '1',
+                'status'       => $request->status,
                 'locus'        => $request->locus,
                 'datepub'      => $request->datepub ?? now(),
                 'is_headline'  => $request->is_headline ? 1 : 0,
                 'is_editorial' => $request->is_editorial ? 1 : 0,
                 'is_adv'       => $request->is_adv ? 1 : 0,
                 'pin'          => $request->pin ? 1 : 0,
-                'tag'          => !empty($tagNames) ? implode(',', $tagNames) : null, // Menggunakan array tag yang sudah dibersihkan
+                'tag'          => $tagData['tagString'], // Menggunakan array tag yang sudah dibersihkan
             ]);
 
             // 3. Simpan Tags (Many-to-Many) dengan Urutan yang Terpelihara
-            if (!empty($syncData)) {
-                $news->tags()->sync($syncData);
+            if (!empty($tagData['syncData'])) {
+                $news->tags()->sync($tagData['syncData']);
             }
 
             // 4. Simpan Networks (Multiple Select)
@@ -509,60 +429,8 @@ class NewsController extends Controller implements HasMiddleware
                 'distribution_status' => $newStatus,
             ]);
 
-            // Inisialisasi Konten dan Penampung Tag
-            $content = $request->is_content;
-            $syncData = []; // Menggunakan array asosiatif untuk menyimpan data pivot dengan urutan
-            $tagNames = []; // Digunakan untuk menyimpan string nama tag di DB
-
             // 1. Proses Auto-Link Tag ke dalam Konten & Koleksi ID Tag
-            if ($request->has('tag') && is_array($request->tag)) {
-                foreach ($request->tag as $index => $tagName) {
-                    $cleanTagName = strtolower(trim($tagName));
-                    $tagNames[] = $cleanTagName;
-
-                    // Simpan atau ambil tag dari database nasional
-                    $tag = TagsNasional::on('mysql_nasional')->firstOrCreate([
-                        'name' => $cleanTagName
-                    ]);
-
-                    // Simpan ID tag beserta indeks urutan (sort_order)
-                    $syncData[$tag->id] = ['sort_order' => $index];
-
-                    $escapedTag = preg_quote($tag->name, '/');
-
-                    // REGEX: Grup 1 mengisolasi figcaption, Grup 2 mengisolasi tag HTML biasa, Grup 3 menangkap teks murni target Anda
-                    // Modifier 's' (dotall) memastikan penolakan tetap bekerja jika figcaption ditulis dalam beberapa baris (newline)
-                    $pattern = '/(<figcaption\b[^>]*>.*?<\/figcaption>)|(<[^>]+>)|(\b' . $escapedTag . '\b)/isu';
-
-                    $tagSlug = Str::slug($tag->name);
-                    $tagUrl = 'https://timesindonesia.co.id/tag/' . $tagSlug;
-
-                    // Inisialisasi variabel counter untuk membatasi jumlah link per kata kunci
-                    $replacedCount = 0;
-                    $maxLimit = 1; // LIMIT: 1 -> Hanya mengubah kata PERTAMA yang ditemukan di konten
-
-                    // Eksekusi callback untuk penyisiran dokumen yang menyeluruh dan aman
-                    $content = preg_replace_callback($pattern, function ($matches) use ($tagUrl, &$replacedCount, $maxLimit) {
-                        // Jika teks yang cocok berada di Grup 1 (figcaption) atau Grup 2 (tag HTML/Anchor biasa)
-                        // Kembalikan teks asli apa adanya tanpa modifikasi
-                        if (!empty($matches[1]) || !empty($matches[2])) {
-                            return $matches[0];
-                        }
-
-                        // Jika cocok dengan teks murni di Grup 3 (di luar figcaption & HTML tag)
-                        if (!empty($matches[3])) {
-                            // Cek apakah kuota batasan link untuk kata ini masih tersedia
-                            if ($replacedCount < $maxLimit) {
-                                $replacedCount++; // Naikkan counter penanda
-                                return '<a href="' . $tagUrl . '" class="text-blue-600 hover:underline font-semibold" title="Baca lebih lanjut tentang ' . $matches[3] . '">' . $matches[3] . '</a>';
-                            }
-                        }
-
-                        // Jika kuota limit link untuk kata ini sudah habis, kembalikan teks aslinya
-                        return $matches[0];
-                    }, $content); // PENTING: Tanpa parameter limit numerik di sini agar Regex menyisir seluruh dokumen
-                }
-            }
+            $tagData = $this->tagNasionalService->processTags($request->tag, $request->is_content);
 
             // 2. Simpan tabel News (Koneksi Nasional)
             $news = NewsNasional::create([
@@ -574,14 +442,14 @@ class NewsController extends Controller implements HasMiddleware
                 'focnews_id'       => $request->focus,
                 'news_title'       => $request->title,
                 'news_description' => $request->description,
-                'news_content'     => $content, // 🔴 Menggunakan konten yang sudah terinjeksi tautan Tag
+                'news_content'     => $tagData['content'], // 🔴 Menggunakan konten yang sudah terinjeksi tautan Tag
                 'news_image_new'   => $request->image_thumbnail,
                 'news_caption'     => $request->image_caption,
-                'news_status'      => '1',
+                'news_status'      => $request->status,
                 'news_city'        => $request->locus,
                 'news_datepub'     => $request->datepub ?? now(),
                 'news_headline'    => $request->is_headline ? 1 : 0,
-                'news_tags'        => !empty($tagNames) ? implode(',', $tagNames) : null, // Menggunakan array tag yang sudah dibersihkan
+                'news_tags'        => $tagData['tagString'], // Menggunakan array tag yang sudah dibersihkan
             ]);
 
             // 3. Simpan Tags (Many-to-Many) ke tabel Tag Nasional dengan Urutan yang Terpelihara
