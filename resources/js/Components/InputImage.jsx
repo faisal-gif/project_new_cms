@@ -17,20 +17,24 @@ const getCroppedImg = async (image, crop, fileName, targetWidth, targetHeight) =
   ctx.imageSmoothingQuality = "high";
   ctx.drawImage(image, crop.x * scaleX, crop.y * scaleY, crop.width * scaleX, crop.height * scaleY, 0, 0, targetWidth, targetHeight);
 
+  // Ubah ekstensi file asli menjadi .webp
+  const newFileName = fileName.replace(/\.[^/.]+$/, "") + ".webp";
+
   return new Promise((resolve, reject) => {
+    // Gunakan image/webp dengan kualitas 1 (100%)
     canvas.toBlob((blob) => {
       if (!blob) return reject(new Error("Canvas is empty"));
-      resolve(new File([blob], fileName, { type: "image/jpeg" }));
-    }, "image/jpeg", 1);
+      resolve(new File([blob], newFileName, { type: "image/webp" }));
+    }, "image/webp", 1);
   });
 };
 
 export default function InputImage({
   label = "Upload Image",
-  value = null,          
-  existingImage = null,  
+  value = null,
+  existingImage = null,
   onChange,
-  onRemove,              
+  onRemove,
   className = "",
   enableCrop = true,
   targetWidth = 1200,
@@ -121,25 +125,30 @@ export default function InputImage({
     if (!completedCrop || !imgRef.current) return;
     setIsProcessing(true);
     try {
-      const croppedFile = await getCroppedImg(imgRef.current, completedCrop, cropData.fileName, targetWidth, targetHeight);
-      const compressedFile = await imageCompression(croppedFile, {
-        maxSizeMB: 1.5,
-        maxWidthOrHeight: Math.max(targetWidth, targetHeight),
-        useWebWorker: true,
-      });
-      onChange?.(compressedFile);
+      // 1. Dapatkan hasil crop langsung sesuai resolusi target
+      const croppedFile = await getCroppedImg(
+        imgRef.current,
+        completedCrop,
+        cropData.fileName,
+        targetWidth,
+        targetHeight
+      );
+
+      // 2. BYPASS KOMPRESI! Langsung kirim file hasil crop ke state form
+      // Karena resolusinya sudah dipaskan di canvas, ukurannya pasti aman.
+      onChange?.(croppedFile);
       setCropData({ src: null, fileName: "", originalFile: null });
     } catch (error) {
-      console.error("Gagal crop/kompresi:", error);
+      console.error("Gagal crop:", error);
     } finally {
       setIsProcessing(false);
     }
   };
 
   const removeImage = () => {
-    onChange?.(null);       
-    setIsDeleted(true);     
-    onRemove?.();           
+    onChange?.(null);
+    setIsDeleted(true);
+    onRemove?.();
     if (inputRef.current) inputRef.current.value = "";
   };
 
@@ -188,30 +197,30 @@ export default function InputImage({
         <div className="modal modal-open z-[9999] bg-black/60">
           <div className="modal-box max-w-3xl bg-base-100">
             <h3 className="font-bold text-lg mb-4">Sesuaikan Gambar</h3>
-            
+
             <div className="flex justify-center items-center bg-base-200 overflow-auto max-h-[60vh] rounded-lg">
               <ReactCrop crop={crop} onChange={(_, p) => setCrop(p)} onComplete={(c) => setCompletedCrop(c)} aspect={ASPECT_RATIO}>
                 <img src={cropData.src} alt="Crop" onLoad={onImageLoad} className="max-h-[60vh] object-contain" />
               </ReactCrop>
             </div>
-            
+
             {/* Layout tombol yang sudah disesuaikan ke kanan */}
             <div className="modal-action flex w-full justify-end gap-2 mt-6">
-              <button 
-                type="button" 
-                className="btn btn-ghost flex-1 sm:flex-none" 
-                onClick={() => setCropData({ src: null, fileName: "", originalFile: null })} 
+              <button
+                type="button"
+                className="btn btn-ghost flex-1 sm:flex-none"
+                onClick={() => setCropData({ src: null, fileName: "", originalFile: null })}
                 disabled={isProcessing}
               >
                 Batal
               </button>
-              <button 
-                type="button" 
-                className="btn btn-primary flex-1 sm:flex-none" 
-                onClick={handleSaveCrop} 
+              <button
+                type="button"
+                className="btn btn-primary flex-1 sm:flex-none"
+                onClick={handleSaveCrop}
                 disabled={isProcessing || !completedCrop?.width}
               >
-                {isProcessing ? <span className="loading loading-spinner loading-sm"></span> : `Crop & Kompres`}
+                {isProcessing ? <span className="loading loading-spinner loading-sm"></span> : `Crop`}
               </button>
             </div>
           </div>
