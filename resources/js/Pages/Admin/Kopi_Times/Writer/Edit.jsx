@@ -15,7 +15,7 @@ function Edit({ paket, writer }) {
     // Cari paket yang saat ini dimiliki user, cek apakah kuotanya null
     const existingPackage = paket?.find(p => p.id === writer.package_id);
     const initialCustomMode = existingPackage ? existingPackage.quota === null : false;
-    
+
     const [isCustomMode, setIsCustomMode] = useState(initialCustomMode);
 
     // 2. Mapping Data dari Database (writer) ke State Form
@@ -25,6 +25,7 @@ function Edit({ paket, writer }) {
         password: '',                          // Dikosongkan, hanya diisi jika ingin diubah
         status: String(writer.status ?? '1'),  // Pastikan format string untuk select option
         instansi: writer.instansi || '',
+        kategori: writer.kategori || '',
         phone: writer.contact || '',           // DB: contact -> Form: phone
         provinsi: writer.prov || '',           // DB: prov -> Form: provinsi
         kota: writer.city || '',               // DB: city -> Form: kota
@@ -101,7 +102,7 @@ function Edit({ paket, writer }) {
                 <div className="py-12">
                     <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
                         <div className="space-y-6">
-                            
+
                             <div className='flex flex-col md:flex-row justify-between md:items-center gap-2'>
                                 <div>
                                     <h1 className="text-3xl font-bold text-foreground">Edit Penulis Kopi Times</h1>
@@ -162,6 +163,21 @@ function Edit({ paket, writer }) {
                                                 <TextInput id="instansi" name="instansi" type="text" value={data.instansi} onChange={(e) => setData('instansi', e.target.value)} className="mt-1 block w-full" />
                                                 <InputError message={errors.instansi} className="mt-2" />
                                             </div>
+
+                                            <div className="lg:col-span-3 w-full">
+                                                <InputLabel htmlFor="kategori" value="kategori" className='mb-2 font-bold' />
+                                                <InputSelect id="kategori"
+                                                    value={data.kategori}
+                                                    onChange={(e) => setData('kategori', e.target.value)} className="mt-1"
+                                                    options={[
+                                                        { label: "Praktisi", value: "38" },
+                                                        { label: "Dosen", value: "39" },
+                                                        { label: "Guru", value: "40" },
+                                                        { label: "Mahasiswa", value: "41" },
+                                                    ]} />
+                                                <InputError message={errors.kategori} className="mt-2" />
+                                            </div>
+
 
                                             <div className="lg:col-span-3">
                                                 <InputLabel htmlFor="phone" value="No Tlp/Hp" className='mb-2 font-bold' />

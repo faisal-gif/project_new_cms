@@ -85,7 +85,7 @@ class WriterAjpController extends Controller
         ]);
 
         return redirect()->route('admin.ajp.writer.index')
-            ->with('success', 'Penulis berbayar berhasil ditambahkan.');
+            ->with('success', 'Penulis AJP berhasil ditambahkan.');
     }
 
     /**
@@ -103,7 +103,7 @@ class WriterAjpController extends Controller
     {
         $writer = WriterBerbayar::find($id);
         // Ambil data paket untuk dropdown
-        $pakets = PaketBerita::where('status', 1)->get();
+        $pakets = PaketBerita::where('status', 1)->where('type', '1')->get();
 
         return Inertia::render('Admin/AJP/Writer/Edit', [
             'writer' => $writer,
@@ -147,7 +147,7 @@ class WriterAjpController extends Controller
         $writer->update($updateData);
 
         return redirect()->route('admin.ajp.writer.index')
-            ->with('success', 'Data penulis berbayar berhasil diperbarui.');
+            ->with('success', 'Data penulis AJP berhasil diperbarui.');
     }
 
     private function resolvePackageData(PaketBerita $paket, array $validated): array

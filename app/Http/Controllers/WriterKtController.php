@@ -73,6 +73,7 @@ class WriterKtController extends Controller
             'password'   => Hash::make($validated['password']),
             'contact'    => $validated['phone'],
             'instansi'   => $validated['instansi'],
+            'kategori'   => $validated['kategori'],
             'prov'       => $validated['provinsi'],
             'city'       => $validated['kota'],
             'address'    => $validated['alamat'],
@@ -101,15 +102,54 @@ class WriterKtController extends Controller
      */
     public function edit(string $id)
     {
-        //
+        $writer = WriterBerbayar::find($id);
+        // Ambil data paket untuk dropdown
+        $pakets = PaketBerita::where('status', 1)->where('type', '4')->get();
+
+        return Inertia::render('Admin/Kopi_Times/Writer/Edit', [
+            'writer' => $writer,
+            'paket'  => $pakets,
+        ]);
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(WriterKtRequest $request, string $id)
     {
-        //
+        $writer = WriterBerbayar::find($id);
+
+        $validated = $request->validated();
+        $paket = PaketBerita::findOrFail($validated['paket_berita']);
+
+        // Resolve Quota dan Date Expired
+        $packageData = $this->resolvePackageData($paket, $validated);
+
+        $updateData = [
+            'nama'       => $validated['name'],
+            'email'      => $validated['email'],
+            'contact'    => $validated['phone'],
+            'instansi'   => $validated['instansi'],
+            'kategori'   => $validated['kategori'],
+            'prov'       => $validated['provinsi'],
+            'city'       => $validated['kota'],
+            'address'    => $validated['alamat'],
+            'status'     => $validated['status'],
+            'package_id' => $paket->id,
+            'quota_news' => $packageData['quota'],
+            'dateexp'    => $packageData['dateexp'],
+            'type'       => 4,
+        ];
+
+        // Hanya update password jika admin mengisinya di form edit
+        if (!empty($validated['password'])) {
+            $updateData['password'] = Hash::make($validated['password']);
+        }
+
+        $writer->update($updateData);
+
+        return redirect()->route('admin.kopi-times.writer.index')
+            ->with('success', 'Data penulis Kopi Times berhasil diperbarui.');
     }
 
     private function resolvePackageData(PaketBerita $paket, array $validated): array

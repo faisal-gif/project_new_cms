@@ -39,12 +39,13 @@ class WriterKtRequest extends FormRequest
 
             'phone'    => ['nullable', 'string', 'max:20'],
             'instansi'   => ['nullable', 'string', 'max:255'],
+            'kategori' => ['required'],
             'provinsi'       => ['nullable', 'string', 'max:100'],
             'kota'       => ['nullable', 'string', 'max:100'],
             'alamat'    => ['nullable', 'string', 'max:500'],
             'status'     => ['required', 'boolean'],
-            'quota_news' => ['nullable', 'integer', 'min:0'],
-            'date_exp'    => ['nullable', 'date'],
+            'quota_news' => ['required', 'integer', 'min:0'],
+            'date_exp'    => ['required', 'date'],
         ];
     }
 }

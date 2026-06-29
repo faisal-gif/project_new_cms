@@ -19,6 +19,7 @@ function Create({ paket }) {
         password: '',
         status: '1',
         instansi: '',
+        kategori: '',
         phone: '',
         provinsi: '',
         kota: '',
@@ -170,6 +171,20 @@ function Create({ paket }) {
                                                 <InputError message={errors.instansi} className="mt-2" />
                                             </div>
 
+                                            <div className="lg:col-span-3 w-full">
+                                                <InputLabel htmlFor="kategori" value="kategori" className='mb-2 font-bold' />
+                                                <InputSelect id="kategori"
+                                                    value={data.kategori}
+                                                    onChange={(e) => setData('kategori', e.target.value)} className="mt-1"
+                                                    options={[
+                                                        { label: "Praktisi", value: "38" },
+                                                        { label: "Dosen", value: "39" },
+                                                        { label: "Guru", value: "40" },
+                                                        { label: "Mahasiswa", value: "41" },
+                                                    ]} />
+                                                <InputError message={errors.kategori} className="mt-2" />
+                                            </div>
+
                                             <div className="lg:col-span-3">
                                                 <InputLabel htmlFor="phone" value="No Tlp/Hp" className='mb-2 font-bold' />
                                                 <InputPhoneNumber id="phone" name="phone" value={data.phone} onChange={(e) => setData('phone', e.target.value)} className="mt-1 block w-full" />
@@ -246,13 +261,13 @@ function Create({ paket }) {
                                     </button>
                                 </div>
                             </form>
-                     
-                        {/* END: Main Form */}
 
+                            {/* END: Main Form */}
+
+                        </div>
                     </div>
                 </div>
-            </div>
-        </AuthenticatedLayout >
+            </AuthenticatedLayout >
         </>
     )
 }

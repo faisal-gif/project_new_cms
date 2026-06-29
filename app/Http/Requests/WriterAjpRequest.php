@@ -43,8 +43,8 @@ class WriterAjpRequest extends FormRequest
             'kota'       => ['nullable', 'string', 'max:100'],
             'alamat'    => ['nullable', 'string', 'max:500'],
             'status'     => ['required', 'boolean'],
-            'quota_news' => ['nullable', 'integer', 'min:0'],
-            'date_exp'    => ['nullable', 'date'],
+            'quota_news' => ['required', 'integer', 'min:0'],
+            'date_exp'    => ['required', 'date'],
         ];
     }
 }
