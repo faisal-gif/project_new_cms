@@ -36,6 +36,7 @@ class ReportNewsNasionalController extends Controller
 
 
         if ($request->filled('tag')) {
+
             $query->whereHas('tags', function ($q) use ($request) {
                 // Gunakan ID agar query eksekusi lebih cepat pada relasi many-to-many
                 $q->where('tags.id', $request->tag);
@@ -111,7 +112,7 @@ class ReportNewsNasionalController extends Controller
             'kanals' => $kanals,
             // Variabel 'filters' ini sekarang PASTI berisi tanggal bulan ini
             // sehingga React di sisi depan akan otomatis mengisi input kolom tanggal.
-            'filters' => $request->only(['start_date', 'end_date', 'kanal', 'writer', 'editor','tag']),
+            'filters' => $request->only(['start_date', 'end_date', 'kanal', 'writer', 'editor', 'tag']),
         ]);
     }
 

@@ -24,6 +24,7 @@ export default function ReportIndex({ summary, chart_data, writers, editors, kan
 
   const tagId = tag ? tag.value : '';
   const initialTagId = filters.tag ? filters.tag.value : '';
+
   // 2. STATE MANAGEMENT (Single Source of Truth)
   // Gunakan data dan setData bawaan useForm agar payload otomatis terkirim saat post()
   const { data, setData, post, processing: exportProcessing } = useForm({
@@ -32,8 +33,12 @@ export default function ReportIndex({ summary, chart_data, writers, editors, kan
     kanal: filters.kanal || '',
     writer: filters.writer || '',
     editor: filters.editor || '',
-    tag: tagId,
+    tag: filters.tag?.value || '',
   });
+
+  useEffect(() => {
+    setData('tag', tag ? tag.value : '');
+  }, [tag]);
 
   useEffect(() => {
     if (flash?.success) {
@@ -161,7 +166,7 @@ export default function ReportIndex({ summary, chart_data, writers, editors, kan
                   defaultOptions={false}
                   loadOptions={loadTagOptions}
                   value={tag}
-                  onChange={(selectedOption) => setTag(selectedOption)}
+                  onChange={(selected) => setTag(selected)}
                   placeholder="Cari Tag..."
                   isClearable
                   className="w-full"
