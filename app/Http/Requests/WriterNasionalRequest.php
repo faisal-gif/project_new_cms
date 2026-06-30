@@ -35,7 +35,7 @@ class WriterNasionalRequest extends FormRequest
         // 2. Logika khusus untuk validasi Gambar (Image)
         if ($this->isMethod('post')) {
             // Saat CREATE: Gambar biasanya wajib diunggah
-            $rules['image'] = ['required', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048']; 
+            $rules['image'] = ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048']; 
         } else {
             // Saat UPDATE (PUT/PATCH): Gambar opsional. Jika tidak diunggah, pakai gambar lama
             $rules['image'] = ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'];
@@ -55,7 +55,6 @@ class WriterNasionalRequest extends FormRequest
             'date_join.required' => 'Tanggal bergabung wajib ditentukan.',
             'status.required'    => 'Status wajib dipilih.',
             
-            'image.required'     => 'Foto penulis wajib diunggah.',
             'image.image'        => 'File harus berupa gambar.',
             'image.mimes'        => 'Format gambar harus JPG, JPEG, PNG, atau WEBP.',
             'image.max'          => 'Ukuran gambar tidak boleh lebih dari 2MB.',

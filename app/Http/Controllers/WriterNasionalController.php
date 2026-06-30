@@ -58,6 +58,7 @@ class WriterNasionalController extends Controller
 
         try {
 
+            $ImageUrl = '';
             // Pastikan input dari frontend (React) bernama 'image_thumbnail'
             if ($request->hasFile('image')) {
                 $file = $request->file('image');
