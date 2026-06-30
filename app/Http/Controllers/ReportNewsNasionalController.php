@@ -33,6 +33,14 @@ class ReportNewsNasionalController extends Controller
             ]);
         }
 
+
+        if ($request->filled('tag')) {
+            $query->whereHas('tags', function ($q) use ($request) {
+                // Gunakan ID agar query eksekusi lebih cepat pada relasi many-to-many
+                $q->where('tags.id', $request->tag);
+            });
+        }
+
         if ($request->filled('kanal')) {
             $query->where('catnews_id', $request->kanal);
         }
@@ -115,6 +123,7 @@ class ReportNewsNasionalController extends Controller
             'end_date'   => 'required|date|after_or_equal:start_date',
             'kanal'      => 'nullable',
             'writer'     => 'nullable',
+            'tag'        => 'nullable',
         ]);
 
         // 2. Buat Array untuk merangkai nama file

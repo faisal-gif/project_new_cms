@@ -45,7 +45,7 @@ export default function Index({ news, filters }) {
             <Head title="Manajemen Berita AJP" />
             <div className="py-12">
                 <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 space-y-6">
-                    
+
                     {/* Header */}
                     <div className='flex justify-between items-center'>
                         <h1 className="text-3xl font-bold text-foreground">Daftar Berita AJP</h1>
@@ -126,8 +126,9 @@ export default function Index({ news, filters }) {
                                             <td className="text-center">{getStatusBadge(item.status)}</td>
                                             <td>
                                                 <div className="flex justify-end gap-2">
-                                                    <Link href={route('admin.ajp.news.edit', item.id)} className="btn btn-sm btn-warning btn-outline">
-                                                        Edit
+                                                    {/* Ubah warna menjadi info (biru) dan arahkan ke route show */}
+                                                    <Link href={route('admin.ajp.news.show', item.id)} className="btn btn-sm btn-info btn-outline">
+                                                        Detail
                                                     </Link>
                                                 </div>
                                             </td>

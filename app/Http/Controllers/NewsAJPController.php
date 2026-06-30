@@ -30,4 +30,18 @@ class NewsAJPController extends Controller
             'filters' => $request->only(['search', 'status']),
         ]);
     }
+
+    public function show($id)
+    {
+        // Gunakan eager loading untuk mengambil data relasi writer
+        $news = NewsBerbayar::with('writer:id,nama,email')->findOrFail($id);
+
+        if ($news->type != '1') {
+            return redirect()->back()->with('error', 'Berita Ini bukan berita AJP');
+        }
+
+        return Inertia::render('Admin/AJP/News/Show', [
+            'news' => $news,
+        ]);
+    }
 }

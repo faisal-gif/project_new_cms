@@ -113,7 +113,7 @@ class NewsController extends Controller implements HasMiddleware
 
         // 2. Ambil data dropdown filter (Koneksi DB Lainnya)
         try {
-            $writers = WriterDaerah::select('id', 'name')
+            $writers = Writer::select('id', 'name')
                 ->where('status', '1')
                 ->get()
                 ->map(fn($u) => [
