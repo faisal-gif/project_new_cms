@@ -4,8 +4,6 @@ import Checkbox from "./Checkbox";
 import TextInput from "./TextInput";
 import InputLabel from "./InputLabel";
 import imageCompression from "browser-image-compression";
-
-// Import react-image-crop dan CSS-nya
 import ReactCrop from "react-image-crop";
 import "react-image-crop/dist/ReactCrop.css";
 
@@ -17,16 +15,14 @@ export default function EditorImageModal() {
     const [file, setFile] = useState(null);
     const [originalFileName, setOriginalFileName] = useState("");
 
-    // --- 💡 DUA FIELD TERPISAH ---
-    const [imageName, setImageName] = useState(""); // Untuk Alt Text & Nama File (SEO)
-    const [caption, setCaption] = useState("");     // Untuk Keterangan Gambar (Figcaption)
+    const [imageName, setImageName] = useState(""); 
+    const [caption, setCaption] = useState("");     
 
     const [imageUrl, setImageUrl] = useState("");
     const [loading, setLoading] = useState(false);
     const [watermark, setWatermark] = useState(true);
     const [error, setError] = useState("");
 
-    // --- State & Ref untuk react-image-crop ---
     const [previewUrl, setPreviewUrl] = useState(null);
     const imgRef = useRef(null);
     const [crop, setCrop] = useState();
@@ -48,7 +44,7 @@ export default function EditorImageModal() {
         setOriginalFileName("");
         setImageUrl("");
         setImageName("");
-        setCaption(""); // 💡 Reset state caption baru
+        setCaption(""); 
         setTab("upload");
         setError("");
         setCrop(undefined);
@@ -67,7 +63,6 @@ export default function EditorImageModal() {
         return doc.querySelectorAll("img").length;
     };
 
-    // 💡 UPDATE: Menerima 3 parameter (src, name, imageCaption)
     const insertImage = (src, name, imageCaption) => {
         if (countImages() >= 2) {
             editor.notificationManager.open({
@@ -90,13 +85,10 @@ export default function EditorImageModal() {
         const scaleX = imageElement.naturalWidth / imageElement.width;
         const scaleY = imageElement.naturalHeight / imageElement.height;
 
-        // 💡 KUNCI: Batasi dimensi maksimal (misalnya 1200px lebar)
-        // Ini adalah cara paling efektif menekan ukuran file agar selalu di bawah 2MB
         const MAX_WIDTH = 1200;
         let actualWidth = cropArea.width * scaleX;
         let actualHeight = cropArea.height * scaleY;
 
-        // Jika hasil crop lebih besar dari 1200px, kecilkan dimensinya
         if (actualWidth > MAX_WIDTH) {
             const ratio = MAX_WIDTH / actualWidth;
             actualWidth = MAX_WIDTH;
@@ -119,7 +111,6 @@ export default function EditorImageModal() {
         );
 
         return new Promise((resolve, reject) => {
-            // Gunakan kualitas 0.8 untuk hasil yang sangat tajam tapi ringan
             canvas.toBlob((blob) => {
                 if (!blob) return reject(new Error('Canvas is empty'));
                 resolve(new File([blob], fileNameToUse.replace(/\.[^/.]+$/, ".webp"), {
@@ -128,14 +119,9 @@ export default function EditorImageModal() {
             }, 'image/webp', 0.8);
         });
     };
+    
     const onImageLoad = (e) => {
-        setCrop({
-            unit: '%',
-            x: 5,
-            y: 5,
-            width: 90,
-            height: 90
-        });
+        setCrop({ unit: '%', x: 5, y: 5, width: 90, height: 90 });
     };
 
     const handleFileChange = async (e) => {
@@ -146,16 +132,12 @@ export default function EditorImageModal() {
         setError("");
 
         try {
-            // 💡 CEK UKURAN & FORMAT FILE
-            // Jika ukuran file di bawah 1.5MB (1536000 bytes) ATAU formatnya avif/webp,
-            // kita BYPASS (lewati) proses kompresi awal untuk menjaga ketajaman gambar.
             const isSmallFile = selectedFile.size <= 1.5 * 1024 * 1024;
             const isOptimizedFormat = selectedFile.type === 'image/avif' || selectedFile.type === 'image/webp';
 
             let fileForCrop = selectedFile;
 
             if (!isSmallFile && !isOptimizedFormat) {
-                // Hanya kompres jika file JPEG/PNG besar (misal dari kamera HP / DSLR)
                 const options = {
                     maxSizeMB: 1.5,
                     maxWidthOrHeight: 1920,
@@ -164,7 +146,6 @@ export default function EditorImageModal() {
                 fileForCrop = await imageCompression(selectedFile, options);
             }
 
-            // Set file ke state
             setFile(fileForCrop);
             setOriginalFileName(selectedFile.name);
             setPreviewUrl(URL.createObjectURL(fileForCrop));
@@ -180,19 +161,9 @@ export default function EditorImageModal() {
     const upload = async () => {
         if (!file || !editor) return;
 
-        // Validasi berlapis untuk kedua field baru
-        if (!imageName.trim()) {
-            setError("Nama gambar (Alt Text) wajib diisi");
-            return;
-        }
-        if (!caption.trim()) {
-            setError("Caption keterangan gambar wajib diisi");
-            return;
-        }
-        if (!completedCrop?.width || !completedCrop?.height || !imgRef.current) {
-            setError("Silakan sesuaikan (crop) gambar terlebih dahulu.");
-            return;
-        }
+        if (!imageName.trim()) { setError("Nama gambar (Alt Text) wajib diisi"); return; }
+        if (!caption.trim()) { setError("Caption keterangan gambar wajib diisi"); return; }
+        if (!completedCrop?.width || !completedCrop?.height || !imgRef.current) { setError("Silakan sesuaikan (crop) gambar terlebih dahulu."); return; }
 
         setError("");
         setLoading(true);
@@ -235,7 +206,6 @@ export default function EditorImageModal() {
             }
 
             if (json?.location) {
-                // 💡 Oper imageName dan caption ke editor
                 insertImage(json.location, imageName, caption);
                 resetAndClose();
             }
@@ -247,21 +217,61 @@ export default function EditorImageModal() {
         }
     };
 
-    const insertFromUrl = () => {
+    // 💡 LOGIKA BARU UNTUK PROSES URL
+    const insertFromUrl = async () => {
         if (!imageUrl || !editor) return;
 
-        if (!imageName.trim()) {
-            setError("Nama gambar (Alt Text) wajib diisi");
-            return;
-        }
-        if (!caption.trim()) {
-            setError("Caption keterangan gambar wajib diisi");
+        if (!imageName.trim()) { setError("Nama gambar (Alt Text) wajib diisi"); return; }
+        if (!caption.trim()) { setError("Caption keterangan gambar wajib diisi"); return; }
+
+        // 1. Cek apakah ini URL internal CDN kita
+        if (imageUrl.includes("cdn2.timesmedia.co.id")) {
+            insertImage(imageUrl, imageName, caption);
+            resetAndClose();
             return;
         }
 
-        // 💡 Oper imageName dan caption dari URL ke editor
-        insertImage(imageUrl, imageName, caption);
-        resetAndClose();
+        // 2. Jika URL eksternal, kita oper ke Backend untuk di-download & di-upload ke CDN
+        setError("");
+        setLoading(true);
+
+        try {
+            const formData = new FormData();
+            formData.append("image_url", imageUrl); // Key baru untuk backend
+            formData.append("watermark", "1");      // Default pasang watermark
+            formData.append("name", imageName);
+            formData.append("caption", caption);
+
+            const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute("content");
+
+            // Catatan: Anda harus menyiapkan route & fungsi di Laravel untuk menangani endpoint ini
+            const res = await fetch("/upload-image-url", { 
+                method: "POST",
+                headers: {
+                    "X-CSRF-TOKEN": token,
+                    Accept: "application/json",
+                },
+                body: formData,
+            });
+
+            const json = await res.json();
+
+            if (!res.ok) {
+                setError(json.message || "Gagal memproses gambar dari URL eksternal.");
+                setLoading(false);
+                return;
+            }
+
+            if (json?.location) {
+                insertImage(json.location, imageName, caption);
+                resetAndClose();
+            }
+        } catch (e) {
+            console.error(e);
+            setError("Terjadi kesalahan sistem saat menarik gambar dari URL.");
+        } finally {
+            setLoading(false);
+        }
     };
 
     if (!show) return null;
@@ -387,7 +397,7 @@ export default function EditorImageModal() {
                         </div>
 
                         <button className="btn btn-secondary w-full" type="button" onClick={insertFromUrl} disabled={!imageUrl || loading}>
-                            Gunakan URL
+                            {loading ? "Memproses URL..." : "Gunakan URL"}
                         </button>
                     </div>
                 )}

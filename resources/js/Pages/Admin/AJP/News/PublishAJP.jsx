@@ -10,34 +10,29 @@ import InputTag from '@/Components/InputTag'
 import InputTextarea from '@/Components/InputTextarea'
 import TextInput from '@/Components/TextInput'
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout'
-import { Head, useForm } from '@inertiajs/react'
+import { Head, Link, useForm } from '@inertiajs/react'
 import { CaptionsIcon, CopyIcon, DownloadIcon, GlobeIcon, ImagesIcon, InfoIcon, NotebookPenIcon } from 'lucide-react'
 import React, { useState } from 'react'
 import Select from "react-select";
 
-function PublishAJP({ news, writers, editors, kanal, fokus, hasEditor, editor_id }) {
-    
+function PublishAJP({ news, editors, fokus, hasEditor, editor_id }) {
+
     const { data, setData, post, processing, errors } = useForm({
-        _method: 'PUT',
         is_code: news.is_code ?? '',
-        status: news.news_status ?? '',
+        status: '',
         editor: editor_id,
-        writer: news.news_writer ?? '',
-        writer_id: news.journalist_id ?? '',
-        pin: news.pin ?? '',
-        keyword_tool: news.keyword_tool ?? '',
-        title: news.news_title ?? '',
-        description: news.news_description ?? '',
-        tag: news.tags_array ?? [],
-        is_content: news.news_content ?? '',
-        is_headline: news.news_headline ?? 0,
-        image_thumbnail: '', 
-        image_watermark: false,
-        image_caption: news.news_caption ?? '',
-        datepub: news.news_datepub,
-        locus: news.news_city ?? '',
-        focus: news.focnews_id ?? '',
-        kanal: news.catnews_id ?? '',
+        keyword_tool: '',
+        title: news.title ?? '',
+        description: '',
+        tag: [],
+        is_content: news.content ?? '',
+        is_headline: 0,
+        image_thumbnail: '',
+        image_caption: '',
+        datepub: '',
+        locus: news.city ?? '',
+        focus: '',
+
     });
 
     // Mengumpulkan aset gambar dari pewarta (Berdasarkan struktur DB: image, image2, image3)
@@ -53,33 +48,34 @@ function PublishAJP({ news, writers, editors, kanal, fokus, hasEditor, editor_id
 
     const submit = (e) => {
         e.preventDefault();
-        post(route('admin.nasional.news.update', news.news_id));
+        post(route('admin.ajp.news.publish.store', news.is_code));
     };
 
     return (
         <div>
-            <Head title="Publish Berita Nasional" />
+            <Head title="Publish Berita AJP" />
             <AuthenticatedLayout >
                 <div className="py-12">
                     <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
                         <div className="space-y-6">
-                            
+
                             {/* Header */}
                             <div className='flex flex-col md:flex-row justify-between md:items-center gap-2'>
                                 <div>
-                                    <h1 className="text-3xl font-bold text-foreground">Publish Berita Nasional</h1>
+                                    <h1 className="text-3xl font-bold text-foreground">Publish Berita AJP</h1>
                                 </div>
                                 <div className="breadcrumbs text-sm">
                                     <ul>
                                         <li><a>Beranda</a></li>
-                                        <li>Berita Nasional</li>
+                                        <li>AJP</li>
+                                        <li><Link href={route('admin.ajp.news.index')}>Berita</Link></li>
                                         <li>Publish Berita</li>
                                     </ul>
                                 </div>
                             </div>
 
                             <form onSubmit={submit} className='space-y-6'>
-                                
+
                                 {/* Card Informasi Dasar */}
                                 <Card title={<span className="flex gap-2 items-center text-2xl font-semibold"><InfoIcon className='w-6 h-6' /> Informasi Dasar</span>}>
                                     <div className='grid grid-cols-1 lg:grid-cols-6 gap-4 mt-4'>
@@ -89,7 +85,6 @@ function PublishAJP({ news, writers, editors, kanal, fokus, hasEditor, editor_id
                                                 value={data.status}
                                                 onChange={(e) => setData('status', e)}
                                                 options={[
-                                                    { label: "Pending", value: 0, color: "secondary" },
                                                     { label: "Publish", value: 1, color: "success" },
                                                     { label: "Review", value: 2, color: "warning" },
                                                 ]}
@@ -104,83 +99,19 @@ function PublishAJP({ news, writers, editors, kanal, fokus, hasEditor, editor_id
                                                 options={editors}
                                                 placeholder="Pilih Editor..."
                                                 onChange={(val) => setData('editor', val?.value)}
+                                                isDisabled={hasEditor}
                                             />
                                             <InputError message={errors.editor} className="mt-2" />
                                         </div>
-
                                         <div className='lg:col-span-3 w-full'>
                                             <InputLabel value="Penulis" className='mb-2 label-text font-bold' />
-                                            <Select
-                                                value={writers.find(w => w.label === data.writer)}
-                                                options={writers}
-                                                placeholder="Pilih Penulis..."
-                                                onChange={(val) => {
-                                                    setData('writer', val?.label);
-                                                    setData('writer_id', val?.value);
-                                                }}
-                                            />
-                                            <InputError message={errors.writer} className="mt-2" />
+                                            <TextInput className="block w-full" value={news.writer.nama} disabled />
                                         </div>
+
+
                                     </div>
                                 </Card>
 
-                                {/* ========================================== */}
-                                {/* Card Baru: KUMPULAN FOTO & ASET DARI PEWARTA */}
-                                {/* ========================================== */}
-                                <Card title={<span className="flex gap-2 items-center text-2xl font-semibold"><ImagesIcon className='w-6 h-6 text-blue-500' /> Aset Foto (Dari Pewarta)</span>}>
-                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-4">
-                                        {availableImages.map((url, idx) => (
-                                            <div key={idx} className="border rounded-xl p-3 bg-gray-50/80 shadow-sm flex flex-col gap-3">
-                                                
-                                                {/* Preview Gambar */}
-                                                <div className="w-full h-48 bg-gray-200 rounded-lg overflow-hidden border">
-                                                    <img src={url} alt={`Aset Pewarta ${idx + 1}`} className="w-full h-full object-cover" />
-                                                </div>
-                                                
-                                                {/* Action URL & Download */}
-                                                <div className="flex flex-col gap-2">
-                                                    <InputLabel value={`URL Foto ${idx + 1}`} className="text-xs text-gray-500 font-bold" />
-                                                    <input 
-                                                        type="text" 
-                                                        readOnly 
-                                                        value={url} 
-                                                        className="w-full text-xs px-2 py-1.5 border-gray-300 rounded bg-white text-gray-600 focus:ring-0" 
-                                                    />
-                                                    
-                                                    <div className="flex gap-2 mt-1">
-                                                        <button 
-                                                            type="button" 
-                                                            onClick={() => copyToClipboard(url)} 
-                                                            className="btn btn-sm btn-outline flex-1 gap-1"
-                                                        >
-                                                            <CopyIcon size={14} /> Copy URL
-                                                        </button>
-                                                        
-                                                        {/* Attribut download digunakan agar browser langsung mengunduh file */}
-                                                        <a 
-                                                            href={url} 
-                                                            target="_blank" 
-                                                            rel="noreferrer" 
-                                                            download={`Aset_Berita_${news.is_code}_${idx+1}.jpg`} 
-                                                            className="btn btn-sm btn-primary flex-1 gap-1"
-                                                        >
-                                                            <DownloadIcon size={14} /> Download
-                                                        </a>
-                                                    </div>
-                                                </div>
-
-                                            </div>
-                                        ))}
-
-                                        {availableImages.length === 0 && (
-                                            <div className="col-span-3 text-center py-10 bg-gray-50 rounded-xl border border-dashed border-gray-300">
-                                                <ImagesIcon className="mx-auto h-10 w-10 text-gray-300 mb-2" />
-                                                <p className="text-gray-500 font-medium">Tidak ada foto yang dilampirkan oleh pewarta pada berita ini.</p>
-                                            </div>
-                                        )}
-                                    </div>
-                                </Card>
-                                {/* ========================================== */}
 
                                 {/* Card Judul & Deskripsi */}
                                 <Card title={<span className="flex gap-2 items-center text-2xl font-semibold"><CaptionsIcon className='w-6 h-6' /> Judul & Deskripsi</span>}>
@@ -217,6 +148,76 @@ function PublishAJP({ news, writers, editors, kanal, fokus, hasEditor, editor_id
                                     </div>
                                 </Card>
 
+
+                                {/* ========================================== */}
+                                {/* Card Baru: KUMPULAN FOTO & ASET DARI PEWARTA */}
+                                {/* ========================================== */}
+                                <Card title={<span className="flex gap-2 items-center text-2xl font-semibold"><ImagesIcon className='w-6 h-6 text-blue-500' /> Aset Foto (Dari Pewarta)</span>}>
+                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-4">
+                                        {availableImages.map((url, idx) => (
+                                            <div key={idx} className="border rounded-xl p-3 bg-gray-50/80 shadow-sm flex flex-col gap-3">
+
+                                                {/* Preview Gambar */}
+                                                <div className="w-full h-48 bg-gray-200 rounded-lg overflow-hidden border">
+                                                    <img src={url} alt={`Aset Pewarta ${idx + 1}`} className="w-full h-full object-cover" />
+                                                </div>
+
+                                                {/* Action URL & Download */}
+                                                <div className="flex flex-col gap-2">
+                                                    <InputLabel value={`URL Foto ${idx + 1}`} className="text-xs text-gray-500 font-bold" />
+                                                    <input
+                                                        type="text"
+                                                        readOnly
+                                                        value={url}
+                                                        className="w-full text-xs px-2 py-1.5 border-gray-300 rounded bg-white text-gray-600 focus:ring-0"
+                                                    />
+
+                                                    <div className="flex gap-2 mt-1">
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => copyToClipboard(url)}
+                                                            className="btn btn-sm btn-outline flex-1 gap-1"
+                                                        >
+                                                            <CopyIcon size={14} /> Copy URL
+                                                        </button>
+
+                                                        {/* Attribut download digunakan agar browser langsung mengunduh file */}
+                                                        <a
+                                                            href={url}
+                                                            target="_blank"
+                                                            rel="noreferrer"
+                                                            download={`Aset_Berita_${news.is_code}_${idx + 1}.jpg`}
+                                                            className="btn btn-sm btn-primary flex-1 gap-1"
+                                                        >
+                                                            <DownloadIcon size={14} /> Download
+                                                        </a>
+                                                    </div>
+                                                </div>
+
+                                            </div>
+                                        ))}
+
+                                        {availableImages.length === 0 && (
+                                            <div className="col-span-3 text-center py-10 bg-gray-50 rounded-xl border border-dashed border-gray-300">
+                                                <ImagesIcon className="mx-auto h-10 w-10 text-gray-300 mb-2" />
+                                                <p className="text-gray-500 font-medium">Tidak ada foto yang dilampirkan oleh pewarta pada berita ini.</p>
+                                            </div>
+                                        )}
+                                    </div>
+                                </Card>
+                                {/* ========================================== */}
+
+                                {/* ========================================== */}
+                                {/* Card Baru: KUMPULAN CAPTION DARI PEWARTA */}
+                                {/* ========================================== */}
+                                <Card title={<span className="flex gap-2 items-center text-2xl font-semibold"><CaptionsIcon className='w-6 h-6 text-blue-500' /> Caption Foto (Dari Pewarta)</span>}>
+                                    <div className=''>
+                                        <InputLabel value="Caption" className='mb-2 label-text font-bold' />
+                                        <InputTextarea className="mt-1 block w-full" value={news.caption} readOnly />
+                                    </div>
+                                </Card>
+                                {/* ========================================== */}
+
                                 {/* Card Gambar Thumbnail */}
                                 <Card title={<span className="flex gap-2 items-center text-2xl font-semibold"><ImagesIcon className='w-6 h-6' /> Gambar Thumbnail Publish</span>}>
                                     {/* ... Isi form thumbnail Anda tetap sama seperti sebelumnya ... */}
@@ -226,12 +227,7 @@ function PublishAJP({ news, writers, editors, kanal, fokus, hasEditor, editor_id
                                             <InputImage existingImage={news.news_image_new} targetWidth={1200} targetHeight={800} value={data.image_thumbnail} onChange={(file) => setData('image_thumbnail', file)} />
                                             <InputError message={errors.image_thumbnail} className="mt-2" />
                                         </div>
-                                        <div className='lg:col-span-6'>
-                                            <label className="flex items-center gap-2 mt-2">
-                                                <Checkbox checked={data.image_watermark} onChange={(e) => setData('image_watermark', e.target.checked)} />
-                                                Apakah ini foto original?
-                                            </label>
-                                        </div>
+
                                         <div className='lg:col-span-6'>
                                             <InputTextarea label={"Caption Thumbnail"} value={data.image_caption} onChange={(e) => setData('image_caption', e.target.value)} />
                                             <InputError message={errors.image_caption} className="mt-2" />

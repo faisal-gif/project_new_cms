@@ -52,7 +52,7 @@ export default function Show({ news }) {
                             </Link>
 
                             {/* Tombol Edit Baru Ditempatkan Di Sini */}
-                            <Link href={route('admin.ajp.news.edit', news.id)} className="btn btn-success">
+                            <Link href={route('admin.ajp.news.publish', news.id)} className="btn btn-success">
                                 <UploadCloudIcon size={16} /> Publish Berita
                             </Link>
                         </div>

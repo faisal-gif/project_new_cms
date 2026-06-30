@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Services\CdnService;
 use Illuminate\Http\Request;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 
@@ -59,6 +61,91 @@ class TextEditorController extends Controller
             // Agar blok `!res.ok` di frontend (React) bisa menangkap dan menampilkan pesan errornya
             return response()->json([
                 'message' => 'Gagal mengunggah gambar sistem: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function uploadFromUrl(Request $request)
+    {
+        // 1. Validasi Input (Disamakan dengan gaya pesan kustom Anda)
+        $request->validate([
+            'image_url' => 'required|url',
+            'name'      => 'required|string|min:3|max:120',
+            'caption'   => 'required|string|max:255',
+            'watermark' => 'sometimes|boolean',
+        ], [
+            'image_url.required' => 'URL gambar wajib diisi.',
+            'image_url.url'      => 'Format URL tidak valid (harus diawali http/https).',
+            'name.required'      => 'Nama gambar (Alt Text) wajib diisi.',
+            'caption.required'   => 'Caption keterangan gambar wajib diisi.'
+        ]);
+
+        $tempPath = null;
+
+        try {
+            $url = $request->input('image_url');
+
+            // 2. Unduh Gambar dari URL Eksternal (Timeout 30 detik untuk cegah server hang)
+            $response = Http::timeout(120)->get($url);
+
+            if (!$response->successful()) {
+                throw new \Exception('Gagal mengunduh gambar dari URL sumber. Status: ' . $response->status());
+            }
+
+            // 3. Simpan sementara ke folder /tmp server
+            $tempPath = sys_get_temp_dir() . '/' . \Illuminate\Support\Str::random(15) . '.tmp';
+            file_put_contents($tempPath, $response->body());
+
+            // 4. Keamanan: Pastikan yang diunduh benar-benar gambar
+            $mimeType = mime_content_type($tempPath);
+            if (!str_starts_with($mimeType, 'image/')) {
+                throw new \Exception('URL tidak berisi file gambar yang valid (Mime: ' . $mimeType . ').');
+            }
+
+            // 5. MAGIC TRICK: Ubah file temp menjadi UploadedFile
+            // Kita gunakan ".jpg" sebagai fallback nama palsu, CDN nanti akan menyesuaikan berdasarkan MIME aslinya
+            $fakeOriginalName = Str::slug($request->input('name')) . '.jpg';
+            $file = new UploadedFile(
+                $tempPath,          // Path file asli di server
+                $fakeOriginalName,  // Nama file samaran
+                $mimeType,          // Mime type yang sudah divalidasi
+                null,               // Error code
+                true                // 💡 PENTING: Set true untuk "test mode" agar lolos validasi is_uploaded_file()
+            );
+
+            // 6. Penamaan & Watermark (Sama persis dengan fungsi upload manual Anda)
+            $nameImage = Str::slug($request->input('name'), '-') . '-body';
+           
+
+            // 7. Proses Upload ke CDN (Memanggil metode yang persis sama)
+            $imageUrl = $this->cdnService->uploadImage($file, $nameImage, 4, 'convert', 0);
+
+            if (!$imageUrl) {
+                throw new \Exception('CDN Service gagal memproses dan mengembalikan URL gambar hasil unduhan.');
+            }
+
+            // 8. Bersihkan file temp agar tidak jadi sampah di RAM/Disk
+            if (file_exists($tempPath)) {
+                unlink($tempPath);
+            }
+
+            // 9. Return URL dan Data untuk TinyMCE (Format sama persis)
+            return response()->json([
+                'location' => $imageUrl,
+                'name'     => $request->input('name'),
+                'caption'  => $request->input('caption'),
+            ], 200);
+
+        } catch (\Exception $e) {
+            // Pembersihan paksa jika terjadi error di tengah jalan
+            if ($tempPath && file_exists($tempPath)) {
+                unlink($tempPath);
+            }
+
+            Log::error('Upload Image from URL Error: ' . $e->getMessage());
+
+            return response()->json([
+                'message' => 'Gagal menarik gambar dari URL: ' . $e->getMessage()
             ], 500);
         }
     }

@@ -52,6 +52,7 @@ Route::middleware('auth')->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 Route::post('/upload-image', [TextEditorController::class, 'upload']);
+Route::post('/upload-image-url', [TextEditorController::class, 'uploadFromUrl'])->name('editor.image.upload.url');
 Route::middleware('auth')->prefix('admin')->name('admin.')->group(function () {
     Route::resource('news', NewsController::class)->only('index', 'create', 'show', 'store');
     Route::get('/news/import-daerah/{is_code}', [NewsController::class, 'importDaerah'])->name('news.import.daerah');
@@ -107,6 +108,8 @@ Route::middleware('auth')->prefix('admin')->name('admin.')->group(function () {
     Route::prefix('ajp')->name('ajp.')->group(
         function () {
             Route::resource('news', NewsAJPController::class);
+            Route::get('/news/publish/{id}', [NewsAJPController::class, 'publish'])->name('news.publish');
+            Route::post('/news/publish/{isCode}/store', [NewsAJPController::class, 'publishStore'])->name('news.publish.store');
             Route::resource('writer', WriterAjpController::class);
         }
     );
