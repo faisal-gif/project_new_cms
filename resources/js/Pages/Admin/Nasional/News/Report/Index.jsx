@@ -20,6 +20,10 @@ import AsyncSelect from 'react-select/async'
 export default function ReportIndex({ summary, chart_data, writers, editors, kanals, filters }) {
   const { flash } = usePage().props;
 
+  const [tag, setTag] = useState(() => filters.tag || null);
+
+  const tagId = tag ? tag.value : '';
+  const initialTagId = filters.tag ? filters.tag.value : '';
   // 2. STATE MANAGEMENT (Single Source of Truth)
   // Gunakan data dan setData bawaan useForm agar payload otomatis terkirim saat post()
   const { data, setData, post, processing: exportProcessing } = useForm({
@@ -28,8 +32,7 @@ export default function ReportIndex({ summary, chart_data, writers, editors, kan
     kanal: filters.kanal || '',
     writer: filters.writer || '',
     editor: filters.editor || '',
-    tag: filters.tag || '',
-
+    tag: tagId,
   });
 
   useEffect(() => {
@@ -97,7 +100,7 @@ export default function ReportIndex({ summary, chart_data, writers, editors, kan
           ========================================== */}
           <Card>
             <div className="flex flex-col md:flex-row gap-4 items-end p-2">
-              <div className="w-full">
+              <div className="w-full md:w-1/5">
                 <label className="text-xs font-semibold text-gray-700 mb-1 block">Dari Tanggal <span className="text-red-500">*</span></label>
                 <TextInput
                   type="date"
@@ -106,7 +109,7 @@ export default function ReportIndex({ summary, chart_data, writers, editors, kan
                   onChange={e => setData('start_date', e.target.value)}
                 />
               </div>
-              <div className="w-full">
+              <div className="w-full md:w-1/5">
                 <label className="text-xs font-semibold text-gray-700 mb-1 block">Sampai Tanggal <span className="text-red-500">*</span></label>
                 <TextInput
                   type="date"
@@ -116,7 +119,7 @@ export default function ReportIndex({ summary, chart_data, writers, editors, kan
                   onChange={e => setData('end_date', e.target.value)}
                 />
               </div>
-              <div className="w-full">
+              <div className="w-full md:w-1/5">
                 <label className="text-xs font-semibold text-gray-700 mb-1 block">Kategori Kanal</label>
                 <Select
                   options={kanals}
@@ -138,6 +141,7 @@ export default function ReportIndex({ summary, chart_data, writers, editors, kan
                   onChange={e => setData('writer', e ? e.value : '')}
                 />
               </div>
+
               <div className="w-full ">
                 <label className="text-xs font-semibold text-gray-700 mb-1 block">Editor</label>
                 <Select
@@ -156,7 +160,7 @@ export default function ReportIndex({ summary, chart_data, writers, editors, kan
                   cacheOptions
                   defaultOptions={false}
                   loadOptions={loadTagOptions}
-                  value={data.tag}
+                  value={tag}
                   onChange={(selectedOption) => setTag(selectedOption)}
                   placeholder="Cari Tag..."
                   isClearable
