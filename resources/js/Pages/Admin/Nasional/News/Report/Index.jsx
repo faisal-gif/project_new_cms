@@ -3,7 +3,7 @@ import TextInput from '@/Components/TextInput'
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout'
 import { Head, router, useForm, usePage } from '@inertiajs/react'
 import { Download, Search, BarChart3, Eye, FileText, TrendingUp } from 'lucide-react'
-import React, { useEffect } from 'react'
+import React, { useEffect, useState } from 'react'
 import Select from "react-select"
 
 // 1. IMPORT BAR CHART
@@ -14,6 +14,8 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from "@/Components/ui/chart"
+import axios from 'axios'
+import AsyncSelect from 'react-select/async'
 
 export default function ReportIndex({ summary, chart_data, writers, editors, kanals, filters }) {
   const { flash } = usePage().props;
@@ -26,6 +28,8 @@ export default function ReportIndex({ summary, chart_data, writers, editors, kan
     kanal: filters.kanal || '',
     writer: filters.writer || '',
     editor: filters.editor || '',
+    tag: filters.tag || '',
+
   });
 
   useEffect(() => {
@@ -56,6 +60,20 @@ export default function ReportIndex({ summary, chart_data, writers, editors, kan
     });
   };
 
+  const loadTagOptions = async (inputValue) => {
+    if (!inputValue) return []; // Jangan hit backend jika input kosong
+    try {
+      const response = await axios.get(route('admin.nasional.tags.search'), {
+        params: { search: inputValue }
+      });
+      return response.data;
+    } catch (error) {
+      console.error("Gagal mengambil data tag:", error);
+      return [];
+    }
+  };
+
+
   const chartConfig = {
     total_berita: {
       label: "Berita Tayang",
@@ -79,7 +97,7 @@ export default function ReportIndex({ summary, chart_data, writers, editors, kan
           ========================================== */}
           <Card>
             <div className="flex flex-col md:flex-row gap-4 items-end p-2">
-              <div className="w-full md:w-1/5">
+              <div className="w-full">
                 <label className="text-xs font-semibold text-gray-700 mb-1 block">Dari Tanggal <span className="text-red-500">*</span></label>
                 <TextInput
                   type="date"
@@ -88,7 +106,7 @@ export default function ReportIndex({ summary, chart_data, writers, editors, kan
                   onChange={e => setData('start_date', e.target.value)}
                 />
               </div>
-              <div className="w-full md:w-1/5">
+              <div className="w-full">
                 <label className="text-xs font-semibold text-gray-700 mb-1 block">Sampai Tanggal <span className="text-red-500">*</span></label>
                 <TextInput
                   type="date"
@@ -98,7 +116,7 @@ export default function ReportIndex({ summary, chart_data, writers, editors, kan
                   onChange={e => setData('end_date', e.target.value)}
                 />
               </div>
-              <div className="w-full md:w-1/5">
+              <div className="w-full">
                 <label className="text-xs font-semibold text-gray-700 mb-1 block">Kategori Kanal</label>
                 <Select
                   options={kanals}
@@ -108,7 +126,9 @@ export default function ReportIndex({ summary, chart_data, writers, editors, kan
                   onChange={e => setData('kanal', e ? e.value : '')}
                 />
               </div>
-              <div className="w-full md:w-1/5">
+            </div>
+            <div className="flex flex-col md:flex-row gap-4 items-end p-2">
+              <div className="w-full ">
                 <label className="text-xs font-semibold text-gray-700 mb-1 block">Penulis</label>
                 <Select
                   options={writers}
@@ -118,8 +138,7 @@ export default function ReportIndex({ summary, chart_data, writers, editors, kan
                   onChange={e => setData('writer', e ? e.value : '')}
                 />
               </div>
-
-              <div className="w-full md:w-1/5">
+              <div className="w-full ">
                 <label className="text-xs font-semibold text-gray-700 mb-1 block">Editor</label>
                 <Select
                   options={editors}
@@ -129,7 +148,27 @@ export default function ReportIndex({ summary, chart_data, writers, editors, kan
                   onChange={e => setData('editor', e ? e.value : '')}
                 />
               </div>
+            </div>
+            <div className="flex flex-col md:flex-row gap-4 items-end p-2">
 
+              <div className="w-full flex flex-col justify-end">
+                <AsyncSelect
+                  cacheOptions
+                  defaultOptions={false}
+                  loadOptions={loadTagOptions}
+                  value={data.tag}
+                  onChange={(selectedOption) => setTag(selectedOption)}
+                  placeholder="Cari Tag..."
+                  isClearable
+                  className="w-full"
+                  styles={{
+                    menu: (base) => ({ ...base, zIndex: 50 }),
+                    control: (base) => ({ ...base, minHeight: '38px' }) // Menyesuaikan tinggi agar presisi dengan input sebelahnya
+                  }}
+                />
+              </div>
+            </div>
+            <div className="flex flex-col md:flex-row gap-4 items-end justify-end p-2">
               <div className="w-full md:w-1/5">
                 <button onClick={handleApplyFilter} className="btn btn-primary w-full">
                   <Search size={18} /> Terapkan Filter
