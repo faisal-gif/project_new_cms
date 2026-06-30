@@ -111,7 +111,7 @@ class ReportNewsNasionalController extends Controller
             'kanals' => $kanals,
             // Variabel 'filters' ini sekarang PASTI berisi tanggal bulan ini
             // sehingga React di sisi depan akan otomatis mengisi input kolom tanggal.
-            'filters' => $request->only(['start_date', 'end_date', 'kanal', 'writer', 'editor']),
+            'filters' => $request->only(['start_date', 'end_date', 'kanal', 'writer', 'editor','tag']),
         ]);
     }
 
