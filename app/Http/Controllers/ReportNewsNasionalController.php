@@ -6,6 +6,7 @@ use App\Exports\NewsNasionalExport;
 use App\Models\EditorNasional;
 use App\Models\KanalNasional;
 use App\Models\NewsNasional;
+use App\Models\TagsNasional;
 use App\Models\User;
 use App\Models\WriterNasional;
 use App\Notifications\ExportReadyNotification;
@@ -115,6 +116,7 @@ class ReportNewsNasionalController extends Controller
     }
 
     // 2. Memproses Antrean Export Excel
+    // 2. Memproses Antrean Export Excel
     public function export(Request $request)
     {
         // 1. Validasi filter nasional
@@ -124,6 +126,7 @@ class ReportNewsNasionalController extends Controller
             'kanal'      => 'nullable',
             'writer'     => 'nullable',
             'tag'        => 'nullable',
+            'editor'     => 'nullable', // <-- TAMBAHKAN INI
         ]);
 
         // 2. Buat Array untuk merangkai nama file
@@ -139,12 +142,27 @@ class ReportNewsNasionalController extends Controller
 
         // Cek dan tambahkan filter Writer
         if (!empty($filters['writer'])) {
-            $writerName = WriterNasional::where('id', $filters['writer'])->value('name');
+            // Karena writer dikirim sebagai 'name' dari React (value = name),
+            // kita bisa langsung menggunakan nilainya tanpa perlu query lagi.
+            $nameParts[] = 'penulis-' . Str::slug($filters['writer']);
+        }
 
-            if ($writerName) {
-                $nameParts[] = Str::slug($writerName);
+        // Cek dan tambahkan filter Editor
+        if (!empty($filters['editor'])) {
+            // Query nama editor untuk nama file (opsional tapi disarankan)
+            $editorName = EditorNasional::where('editor_id', $filters['editor'])->value('editor_name');
+            if ($editorName) {
+                $nameParts[] = 'editor-' . Str::slug($editorName);
             } else {
-                $nameParts[] = 'writer-' . $filters['writer'];
+                $nameParts[] = 'editor-' . $filters['editor'];
+            }
+        }
+
+        // Cek dan tambahkan filter Tag
+        if (!empty($filters['tag'])) {
+            $tagName = TagsNasional::where('id', $filters['tag'])->value('name');
+            if ($tagName) {
+                $nameParts[] = 'tag-' . Str::slug($tagName);
             }
         }
 

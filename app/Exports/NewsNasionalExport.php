@@ -40,6 +40,12 @@ class NewsNasionalExport implements FromQuery, WithHeadings, WithMapping, Should
             $query->where('news_writer', $this->filters['writer']);
         }
 
+        if (!empty($this->filters['tag'])) {
+            $query->whereHas('tags', function ($q) {
+                $q->where('tags.id', $this->filters['tag']);
+            });
+        }
+
         return $query->limit(5000)->orderBy('news_datepub', 'desc');
     }
 
@@ -53,7 +59,7 @@ class NewsNasionalExport implements FromQuery, WithHeadings, WithMapping, Should
             'Tanggal Publish',
             'Pageviews',
             'Status',
-            'URL Berita', 
+            'URL Berita',
         ];
     }
 
@@ -71,7 +77,7 @@ class NewsNasionalExport implements FromQuery, WithHeadings, WithMapping, Should
         // Anda bisa langsung memanggil kolom tersebut daripada menggunakan Str::slug()
         $kanalSlug = $news->kanal ? Str::slug($news->kanal->catnews_title) : 'uncategorized';
         $titleSlug = Str::slug($news->news_title);
-        
+
         $urlBerita = "https://timesindonesia.co.id/{$kanalSlug}/{$news->news_id}/{$titleSlug}";
 
         return [
@@ -82,7 +88,7 @@ class NewsNasionalExport implements FromQuery, WithHeadings, WithMapping, Should
             Carbon::parse($news->news_datepub)->format('d-m-Y H:i'),
             $news->viewData ? ($news->viewData->pageviews ?? 0) : 0,
             $statusLabel,
-            $urlBerita, 
+            $urlBerita,
         ];
     }
 }
