@@ -149,7 +149,7 @@ class GalleryController extends Controller
 
                 // ASUMSI: API CDN mengembalikan URL lengkap atau path pada key 'data.url' atau 'url'
                 // Anda HARUS menyesuaikan ini dengan struktur response JSON dari API Anda
-                $cdnImageUrl = $this->cdnService->uploadImage($file, $fileNameToCDN, 1, 'convert', true) ?? null;
+                $cdnImageUrl = $this->cdnService->uploadImage($file, $fileNameToCDN, 7, 'raw', true) ?? null;
 
                 if (!$cdnImageUrl) {
                     throw new \Exception('Respons CDN tidak valid atau tidak mengembalikan URL.');
@@ -276,7 +276,7 @@ class GalleryController extends Controller
                     $file = $image['file'];
                     $fileNameToCDN = Str::slug($validated['title']) . '-' . time() . '-' . $index;
 
-                    $cdnImageUrl = $this->cdnService->uploadImage($file, $fileNameToCDN, 1, 'convert', true) ?? null;
+                    $cdnImageUrl = $this->cdnService->uploadImage($file, $fileNameToCDN, 7, 'raw', true) ?? null;
                     if (!$cdnImageUrl) {
                         throw new \Exception('Respons CDN tidak mengembalikan URL yang valid.');
                     }
