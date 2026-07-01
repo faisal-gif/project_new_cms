@@ -208,7 +208,7 @@ function Edit({ news, writers, editors, kanal, fokus, hasEditor, editor_id }) {
                                         <div className='lg:col-span-3'>
                                             <InputLabel value="Tanggal Publish" className='mb-2 label-text font-bold' />
                                             <TextInput
-                                                type="datetime-local"
+                                                type="datetime"
                                                 className="mt-1 block w-full"
                                                 value={data.datepub}
                                                 onChange={(e) => setData('datepub', e.target.value)}
