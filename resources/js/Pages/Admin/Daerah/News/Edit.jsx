@@ -221,7 +221,8 @@ function Edit({ news, writers, editors, networks, kanal, fokus, hasEditor, edito
                                                     }
                                                 }}
                                                 showTimeInput
-                                                timeInputLabel="Jam:"
+                                                customTimeInput={<CustomTimeInput />}
+                                                timeInputLabel="Jam (24j):"
                                                 timeFormat="HH:mm"
                                                 dateFormat="yyyy-MM-dd HH:mm"  // Tampilan akhir di dalam kotak teks (Format 24 Jam)
                                                 className="input border border-input mt-1 block w-full"

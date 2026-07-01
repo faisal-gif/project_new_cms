@@ -300,8 +300,9 @@ function Create({ writers, editors, kanal, fokus, hasEditor, editor_id, initialD
                                                     }
                                                 }}
                                                 showTimeInput
-                                                timeInputLabel="Jam:"
-                                                  timeFormat="HH:mm"F
+                                                customTimeInput={<CustomTimeInput />}
+                                                timeInputLabel="Jam (24j):"
+                                                timeFormat="HH:mm"
                                                 dateFormat="yyyy-MM-dd HH:mm"  // Tampilan akhir di dalam kotak teks (Format 24 Jam)
                                                 className="input border border-input mt-1 block w-full"
                                                 placeholderText="Pilih Tanggal dan Waktu..."

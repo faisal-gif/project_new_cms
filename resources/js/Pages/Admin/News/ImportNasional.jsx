@@ -317,7 +317,8 @@ function ImportNasional({ writers, editors, networks, kanal, fokus, initialData 
                                                     }
                                                 }}
                                                 showTimeInput
-                                                timeInputLabel="Jam:"
+                                                customTimeInput={<CustomTimeInput />}
+                                                timeInputLabel="Jam (24j):"
                                                 timeFormat="HH:mm"             // Memaksa format 24 Jam di dropdown pilihan waktu
                                                 dateFormat="yyyy-MM-dd HH:mm"  // Tampilan akhir di dalam kotak teks (Format 24 Jam)
                                                 className="input border border-input mt-1 block w-full"
