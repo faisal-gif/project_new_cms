@@ -224,6 +224,7 @@ function Edit({ news, writers, editors, kanal, fokus, hasEditor, editor_id }) {
                                                 }}
                                                 showTimeInput
                                                 timeInputLabel="Jam:"
+                                                timeFormat="HH:mm"
                                                 dateFormat="yyyy-MM-dd HH:mm"  // Tampilan akhir di dalam kotak teks (Format 24 Jam)
                                                 className="input border border-input mt-1 block w-full"
                                                 placeholderText="Pilih Tanggal dan Waktu..."
