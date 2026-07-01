@@ -222,9 +222,8 @@ function Edit({ news, writers, editors, kanal, fokus, hasEditor, editor_id }) {
                                                         setData('datepub', '');
                                                     }
                                                 }}
-                                                showTimeSelect
-                                                timeFormat="HH:mm"             // Memaksa format 24 Jam di dropdown pilihan waktu
-                                                timeIntervals={1}             // Jarak antar menit di dropdown (bisa diubah, misal 30)
+                                                showTimeInput
+                                                timeInputLabel="Jam:"
                                                 dateFormat="yyyy-MM-dd HH:mm"  // Tampilan akhir di dalam kotak teks (Format 24 Jam)
                                                 className="input border border-input mt-1 block w-full"
                                                 placeholderText="Pilih Tanggal dan Waktu..."
