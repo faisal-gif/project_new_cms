@@ -12,7 +12,6 @@ import { Head, useForm } from '@inertiajs/react'
 import { CaptionsIcon, CopyIcon, EyeIcon, GlobeIcon, ImageIcon, ImagesIcon, InfoIcon, NotebookPenIcon } from 'lucide-react'
 import React from 'react'
 import Select from "react-select";
-import Select from "react-select";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 
