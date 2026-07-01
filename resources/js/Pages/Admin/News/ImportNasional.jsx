@@ -12,6 +12,8 @@ import { Head, useForm } from '@inertiajs/react'
 import { CaptionsIcon, CopyIcon, EyeIcon, GlobeIcon, ImagesIcon, InfoIcon, NotebookPenIcon } from 'lucide-react'
 import React from 'react'
 import Select from "react-select";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
 
 function ImportNasional({ writers, editors, networks, kanal, fokus, initialData }) {
 
@@ -295,20 +297,32 @@ function ImportNasional({ writers, editors, networks, kanal, fokus, initialData 
                                     }
                                 >
                                     <div className='grid grid-cols-1 lg:grid-cols-6 gap-4 mt-8'>
-                                        <div className='lg:col-span-3'>
+                                        <div className='lg:col-span-3 flex flex-col'>
                                             <InputLabel
                                                 htmlFor="datepub"
                                                 value="Tanggal Publish"
                                                 className='mb-2 label-text font-bold'
                                             />
-                                            <TextInput
-                                                id="datepub"
-                                                name="Tanggal Publish"
-                                                type="datetime-local"
-                                                className="mt-1 block w-full"
-                                                value={data.datepub}
-                                                onChange={(e) => setData('datepub', e.target.value)}
-                                                autoComplete="datepub"
+                                            <DatePicker
+                                                // Pastikan data.datepub diubah menjadi object Date agar terbaca oleh kalender
+                                                selected={data.datepub ? new Date(data.datepub) : null}
+                                                onChange={(date) => {
+                                                    if (date) {
+                                                        // Mencegah perubahan zona waktu (UTC) saat dikirim kembali ke Inertia
+                                                        const offset = date.getTimezoneOffset() * 60000;
+                                                        const localDate = new Date(date.getTime() - offset);
+                                                        setData('datepub', localDate.toISOString().slice(0, 16));
+                                                    } else {
+                                                        setData('datepub', '');
+                                                    }
+                                                }}
+                                                showTimeSelect
+                                                timeFormat="HH:mm"             // Memaksa format 24 Jam di dropdown pilihan waktu
+                                                timeIntervals={5}             // Jarak antar menit di dropdown (bisa diubah, misal 30)
+                                                dateFormat="yyyy-MM-dd HH:mm"  // Tampilan akhir di dalam kotak teks (Format 24 Jam)
+                                                className="input border border-input mt-1 block w-full"
+                                                placeholderText="Pilih Tanggal dan Waktu..."
+                                                withPortal
                                             />
                                             <InputError message={errors.datepub} className="mt-2" />
                                         </div>
