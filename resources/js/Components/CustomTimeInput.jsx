@@ -52,3 +52,5 @@ const CustomTimeInput = ({ date, value, onChange }) => {
         />
     );
 };
+
+export default CustomTimeInput;

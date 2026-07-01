@@ -16,6 +16,7 @@ import React from 'react'
 import Select from "react-select";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
+import CustomTimeInput from '@/Components/CustomTimeInput'
 
 function Edit({ news, writers, editors, kanal, fokus, hasEditor, editor_id }) {
     // Format date untuk input type datetime-local (YYYY-MM-DDThh:mm)
