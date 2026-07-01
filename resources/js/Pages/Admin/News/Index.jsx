@@ -70,36 +70,6 @@ const NewsMobileCard = ({ item, hasPermission }) => (
 
             {/* Integration Status */}
             <div className="bg-base-200/50 rounded-lg p-3 flex flex-col gap-4 mb-4">
-                {/* Daerah */}
-                {hasPermission('import daerah news master') && (
-                    <div className="flex flex-col gap-2">
-                        <span className="text-xs font-semibold text-base-content/80">Distribusi Daerah</span>
-                        {item.news_daerah ? (
-                            <div className="flex justify-between items-center bg-base-100 p-2 rounded border border-base-200">
-                                <div className="flex flex-col">
-                                    <span className="text-[11px] font-bold text-success flex items-center gap-1">
-                                        <span className="w-1.5 h-1.5 rounded-full bg-success"></span> Terindeks
-                                    </span>
-                                    <span className="text-[11px] text-base-content/70 truncate max-w-[150px]">
-                                        {item.news_daerah.kanal?.name || 'Daerah'}
-                                    </span>
-                                    <span className="text-[10px] text-base-content/70">
-                                        {formatDateTimeLong(item.news_daerah.datepub)}
-                                    </span>
-                                </div>
-                                <Link href={route('admin.daerah.news.edit', item.news_daerah.id)} className="btn btn-xs btn-warning btn-outline">
-                                    Edit
-                                </Link>
-                            </div>
-                        ) : (
-                            <Link href={route('admin.news.import.daerah', item.is_code)} className="btn btn-xs btn-info btn-outline self-start">
-                                + Daerah
-                            </Link>
-                        )}
-                    </div>
-                )}
-
-                <div className="border-t border-base-300"></div>
 
                 {/* Nasional */}
                 {hasPermission('import nasional news master') && (
@@ -129,6 +99,38 @@ const NewsMobileCard = ({ item, hasPermission }) => (
                         )}
                     </div>
                 )}
+
+                <div className="border-t border-base-300"></div>
+
+                {/* Daerah */}
+                {hasPermission('import daerah news master') && (
+                    <div className="flex flex-col gap-2">
+                        <span className="text-xs font-semibold text-base-content/80">Distribusi Daerah</span>
+                        {item.news_daerah ? (
+                            <div className="flex justify-between items-center bg-base-100 p-2 rounded border border-base-200">
+                                <div className="flex flex-col">
+                                    <span className="text-[11px] font-bold text-success flex items-center gap-1">
+                                        <span className="w-1.5 h-1.5 rounded-full bg-success"></span> Terindeks
+                                    </span>
+                                    <span className="text-[11px] text-base-content/70 truncate max-w-[150px]">
+                                        {item.news_daerah.kanal?.name || 'Daerah'}
+                                    </span>
+                                    <span className="text-[10px] text-base-content/70">
+                                        {formatDateTimeLong(item.news_daerah.datepub)}
+                                    </span>
+                                </div>
+                                <Link href={route('admin.daerah.news.edit', item.news_daerah.id)} className="btn btn-xs btn-warning btn-outline">
+                                    Edit
+                                </Link>
+                            </div>
+                        ) : (
+                            <Link href={route('admin.news.import.daerah', item.is_code)} className="btn btn-xs btn-info btn-outline self-start">
+                                + Daerah
+                            </Link>
+                        )}
+                    </div>
+                )}
+
             </div>
 
             <div className="flex items-center justify-center gap-2 text-xs text-base-content/70 mb-2">
@@ -157,36 +159,6 @@ const NewsDesktopRow = ({ item, hasPermission }) => (
             </p>
         </td>
 
-        {/* Kolom Daerah */}
-        {hasPermission('import daerah news master') && (
-            <td>
-                {item.news_daerah ? (
-                    <div className="flex flex-col gap-1.5">
-                        <div className="flex items-center justify-between gap-2">
-                            <span className="text-[11px] font-bold text-success">Terindeks</span>
-                            <Link href={route('admin.daerah.news.edit', item.news_daerah.id)} className="btn btn-xs btn-warning btn-outline h-6 min-h-0">
-                                Edit
-                            </Link>
-                        </div>
-                        <span className="text-[11px] leading-tight text-base-content/80 truncate max-w-[150px]" title={item.news_daerah.title}>
-                            {item.news_daerah.title}
-                        </span>
-                        <span className="text-[10px] text-base-content/70">
-                            {formatDateTimeLong(item.news_daerah.datepub)} {/* Tanggal publish daerah */}
-                        </span>
-                        <div className="flex items-center gap-1">
-                            <span className="badge badge-xs badge-ghost italic">{item.news_daerah.kanal?.name}</span>
-                            {getStatusBadge(item.news_daerah.status)}
-                        </div>
-                    </div>
-                ) : (
-                    <Link href={route('admin.news.import.daerah', item.is_code)} className="btn btn-xs btn-info btn-outline">
-                        + Daerah
-                    </Link>
-                )}
-            </td>
-        )}
-
         {/* Kolom Nasional */}
         {hasPermission('import nasional news master') && (
             <td>
@@ -212,6 +184,36 @@ const NewsDesktopRow = ({ item, hasPermission }) => (
                 ) : (
                     <Link href={route('admin.news.import.nasional', item.is_code)} className="btn btn-xs btn-info btn-outline">
                         + Nasional
+                    </Link>
+                )}
+            </td>
+        )}
+
+        {/* Kolom Daerah */}
+        {hasPermission('import daerah news master') && (
+            <td>
+                {item.news_daerah ? (
+                    <div className="flex flex-col gap-1.5">
+                        <div className="flex items-center justify-between gap-2">
+                            <span className="text-[11px] font-bold text-success">Terindeks</span>
+                            <Link href={route('admin.daerah.news.edit', item.news_daerah.id)} className="btn btn-xs btn-warning btn-outline h-6 min-h-0">
+                                Edit
+                            </Link>
+                        </div>
+                        <span className="text-[11px] leading-tight text-base-content/80 truncate max-w-[150px]" title={item.news_daerah.title}>
+                            {item.news_daerah.title}
+                        </span>
+                        <span className="text-[10px] text-base-content/70">
+                            {formatDateTimeLong(item.news_daerah.datepub)} {/* Tanggal publish daerah */}
+                        </span>
+                        <div className="flex items-center gap-1">
+                            <span className="badge badge-xs badge-ghost italic">{item.news_daerah.kanal?.name}</span>
+                            {getStatusBadge(item.news_daerah.status)}
+                        </div>
+                    </div>
+                ) : (
+                    <Link href={route('admin.news.import.daerah', item.is_code)} className="btn btn-xs btn-info btn-outline">
+                        + Daerah
                     </Link>
                 )}
             </td>
@@ -354,8 +356,8 @@ export default function Index({ news, writers, kanals, filters }) {
                                         <th>#</th>
                                         <th>Penulis</th>
                                         <th className="w-1/3">Judul & Tanggal Masuk</th>
-                                        {hasPermission('import daerah news master') && <th>Daerah</th>}
                                         {hasPermission('import nasional news master') && <th>Nasional</th>}
+                                        {hasPermission('import daerah news master') && <th>Daerah</th>}
                                         <th className="text-center">Status Distribusi</th>
                                         {hasPermission('edit news master') && <th className="text-right">Action</th>}
                                     </tr>
