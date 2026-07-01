@@ -22,6 +22,7 @@ use App\Http\Controllers\NewsDaerahController;
 use App\Http\Controllers\NewsNasionalController;
 use App\Http\Controllers\NewsNoteController;
 use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\PageStaticController;
 use App\Http\Controllers\PermissionController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ReportGalleryController;
@@ -103,6 +104,7 @@ Route::middleware('auth')->prefix('admin')->name('admin.')->group(function () {
             Route::resource('editor', EditorNasionalController::class);
             Route::resource('fotografi', GalleryController::class);
             Route::resource('ekoran', EKoranController::class);
+             Route::resource('page-static', PageStaticController::class);
         }
     );
     Route::prefix('ajp')->name('ajp.')->group(
