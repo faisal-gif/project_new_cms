@@ -27,8 +27,10 @@ class WriterAjpController extends Controller
 
             // 3. Gunakan method when() untuk menggantikan blok if()
             ->when($request->search, function ($query, $search) {
-                // Tidak perlu nested closure jika hanya mencari di satu kolom
-                $query->where('nama', 'like', "%{$search}%");
+                $query->where(function ($q) use ($search) {
+                    $q->where('nama', 'like', "%{$search}%")
+                        ->orWhere('email', 'like', "%{$search}%");
+                });
             })
 
             ->when($request->filled('status'), function ($query) use ($request) {
@@ -133,7 +135,7 @@ class WriterAjpController extends Controller
 
         try {
             DB::beginTransaction();
-            
+
             $updateData = [
                 'nama'       => $validated['name'],
                 'email'      => $validated['email'],
