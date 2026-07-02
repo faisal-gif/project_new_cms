@@ -230,7 +230,7 @@ function Edit({ news, writers, editors, kanal, fokus, hasEditor, editor_id }) {
                                                 dateFormat="yyyy-MM-dd HH:mm"  // Tampilan akhir di dalam kotak teks (Format 24 Jam)
                                                 className="input border border-input mt-1 block w-full"
                                                 placeholderText="Pilih Tanggal dan Waktu..."
-                                                withPortal
+                                               
                                             />
                                             <InputError message={errors.datepub} className="mt-2" />
                                         </div>
