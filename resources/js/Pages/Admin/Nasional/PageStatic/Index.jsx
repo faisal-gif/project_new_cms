@@ -40,7 +40,7 @@ function Index({ pageStatics, filters }) {
             timeout = setTimeout(() => {
                 router.get(
                     INDEX_ROUTE,
-                    { search,  page: 1 },
+                    { search, page: 1 },
                     { preserveState: true, replace: true }
                 );
             }, 400);
@@ -106,7 +106,7 @@ function Index({ pageStatics, filters }) {
                                                 onChange={(e) => setSearch(e.target.value)}
                                             />
                                         </div>
-                                        
+
                                     </div>
 
                                 </div>
@@ -134,9 +134,7 @@ function Index({ pageStatics, filters }) {
 
                                             {/* Actions */}
                                             <div className="flex gap-2 mt-4">
-                                                {hasPermission('edit page static') && (
-                                                    <Link href={route('admin.nasional.page-static.edit', pageStatic.page_id)} className="btn btn-sm btn-warning btn-outline">Edit</Link>
-                                                )}
+                                                <Link href={route('admin.nasional.page-static.edit', pageStatic.page_id)} className="btn btn-sm btn-warning btn-outline">Edit</Link>
                                             </div>
                                         </div>
                                     ))}
@@ -151,7 +149,7 @@ function Index({ pageStatics, filters }) {
                                                 <th>#</th>
                                                 <th>Nama</th>
 
-                                                <th>Status</th>
+                                                <th>Deskripsi</th>
                                                 <th className="text-right">Action</th>
                                             </tr>
                                         </thead>
@@ -160,12 +158,11 @@ function Index({ pageStatics, filters }) {
                                                 <tr key={pageStatic.page_id}>
                                                     <th>{index + 1}</th>
                                                     <td>{pageStatic.page_name}</td>
-                                                    
+                                                    <td>{pageStatic.page_desk}</td>
+
                                                     <td>
                                                         <div className="flex justify-end gap-2">
-                                                            {hasPermission('edit page static') && (
-                                                                <Link href={route('admin.nasional.page-static.edit', pageStatic.page_id)} className="btn btn-sm btn-warning btn-outline">Edit</Link>
-                                                            )}
+                                                            <Link href={route('admin.nasional.page-static.edit', pageStatic.page_id)} className="btn btn-sm btn-warning btn-outline">Edit</Link>
                                                         </div>
                                                     </td>
                                                 </tr>
