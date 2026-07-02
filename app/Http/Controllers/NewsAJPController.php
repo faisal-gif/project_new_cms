@@ -51,7 +51,8 @@ class NewsAJPController extends Controller
     public function show($id)
     {
         // Gunakan eager loading untuk mengambil data relasi writer
-        $news = NewsBerbayar::with('writer:id,nama,email')->findOrFail($id);
+        $news = NewsBerbayar::with('writer:id,nama,email', 'newsNasional:is_code,news_id,news_title,news_status')->findOrFail($id);
+      
 
         if ($news->type != '1') {
             return redirect()->back()->with('error', 'Berita Ini bukan berita AJP');
@@ -133,6 +134,7 @@ class NewsAJPController extends Controller
 
             $ajpNews->update([
                 'status' => '1',
+                'url' => 'https://timesindonesia.co.id/indonesia-positif/' . $news->news_id  . '/' . Str::slug($news->news_title),
             ]);
 
             DB::connection('mysql_nasional')->commit();

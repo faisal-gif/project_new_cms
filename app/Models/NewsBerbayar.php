@@ -57,4 +57,9 @@ class NewsBerbayar extends Model
     {
         return $this->belongsTo(WriterBerbayar::class, 'pewarta_id');
     }
+
+    public function newsNasional()
+    {
+        return $this->hasOne(NewsNasional::class, 'is_code', 'is_code');
+    }
 }

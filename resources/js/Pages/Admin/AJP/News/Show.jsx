@@ -3,7 +3,7 @@ import { Badge } from '@/Components/ui/badge'
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout'
 import { formatDate } from '@/Utils/formatter'
 import { Head, Link } from '@inertiajs/react'
-import { ArrowLeft, Edit, ImageIcon, UploadCloudIcon } from 'lucide-react'
+import { ArrowLeft, Edit, ImageIcon, InfoIcon, UploadCloudIcon } from 'lucide-react'
 import React from 'react'
 
 export default function Show({ news }) {
@@ -51,10 +51,17 @@ export default function Show({ news }) {
                                 <ArrowLeft size={16} /> Kembali ke Daftar
                             </Link>
 
-                            {/* Tombol Edit Baru Ditempatkan Di Sini */}
+                            {news.news_nasional === null && (
                             <Link href={route('admin.ajp.news.publish', news.id)} className="btn btn-success">
                                 <UploadCloudIcon size={16} /> Publish Berita
                             </Link>
+                            )}
+
+                            {news.news_nasional && (
+                                <Link href={route('admin.nasional.news.show', news.news_nasional.news_id)} className="btn btn-info">
+                                    <InfoIcon size={16} /> Detail Berita
+                                </Link>
+                            )}
                         </div>
 
                         {/* Judul Berita Utama */}
