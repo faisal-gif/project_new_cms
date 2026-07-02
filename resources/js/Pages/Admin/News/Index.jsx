@@ -10,6 +10,7 @@ import PaginationDaisy from '@/Components/PaginationDaisy';
 import { Badge } from '@/Components/ui/badge';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { formatDateTime, formatDateTimeLong } from '@/Utils/formatter';
+import InputSelect from '@/Components/InputSelect';
 
 /* ==============================================================================
    HELPER FUNCTIONS 
@@ -245,6 +246,7 @@ export default function Index({ news, writers, kanals, filters }) {
     // State Filters
     const [search, setSearch] = useState(() => filters.search || '');
     const [writer, setWriter] = useState(() => filters.writer || '');
+    const [status, setStatus] = useState(() => filters.distribution_status || '');
 
     const INDEX_ROUTE = route('admin.news.index');
 
@@ -266,19 +268,20 @@ export default function Index({ news, writers, kanals, filters }) {
         const timeout = setTimeout(() => {
             router.get(
                 INDEX_ROUTE,
-                { search, writer, page: 1 },
+                { search, writer, distribution_status: status, page: 1 },
                 { preserveState: true, replace: true }
             );
         }, search !== filters.search ? 400 : 0); // Hanya debounce untuk ketikan search
 
         return () => clearTimeout(timeout);
-    }, [search, writer]);
+    }, [search, writer, status]);
 
     // Handle Reset Filter
     const handleReset = () => {
         setSearch('');
         setWriter('');
-        router.get(INDEX_ROUTE, { search: '', writer: '', page: 1 }, { preserveState: true, replace: true });
+        setStatus('');
+        router.get(INDEX_ROUTE, { search: '', writer: '', distribution_status: '', page: 1 }, { preserveState: true, replace: true });
     };
 
     return (
@@ -310,25 +313,42 @@ export default function Index({ news, writers, kanals, filters }) {
 
                     {/* Filter Section */}
                     <Card>
-                        <div className="flex flex-col md:flex-row gap-4 w-full md:w-auto items-center">
-                            <div className="w-full md:w-96">
-                                <InputWithPrefix
-                                    prefix={<Search size={16} />}
-                                    placeholder="Search Title and Id..."
-                                    className="w-full"
-                                    value={search}
-                                    onChange={(e) => setSearch(e.target.value)}
-                                />
+                        <div className="flex flex-col md:flex-row justify-between gap-4 w-full md:w-auto items-center">
+                            <div className="flex flex-col md:flex-row items-start md:items-center gap-4 w-full md:w-auto">
+                                <div className="w-full md:w-96">
+                                    <InputWithPrefix
+                                        prefix={<Search size={16} />}
+                                        placeholder="Search Title and Id..."
+                                        className="w-full"
+                                        value={search}
+                                        onChange={(e) => setSearch(e.target.value)}
+                                    />
+                                </div>
+                                <div className="w-full md:w-48 z-20">
+                                    <Select
+                                        options={writers}
+                                        value={writers.find(w => w.value === writer) || null}
+                                        placeholder="Penulis"
+                                        onChange={(e) => setWriter(e ? e.value : '')}
+                                        isClearable
+                                    />
+                                </div>
+                                <div className="w-full md:w-48 z-20">
+                                    <InputSelect
+                                        value={status}
+                                        onChange={(e) => setStatus(e.target.value)}
+                                        className="w-full"
+                                        options={[
+                                            { label: "Semua Status", value: "" },
+                                            { label: "Belum Tayang", value: "0" },
+                                            { label: "Tayang Parsial", value: "1" },
+                                            { label: "Tayang Semua", value: "2" },
+                                        ]}
+                                    />
+                                </div>
                             </div>
-                            <div className="w-full md:w-48 z-20">
-                                <Select
-                                    options={writers}
-                                    value={writers.find(w => w.value === writer) || null}
-                                    placeholder="Penulis"
-                                    onChange={(e) => setWriter(e ? e.value : '')}
-                                    isClearable
-                                />
-                            </div>
+
+
                             <button type="button" className="btn btn-neutral w-full md:w-auto md:ml-2" onClick={handleReset}>
                                 Reset
                             </button>

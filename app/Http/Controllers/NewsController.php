@@ -102,6 +102,10 @@ class NewsController extends Controller implements HasMiddleware
                 $query->where('writer_id', $request->writer);
             }
 
+            if ($request->filled('distribution_status')) {
+                $query->where('distribution_status', $request->distribution_status);
+            }
+
             $news = $query->latest()->simplePaginate(10)->withQueryString();
         } catch (QueryException $e) {
             // Jika DB News atau relasinya mati, kembalikan data kosong yang valid untuk frontend
@@ -129,7 +133,7 @@ class NewsController extends Controller implements HasMiddleware
         return Inertia::render('Admin/News/Index', [
             'news'    => $news,
             'writers' => $writers,
-            'filters' => $request->only(['search', 'writer', 'status']),
+            'filters' => $request->only(['search', 'writer', 'distribution_status']),
         ]);
     }
 
