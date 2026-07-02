@@ -32,7 +32,8 @@ import {
     User,
     Users,
     Bell,        // <-- TAMBAHAN: Icon Lonceng Notifikasi
-    BarChart3    // <-- TAMBAHAN: Icon untuk menu Laporan/Report
+    BarChart3,    // <-- TAMBAHAN: Icon untuk menu Laporan/Report
+    Globe2Icon
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
@@ -449,6 +450,14 @@ export default function AuthenticatedLayout({ header, children }) {
                             </Link>
                         </li>
                     )}
+
+                     {hasPermission('view page static nasional') && (
+                         <li>
+                            <Link href={route('admin.nasional.page-static.index')} className={linkClass(isActive('admin.nasional.page-static.*'))}>
+                                <Globe2Icon size={16} /> Page Static
+                            </Link>
+                        </li>
+                     )}
 
                     {/* ================= 3. DAERAH ================= */}
                     <div className="divider my-1 bg-white/10 h-[1px]"></div>

@@ -90,7 +90,7 @@ function Index({ pageStatics, filters }) {
                             <Card>
                                 <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
                                     {/* Button Tambah User */}
-                                    {hasPermission('create penulis nasional') && (
+                                    {hasPermission('create page static nasional') && (
                                         <Link href={route('admin.nasional.page-static.create')} className="btn btn-primary rounded-lg">
                                             <Plus size={16} /> Tambah Page Static
                                         </Link>
@@ -134,7 +134,9 @@ function Index({ pageStatics, filters }) {
 
                                             {/* Actions */}
                                             <div className="flex gap-2 mt-4">
-                                                <Link href={route('admin.nasional.page-static.edit', pageStatic.page_id)} className="btn btn-sm btn-warning btn-outline">Edit</Link>
+                                                {hasPermission('edit page static nasional') && (
+                                                    <Link href={route('admin.nasional.page-static.edit', pageStatic.page_id)} className="btn btn-sm btn-warning btn-outline">Edit</Link>
+                                                )}
                                             </div>
                                         </div>
                                     ))}
@@ -162,7 +164,9 @@ function Index({ pageStatics, filters }) {
 
                                                     <td>
                                                         <div className="flex justify-end gap-2">
-                                                            <Link href={route('admin.nasional.page-static.edit', pageStatic.page_id)} className="btn btn-sm btn-warning btn-outline">Edit</Link>
+                                                            {hasPermission('edit page static nasional') && (
+                                                                <Link href={route('admin.nasional.page-static.edit', pageStatic.page_id)} className="btn btn-sm btn-warning btn-outline">Edit</Link>
+                                                            )}
                                                         </div>
                                                     </td>
                                                 </tr>
