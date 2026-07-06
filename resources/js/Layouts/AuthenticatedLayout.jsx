@@ -548,22 +548,26 @@ export default function AuthenticatedLayout({ header, children }) {
                             </details>
                         </li>
                     )}
-                    {hasPermission(['export ajp']) && (
-                        <>
-                            <div className="divider my-1 bg-white/10 h-[1px]"></div>
-                            <h2 className="menu-title text-yellow-300/50 uppercase text-xs tracking-wider">AJP</h2>
+
+                    <>
+                        <div className="divider my-1 bg-white/10 h-[1px]"></div>
+                        <h2 className="menu-title text-yellow-300/50 uppercase text-xs tracking-wider">AJP</h2>
+                        {hasPermission(['view member ajp']) && (
                             <li>
                                 <Link href={route('admin.ajp.writer.index')} className={linkClass(isActive('admin.ajp.writer.*'))}>
                                     <User2Icon size={16} /> Member AJP
                                 </Link>
                             </li>
+                        )}
+                        {hasPermission(['view news ajp']) && (
                             <li>
                                 <Link href={route('admin.ajp.news.index')} className={linkClass(isActive('admin.ajp.news.*'))}>
                                     <Newspaper size={16} /> News AJP
                                 </Link>
                             </li>
-                        </>
-                    )}
+                        )}
+                    </>
+
 
                     {/* ================= 4. TOOLS & EXPORT ================= */}
                     {hasPermission(['export ajp']) && (
