@@ -64,36 +64,39 @@ class WriterAjpController extends Controller
      */
     public function store(WriterAjpRequest $request)
     {
+        // 1. Data sudah divalidasi dengan ketat oleh WriterAjpRequest
         $validated = $request->validated();
-        $paket = PaketBerita::findOrFail($validated['paket_berita']);
 
         try {
             DB::beginTransaction();
-            // Resolve Quota dan Date Expired (Mencegah manipulasi FE)
-            $packageData = $this->resolvePackageData($paket, $validated);
 
+            // 2. Langsung simpan data ke database tanpa resolvePackageData
             WriterBerbayar::create([
                 'nama'       => $validated['name'],
                 'email'      => $validated['email'],
                 'password'   => Hash::make($validated['password']),
-                'contact'    => $validated['phone'],
-                'instansi'   => $validated['instansi'],
-                'prov'       => $validated['provinsi'],
-                'city'       => $validated['kota'],
-                'address'    => $validated['alamat'],
+
+                'contact'    => $validated['phone'] ?? null,
+                'instansi'   => $validated['instansi'] ?? null,
+                'prov'       => $validated['provinsi'] ?? null,
+                'city'       => $validated['kota'] ?? null,
+                'address'    => $validated['alamat'] ?? null,
+
                 'status'     => $validated['status'],
-                'package_id' => $paket->id,
-                'quota_news' => $packageData['quota'],
-                'dateexp'    => $packageData['dateexp'],
                 'type'       => 1,
 
+                'package_id' => $validated['paket_berita'],
+                'quota_news' => $validated['quota_news'],
+                'dateexp'    => $validated['date_exp']
+                    ? Carbon::parse($validated['date_exp'])->format('Y-m-d')
+                    : null,
             ]);
 
             DB::commit();
             return redirect()->route('admin.ajp.writer.index')->with('success', 'Penulis AJP berhasil ditambahkan.');
         } catch (\Exception $e) {
             DB::rollback();
-            return back()->withErrors(['error' => 'Terjadi kesalahan saat menyimpan data: ' . $e->getMessage()]);
+            return back()->withErrors(['error' => 'Terjadi kesalahan sistem saat menyimpan data: ' . $e->getMessage()])->withInput();
         }
     }
 
@@ -125,44 +128,49 @@ class WriterAjpController extends Controller
      */
     public function update(WriterAjpRequest $request, string $id)
     {
-        $writer = WriterBerbayar::find($id);
+        $writer = WriterBerbayar::findOrFail($id);
 
         $validated = $request->validated();
-        $paket = PaketBerita::findOrFail($validated['paket_berita']);
-
-        // Resolve Quota dan Date Expired
-        $packageData = $this->resolvePackageData($paket, $validated);
 
         try {
             DB::beginTransaction();
 
             $updateData = [
-                'nama'       => $validated['name'],
-                'email'      => $validated['email'],
-                'contact'    => $validated['phone'],
-                'instansi'   => $validated['instansi'],
-                'prov'       => $validated['provinsi'],
-                'city'       => $validated['kota'],
-                'address'    => $validated['alamat'],
-                'status'     => $validated['status'],
-                'package_id' => $paket->id,
-                'quota_news' => $packageData['quota'],
-                'dateexp'    => $packageData['dateexp'],
-                'type'       => 1,
+                'nama'     => $validated['name'],
+                'email'    => $validated['email'],
+                'contact'  => $validated['phone'] ?? null,
+                'instansi' => $validated['instansi'] ?? null,
+                'prov'     => $validated['provinsi'] ?? null,
+                'city'     => $validated['kota'] ?? null,
+                'address'  => $validated['alamat'] ?? null,
+                'status'   => $validated['status'],
+                'type'     => 1,
             ];
 
-            // Hanya update password jika admin mengisinya di form edit
             if (!empty($validated['password'])) {
                 $updateData['password'] = Hash::make($validated['password']);
+            }
+
+            if (!empty($validated['is_update_package'])) {
+                $updateData['package_id'] = $validated['paket_berita'];
+                $updateData['quota_news'] = $validated['quota_news'];
+                $updateData['dateexp']    = $validated['date_exp']
+                    ? Carbon::parse($validated['date_exp'])->format('Y-m-d')
+                    : null;
             }
 
             $writer->update($updateData);
 
             DB::commit();
-            return redirect()->route('admin.ajp.writer.index')->with('success', 'Data penulis AJP berhasil diperbarui.');
+
+            return redirect()->route('admin.ajp.writer.index')
+                ->with('success', 'Data penulis AJP berhasil diperbarui.');
         } catch (\Exception $e) {
             DB::rollback();
-            return back()->withErrors(['error' => 'Terjadi kesalahan saat menyimpan data: ' . $e->getMessage()]);
+
+            return back()->withErrors([
+                'error' => 'Terjadi kesalahan sistem saat menyimpan data: ' . $e->getMessage()
+            ]);
         }
     }
 

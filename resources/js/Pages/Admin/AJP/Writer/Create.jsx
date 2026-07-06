@@ -10,7 +10,7 @@ import { Head, useForm } from '@inertiajs/react'
 import React, { useState } from 'react'
 import Select from "react-select";
 
-function Create({ paket }) {
+export default function Create({ paket }) {
     const [isCustomMode, setIsCustomMode] = useState(false);
 
     const { data, setData, post, processing, errors } = useForm({
@@ -28,17 +28,14 @@ function Create({ paket }) {
         date_exp: '',
     });
 
-    // 1. Format data Paket Berita (Sesuaikan label jika paket custom/null)
     const paketOptions = paket ? paket.map(paket => ({
         value: paket.id,
-        // Jika kuota null, tampilkan label berbeda
         label: paket.quota === null
             ? `⭐ ${paket.name} (Input Manual)`
             : `${paket.name} (Kuota: ${paket.quota} | Masa Aktif: ${paket.period} ${paket.jenis_periode})`,
         paketDetail: paket
     })) : [];
 
-    // 2. Logika Reactive: Hitung preview ATAU buka form
     const handlePaketChange = (selectedOption) => {
         if (!selectedOption) {
             setIsCustomMode(false);
@@ -48,36 +45,25 @@ function Create({ paket }) {
 
         const pkg = selectedOption.paketDetail;
 
-        // Cek apakah ini paket "Custom" (mengandalkan quota yang bernilai null)
         if (pkg.quota === null) {
-            setIsCustomMode(true); // Buka kunci input
+            setIsCustomMode(true);
             setData(prevData => ({
                 ...prevData,
                 paket_berita: selectedOption.value,
-                quota_news: '', // Kosongkan agar bisa diisi manual
-                date_exp: ''    // Kosongkan agar bisa diisi manual
+                quota_news: '',
+                date_exp: ''
             }));
         } else {
-            setIsCustomMode(false); // Kunci kembali input
-            let expDate = new Date();
+            setIsCustomMode(false);
+            let expDate = new Date(); // Hitung mulai dari hari ini
 
-            // Kalkulasi tanggal
             if (pkg.jenis_periode && pkg.period) {
                 switch (pkg.jenis_periode.toLowerCase()) {
-                    case 'hari':
-                        expDate.setDate(expDate.getDate() + pkg.period);
-                        break;
-                    case 'minggu':
-                        expDate.setDate(expDate.getDate() + (pkg.period * 7));
-                        break;
-                    case 'bulan':
-                        expDate.setMonth(expDate.getMonth() + pkg.period);
-                        break;
-                    case 'tahun':
-                        expDate.setFullYear(expDate.getFullYear() + pkg.period);
-                        break;
-                    default:
-                        break;
+                    case 'hari': expDate.setDate(expDate.getDate() + pkg.period); break;
+                    case 'minggu': expDate.setDate(expDate.getDate() + (pkg.period * 7)); break;
+                    case 'bulan': expDate.setMonth(expDate.getMonth() + pkg.period); break;
+                    case 'tahun': expDate.setFullYear(expDate.getFullYear() + pkg.period); break;
+                    default: break;
                 }
             }
 
@@ -101,28 +87,11 @@ function Create({ paket }) {
             <AuthenticatedLayout>
                 <div className="py-12">
                     <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-
                         <div className="space-y-6">
+                            
                             <div className='flex flex-col md:flex-row justify-between md:items-center gap-2'>
-                                {/* start Header */}
-                                <div>
-                                    <h1 className="text-3xl font-bold text-foreground">Tambah Penulis AJP</h1>
-                                </div>
-                                {/* end Header */}
-
-                                {/* start breadcrumbs */}
-                                <div className="breadcrumbs text-sm">
-                                    <ul>
-                                        <li><a>Home</a></li>
-                                        <li>AJP</li>
-                                        <li>Penulis</li>
-                                        <li>Tambah Penulis</li>
-                                    </ul>
-                                </div>
-                                {/* end breadcrumbs */}
+                                <div><h1 className="text-3xl font-bold text-foreground">Tambah Penulis AJP</h1></div>
                             </div>
-
-                            {/* START: Main Form */}
 
                             <form onSubmit={submit} className='space-y-8'>
                                 {/* SECTION 1: INFORMASI AKUN */}
@@ -158,7 +127,8 @@ function Create({ paket }) {
                                         </div>
                                     </div>
                                 </Card>
-                                {/* SECTION 2: INFORMASI DETAIL */}
+
+                                {/* SECTION 2: INFORMASI DETAIL & PAKET */}
                                 <Card>
                                     <div>
                                         <h2 className="text-xl font-bold text-gray-800 border-b pb-2 mb-4">Informasi Detail</h2>
@@ -194,8 +164,8 @@ function Create({ paket }) {
                                                 <InputError message={errors.alamat} className="mt-2" />
                                             </div>
 
-                                            <div className="lg:col-span-6 w-full">
-                                                <InputLabel htmlFor="paket_berita" value="Pilih Paket Berita" className='mb-2 font-bold text-blue-600' />
+                                            <div className="lg:col-span-6 w-full mt-4 border-t pt-6">
+                                                <InputLabel htmlFor="paket_berita" value="Pilih Paket Berita Awal" className='mb-2 font-bold text-blue-600' />
                                                 <Select
                                                     id="paket_berita"
                                                     options={paketOptions}
@@ -215,8 +185,8 @@ function Create({ paket }) {
                                                     type="number"
                                                     value={data.quota_news}
                                                     onChange={(e) => setData('quota_news', e.target.value)}
-                                                    readOnly={!isCustomMode} // <-- Kunci jika BUKAN mode custom
-                                                    className={`mt-1 block w-full transition-all ${!isCustomMode ? 'bg-gray-100 cursor-not-allowed border-gray-300 text-gray-500' : 'bg-white border-blue-400 ring-1 ring-blue-200'}`}
+                                                    readOnly={!isCustomMode} 
+                                                    className={`mt-1 block w-full transition-all ${!isCustomMode ? 'bg-gray-100 cursor-not-allowed border-gray-300 text-gray-500 font-bold' : 'bg-white border-blue-400 ring-1 ring-blue-200'}`}
                                                     placeholder={isCustomMode ? "Ketik jumlah kuota..." : "Terisi otomatis..."}
                                                 />
                                                 <InputError message={errors.quota_news} className="mt-2" />
@@ -230,8 +200,8 @@ function Create({ paket }) {
                                                     type="date"
                                                     value={data.date_exp}
                                                     onChange={(e) => setData('date_exp', e.target.value)}
-                                                    readOnly={!isCustomMode} // <-- Kunci jika BUKAN mode custom
-                                                    className={`mt-1 block w-full transition-all ${!isCustomMode ? 'bg-gray-100 cursor-not-allowed border-gray-300 text-gray-500' : 'bg-white border-blue-400 ring-1 ring-blue-200'}`}
+                                                    readOnly={!isCustomMode} 
+                                                    className={`mt-1 block w-full transition-all ${!isCustomMode ? 'bg-gray-100 cursor-not-allowed border-gray-300 text-gray-500 font-bold' : 'bg-white border-blue-400 ring-1 ring-blue-200'}`}
                                                 />
                                                 <InputError message={errors.date_exp} className="mt-2" />
                                             </div>
@@ -239,22 +209,17 @@ function Create({ paket }) {
                                         </div>
                                     </div>
                                 </Card>
-                                {/* Action Buttons */}
+                                
                                 <div className='flex flex-row justify-end mt-8 pt-4'>
-                                    <button type="submit" className="btn btn-primary px-8" disabled={processing}>
-                                        Simpan Data Penulis
+                                    <button type="submit" className="btn btn-primary px-8 shadow-lg" disabled={processing}>
+                                        {processing ? 'Menyimpan...' : 'Simpan Data Penulis'}
                                     </button>
                                 </div>
                             </form>
-                     
-                        {/* END: Main Form */}
-
+                        </div>
                     </div>
                 </div>
-            </div>
-        </AuthenticatedLayout >
+            </AuthenticatedLayout >
         </>
     )
 }
-
-export default Create
