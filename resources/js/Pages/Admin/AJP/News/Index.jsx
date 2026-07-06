@@ -5,7 +5,7 @@ import PaginationDaisy from '@/Components/PaginationDaisy'
 import { Badge } from '@/Components/ui/badge'
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout'
 import { formatDate, formatDateTimeLong } from '@/Utils/formatter'
-import { Head, Link, router } from '@inertiajs/react'
+import { Head, Link, router, usePage } from '@inertiajs/react'
 import { Plus, Search } from 'lucide-react'
 import React, { useEffect, useRef, useState } from 'react'
 
@@ -15,6 +15,16 @@ export default function Index({ news, filters }) {
 
     const isFirst = useRef(true);
     const INDEX_ROUTE = route('admin.ajp.news.index');
+
+    const { auth } = usePage().props;
+    const userPermissions = auth.permissions || [];
+
+    const hasPermission = (permissions) => {
+        if (Array.isArray(permissions)) {
+            return permissions.some(permission => userPermissions.includes(permission));
+        }
+        return userPermissions.includes(permissions);
+    };
 
     useEffect(() => {
         if (isFirst.current) {
@@ -61,9 +71,11 @@ export default function Index({ news, filters }) {
                     {/* Toolbar / Filters */}
                     <Card>
                         <div className="flex flex-col md:flex-row justify-between gap-4">
-                            <Link href={route('admin.ajp.news.create')} className="btn btn-primary">
-                                <Plus size={16} /> Tulis Berita
-                            </Link>
+                            {hasPermission(['create news ajp']) && (
+                                <Link href={route('admin.ajp.news.create')} className="btn btn-primary">
+                                    <Plus size={16} /> Tulis Berita
+                                </Link>
+                            )}
 
                             <div className="flex flex-col md:flex-row gap-4 w-full md:w-auto">
                                 <div className="w-full md:w-80">
@@ -130,6 +142,12 @@ export default function Index({ news, filters }) {
                                                     <Link href={route('admin.ajp.news.show', item.id)} className="btn btn-sm btn-info btn-outline">
                                                         Detail
                                                     </Link>
+
+                                                    {hasPermission(['publish news ajp']) && (
+                                                        <Link href={route('admin.ajp.news.publish', item.id)} className="btn btn-sm btn-success btn-outline">
+                                                            Publish
+                                                        </Link>
+                                                    )}
                                                 </div>
                                             </td>
                                         </tr>
