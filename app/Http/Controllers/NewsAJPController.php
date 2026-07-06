@@ -31,7 +31,7 @@ class NewsAJPController extends Controller
     public function index(Request $request)
     {
         $news = NewsBerbayar::query()
-            ->with('writer:id,nama')
+            ->with('writer:id,nama', 'newsNasional:is_code,news_id,news_title,news_status')
             ->where('type', '1')
             ->when($request->search, function ($query, $search) {
                 $query->where('title', 'like', "%{$search}%")
@@ -44,6 +44,7 @@ class NewsAJPController extends Controller
             ->orderByDesc('id')
             ->paginate(10)
             ->withQueryString();
+            
 
         return Inertia::render('Admin/AJP/News/Index', [
             'news'    => $news,

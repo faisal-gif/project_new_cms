@@ -150,9 +150,23 @@ export default function Index({ news, filters }) {
                                                     </Link>
 
                                                     {hasPermission(['publish news ajp']) && (
-                                                        <Link href={route('admin.ajp.news.publish', item.id)} className="btn btn-sm btn-success btn-outline">
-                                                            Publish
-                                                        </Link>
+                                                        item.news_nasional != null ? (
+                                                            // TAMPILAN JIKA STATUS = 1 (SUDAH PUBLISH)
+                                                            <Link
+                                                                href={route('admin.nasional.news.show', item.news_nasional.news_id)}
+                                                                className="btn btn-sm btn-warning btn-outline"
+                                                            >
+                                                                Nasional
+                                                            </Link>
+                                                        ) : (
+                                                            // TAMPILAN JIKA STATUS != 1 (BELUM PUBLISH / DRAFT)
+                                                            <Link
+                                                                href={route('admin.ajp.news.publish', item.id)}
+                                                                className="btn btn-sm btn-success btn-outline"
+                                                            >
+                                                                Publish
+                                                            </Link>
+                                                        )
                                                     )}
                                                 </div>
                                             </td>
