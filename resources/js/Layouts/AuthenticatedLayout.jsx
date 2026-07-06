@@ -33,7 +33,8 @@ import {
     Users,
     Bell,        // <-- TAMBAHAN: Icon Lonceng Notifikasi
     BarChart3,    // <-- TAMBAHAN: Icon untuk menu Laporan/Report
-    Globe2Icon
+    Globe2Icon,
+    User2Icon
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
@@ -451,13 +452,13 @@ export default function AuthenticatedLayout({ header, children }) {
                         </li>
                     )}
 
-                     {hasPermission('view page static nasional') && (
-                         <li>
+                    {hasPermission('view page static nasional') && (
+                        <li>
                             <Link href={route('admin.nasional.page-static.index')} className={linkClass(isActive('admin.nasional.page-static.*'))}>
                                 <Globe2Icon size={16} /> Page Static
                             </Link>
                         </li>
-                     )}
+                    )}
 
                     {/* ================= 3. DAERAH ================= */}
                     <div className="divider my-1 bg-white/10 h-[1px]"></div>
@@ -546,6 +547,22 @@ export default function AuthenticatedLayout({ header, children }) {
                                 </ul>
                             </details>
                         </li>
+                    )}
+                    {hasPermission(['export ajp']) && (
+                        <>
+                            <div className="divider my-1 bg-white/10 h-[1px]"></div>
+                            <h2 className="menu-title text-yellow-300/50 uppercase text-xs tracking-wider">AJP</h2>
+                            <li>
+                                <Link href={route('admin.ajp.writer.index')} className={linkClass(isActive('admin.ajp.writer.*'))}>
+                                    <User2Icon size={16} /> Member AJP
+                                </Link>
+                            </li>
+                            <li>
+                                <Link href={route('admin.ajp.news.index')} className={linkClass(isActive('admin.ajp.news.*'))}>
+                                    <Newspaper size={16} /> News AJP
+                                </Link>
+                            </li>
+                        </>
                     )}
 
                     {/* ================= 4. TOOLS & EXPORT ================= */}
