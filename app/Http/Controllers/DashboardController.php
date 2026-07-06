@@ -70,7 +70,7 @@ class DashboardController extends Controller
 
                 // Pastikan kolom 'updated_at' valid untuk model NewsDaerah Anda
                 $countDaerah = NewsDaerah::where('editor_id', $user->editor->id_daerah)
-                    ->whereDate('created_at', $today)
+                    ->whereDate('datepub', $today)
                     ->count();
 
                 // Pastikan kolom 'modified' valid untuk model NewsNasional Anda
