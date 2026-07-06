@@ -199,7 +199,7 @@ class NewsAJPController extends Controller
 
 
             $news = NewsNasional::create([
-                'is_code'          => $request->is_code || Str::random(10),
+                'is_code'          => $request->is_code,
                 'editor_id'        => $request->editor,
                 'catnews_id'       => '30',
                 'news_title'       => $request->title,
