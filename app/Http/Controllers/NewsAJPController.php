@@ -41,7 +41,7 @@ class NewsAJPController extends Controller
                 $query->where('status', $request->status);
             })
             // Urutkan berdasarkan waktu tayang (datetime) terbaru
-            ->orderByDesc('datetime')
+            ->orderByDesc('id')
             ->paginate(10)
             ->withQueryString();
 

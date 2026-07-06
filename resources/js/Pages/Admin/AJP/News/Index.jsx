@@ -47,6 +47,10 @@ export default function Index({ news, filters }) {
         if (statusValue === 1 || statusValue === '1') {
             return <Badge className="bg-green-300 text-green-800">Published</Badge>;
         }
+
+        if (statusValue === 2 || statusValue === '2') {
+            return <Badge className="bg-yellow-300 text-yellow-800">On Pro</Badge>;
+        }
         return <Badge variant="secondary">Draft</Badge>;
     }
 
@@ -92,8 +96,10 @@ export default function Index({ news, filters }) {
                                         onChange={(e) => setStatus(e.target.value)}
                                         options={[
                                             { label: "Semua Status", value: "" },
+                                            { label: "On Pro", value: "2" },
                                             { label: "Published", value: "1" },
                                             { label: "Draft", value: "0" },
+
                                         ]}
                                     />
                                 </div>
