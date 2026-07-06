@@ -222,8 +222,7 @@ export default function EditorImageModal() {
         if (!imageUrl || !editor) return;
 
         if (!imageName.trim()) { setError("Nama gambar (Alt Text) wajib diisi"); return; }
-        if (!caption.trim()) { setError("Caption keterangan gambar wajib diisi"); return; }
-
+      
         // 1. Cek apakah ini URL internal CDN kita
         if (imageUrl.includes("cdn2.timesmedia.co.id")) {
             insertImage(imageUrl, imageName, caption);

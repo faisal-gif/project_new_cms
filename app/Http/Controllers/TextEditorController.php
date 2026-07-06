@@ -20,14 +20,14 @@ class TextEditorController extends Controller
         $request->validate([
             'file'      => 'required|image|mimes:jpeg,png,jpg,webp|max:2048',
             'name'      => 'required|string|min:3|max:120',
-            'caption'   => 'required|string|max:255', // 💡 Menerima payload caption baru
+            'caption'   => 'nullable|string|max:255', // 💡 Menerima payload caption baru
             'watermark' => 'sometimes|boolean',
         ], [
             // Parameter ketiga adalah array custom messages
             'file.required'    => 'File gambar wajib diunggah.',
             'file.max' =>'File Terlalu Besar',
             'name.required'    => 'Nama gambar (Alt Text) wajib diisi.',
-            'caption.required' => 'Caption keterangan gambar wajib diisi.'
+            'caption.nullable' => 'Caption keterangan gambar bersifat opsional.'
         ]);
 
         try {
@@ -71,13 +71,13 @@ class TextEditorController extends Controller
         $request->validate([
             'image_url' => 'required|url',
             'name'      => 'required|string|min:3|max:120',
-            'caption'   => 'required|string|max:255',
+            'caption'   => 'nullable|string|max:255',
             'watermark' => 'sometimes|boolean',
         ], [
             'image_url.required' => 'URL gambar wajib diisi.',
             'image_url.url'      => 'Format URL tidak valid (harus diawali http/https).',
             'name.required'      => 'Nama gambar (Alt Text) wajib diisi.',
-            'caption.required'   => 'Caption keterangan gambar wajib diisi.'
+            'caption.nullable'   => 'Caption keterangan gambar bersifat opsional.'
         ]);
 
         $tempPath = null;
