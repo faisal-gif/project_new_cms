@@ -69,7 +69,7 @@ class DashboardController extends Controller
                 $today = Carbon::today();
 
                 // Pastikan kolom 'updated_at' valid untuk model NewsDaerah Anda
-                $countDaerah = NewsDaerah::where('editor_id', '2')
+                $countDaerah = NewsDaerah::where('editor_id', $user->editor->id_daerah)
                     ->whereDate('updated_at', $today)
                     ->count();
 
