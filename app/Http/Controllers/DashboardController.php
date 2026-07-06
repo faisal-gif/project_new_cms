@@ -75,7 +75,7 @@ class DashboardController extends Controller
 
                 // Pastikan kolom 'modified' valid untuk model NewsNasional Anda
                 $countNasional = NewsNasional::where('editor_id', $user->editor->id_ti)
-                    ->whereDate('modified', $today)
+                    ->whereDate('created', $today)
                     ->count();
 
                 $stats['editor_performance'] = [
