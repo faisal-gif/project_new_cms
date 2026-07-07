@@ -1,4 +1,5 @@
 import Card from '@/Components/Card'
+import Checkbox from '@/Components/Checkbox'
 import InputEditor from '@/Components/InputEditor'
 import InputError from '@/Components/InputError'
 import InputImage from '@/Components/InputImage'
