@@ -228,6 +228,8 @@ function PublishAJP({ news, editors, fokus, hasEditor, editor_id }) {
                                             <InputError message={errors.image_thumbnail} className="mt-2" />
                                         </div>
 
+
+
                                         <div className='lg:col-span-6'>
                                             <InputTextarea label={"Caption Thumbnail"} value={data.image_caption} onChange={(e) => setData('image_caption', e.target.value)} />
                                             <InputError message={errors.image_caption} className="mt-2" />

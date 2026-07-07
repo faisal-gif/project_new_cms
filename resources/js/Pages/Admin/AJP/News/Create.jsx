@@ -19,10 +19,11 @@ export default function Create({ writers }) {
         title: '',
         content: '',
         image: null,
+        image_watermark: false,
         caption: '',
-        city: '', 
-        narsum: '',     
-        profesi: '',    
+        city: '',
+        narsum: '',
+        profesi: '',
         contact: '',
     });
 
@@ -215,6 +216,14 @@ export default function Create({ writers }) {
                                             </div>
                                             <InputError message={errors.image} className="mt-2" />
                                         </div>
+
+                                        <label className="flex items-center gap-2 lg:col-span-6">
+                                            <Checkbox
+                                                checked={data.image_watermark}
+                                                onChange={(e) => setData('image_watermark', e.target.checked)}
+                                            />
+                                            Apakah ini foto original?
+                                        </label>
 
                                         <div className='lg:col-span-6'>
                                             <InputTextarea

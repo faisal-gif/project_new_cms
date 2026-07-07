@@ -31,6 +31,7 @@ class NewsAjpRequest extends FormRequest
 
             // Validasi File & Media
             'image'      => ['required', 'image', 'mimes:jpeg,png,jpg,webp', 'max:2048'], // Batasi 2MB untuk efisiensi CDN
+            'image_watermark' => ['nullable', 'boolean'],
             'caption'    => ['nullable', 'string', 'max:255'],
 
             // Validasi Data Ekstra (Narasumber & Lokasi)

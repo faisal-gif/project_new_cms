@@ -44,7 +44,7 @@ class NewsAJPController extends Controller
             ->orderByDesc('id')
             ->paginate(10)
             ->withQueryString();
-            
+
 
         return Inertia::render('Admin/AJP/News/Index', [
             'news'    => $news,
@@ -90,12 +90,13 @@ class NewsAJPController extends Controller
         }
 
         $imageUrl = null;
+        $imageWatermark = $validated['image_watermark'] ?? false;
         if ($request->hasFile('image')) {
             try {
                 $file = $request->file('image');
                 $imageName = Str::slug(Str::limit($validated['title'], 80, '')) . '-' . time();
 
-                $imageUrl = $this->cdnService->uploadImage($file, $imageName, 3, 'convert', 0);
+                $imageUrl = $this->cdnService->uploadImage($file, $imageName, 3, 'convert', $imageWatermark ? 1 : 0);
             } catch (\Exception $e) {
                 return back()->withErrors([
                     'image' => 'Sistem gagal mengunggah gambar ke CDN: ' . $e->getMessage()
@@ -120,8 +121,8 @@ class NewsAJPController extends Controller
                 'profesi'    => $validated['profesi'] ?? null,
                 'contact'    => $validated['contact'] ?? null,
                 'datetime'   => now(),
-                'type'       => 1, 
-                'status'     => 0, 
+                'type'       => 1,
+                'status'     => 0,
                 'created_by' => auth()->id(),
             ]);
 
@@ -133,7 +134,7 @@ class NewsAJPController extends Controller
                 ->with('success', 'Berita berhasil disimpan ke sistem dan kuota penulis telah disesuaikan.');
         } catch (\Exception $e) {
             DB::rollBack();
-            
+
             return back()->withErrors([
                 'error' => 'Kegagalan pada database saat menyimpan berita: ' . $e->getMessage()
             ])->withInput();
