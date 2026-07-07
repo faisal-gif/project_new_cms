@@ -31,6 +31,7 @@ class PublishNewsAjpRequest extends FormRequest
             'is_content'      => 'required|string',
             'is_headline'     => 'nullable|in:0,1,true,false',
             'image_thumbnail' => 'required|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+            'image_watermark' => 'nullable|boolean',
             'image_caption'   => 'required|string|max:255',
             'datepub'         => 'required|date',
             'locus'           => 'nullable|string|max:255',

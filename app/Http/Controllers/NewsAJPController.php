@@ -186,11 +186,12 @@ class NewsAJPController extends Controller
         try {
 
             $thumbnailUrl = null;
+            $imageWatermark = $request->image_watermark;
             if ($request->hasFile('image_thumbnail')) {
                 try {
                     $file = $request->file('image_thumbnail');
                     $nameThumbnail = Str::slug(Str::limit($request->title, 100, '')) . '-thumbnail';
-                    $thumbnailUrl = $this->cdnService->uploadImage($file, $nameThumbnail, 3, 'convert', 0) ?? null;
+                    $thumbnailUrl = $this->cdnService->uploadImage($file, $nameThumbnail, 3, 'convert', $imageWatermark ? 1 : 0) ?? null;
                 } catch (\Exception $e) {
                     return back()->withInput()->withErrors(['error' => 'Gagal mengunggah gambar ke CDN: ' . $e->getMessage()]);
                 }

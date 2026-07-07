@@ -28,6 +28,7 @@ function PublishAJP({ news, editors, fokus, hasEditor, editor_id }) {
         is_content: news.content ?? '',
         is_headline: 0,
         image_thumbnail: '',
+        image_watermark: false,
         image_caption: '',
         datepub: '',
         locus: news.city ?? '',
@@ -229,6 +230,13 @@ function PublishAJP({ news, editors, fokus, hasEditor, editor_id }) {
                                         </div>
 
 
+                                        <label className="flex items-center gap-2 lg:col-span-6">
+                                            <Checkbox
+                                                checked={data.image_watermark}
+                                                onChange={(e) => setData('image_watermark', e.target.checked)}
+                                            />
+                                            Apakah ini foto original?
+                                        </label>
 
                                         <div className='lg:col-span-6'>
                                             <InputTextarea label={"Caption Thumbnail"} value={data.image_caption} onChange={(e) => setData('image_caption', e.target.value)} />
