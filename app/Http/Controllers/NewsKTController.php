@@ -216,7 +216,7 @@ class NewsKTController extends Controller
             $ktNews->update([
                 'is_code' => $news->is_code,
                 'status' => '1',
-                'url' => 'https://timesindonesia.co.id/indonesia-positif/' . $news->news_id  . '/' . Str::slug($news->news_title),
+                'url' => 'https://timesindonesia.co.id/kopi-times/' . $news->news_id  . '/' . Str::slug($news->news_title),
             ]);
 
             DB::connection('mysql_nasional')->commit();
