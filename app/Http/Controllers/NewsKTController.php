@@ -163,7 +163,25 @@ class NewsKTController extends Controller
         $kanals = KanalNasional::select('catnews_id as value', 'catnews_title as label')->get();
         $fokus = FokusNasional::select('focnews_id as value', 'focnews_title as label')->get();
         // Gunakan eager loading untuk mengambil data relasi writer
-        $news = NewsBerbayar::with('writer:id,nama,email')->findOrFail($id);
+        $news = NewsBerbayar::with('writer:id,nama,email,kategori')->findOrFail($id);
+
+        $writerCategory = $news->writer ? $news->writer->kategori : null;
+   
+
+        $writerkanal = null;
+        switch ($writerCategory) {
+            case '39':
+                $writerkanal = '39';
+                break;
+            case '40':
+                $writerkanal = '40';
+                break;
+            case '41':
+                $writerkanal = '41';
+                break;
+            default:
+                $writerkanal = '15';
+        }
 
 
         return Inertia::render('Admin/Kopi_Times/News/PublishKT', [
@@ -172,6 +190,7 @@ class NewsKTController extends Controller
             'writers' => $writers,
             'kanal' => $kanals,
             'fokus' => $fokus,
+            'writerkanal' => $writerkanal,
             'hasEditor' => $user->hasRole('editor') ? true : false,
             'editor_id' => $user->editor ? $user->editor->id_ti : null,
         ]);
@@ -184,14 +203,13 @@ class NewsKTController extends Controller
 
         try {
 
-    
-            $tagData = $this->tagNasionalService->processTags($request->tag, $request->is_content);
 
+            $tagData = $this->tagNasionalService->processTags($request->tag, $request->is_content);
 
             $news = NewsNasional::create([
                 'is_code'          => $request->is_code,
                 'editor_id'        => $request->editor,
-                'catnews_id'       => '15',
+                'catnews_id'       => $request->kanal,
                 'news_title'       => $request->title,
                 'news_description' => $request->description,
                 'news_content'     => $tagData['content'],

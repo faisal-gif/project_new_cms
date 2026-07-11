@@ -19,13 +19,14 @@ class PublishNewsKTRequest extends FormRequest
      *
      * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
      */
-     public function rules(): array
+    public function rules(): array
     {
         return [
             'is_code'         => 'required|string',
             'status'          => 'required',
             'editor'          => 'required',
             'title'           => 'required|string|max:255',
+            'kanal'           => 'required',
             'description'     => 'required|string|max:255',
             'tag'             => 'nullable|array',
             'is_content'      => 'required|string',
@@ -38,7 +39,7 @@ class PublishNewsKTRequest extends FormRequest
         ];
     }
 
-      /**
+    /**
      * Get custom messages for validator errors.
      *
      * @return array<string, string>

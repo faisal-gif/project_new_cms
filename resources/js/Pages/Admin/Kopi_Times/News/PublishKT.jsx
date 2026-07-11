@@ -15,8 +15,8 @@ import { CaptionsIcon, CopyIcon, DownloadIcon, GlobeIcon, ImagesIcon, InfoIcon, 
 import React, { useState } from 'react'
 import Select from "react-select";
 
-function PublishKT({ news, editors, fokus, hasEditor, editor_id }) {
-
+function PublishKT({ news, editors, kanal, writerkanal, hasEditor, editor_id }) {
+    
     const { data, setData, post, processing, errors } = useForm({
         is_code: news.is_code ?? '',
         status: 2,
@@ -24,6 +24,7 @@ function PublishKT({ news, editors, fokus, hasEditor, editor_id }) {
         keyword_tool: '',
         title: news.title ?? '',
         description: '',
+        kanal: writerkanal,
         tag: [],
         is_content: news.content ?? '',
         is_headline: 0,
@@ -145,10 +146,6 @@ function PublishKT({ news, editors, fokus, hasEditor, editor_id }) {
                                         <div className='lg:col-span-3'>
                                             <img src={data.image_thumbnail} alt="Thumbnail Preview" className="w-full h-80 object-cover rounded-lg border" />
                                         </div>
-
-
-                                     
-
                                         <div className='lg:col-span-6'>
                                             <InputTextarea label={"Caption Thumbnail"} value={data.image_caption} onChange={(e) => setData('image_caption', e.target.value)} />
                                             <InputError message={errors.image_caption} className="mt-2" />
@@ -169,6 +166,20 @@ function PublishKT({ news, editors, fokus, hasEditor, editor_id }) {
                                             <InputLabel value="Lokus" className='mb-2 label-text font-bold' />
                                             <TextInput type="text" className="mt-1 block w-full" value={data.locus} onChange={(e) => setData('locus', e.target.value)} />
                                             <InputError message={errors.locus} className="mt-2" />
+                                        </div>
+                                        <div className='lg:col-span-3'>
+                                            <InputLabel
+                                                htmlFor="kanal"
+                                                value="Kanal"
+                                                className='mb-2 label-text font-bold'
+                                            />
+                                            <Select
+                                                value={data.kanal ? kanal.find(k => k.value == data.kanal) : null}
+                                                options={kanal}
+                                                placeholder="Pilih Kanal..."
+                                                onChange={(val) => setData('kanal', val?.value)}
+                                            />
+                                            <InputError message={errors.kanal} className="mt-2" />
                                         </div>
                                     </div>
                                 </Card>
