@@ -569,6 +569,26 @@ export default function AuthenticatedLayout({ header, children }) {
                     </>
 
 
+                       <>
+                        <div className="divider my-1 bg-white/10 h-[1px]"></div>
+                        <h2 className="menu-title text-yellow-300/50 uppercase text-xs tracking-wider">Kopi Times</h2>
+                        {hasPermission(['view member kopi-times']) && (
+                            <li>
+                                <Link href={route('admin.kopi-times.writer.index')} className={linkClass(isActive('admin.kopi-times.writer.*'))}>
+                                    <User2Icon size={16} /> Member Kopi Times
+                                </Link>
+                            </li>
+                        )}
+                        {hasPermission(['view news kopi-times']) && (
+                            <li>
+                                <Link href={route('admin.kopi-times.news.index')} className={linkClass(isActive('admin.kopi-times.news.*'))}>
+                                    <Newspaper size={16} /> News Kopi Times
+                                </Link>
+                            </li>
+                        )}
+                    </>
+
+
                     {/* ================= 4. TOOLS & EXPORT ================= */}
                     {hasPermission(['export ajp']) && (
                         <>

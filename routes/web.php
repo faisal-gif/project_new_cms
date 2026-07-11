@@ -19,6 +19,7 @@ use App\Http\Controllers\NetworkDaerahController;
 use App\Http\Controllers\NewsAJPController;
 use App\Http\Controllers\NewsController;
 use App\Http\Controllers\NewsDaerahController;
+use App\Http\Controllers\NewsKTController;
 use App\Http\Controllers\NewsNasionalController;
 use App\Http\Controllers\NewsNoteController;
 use App\Http\Controllers\NotificationController;
@@ -104,7 +105,7 @@ Route::middleware('auth')->prefix('admin')->name('admin.')->group(function () {
             Route::resource('editor', EditorNasionalController::class);
             Route::resource('fotografi', GalleryController::class);
             Route::resource('ekoran', EKoranController::class);
-             Route::resource('page-static', PageStaticController::class);
+            Route::resource('page-static', PageStaticController::class);
         }
     );
     Route::prefix('ajp')->name('ajp.')->group(
@@ -118,6 +119,9 @@ Route::middleware('auth')->prefix('admin')->name('admin.')->group(function () {
 
     Route::prefix('kopi-times')->name('kopi-times.')->group(
         function () {
+            Route::resource('news', NewsKTController::class);
+            Route::get('/news/publish/{id}', [NewsKTController::class, 'publish'])->name('news.publish');
+            Route::post('/news/publish/{isCode}/store', [NewsKTController::class, 'publishStore'])->name('news.publish.store');
             Route::resource('writer', WriterKtController::class);
         }
     );
