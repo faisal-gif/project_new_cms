@@ -11,7 +11,7 @@ class NewsKTRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return false;
+        return true;
     }
 
     /**
@@ -22,7 +22,18 @@ class NewsKTRequest extends FormRequest
     public function rules(): array
     {
         return [
-            //
+            'is_code'     => 'sometimes|string',
+            'editor_id'   => 'required|integer',
+            'datepub'    => 'sometimes',
+            'title'       => 'required|string|max:255',
+            'content'     => 'required|string',
+            'description' => 'required|string',
+            'tags'        => 'required|array', // Asumsi frontend mengirim array dari InputTag
+            'caption'     => 'nullable|string',
+            'headline'    => 'sometimes|boolean',
+            'city'        => 'required|string',
+            'type'        => 'sometimes|integer',
+            'status'      => 'sometimes|integer',
         ];
     }
 }

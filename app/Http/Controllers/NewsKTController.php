@@ -155,6 +155,76 @@ class NewsKTController extends Controller
         ]);
     }
 
+    public function edit($id)
+    {
+        $user = Auth::user();
+        $editors = EditorNasional::select('editor_id as value', 'editor_name as label')->get();
+        $writers = WriterNasional::select('id as value', 'name as label')->get();
+        $kanals = KanalNasional::select('catnews_id as value', 'catnews_title as label')->get();
+        $fokus = FokusNasional::select('focnews_id as value', 'focnews_title as label')->get();
+        // Gunakan eager loading untuk mengambil data relasi writer
+        $news = NewsBerbayar::with('writer:id,nama,email,kategori')->findOrFail($id);
+
+        $writerCategory = $news->writer ? $news->writer->kategori : null;
+
+
+        $writerkanal = null;
+        switch ($writerCategory) {
+            case '39':
+                $writerkanal = '39';
+                break;
+            case '40':
+                $writerkanal = '40';
+                break;
+            case '41':
+                $writerkanal = '41';
+                break;
+            default:
+                $writerkanal = '15';
+        }
+
+
+        return Inertia::render('Admin/Kopi_Times/News/Edit', [
+            'news' => $news,
+            'editors' => $editors,
+            'writers' => $writers,
+            'kanal' => $kanals,
+            'fokus' => $fokus,
+            'writerkanal' => $writerkanal,
+            'hasEditor' => $user->hasRole('editor') ? true : false,
+            'editor_id' => $user->editor ? $user->editor->id_ti : null,
+        ]);
+    }
+
+    public function update(NewsKTRequest $request, $id)
+    {
+        // 1. Cari data berita
+        $news = NewsBerbayar::findOrFail($id);
+
+        // 2. Ambil data yang sudah lolos validasi
+        $validatedData = $request->validated();
+
+        // 3. Handle Tags (Opsional)
+        // Jika dari React (InputTag) mengirim array, tapi database butuh string
+        if (isset($validatedData['tags']) && is_array($validatedData['tags'])) {
+            // Mengubah array ['berita', 'kopi'] menjadi string "berita,kopi"
+            // Sesuaikan parameter mapping jika struktur object tag dari FE berbeda
+            $validatedData['tags'] = implode(',', $validatedData['tags']);
+        }
+
+        // 4. Catat user yang memodifikasi (jika pakai sistem login Laravel)
+        if (auth()->check()) {
+            $validatedData['modified_by'] = auth()->id();
+        }
+
+        $validatedData['status'] = 2;
+        // 5. Eksekusi Update
+        $news->update($validatedData);
+
+        // 6. Return response (Karena pakai Inertia, cukup redirect back)
+        return redirect()->back()->with('success', 'Data berita berhasil diperbarui.');
+    }
+
     public function publish($id)
     {
         $user = Auth::user();
@@ -166,7 +236,7 @@ class NewsKTController extends Controller
         $news = NewsBerbayar::with('writer:id,nama,email,kategori')->findOrFail($id);
 
         $writerCategory = $news->writer ? $news->writer->kategori : null;
-   
+
 
         $writerkanal = null;
         switch ($writerCategory) {
@@ -199,12 +269,30 @@ class NewsKTController extends Controller
     public function publishStore(PublishNewsKTRequest $request, $isCode)
     {
         // Gunakan koneksi mysql_nasional untuk transaksi
+        $isCode = $request->input('is_code');
+        $ktNews = NewsBerbayar::where('is_code', $isCode)->firstOrFail();
+        $writerKT = WriterBerbayar::where('id', $ktNews->pewarta_id)->firstOrFail();
+
         DB::connection('mysql_nasional')->beginTransaction();
 
         try {
 
 
             $tagData = $this->tagNasionalService->processTags($request->tag, $request->is_content);
+
+            // LOGIKA PENANGANAN FILE FOTO:
+            $finalImage = $ktNews->image; // Default pakai gambar bawaan
+
+            // Cek apakah ada file foto yang diunggah oleh editor
+            if ($request->hasFile('image_thumbnail')) {
+                try {
+                    $file = $request->file('image_thumbnail');
+                    $nameThumbnail = 'kopi-times-' . Str::slug(Str::limit($writerKT->nama, 100, '')) . '-thumbnail';
+                    $finalImage = $this->cdnService->uploadImage($file, $nameThumbnail, 3, 'convert', false) ?? null;
+                } catch (\Exception $e) {
+                    return back()->withInput()->withErrors(['error' => 'Gagal mengunggah gambar ke CDN: ' . $e->getMessage()]);
+                }
+            }
 
             $news = NewsNasional::create([
                 'is_code'          => $request->is_code,
@@ -213,12 +301,11 @@ class NewsKTController extends Controller
                 'news_title'       => $request->title,
                 'news_description' => $request->description,
                 'news_content'     => $tagData['content'],
-                'news_image_new'   => $request->image_thumbnail,
+                'news_image_new'   =>  $finalImage,
                 'news_caption'     => $request->image_caption,
                 'news_status'      => $request->status,
                 'news_city'        => $request->locus,
                 'news_datepub'     => $request->datepub ?? now(),
-                'news_headline'    => $request->is_headline ? 1 : 0,
                 'news_tags'        => $tagData['tagString'], // Menggunakan array tag yang sudah dibersihkan
             ]);
 
@@ -226,10 +313,6 @@ class NewsKTController extends Controller
             if (!empty($tagData['syncData'])) {
                 $news->tags()->sync($tagData['syncData']);
             }
-
-            $isCode = $request->input('is_code');
-            $ktNews = NewsBerbayar::where('is_code', $isCode)->firstOrFail();
-
 
             $ktNews->update([
                 'is_code' => $news->is_code,

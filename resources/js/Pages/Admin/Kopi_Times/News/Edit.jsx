@@ -15,34 +15,43 @@ import { CaptionsIcon, CopyIcon, DownloadIcon, GlobeIcon, ImagesIcon, InfoIcon, 
 import React, { useState } from 'react'
 import Select from "react-select";
 
-function PublishKT({ news, editors, kanal, writerkanal, hasEditor, editor_id }) {
+function Edit({ news, editors, kanal, writerkanal, hasEditor, editor_id }) {
 
-    const { data, setData, post, processing, errors } = useForm({
+    // 1. Tambahkan 'transform' dari useForm Inertia
+    const { data, setData, put, processing, errors, transform } = useForm({
         is_code: news.is_code ?? '',
-        status: 2,
-        editor: news.editor_id || editor_id || '',
-        keyword_tool: '',
+
+        // Prioritaskan editor dari database, jika null pakai editor_id dari props (user login)
+        editor_id: news.editor_id || editor_id || '',
+
         title: news.title ?? '',
         description: news.description ?? '',
-        kanal: writerkanal,
-        tag: news.tags ? news.tags.split(',') : [],
-        is_content: news.content ?? '',
-        image_thumbnail: '',
-        image_caption: news.caption ?? '',
-        datepub: news.datepub ?? '',
-        locus: news.city ?? '',
-        focus: '',
+        content: news.content ?? '',
+        headline: news.headline ?? 0,
+        datepub: news.datepub,
+        city: news.city ?? '',
+        caption: news.caption ?? '',
 
+        kanal: writerkanal,
+
+        tags: news.tags ? news.tags.split(',') : [],
+
+        focus: '',
+        image_thumbnail: news.image ?? '',
+        image_watermark: false,
     });
+
+
 
     const submit = (e) => {
         e.preventDefault();
-        post(route('admin.kopi-times.news.publish.store', news.is_code));
+        // Fungsi put() otomatis akan memanggil transform() di atas sebelum mengirim data
+        put(route('admin.kopi-times.news.update', news.id));
     };
 
     return (
         <div>
-            <Head title="Publish Berita Kopi Times" />
+            <Head title="Edit Berita Kopi Times" />
             <AuthenticatedLayout >
                 <div className="py-12">
                     <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -51,14 +60,14 @@ function PublishKT({ news, editors, kanal, writerkanal, hasEditor, editor_id }) 
                             {/* Header */}
                             <div className='flex flex-col md:flex-row justify-between md:items-center gap-2'>
                                 <div>
-                                    <h1 className="text-3xl font-bold text-foreground">Publish Berita Kopi Times</h1>
+                                    <h1 className="text-3xl font-bold text-foreground">Edit Berita Kopi Times</h1>
                                 </div>
                                 <div className="breadcrumbs text-sm">
                                     <ul>
                                         <li><a>Beranda</a></li>
                                         <li>Kopi Times</li>
                                         <li><Link href={route('admin.kopi-times.news.index')}>Berita</Link></li>
-                                        <li>Publish Berita</li>
+                                        <li>Edit Berita</li>
                                     </ul>
                                 </div>
                             </div>
@@ -68,43 +77,30 @@ function PublishKT({ news, editors, kanal, writerkanal, hasEditor, editor_id }) 
                                 {/* Card Informasi Dasar */}
                                 <Card title={<span className="flex gap-2 items-center text-2xl font-semibold"><InfoIcon className='w-6 h-6' /> Informasi Dasar</span>}>
                                     <div className='grid grid-cols-1 lg:grid-cols-6 gap-4 mt-4'>
-                                        <div className="lg:col-span-6">
-                                            <InputRadioGroup
-                                                label="Status"
-                                                value={data.status}
-                                                onChange={(e) => setData('status', e)}
-                                                options={[
-                                                    { label: "Publish", value: 1, color: "success" },
-                                                    { label: "Review", value: 2, color: "warning" },
-                                                ]}
-                                            />
-                                            <InputError message={errors.status} className="mt-2" />
-                                        </div>
 
                                         <div className='lg:col-span-3 w-full'>
                                             <InputLabel value="Editor" className='mb-2 label-text font-bold' />
                                             <Select
-                                                value={editors.find(e => e.value == data.editor)}
+                                                // Tambahkan || null agar react-select tidak error 'undefined' jika value kosong
+                                                value={editors.find(e => e.value == data.editor_id) || null}
                                                 options={editors}
                                                 placeholder="Pilih Editor..."
-                                                onChange={(val) => setData('editor', val?.value)}
+                                                onChange={(val) => setData('editor_id', val?.value)}
                                                 isDisabled={hasEditor}
                                             />
-                                            <InputError message={errors.editor} className="mt-2" />
+                                            <InputError message={errors.editor_id} className="mt-2" />
                                         </div>
                                         <div className='lg:col-span-3 w-full'>
                                             <InputLabel value="Penulis" className='mb-2 label-text font-bold' />
-                                            <TextInput className="block w-full" value={news.writer.nama} disabled />
+                                            {/* Tambahkan ?. nama untuk mencegah error jika writer null */}
+                                            <TextInput className="block w-full" value={news.writer?.nama ?? ''} disabled />
                                         </div>
-
 
                                     </div>
                                 </Card>
 
-
                                 {/* Card Judul & Deskripsi */}
                                 <Card title={<span className="flex gap-2 items-center text-2xl font-semibold"><CaptionsIcon className='w-6 h-6' /> Judul & Deskripsi</span>}>
-                                    {/* ... Isi form judul Anda tetap sama seperti sebelumnya ... */}
                                     <div className='grid grid-cols-1 lg:grid-cols-6 gap-4 mt-8'>
                                         <div className='lg:col-span-6'>
                                             <InputLabel value="Judul" className='mb-2 label-text font-bold' />
@@ -112,78 +108,79 @@ function PublishKT({ news, editors, kanal, writerkanal, hasEditor, editor_id }) 
                                             <InputError message={errors.title} className="mt-2" />
                                         </div>
                                         <div className='lg:col-span-6'>
-                                            <InputTextarea label={"Deskripsi"} value={data.description} className='h-20' onChange={(e) => setData('description', e.target.value)} />
+                                            <InputTextarea
+                                                label={"Deskripsi"}
+                                                value={data.description}
+                                                className='h-20'
+                                                onChange={(e) => setData('description', e.target.value)}
+                                                maxLength={255}
+                                            />
                                             <InputError message={errors.description} className="mt-2" />
                                         </div>
                                         <div className='lg:col-span-6'>
-                                            <InputTag label="Tag" value={data.tag} onChange={(e) => setData('tag', e)} />
-                                            <InputError message={errors.tag} className="mt-2" />
+                                            <InputTag label="Tag" value={data.tags} onChange={(e) => setData('tags', e)} />
+                                            <InputError message={errors.tags} className="mt-2" />
                                         </div>
                                     </div>
                                 </Card>
 
                                 {/* Card Konten Berita */}
                                 <Card title={<span className="flex gap-2 items-center text-2xl font-semibold"><NotebookPenIcon className='w-6 h-6' /> Konten Berita</span>}>
-                                    {/* ... Isi form konten Anda tetap sama seperti sebelumnya ... */}
                                     <div className='grid grid-cols-1 lg:grid-cols-6 gap-4 mt-8'>
                                         <div className='lg:col-span-6'>
                                             <InputLabel value="Isi Berita" className='mb-2 label-text font-bold' />
-                                            <InputEditor value={data.is_content} onChange={(e) => setData('is_content', e)} />
-                                            <InputError message={errors.is_content} className="mt-2" />
+                                            <InputEditor value={data.content} onChange={(e) => setData('content', e)} />
+                                            <InputError message={errors.content} className="mt-2" />
                                         </div>
-                                       </div>
+                                        <div className='lg:col-span-6 grid grid-cols-1 lg:grid-cols-3 gap-4'>
+                                            <InputSwitch label="Headline" checked={!!data.headline} onChange={(val) => setData("headline", val ? 1 : 0)} />
+                                        </div>
+                                    </div>
                                 </Card>
 
                                 {/* Card Gambar Thumbnail */}
                                 <Card title={<span className="flex gap-2 items-center text-2xl font-semibold"><ImagesIcon className='w-6 h-6' /> Gambar Thumbnail Publish</span>}>
                                     <div className='grid grid-cols-1 lg:grid-cols-6 gap-6 mt-8'>
 
-                                        {/* Kiri: Thumbnail Berita & Fitur Ganti Gambar */}
-                                        <div className='lg:col-span-3 flex flex-col gap-4'>
-                                            {/* Input untuk memproses/mengganti foto jika jelek */}
-                                            <div className="p-4 bg-slate-50 border border-slate-200 rounded-lg">
-                                                <InputLabel value="Ganti Thumbnail (Opsional)" className='mb-2 label-text font-bold text-blue-700' />
-                                                <p className="text-xs text-slate-500 mb-3">Unggah gambar baru jika preview di atas buram/jelek.</p>
-                                                <InputImage
-                                                    existingImage={news.image}
-                                                    value={data.image_thumbnail}
-                                                    targetWidth={1200}
-                                                    targetHeight={800}
-                                                    onChange={(e) => setData('image_thumbnail', e)}
-                                                />
-                                                <InputError message={errors.image_thumbnail} className="mt-2" />
-                                            </div>
+                                        {/* Kiri: Thumbnail Berita */}
+                                        <div className='lg:col-span-3'>
+                                            <InputLabel value="Gambar Thumbnail" className='mb-2 label-text font-bold' />
+                                            <img
+                                                src={data.image_thumbnail || 'https://via.placeholder.com/400x300'}
+                                                alt="Thumbnail Preview"
+                                                className="w-full max-h-[300px] object-cover rounded-lg border shadow-sm"
+                                            />
                                         </div>
 
                                         {/* Kanan: Foto Penulis & Catatan */}
-                                        <div className='lg:col-span-3 flex flex-col gap-4 space-y-4'>
+                                        <div className='lg:col-span-3 flex flex-col space-y-4'>
                                             <div>
                                                 <InputLabel value="Foto Penulis" className='mb-2 label-text font-bold' />
-                                                {/* Fallback ke UI Avatars jika penulis belum punya foto */}
                                                 <img
-                                                    src={news.image2 || `https://ui-avatars.com/api/?name=${news.writer?.nama || 'Penulis'}&background=random`}
+                                                    src={news.image2 || 'https://via.placeholder.com/150'}
                                                     alt="Foto Penulis"
-                                                    className="w-32 h-full object-cover rounded-lg border shadow-sm"
+                                                    className="w-32 h-32 object-cover rounded-lg border shadow-sm"
                                                 />
                                             </div>
 
-                                            {/* Kotak Catatan / Peringatan untuk Editor */}
-                                            <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg flex gap-3 text-yellow-800 text-sm shadow-sm mt-2">
+                                            {/* Kotak Catatan / Peringatan */}
+                                            <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg flex gap-3 text-yellow-800 text-sm shadow-sm">
                                                 <InfoIcon className="w-5 h-5 flex-shrink-0 mt-0.5" />
                                                 <div>
-                                                    <strong>Catatan untuk Publisher:</strong> Mohon periksa kualitas gambar thumbnail di samping. Jika resolusi rendah, terpotong, atau kurang pantas, silakan proses dan unggah ulang foto yang lebih baik sebelum menekan tombol terbitkan.
+                                                    <strong>Catatan Editor:</strong> Jika gambar dirasa kurang bagus nanti bisa hubungi publisher untuk memproses gambar.
                                                 </div>
                                             </div>
                                         </div>
 
                                         {/* Bawah: Caption (Full Width) */}
-                                        <div className='lg:col-span-6 mt-4'>
-                                            <InputLabel value="Caption Thumbnail" className='mb-2 label-text font-bold' />
+                                        <div className='lg:col-span-6 mt-2'>
                                             <InputTextarea
-                                                value={data.image_caption}
-                                                onChange={(e) => setData('image_caption', e.target.value)}
+                                                label={"Caption Thumbnail"}
+                                                value={data.caption}
+                                                onChange={(e) => setData('caption', e.target.value)}
+                                                maxLength={255}
                                             />
-                                            <InputError message={errors.image_caption} className="mt-2" />
+                                            <InputError message={errors.caption} className="mt-2" />
                                         </div>
 
                                     </div>
@@ -191,17 +188,16 @@ function PublishKT({ news, editors, kanal, writerkanal, hasEditor, editor_id }) 
 
                                 {/* Card Publish */}
                                 <Card title={<span className="flex gap-2 items-center text-2xl font-semibold"><GlobeIcon className='w-6 h-6' /> Finalisasi Publish</span>}>
-                                    {/* ... Isi form finalisasi Anda tetap sama seperti sebelumnya ... */}
                                     <div className='grid grid-cols-1 lg:grid-cols-6 gap-4 mt-8'>
                                         <div className='lg:col-span-3'>
                                             <InputLabel value="Tanggal Publish" className='mb-2 label-text font-bold' />
-                                            <TextInput type="datetime-local" className="mt-1 block w-full" value={data.datepub} onChange={(e) => setData('datepub', e.target.value)} />
+                                            <TextInput type="datetime-local" className="mt-1 block w-full" value={data.datepub || ''} onChange={(e) => setData('datepub', e.target.value)} />
                                             <InputError message={errors.datepub} className="mt-2" />
                                         </div>
                                         <div className='lg:col-span-3'>
                                             <InputLabel value="Lokus" className='mb-2 label-text font-bold' />
-                                            <TextInput type="text" className="mt-1 block w-full" value={data.locus} onChange={(e) => setData('locus', e.target.value)} />
-                                            <InputError message={errors.locus} className="mt-2" />
+                                            <TextInput type="text" className="mt-1 block w-full" value={data.city} onChange={(e) => setData('city', e.target.value)} />
+                                            <InputError message={errors.city} className="mt-2" />
                                         </div>
                                         <div className='lg:col-span-3'>
                                             <InputLabel
@@ -222,7 +218,7 @@ function PublishKT({ news, editors, kanal, writerkanal, hasEditor, editor_id }) 
 
                                 <div className='flex flex-row justify-end mt-4'>
                                     <button type="submit" className="btn btn-success px-8 text-lg" disabled={processing}>
-                                        Terbitkan Berita Sekarang
+                                        Edit Berita Sekarang
                                     </button>
                                 </div>
                             </form>
@@ -235,4 +231,4 @@ function PublishKT({ news, editors, kanal, writerkanal, hasEditor, editor_id }) 
     )
 }
 
-export default PublishKT
+export default Edit

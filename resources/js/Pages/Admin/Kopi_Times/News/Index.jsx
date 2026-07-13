@@ -148,6 +148,12 @@ export default function Index({ news, filters }) {
                                                     <Link href={route('admin.kopi-times.news.show', item.id)} className="btn btn-sm btn-info btn-outline">
                                                         Detail
                                                     </Link>
+                                                    
+                                                    {hasPermission(['edit news kopi-times']) && (
+                                                        <Link href={route('admin.kopi-times.news.edit', item.id)} className="btn btn-sm btn-warning btn-outline">
+                                                            Edit
+                                                        </Link>
+                                                    )}
 
                                                     {hasPermission(['publish news kopi-times']) && (
                                                         item.news_nasional != null ? (

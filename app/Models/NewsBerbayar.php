@@ -20,9 +20,12 @@ class NewsBerbayar extends Model
     protected $fillable = [
         'is_code',
         'pewarta_id',
-        'datetime',
+        'editor_id',
+        'datepub',
         'title',
         'content',
+        'description',
+        'tags',
         'image',
         'caption',
         'url',
