@@ -64,9 +64,9 @@ export default function EditorImageModal() {
     };
 
     const insertImage = (src, name, imageCaption) => {
-        if (countImages() >= 2) {
+        if (countImages() >= 5) {
             editor.notificationManager.open({
-                text: "Maksimal 2 gambar dalam artikel",
+                text: "Maksimal 5 gambar dalam artikel",
                 type: "warning",
             });
             return;
@@ -168,9 +168,9 @@ export default function EditorImageModal() {
         setError("");
         setLoading(true);
 
-        if (countImages() >= 2) {
+        if (countImages() >= 5) {
             editor.notificationManager.open({
-                text: "Maksimal 2 gambar dalam artikel",
+                text: "Maksimal 5 gambar dalam artikel",
                 type: "warning",
             });
             setLoading(false);
@@ -403,7 +403,7 @@ export default function EditorImageModal() {
 
                 <div className="flex items-center justify-between mt-6 pt-4 border-t border-gray-100">
                     <div className="text-xs font-semibold text-orange-600 bg-orange-50 px-2 py-1 rounded">
-                        Maksimal 2 gambar dalam artikel
+                        Maksimal 5 gambar dalam artikel
                     </div>
                     <button className="btn btn-ghost btn-sm" onClick={resetAndClose} disabled={loading}>
                         Tutup
