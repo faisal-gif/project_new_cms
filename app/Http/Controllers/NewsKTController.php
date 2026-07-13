@@ -222,7 +222,7 @@ class NewsKTController extends Controller
         $news->update($validatedData);
 
         // 6. Return response (Karena pakai Inertia, cukup redirect back)
-        return redirect()->back()->with('success', 'Data berita berhasil diperbarui.');
+       return redirect()->route('admin.kopi-times.news.index')->with('success', 'Berita berhasil diEdit!');
     }
 
     public function publish($id)
