@@ -143,37 +143,45 @@ export default function Index({ news, filters }) {
                                             <td>{formatDateTimeLong(item.datetime)}</td>
                                             <td className="text-center">{getStatusBadge(item.status)}</td>
                                             <td>
-                                                <div className="flex justify-end gap-2">
-                                                    {/* Ubah warna menjadi info (biru) dan arahkan ke route show */}
+                                                <div className="flex justify-end items-center gap-2">
+
+                                                    {/* 1. Tombol Detail (Selalu Muncul untuk melihat preview) */}
                                                     <Link href={route('admin.kopi-times.news.show', item.id)} className="btn btn-sm btn-info btn-outline">
                                                         Detail
                                                     </Link>
-                                                    
-                                                    {hasPermission(['edit news kopi-times']) && (
-                                                        <Link href={route('admin.kopi-times.news.edit', item.id)} className="btn btn-sm btn-warning btn-outline">
-                                                            Edit
-                                                        </Link>
-                                                    )}
 
-                                                    {hasPermission(['publish news kopi-times']) && (
-                                                        item.news_nasional != null ? (
-                                                            // TAMPILAN JIKA STATUS = 1 (SUDAH PUBLISH)
-                                                            <Link
-                                                                href={route('admin.nasional.news.show', item.news_nasional.news_id)}
-                                                                className="btn btn-sm btn-warning btn-outline"
-                                                            >
+                                                    {/* 2. Pengecekan Status Publish */}
+                                                    {item.news_nasional == null ? (
+
+                                                        /* --- TAMPILAN JIKA BELUM PUBLISH (DRAFT) --- */
+                                                        <>
+                                                            {/* Tombol Edit (Hanya muncul sebelum di-publish) */}
+                                                            {hasPermission(['edit news kopi-times']) && (
+                                                                <Link href={route('admin.kopi-times.news.edit', item.id)} className="btn btn-sm btn-warning btn-outline">
+                                                                    Edit
+                                                                </Link>
+                                                            )}
+
+                                                            {/* Tombol Publish (Hanya muncul sebelum di-publish) */}
+                                                            {hasPermission(['publish news kopi-times']) && (
+                                                                <Link href={route('admin.kopi-times.news.publish', item.id)} className="btn btn-sm btn-success btn-outline">
+                                                                    Publish
+                                                                </Link>
+                                                            )}
+                                                        </>
+
+                                                    ) : (
+
+                                                        /* --- TAMPILAN JIKA SUDAH PUBLISH (NASIONAL) --- */
+                                                        <>
+                                                            {/* Tombol Nasional (Mengarahkan ke detail berita tayang) */}
+                                                            <Link href={route('admin.nasional.news.show', item.news_nasional.news_id)} className="btn btn-sm btn-primary btn-outline">
                                                                 Nasional
                                                             </Link>
-                                                        ) : (
-                                                            // TAMPILAN JIKA STATUS != 1 (BELUM PUBLISH / DRAFT)
-                                                            <Link
-                                                                href={route('admin.kopi-times.news.publish', item.id)}
-                                                                className="btn btn-sm btn-success btn-outline"
-                                                            >
-                                                                Publish
-                                                            </Link>
-                                                        )
+                                                        </>
+
                                                     )}
+
                                                 </div>
                                             </td>
                                         </tr>
