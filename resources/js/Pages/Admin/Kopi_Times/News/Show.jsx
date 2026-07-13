@@ -2,11 +2,21 @@ import Card from '@/Components/Card'
 import { Badge } from '@/Components/ui/badge'
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout'
 import { formatDate } from '@/Utils/formatter'
-import { Head, Link } from '@inertiajs/react'
+import { Head, Link, usePage } from '@inertiajs/react'
 import { ArrowLeft, Edit, EditIcon, ImageIcon, InfoIcon, UploadCloudIcon } from 'lucide-react'
 import React from 'react'
 
 export default function Show({ news }) {
+
+    const { auth } = usePage().props;
+    const userPermissions = auth.permissions || [];
+
+    const hasPermission = (permissions) => {
+        if (Array.isArray(permissions)) {
+            return permissions.some(permission => userPermissions.includes(permission));
+        }
+        return userPermissions.includes(permissions);
+    };
 
     // Helper untuk status badge
     const getStatusBadge = (statusValue) => {
