@@ -3,7 +3,7 @@ import { Badge } from '@/Components/ui/badge'
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout'
 import { formatDate } from '@/Utils/formatter'
 import { Head, Link } from '@inertiajs/react'
-import { ArrowLeft, Edit, ImageIcon, InfoIcon, UploadCloudIcon } from 'lucide-react'
+import { ArrowLeft, Edit, EditIcon, ImageIcon, InfoIcon, UploadCloudIcon } from 'lucide-react'
 import React from 'react'
 
 export default function Show({ news }) {
