@@ -51,16 +51,35 @@ export default function Show({ news }) {
                                 <ArrowLeft size={16} /> Kembali ke Daftar
                             </Link>
 
-                            {news.news_nasional === null && (
-                            <Link href={route('admin.kopi-times.news.publish', news.id)} className="btn btn-success">
-                                <UploadCloudIcon size={16} /> Publish Berita
-                            </Link>
-                            )}
+                            {news.news_nasional === null ? (
 
-                            {news.news_nasional && (
-                                <Link href={route('admin.nasional.news.show', news.news_nasional.news_id)} className="btn btn-info">
-                                    <InfoIcon size={16} /> Detail Berita
-                                </Link>
+                                /* --- JIKA BELUM DI-PUBLISH (DRAFT) --- */
+                                <>
+                                    {/* Tombol Edit: Hanya muncul jika belum di-publish dan user punya permission */}
+                                    {hasPermission(['edit news kopi-times']) && (
+                                        <Link href={route('admin.kopi-times.news.edit', news.id)} className="btn btn-warning">
+                                            <EditIcon size={16} /> Edit Berita
+                                        </Link>
+                                    )}
+
+                                    {/* Tombol Publish: Hanya muncul jika belum di-publish dan user punya permission */}
+                                    {hasPermission(['publish news kopi-times']) && (
+                                        <Link href={route('admin.kopi-times.news.publish', news.id)} className="btn btn-success">
+                                            <UploadCloudIcon size={16} /> Publish Berita
+                                        </Link>
+                                    )}
+                                </>
+
+                            ) : (
+
+                                /* --- JIKA SUDAH DI-PUBLISH (NASIONAL) --- */
+                                <>
+                                    {/* Tombol Detail Nasional: Muncul jika sudah berhasil ter-publish */}
+                                    <Link href={route('admin.nasional.news.show', news.news_nasional.news_id)} className="btn btn-info">
+                                        <InfoIcon size={16} /> Lihat di Nasional
+                                    </Link>
+                                </>
+
                             )}
                         </div>
 
