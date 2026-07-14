@@ -24,6 +24,8 @@ use App\Http\Controllers\NewsNasionalController;
 use App\Http\Controllers\NewsNoteController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\PageStaticController;
+use App\Http\Controllers\PaymentsAjpController;
+use App\Http\Controllers\PaymentsKTController;
 use App\Http\Controllers\PermissionController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ReportGalleryController;
@@ -110,6 +112,7 @@ Route::middleware('auth')->prefix('admin')->name('admin.')->group(function () {
     );
     Route::prefix('ajp')->name('ajp.')->group(
         function () {
+            Route::resource('transaction', PaymentsAjpController::class)->only('index');
             Route::resource('news', NewsAJPController::class);
             Route::get('/news/publish/{id}', [NewsAJPController::class, 'publish'])->name('news.publish');
             Route::post('/news/publish/{isCode}/store', [NewsAJPController::class, 'publishStore'])->name('news.publish.store');
@@ -119,6 +122,7 @@ Route::middleware('auth')->prefix('admin')->name('admin.')->group(function () {
 
     Route::prefix('kopi-times')->name('kopi-times.')->group(
         function () {
+            Route::resource('transaction', PaymentsKTController::class)->only('index');
             Route::resource('news', NewsKTController::class);
             Route::get('/news/publish/{id}', [NewsKTController::class, 'publish'])->name('news.publish');
             Route::post('/news/publish/{isCode}/store', [NewsKTController::class, 'publishStore'])->name('news.publish.store');
