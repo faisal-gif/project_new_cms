@@ -54,13 +54,13 @@ export default function Index({ payments, packages, statistics, filters }) {
         setSearch('');
         setStatus('');
         setPackageId('');
-        
+
         // Kalkulasi akurat tanggal hari pertama dan terakhir bulan berjalan di Javascript
         const now = new Date();
         const y = now.getFullYear();
         const m = String(now.getMonth() + 1).padStart(2, '0');
         const lastDay = new Date(y, now.getMonth() + 1, 0).getDate();
-        
+
         setStartDate(`${y}-${m}-01`);
         setEndDate(`${y}-${m}-${lastDay}`);
     };
@@ -101,12 +101,13 @@ export default function Index({ payments, packages, statistics, filters }) {
                                         Periode: <span className="font-semibold text-gray-600">{startDate ? formatDate(startDate) : 'Awal'}</span> s/d <span className="font-semibold text-gray-600">{endDate ? formatDate(endDate) : 'Sekarang'}</span>
                                     </p>
                                 </div>
-                                <div className="breadcrumbs text-sm">
-                                    <ul>
-                                        <li><a>Home</a></li>
-                                        <li>Kopi Times</li>
-                                        <li>Transaksi</li>
-                                    </ul>
+                                <div className="join bg-base-100 border shadow-sm rounded-xl">
+                                    <Link href={route('admin.ajp.transaction.index')} className="btn join-item btn-sm btn-primary font-bold">
+                                        <ListFilter size={14} /> Daftar Transaksi
+                                    </Link>
+                                    <Link href={route('admin.ajp.transaction.index')} className="btn join-item btn-sm  font-medium">
+                                        <BarChart3 size={14} /> Grafik & Report
+                                    </Link>
                                 </div>
                             </div>
 
@@ -156,7 +157,7 @@ export default function Index({ payments, packages, statistics, filters }) {
                             <Card>
                                 <div className="flex flex-col gap-4">
                                     <div className="flex flex-col lg:flex-row items-center justify-between gap-4 w-full">
-                                        
+
                                         {/* Filter Tanggal */}
                                         <div className="flex flex-col md:flex-row gap-2 w-full lg:w-auto items-center">
                                             <div className="flex items-center gap-2 w-full md:w-auto">
@@ -193,11 +194,10 @@ export default function Index({ payments, packages, statistics, filters }) {
                                                 type="button"
                                                 onClick={handleReset}
                                                 disabled={!isFilterApplied}
-                                                className={`btn btn-square btn-outline rounded-lg ${
-                                                    isFilterApplied 
-                                                        ? 'border-gray-300 text-gray-700 hover:bg-gray-100' 
+                                                className={`btn btn-square btn-outline rounded-lg ${isFilterApplied
+                                                        ? 'border-gray-300 text-gray-700 hover:bg-gray-100'
                                                         : 'opacity-40 cursor-not-allowed text-gray-300'
-                                                }`}
+                                                    }`}
                                                 title="Reset Semua Filter"
                                             >
                                                 <RotateCcw size={16} />
