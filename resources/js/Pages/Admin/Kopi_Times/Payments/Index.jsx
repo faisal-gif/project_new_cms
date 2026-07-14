@@ -102,10 +102,10 @@ export default function Index({ payments, packages, statistics, filters }) {
                                     </p>
                                 </div>
                                 <div className="join bg-base-100 border shadow-sm rounded-xl">
-                                    <Link href={route('admin.ajp.transaction.index')} className="btn join-item btn-sm btn-primary font-bold">
+                                    <Link href={route('admin.kopi-times.transaction.index')} className="btn join-item btn-sm btn-primary font-bold">
                                         <ListFilter size={14} /> Daftar Transaksi
                                     </Link>
-                                    <Link href={route('admin.ajp.transaction.report')} className="btn join-item btn-sm  font-medium">
+                                    <Link href={route('admin.kopi-times.transaction.report')} className="btn join-item btn-sm  font-medium">
                                         <BarChart3 size={14} /> Grafik & Report
                                     </Link>
                                 </div>

@@ -82,7 +82,7 @@ export default function Report({ packages, statistics, chart_data, package_distr
                                 </div>
 
                                 <div className="join bg-base-100 border shadow-sm rounded-xl">
-                                    <Link href={route('admin.ajp.transaction.index')} className="btn join-item btn-sm font-medium">
+                                    <Link href={route('admin.kopi-times.transaction.index')} className="btn join-item btn-sm font-medium">
                                         <ListFilter size={14} /> Daftar Transaksi
                                     </Link>
                                     <button className="btn join-item btn-sm btn-primary font-bold">
