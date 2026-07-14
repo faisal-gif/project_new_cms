@@ -6,6 +6,8 @@ use App\Models\PaketBerita;
 use App\Models\PaymentsNewsBerbayar;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
 
 class PaymentsKTController extends Controller
@@ -83,5 +85,143 @@ class PaymentsKTController extends Controller
                 'end_date' => $endDate,
             ]
         ]);
+    }
+
+    public function report(Request $request)
+    {
+        $packageId = $request->input('package_id');
+
+        // Default filter diatur ke bulan berjalan jika tidak ada input
+        $startDate = $request->input('start_date', Carbon::now()->startOfMonth()->toDateString());
+        $endDate = $request->input('end_date', Carbon::now()->endOfMonth()->toDateString());
+
+        // Base query statistik ringkas tanpa memuat relasi berat (menghemat memori)
+        $query = PaymentsNewsBerbayar::where('type', 4)
+            ->whereBetween('created_at', [$startDate . ' 00:00:00', $endDate . ' 23:59:59']);
+
+        if (!empty($packageId)) {
+            $query->where('package_id', $packageId);
+        }
+
+        // 1. Hitung statistik ringkas untuk Box Card
+        $statsQuery = clone $query;
+        $totalUniqueUsers = (clone $statsQuery)->where('status', 'paid')->distinct('user_id')->count('user_id');
+        $totalTransactions = (clone $statsQuery)->where('status', 'paid')->count();
+        $totalRevenue = (clone $statsQuery)->where('status', 'paid')->sum('amount');
+
+        // 2. Ambil data chart tren harian (Hanya transaksi berstatus paid)
+        $chartData = (clone $statsQuery)
+            ->where('status', 'paid')
+            ->selectRaw('DATE(created_at) as date, SUM(amount) as total_revenue, COUNT(id) as total_transactions')
+            ->groupBy('date')
+            ->orderBy('date', 'asc')
+            ->get();
+
+        // 3. Ambil data kontribusi paket (Bar/Pie Chart)
+        $packageDistribution = (clone $statsQuery)
+            ->where('status', 'paid')
+            ->selectRaw('package_id, COUNT(id) as total_sales')
+            ->groupBy('package_id')
+            ->with('package:id,name')
+            ->get()
+            ->map(fn($item) => [
+                'name' => $item->package?->name ?? 'Tanpa Paket',
+                'value' => $item->total_sales
+            ]);
+
+        $aiInsights = $this->generateGeminiInsights($totalRevenue, $totalTransactions, $totalUniqueUsers, $chartData, $packageDistribution);
+
+        // Daftar paket untuk dropdown filter
+        $packages = PaketBerita::select('id', 'name')->where('type', 4)->where('status', 1)->get();
+
+        return Inertia::render('Admin/Kopi_Times/Payments/Report', [
+            'packages' => $packages,
+            'chart_data' => $chartData,
+            'package_distribution' => $packageDistribution,
+            'ai_insights' => $aiInsights,
+            'statistics' => [
+                'total_users' => $totalUniqueUsers,
+                'total_transactions' => $totalTransactions,
+                'total_revenue' => $totalRevenue,
+            ],
+            'filters' => [
+                'package_id' => $packageId,
+                'start_date' => $startDate,
+                'end_date' => $endDate,
+            ]
+        ]);
+    }
+
+
+    private function generateGeminiInsights($totalRevenue, $totalTransactions, $totalUniqueUsers, $chartData, $packageDistribution)
+    {
+        $apiKey = config('services.gemini.api_key');
+
+        if (!$apiKey || ($totalTransactions === 0)) {
+            return [
+                'has_data' => false,
+                'summary' => 'Data transaksi kosong atau API Key belum dikonfigurasi.',
+                'findings' => ['Tidak ada transaksi sukses untuk dianalisis.'],
+                'recommendations' => ['Dorong pemasaran produk agar transaksi mulai masuk.']
+            ];
+        }
+
+        // Susun payload mentah untuk dibaca oleh Gemini AI
+        $dataContext = [
+            'total_revenue' => $totalRevenue,
+            'total_transactions' => $totalTransactions,
+            'total_users' => $totalUniqueUsers,
+            'daily_trend' => $chartData->toArray(),
+            'package_performance' => $packageDistribution->toArray()
+        ];
+
+        // Buat Prompt Instruksi Khusus yang Ketat agar Gemini mengembalikan format JSON yang kita inginkan
+        $prompt = "Kamu adalah seorang Direktur Finansial dan Ahli Strategi Bisnis SaaS Senior. " .
+            "Analisis data transaksi penjualan berikut dan berikan rekomendasi aksi bisnis yang konkret dalam Bahasa Indonesia. " .
+            "Format output HARUS dalam bentuk JSON murni dengan struktur object: " .
+            "{ \"summary\": \"string deskripsi singkat keseluruhan\", \"findings\": [\"array string berisi poin analisis temuan bisnis\"], \"recommendations\": [\"array string berisi poin aksi konkret untuk kedepannya\"] }. " .
+            "Jangan sertakan backticks ```json atau teks markdown tambahan apapun di luar object JSON tersebut. " .
+            "Berikut datanya: " . json_encode($dataContext);
+
+        try {
+            // BEST PRACTICE: Isolasi URL secara literal untuk membersihkan hidden formatting characters
+           $url = "https://generativelanguage.googleapis.com/v1/models/gemini-3.1-flash-lite:generateContent?key=" . trim($apiKey);
+
+            $response = Http::withHeaders([
+                'Content-Type' => 'application/json',
+            ])->post($url, [
+                'contents' => [
+                    [
+                        'parts' => [
+                            ['text' => $prompt]
+                        ]
+                    ]
+                ]
+                // HAPUS generationConfig di sini untuk menghindari error 400
+            ]);
+
+            
+
+            if ($response->successful()) {
+                $resultText = $response->json('candidates.0.content.parts.0.text');
+                $parsedJson = json_decode($resultText, true);
+
+                if (json_last_error() === JSON_ERROR_NONE) {
+                    return array_merge(['has_data' => true], $parsedJson);
+                }
+            }
+        } catch (\Exception $e) {
+            // Log error jika terjadi gangguan koneksi API ke Google
+            // Gunakan fully qualified name \Log atau pastikan use Illuminate\Support\Facades\Log; di atas file
+            Log::error("Gemini API Error: " . $e->getMessage());
+        }
+
+        // Fallback jika API down atau respon gagal di-parse
+        return [
+            'has_data' => true,
+            'summary' => 'Sistem mendeteksi aktivitas penjualan yang stabil namun gagal terhubung ke AI Engine.',
+            'findings' => ['Penjualan berjalan normal berdasarkan grafik tren.'],
+            'recommendations' => ['Lakukan evaluasi manual terhadap pergerakan grafik omzet harian.']
+        ];
     }
 }

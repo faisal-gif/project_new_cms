@@ -114,6 +114,7 @@ Route::middleware('auth')->prefix('admin')->name('admin.')->group(function () {
         function () {
             Route::resource('transaction', PaymentsAjpController::class)->only('index');
             Route::resource('news', NewsAJPController::class);
+            Route::get('/transaction/report', [PaymentsAjpController::class, 'report'])->name('transaction.report');
             Route::get('/news/publish/{id}', [NewsAJPController::class, 'publish'])->name('news.publish');
             Route::post('/news/publish/{isCode}/store', [NewsAJPController::class, 'publishStore'])->name('news.publish.store');
             Route::resource('writer', WriterAjpController::class);
@@ -124,6 +125,7 @@ Route::middleware('auth')->prefix('admin')->name('admin.')->group(function () {
         function () {
             Route::resource('transaction', PaymentsKTController::class)->only('index');
             Route::resource('news', NewsKTController::class);
+             Route::get('/transaction/report', [PaymentsKTController::class, 'report'])->name('transaction.report');
             Route::get('/news/publish/{id}', [NewsKTController::class, 'publish'])->name('news.publish');
             Route::post('/news/publish/{isCode}/store', [NewsKTController::class, 'publishStore'])->name('news.publish.store');
             Route::resource('writer', WriterKtController::class);

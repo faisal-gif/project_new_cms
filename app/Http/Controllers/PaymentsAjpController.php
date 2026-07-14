@@ -84,4 +84,66 @@ class PaymentsAjpController extends Controller
             ]
         ]);
     }
+
+    public function report(Request $request)
+    {
+        $packageId = $request->input('package_id');
+
+        // Default filter diatur ke bulan berjalan jika tidak ada input
+        $startDate = $request->input('start_date', Carbon::now()->startOfMonth()->toDateString());
+        $endDate = $request->input('end_date', Carbon::now()->endOfMonth()->toDateString());
+
+        // Base query statistik ringkas tanpa memuat relasi berat (menghemat memori)
+        $query = PaymentsNewsBerbayar::where('type', 1)
+            ->whereBetween('created_at', [$startDate . ' 00:00:00', $endDate . ' 23:59:59']);
+
+        if (!empty($packageId)) {
+            $query->where('package_id', $packageId);
+        }
+
+        // 1. Hitung statistik ringkas untuk Box Card
+        $statsQuery = clone $query;
+        $totalUniqueUsers = (clone $statsQuery)->where('status', 'paid')->distinct('user_id')->count('user_id');
+        $totalTransactions = (clone $statsQuery)->where('status', 'paid')->count();
+        $totalRevenue = (clone $statsQuery)->where('status', 'paid')->sum('amount');
+
+        // 2. Ambil data chart tren harian (Hanya transaksi berstatus paid)
+        $chartData = (clone $statsQuery)
+            ->where('status', 'paid')
+            ->selectRaw('DATE(created_at) as date, SUM(amount) as total_revenue, COUNT(id) as total_transactions')
+            ->groupBy('date')
+            ->orderBy('date', 'asc')
+            ->get();
+
+        // 3. Ambil data kontribusi paket (Bar/Pie Chart)
+        $packageDistribution = (clone $statsQuery)
+            ->where('status', 'paid')
+            ->selectRaw('package_id, COUNT(id) as total_sales')
+            ->groupBy('package_id')
+            ->with('package:id,name')
+            ->get()
+            ->map(fn($item) => [
+                'name' => $item->package?->name ?? 'Tanpa Paket',
+                'value' => $item->total_sales
+            ]);
+
+        // Daftar paket untuk dropdown filter
+        $packages = PaketBerita::select('id', 'name')->where('type', 1)->where('status', 1)->get();
+
+        return Inertia::render('Admin/AJP/Payments/Report', [
+            'packages' => $packages,
+            'chart_data' => $chartData,
+            'package_distribution' => $packageDistribution,
+            'statistics' => [
+                'total_users' => $totalUniqueUsers,
+                'total_transactions' => $totalTransactions,
+                'total_revenue' => $totalRevenue,
+            ],
+            'filters' => [
+                'package_id' => $packageId,
+                'start_date' => $startDate,
+                'end_date' => $endDate,
+            ]
+        ]);
+    }
 }

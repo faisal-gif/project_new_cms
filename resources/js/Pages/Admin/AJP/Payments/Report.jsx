@@ -1,0 +1,215 @@
+import Card from '@/Components/Card'
+import InputSelect from '@/Components/InputSelect'
+import TextInput from '@/Components/TextInput'
+import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout'
+import { formatDate } from '@/Utils/formatter'
+import { Head, Link, router } from '@inertiajs/react'
+import { Receipt, Users, Calendar, RotateCcw, Wallet, BarChart3, ListFilter } from 'lucide-react'
+import React, { useEffect, useRef, useState } from 'react'
+import {
+    AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
+    BarChart, Bar
+} from 'recharts';
+
+export default function Report({ packages, statistics, chart_data, package_distribution, filters }) {
+    const [packageId, setPackageId] = useState(() => filters.package_id || '');
+    const [startDate, setStartDate] = useState(() => filters.start_date || '');
+    const [endDate, setEndDate] = useState(() => filters.end_date || '');
+
+    const isFirst = useRef(true);
+    const REPORT_ROUTE = route('admin.ajp.transaction.report');
+
+    // Memicu reload data ketika filter berubah
+    useEffect(() => {
+        if (isFirst.current) {
+            isFirst.current = false;
+            return;
+        }
+
+        router.get(REPORT_ROUTE, {
+            package_id: packageId,
+            start_date: startDate,
+            end_date: endDate
+        }, { preserveState: true, replace: true });
+
+    }, [packageId, startDate, endDate]);
+
+    // Fungsi reset filter kembali ke Default Bulan Ini secara aman
+    const handleReset = () => {
+        setPackageId('');
+        const now = new Date();
+        const y = now.getFullYear();
+        const m = String(now.getMonth() + 1).padStart(2, '0');
+        const lastDay = new Date(y, now.getMonth() + 1, 0).getDate();
+        setStartDate(`${y}-${m}-01`);
+        setEndDate(`${y}-${m}-${lastDay}`);
+    };
+
+    const isFilterApplied = packageId || startDate !== filters.start_date || endDate !== filters.end_date;
+    const formatCurrency = (amount) => `Rp ${new Intl.NumberFormat('id-ID').format(amount)}`;
+    
+    const packageOptions = [
+        { label: "Semua Paket", value: "" },
+        ...packages.map((pkg) => ({ label: pkg.name, value: String(pkg.id) }))
+    ];
+
+    // =========================================================================
+    // FIX DATA TYPE: Mengubah String hasil aggregate DB menjadi Number untuk Recharts
+    // =========================================================================
+    const formattedChartData = (chart_data || []).map(item => ({
+        ...item,
+        total_revenue: Number(item.total_revenue),
+        total_transactions: Number(item.total_transactions)
+    }));
+
+    const formattedPackageDistribution = (package_distribution || []).map(item => ({
+        ...item,
+        value: Number(item.value)
+    }));
+    // =========================================================================
+
+    return (
+        <>
+            <Head title="Laporan Analisis Transaksi AJP" />
+            <AuthenticatedLayout>
+                <div className="py-12">
+                    <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+                        <div className="space-y-6">
+
+                            {/* Header Navigation Tab System */}
+                            <div className='flex flex-col md:flex-row justify-between items-start md:items-center gap-4'>
+                                <div>
+                                    <h1 className="text-3xl font-bold text-foreground">Analisis & Laporan Transaksi AJP</h1>
+                                    <p className="text-xs text-gray-400 mt-1">
+                                        Periode Laporan: <span className="font-semibold text-gray-600">{startDate ? formatDate(startDate) : 'Awal'}</span> s/d <span className="font-semibold text-gray-600">{endDate ? formatDate(endDate) : 'Sekarang'}</span>
+                                    </p>
+                                </div>
+                                
+                                <div className="join  join-horizontal">
+                                    <Link href={route('admin.ajp.transaction.index')} className="btn join-item btn-sm">
+                                        <ListFilter size={14} /> Daftar Transaksi
+                                    </Link>
+                                    <button className="btn join-item btn-sm btn-primary font-bold">
+                                        <BarChart3 size={14} /> Grafik & Report
+                                    </button>
+                                </div>
+                            </div>
+
+                            {/* STATISTIK BOX */}
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                <Card>
+                                    <div className="flex items-center justify-between">
+                                        <div>
+                                            <p className="text-sm font-medium text-gray-500 uppercase tracking-wider">User Aktif Membeli</p>
+                                            <p className="text-3xl font-bold text-gray-900 mt-1">{statistics.total_users}</p>
+                                        </div>
+                                        <div className="p-3 bg-blue-50 text-blue-600 rounded-full"><Users size={24} /></div>
+                                    </div>
+                                </Card>
+                                <Card>
+                                    <div className="flex items-center justify-between">
+                                        <div>
+                                            <p className="text-sm font-medium text-gray-500 uppercase tracking-wider">Volume Transaksi</p>
+                                            <p className="text-3xl font-bold text-gray-900 mt-1">{statistics.total_transactions}</p>
+                                        </div>
+                                        <div className="p-3 bg-indigo-50 text-indigo-600 rounded-full"><Receipt size={24} /></div>
+                                    </div>
+                                </Card>
+                                <Card>
+                                    <div className="flex items-center justify-between">
+                                        <div>
+                                            <p className="text-sm font-medium text-gray-500 uppercase tracking-wider">Total Omzet Bersih (Paid)</p>
+                                            <p className="text-2xl lg:text-3xl font-bold text-green-700 mt-1">{formatCurrency(statistics.total_revenue || 0)}</p>
+                                        </div>
+                                        <div className="p-3 bg-green-50 text-green-600 rounded-full"><Wallet size={24} /></div>
+                                    </div>
+                                </Card>
+                            </div>
+
+                            {/* FILTER PANEL */}
+                            <Card>
+                                <div className="flex flex-col md:flex-row items-center justify-between gap-4 w-full">
+                                    <div className="flex items-center gap-2 w-full md:w-auto">
+                                        <Calendar size={18} className="text-gray-500 hidden md:block" />
+                                        <TextInput type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} className="w-full md:w-40 text-sm" />
+                                        <span className="text-gray-400">-</span>
+                                        <TextInput type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} className="w-full md:w-40 text-sm" />
+                                    </div>
+                                    <div className="flex flex-row gap-2 w-full md:w-auto justify-end">
+                                        <div className="w-56">
+                                            <InputSelect value={packageId} onChange={(e) => setPackageId(e.target.value)} options={packageOptions} />
+                                        </div>
+                                        <button type="button" onClick={handleReset} disabled={!isFilterApplied} className={`btn btn-square btn-outline rounded-lg ${isFilterApplied ? 'border-gray-300 text-gray-700 hover:bg-gray-100' : 'opacity-40 cursor-not-allowed text-gray-300'}`}>
+                                            <RotateCcw size={16} />
+                                        </button>
+                                    </div>
+                                </div>
+                            </Card>
+
+                            {/* SEKTOR GRAFIK UTAMA */}
+                            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                                
+                                {/* Tren Pendapatan Harian (2/3 Lebar Layar) */}
+                                <div className="lg:col-span-2">
+                                    <Card>
+                                        <div className="mb-4">
+                                            <h3 className="text-lg font-bold text-gray-800">Tren Pertumbuhan Omzet</h3>
+                                            <p className="text-xs text-gray-500">Akumulasi penjualan sukses harian (Status Paid)</p>
+                                        </div>
+                                        <div className="w-full h-80">
+                                            {formattedChartData.length > 0 ? (
+                                                <ResponsiveContainer width="100%" height="100%">
+                                                    <AreaChart data={formattedChartData} margin={{ top: 10, right: 10, left: 10, bottom: 0 }}>
+                                                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E5E7EB" />
+                                                        <XAxis dataKey="date" tickFormatter={(t) => new Date(t).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })} stroke="#9CA3AF" fontSize={11} axisLine={false} tickLine={false} />
+                                                        <YAxis tickFormatter={(v) => `Rp ${v.toLocaleString('id-ID')}`} stroke="#9CA3AF" fontSize={11} axisLine={false} tickLine={false} width={80} />
+                                                        <Tooltip formatter={(val) => [formatCurrency(val), 'Revenue']} labelFormatter={(l) => formatDate(l)} contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)' }} />
+                                                        <defs>
+                                                            <linearGradient id="colorReport" x1="0" y1="0" x2="0" y2="1">
+                                                                <stop offset="5%" stopColor="#16a34a" stopOpacity={0.25}/>
+                                                                <stop offset="95%" stopColor="#16a34a" stopOpacity={0}/>
+                                                            </linearGradient>
+                                                        </defs>
+                                                        <Area type="monotone" dataKey="total_revenue" stroke="#16a34a" strokeWidth={2.5} fillOpacity={1} fill="url(#colorReport)" />
+                                                    </AreaChart>
+                                                </ResponsiveContainer>
+                                            ) : (
+                                                <div className="flex h-full items-center justify-center text-gray-400 text-sm">Tidak ada transaksi berbayar pada periode ini.</div>
+                                            )}
+                                        </div>
+                                    </Card>
+                                </div>
+
+                                {/* Penjualan Per Paket (1/3 Lebar Layar) */}
+                                <div>
+                                    <Card>
+                                        <div className="mb-4">
+                                            <h3 className="text-lg font-bold text-gray-800">Performa Paket</h3>
+                                            <p className="text-xs text-gray-500">Jumlah paket terjual dalam kuantitas</p>
+                                        </div>
+                                        <div className="w-full h-80">
+                                            {formattedPackageDistribution.length > 0 ? (
+                                                <ResponsiveContainer width="100%" height="100%">
+                                                    <BarChart data={formattedPackageDistribution} layout="vertical" margin={{ top: 5, right: 10, left: 20, bottom: 5 }}>
+                                                        <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#E5E7EB" />
+                                                        <XAxis type="number" stroke="#9CA3AF" fontSize={11} axisLine={false} tickLine={false} />
+                                                        <YAxis type="category" dataKey="name" stroke="#9CA3AF" fontSize={11} width={70} axisLine={false} tickLine={false} />
+                                                        <Tooltip contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)' }} />
+                                                        <Bar dataKey="value" name="Terjual" fill="#4f46e5" radius={[0, 4, 4, 0]} barSize={16} />
+                                                    </BarChart>
+                                                </ResponsiveContainer>
+                                            ) : (
+                                                <div className="flex h-full items-center justify-center text-gray-400 text-sm">Belum ada paket yang terjual.</div>
+                                            )}
+                                        </div>
+                                    </Card>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+            </AuthenticatedLayout>
+        </>
+    )
+}
