@@ -8,7 +8,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout'
 import { formatDate } from '@/Utils/formatter'
 import { Head, Link, router } from '@inertiajs/react'
 // Import icon Wallet ditambahkan
-import { Search, Receipt, Users, Calendar, RotateCcw, Wallet } from 'lucide-react'
+import { Search, Receipt, Users, Calendar, RotateCcw, Wallet, ListFilter, BarChart3 } from 'lucide-react'
 import React, { useEffect, useRef, useState } from 'react'
 
 export default function Index({ payments, packages, statistics, filters }) {
