@@ -6,6 +6,7 @@ use App\Models\PaketBerita;
 use App\Models\PaymentsNewsBerbayar;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
@@ -129,7 +130,21 @@ class PaymentsKTController extends Controller
                 'value' => $item->total_sales
             ]);
 
-        $aiInsights = $this->generateGeminiInsights($totalRevenue, $totalTransactions, $totalUniqueUsers, $chartData, $packageDistribution);
+        // =========================================================================
+        // IMPLEMENTASI SMART CACHING UNTUK AI INSIGHTS
+        // =========================================================================
+        // Kita buat key unik berdasarkan parameter filter DAN nilai statistik saat ini.
+        // Jika nominal omzet ($totalRevenue) berubah, key otomatis berubah & AI ter-regenerate.
+        $cacheString = "gemini_report_{$startDate}_{$endDate}_{$packageId}_{$totalRevenue}_{$totalTransactions}";
+        $cacheKey = md5($cacheString);
+
+        // Simpan hasil generate AI di cache selama 12 jam (720 menit)
+        $aiInsights = Cache::remember($cacheKey, now()->addHours(12), function () use ($totalRevenue, $totalTransactions, $totalUniqueUsers, $chartData, $packageDistribution) {
+            // Log ini untuk memantau kapan AI benar-benar menembak ke Google API
+            Log::info("Memicu Kueri API Gemini Baru untuk Laporan Transaksi.");
+
+            return $this->generateGeminiInsights($totalRevenue, $totalTransactions, $totalUniqueUsers, $chartData, $packageDistribution);
+        });
 
         // Daftar paket untuk dropdown filter
         $packages = PaketBerita::select('id', 'name')->where('type', 4)->where('status', 1)->get();
@@ -185,7 +200,7 @@ class PaymentsKTController extends Controller
 
         try {
             // BEST PRACTICE: Isolasi URL secara literal untuk membersihkan hidden formatting characters
-           $url = "https://generativelanguage.googleapis.com/v1/models/gemini-3.1-flash-lite:generateContent?key=" . trim($apiKey);
+            $url = "https://generativelanguage.googleapis.com/v1/models/gemini-3.1-flash-lite:generateContent?key=" . trim($apiKey);
 
             $response = Http::withHeaders([
                 'Content-Type' => 'application/json',
@@ -200,7 +215,7 @@ class PaymentsKTController extends Controller
                 // HAPUS generationConfig di sini untuk menghindari error 400
             ]);
 
-            
+
 
             if ($response->successful()) {
                 $resultText = $response->json('candidates.0.content.parts.0.text');

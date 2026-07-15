@@ -94,14 +94,14 @@ export default function Index({ payments, packages, statistics, filters }) {
                         <div className="space-y-6">
 
                             {/* Header */}
-                            <div className='flex flex-row justify-between items-center'>
+                            <div className='flex flex-col md:flex-row justify-between items-start md:items-center gap-4'>
                                 <div>
                                     <h1 className="text-3xl font-bold text-foreground">Daftar Transaksi Kopi Times</h1>
                                     <p className="text-xs text-gray-400 mt-1">
                                         Periode: <span className="font-semibold text-gray-600">{startDate ? formatDate(startDate) : 'Awal'}</span> s/d <span className="font-semibold text-gray-600">{endDate ? formatDate(endDate) : 'Sekarang'}</span>
                                     </p>
                                 </div>
-                                <div className="join bg-base-100 border shadow-sm rounded-xl">
+                                <div className="join bg-base-100 shadow-sm rounded-xl">
                                     <Link href={route('admin.kopi-times.transaction.index')} className="btn join-item btn-sm btn-primary font-bold">
                                         <ListFilter size={14} /> Daftar Transaksi
                                     </Link>

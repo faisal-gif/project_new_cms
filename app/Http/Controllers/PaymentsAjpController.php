@@ -6,6 +6,8 @@ use App\Models\PaketBerita;
 use App\Models\PaymentsNewsBerbayar;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
 
 class PaymentsAjpController extends Controller
@@ -126,6 +128,9 @@ class PaymentsAjpController extends Controller
                 'name' => $item->package?->name ?? 'Tanpa Paket',
                 'value' => $item->total_sales
             ]);
+
+
+      
 
         // Daftar paket untuk dropdown filter
         $packages = PaketBerita::select('id', 'name')->where('type', 1)->where('status', 1)->get();
