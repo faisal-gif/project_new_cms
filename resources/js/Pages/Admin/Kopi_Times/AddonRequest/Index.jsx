@@ -64,6 +64,7 @@ export default function Index({ requests, filters }) {
                                         { label: "Semua Jenis", value: "" },
                                         { label: "Feed Instagram", value: "feed_instagram" },
                                         { label: "Ekoran", value: "ekoran" },
+                                        { label: "WA Channel", value: "wa_channel" },
                                     ]}
                                 />
                             </div>
@@ -82,7 +83,7 @@ export default function Index({ requests, filters }) {
                     </Card>
 
                     <Card className="p-0 overflow-hidden">
-                        
+
                         {/* --- VERSI DESKTOP (Tabel) --- */}
                         <div className="hidden md:block overflow-x-auto">
                             <table className="table table-zebra w-full">
@@ -112,16 +113,19 @@ export default function Index({ requests, filters }) {
                                             </td>
                                             <td>
                                                 <div className="flex items-center gap-2 font-medium">
-                                                    {req.jenis_request === 'feed_instagram'
-                                                        ? <><Instagram size={16} className="text-pink-500" /> Feed IG</>
-                                                        : <><FileText size={16} className="text-blue-500" /> Ekoran</>
+                                                    {
+                                                        {
+                                                            feed_instagram: <><Instagram size={16} className="text-pink-500" /> Feed IG</>,
+                                                            ekoran: <><FileText size={16} className="text-blue-500" /> Ekoran</>,
+                                                            wa_channel: <><MessageCircle size={16} className="text-green-500" /> WA Channel</>
+                                                        }[req.jenis_request]
                                                     }
                                                 </div>
                                             </td>
                                             <td className="text-center">{getStatusBadge(req.status)}</td>
                                             <td>
                                                 <div className="flex justify-end gap-2">
-                                                    <Link 
+                                                    <Link
                                                         href={route('admin.kopi-times.addon-requests.show', req.id)}
                                                         className="btn btn-sm btn-primary btn-outline"
                                                     >
@@ -146,7 +150,7 @@ export default function Index({ requests, filters }) {
                         <div className="md:hidden flex flex-col p-4 gap-4">
                             {requests.data.map((req) => (
                                 <div key={req.id} className="border rounded-xl p-4 bg-base-100 shadow-sm flex flex-col gap-3">
-                                    
+
                                     {/* Card Header: Judul & Status */}
                                     <div className="flex justify-between items-start gap-3">
                                         <div className="font-bold text-base leading-tight line-clamp-2">
@@ -160,32 +164,35 @@ export default function Index({ requests, filters }) {
                                     {/* Card Body: Info Detail */}
                                     <div className="text-sm space-y-1.5 text-muted-foreground mt-1">
                                         <p>
-                                            <span className="font-medium text-foreground mr-1">Wartawan:</span> 
+                                            <span className="font-medium text-foreground mr-1">Wartawan:</span>
                                             {req.wartawan?.nama || 'Unknown'}
                                         </p>
                                         <p>
-                                            <span className="font-medium text-foreground mr-1">Waktu:</span> 
+                                            <span className="font-medium text-foreground mr-1">Waktu:</span>
                                             {formatDateLong(req.created_at)}
                                         </p>
                                         <p className="flex items-center gap-1.5">
-                                            <span className="font-medium text-foreground mr-1">Jenis:</span> 
-                                            {req.jenis_request === 'feed_instagram'
-                                                ? <><Instagram size={14} className="text-pink-500" /> Feed IG</>
-                                                : <><FileText size={14} className="text-blue-500" /> Ekoran</>
+                                            <span className="font-medium text-foreground mr-1">Jenis:</span>
+                                            {
+                                                {
+                                                    feed_instagram: <><Instagram size={14} className="text-pink-500" /> Feed IG</>,
+                                                    ekoran: <><FileText size={14} className="text-blue-500" /> Ekoran</>,
+                                                    wa_channel: <><MessageCircle size={14} className="text-green-500" /> WA Channel</>
+                                                }[req.jenis_request]
                                             }
                                         </p>
                                     </div>
 
                                     {/* Card Footer: Action */}
                                     <div className="mt-2 pt-3 border-t border-base-200">
-                                        <Link 
+                                        <Link
                                             href={route('admin.kopi-times.addon-requests.show', req.id)}
                                             className="btn btn-sm btn-primary w-full"
                                         >
                                             <Settings2 size={16} className="mr-1" /> Proses Request
                                         </Link>
                                     </div>
-                                    
+
                                 </div>
                             ))}
                             {requests.data.length === 0 && (

@@ -29,11 +29,17 @@ export default function Show({ addon }) {
 
     return (
         <AuthenticatedLayout>
-            <Head title={`Proses ${addon.jenis_request === 'feed_instagram' ? 'Feed IG' : 'Ekoran'}`} />
-            
+            <Head
+                title={`Proses ${{
+                    feed_instagram: 'Feed IG',
+                    ekoran: 'Ekoran',
+                    wa_channel: 'WA Channel'
+                }[addon.jenis_request] || 'Add-on'}`}
+            />
+
             <div className="py-12">
                 <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 space-y-6">
-                    
+
                     {/* Header */}
                     <div className='flex items-center gap-4'>
                         <Link href={route('admin.kopi-times.addon-requests.index')} className="btn btn-circle btn-ghost bg-base-200">
@@ -41,11 +47,17 @@ export default function Show({ addon }) {
                         </Link>
                         <div>
                             <h1 className="text-3xl font-bold flex items-center gap-3">
-                                {addon.jenis_request === 'feed_instagram' ? (
-                                    <><Instagram className="text-pink-500" /> Proses Feed IG</>
-                                ) : (
-                                    <><FileText className="text-blue-500" /> Proses Ekoran</>
-                                )}
+                                {{
+                                    feed_instagram: (
+                                        <><Instagram className="text-pink-500" /> Proses Feed IG</>
+                                    ),
+                                    ekoran: (
+                                        <><FileText className="text-blue-500" /> Proses Ekoran</>
+                                    ),
+                                    wa_channel: (
+                                        <><MessageCircle className="text-green-500" /> Proses WA Channel</>
+                                    )
+                                }[addon.jenis_request]}
                             </h1>
                             <p className="text-muted-foreground text-sm mt-1">
                                 Diajukan pada {formatDateTime(addon.created_at)}
@@ -54,10 +66,10 @@ export default function Show({ addon }) {
                     </div>
 
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                        
+
                         {/* KOLOM KIRI: DETAIL INFORMASI (Lebar: 2/3) */}
                         <div className="lg:col-span-2 space-y-6">
-                            
+
                             {/* Card Info Penulis */}
                             <Card>
                                 <h3 className="text-lg font-bold flex items-center gap-2 mb-4 border-b pb-2">
@@ -89,7 +101,7 @@ export default function Show({ addon }) {
                                     <h3 className="text-lg font-bold flex items-center gap-2">
                                         <FileText size={18} /> Naskah Berita
                                     </h3>
-                                    <Link 
+                                    <Link
                                         href={route('admin.kopi-times.news.show', addon.news_id)}
                                         className="btn btn-sm btn-outline btn-primary"
                                         target="_blank" // Buka tab baru opsional
@@ -97,7 +109,7 @@ export default function Show({ addon }) {
                                         Lihat Full Page
                                     </Link>
                                 </div>
-                                
+
                                 <div className="space-y-4">
                                     <div>
                                         <h2 className="text-2xl font-bold font-serif leading-tight">
@@ -128,7 +140,7 @@ export default function Show({ addon }) {
                                 </h3>
 
                                 <form onSubmit={handleSubmit} className="space-y-5">
-                                    
+
                                     <div>
                                         <label className="label"><span className="label-text font-semibold">Tindakan Admin</span></label>
                                         <select
@@ -148,7 +160,7 @@ export default function Show({ addon }) {
                                         <div className="animate-in fade-in slide-in-from-top-2">
                                             <label className="label">
                                                 <span className="label-text font-semibold flex items-center gap-1">
-                                                    <LinkIcon size={14}/> URL Hasil Publish
+                                                    <LinkIcon size={14} /> URL Hasil Publish
                                                 </span>
                                             </label>
                                             <input
@@ -170,7 +182,7 @@ export default function Show({ addon }) {
                                         <div className="animate-in fade-in slide-in-from-top-2">
                                             <label className="label">
                                                 <span className="label-text text-error font-semibold flex items-center gap-1">
-                                                    <XCircle size={14}/> Alasan Penolakan
+                                                    <XCircle size={14} /> Alasan Penolakan
                                                 </span>
                                             </label>
                                             <textarea
@@ -189,9 +201,9 @@ export default function Show({ addon }) {
                                     )}
 
                                     <div className="pt-4 border-t border-base-200">
-                                        <button 
-                                            type="submit" 
-                                            className="btn btn-primary w-full" 
+                                        <button
+                                            type="submit"
+                                            className="btn btn-primary w-full"
                                             disabled={processing}
                                         >
                                             {processing ? 'Menyimpan...' : 'Simpan Perubahan'}
