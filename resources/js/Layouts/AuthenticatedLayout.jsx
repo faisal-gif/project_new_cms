@@ -34,7 +34,9 @@ import {
     Bell,        // <-- TAMBAHAN: Icon Lonceng Notifikasi
     BarChart3,    // <-- TAMBAHAN: Icon untuk menu Laporan/Report
     Globe2Icon,
-    User2Icon
+    User2Icon,
+    Blocks,
+    Banknote
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
@@ -569,7 +571,7 @@ export default function AuthenticatedLayout({ header, children }) {
                         {hasPermission(['view transaction ajp']) && (
                             <li>
                                 <Link href={route('admin.ajp.transaction.index')} className={linkClass(isActive('admin.ajp.news.*'))}>
-                                    <Newspaper size={16} /> Transaksi AJP
+                                    <Banknote size={16} /> Transaksi AJP
                                 </Link>
                             </li>
                         )}
@@ -594,10 +596,18 @@ export default function AuthenticatedLayout({ header, children }) {
                             </li>
                         )}
 
+                        {hasPermission(['view addon-request kopi-times']) && (
+                            <li>
+                                <Link href={route('admin.kopi-times.addon-request.index')} className={linkClass(isActive('admin.ajp.news.*'))}>
+                                    <Blocks size={16} /> Addon Request Kopi Times
+                                </Link>
+                            </li>
+                        )}
+
                         {hasPermission(['view transaction kopi-times']) && (
                             <li>
                                 <Link href={route('admin.kopi-times.transaction.index')} className={linkClass(isActive('admin.ajp.news.*'))}>
-                                    <Newspaper size={16} /> Transaksi Kopi Times
+                                    <Banknote size={16} /> Transaksi Kopi Times
                                 </Link>
                             </li>
                         )}
