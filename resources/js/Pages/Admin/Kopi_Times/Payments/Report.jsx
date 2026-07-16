@@ -66,7 +66,7 @@ export default function Report({ packages, statistics, chart_data, package_distr
 
     return (
         <>
-            <Head title="Laporan Analisis Pembayaran" />
+            <Head title="Laporan Analisis Transaksi Kopi TIMES" />
             <AuthenticatedLayout>
                 <div className="py-12">
                     <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -75,7 +75,7 @@ export default function Report({ packages, statistics, chart_data, package_distr
                             {/* Header Navigation Tab System */}
                             <div className='flex flex-col md:flex-row justify-between items-start md:items-center gap-4'>
                                 <div>
-                                    <h1 className="text-3xl font-bold text-foreground">Analisis & Laporan Transaksi</h1>
+                                    <h1 className="text-3xl font-bold text-foreground">Analisis & Laporan Transaksi Kopi TIMES</h1>
                                     <p className="text-xs text-gray-400 mt-1">
                                         Periode Laporan: <span className="font-semibold text-gray-600">{startDate ? formatDate(startDate) : 'Awal'}</span> s/d <span className="font-semibold text-gray-600">{endDate ? formatDate(endDate) : 'Sekarang'}</span>
                                     </p>
