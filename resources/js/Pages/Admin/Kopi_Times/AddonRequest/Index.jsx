@@ -5,7 +5,7 @@ import { Badge } from '@/Components/ui/badge'
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout'
 import { formatDateLong, formatDateTime } from '@/Utils/formatter'
 import { Head, Link, router } from '@inertiajs/react'
-import { FileText, Instagram, Settings2 } from 'lucide-react'
+import { FileText, Instagram, MessageCircle, Settings2 } from 'lucide-react'
 import React, { useEffect, useRef, useState } from 'react'
 
 export default function Index({ requests, filters }) {

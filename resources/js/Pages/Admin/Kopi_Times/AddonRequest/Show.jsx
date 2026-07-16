@@ -3,7 +3,7 @@ import { Badge } from '@/Components/ui/badge'
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout'
 import { formatDateTime } from '@/Utils/formatter'
 import { Head, Link, useForm } from '@inertiajs/react'
-import { ArrowLeft, CheckCircle, FileText, Instagram, User, Clock, Link as LinkIcon, XCircle } from 'lucide-react'
+import { ArrowLeft, CheckCircle, FileText, Instagram, User, Clock, Link as LinkIcon, XCircle, MessageCircle } from 'lucide-react'
 import React from 'react'
 
 export default function Show({ addon }) {
