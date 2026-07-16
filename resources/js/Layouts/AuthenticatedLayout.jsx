@@ -596,9 +596,9 @@ export default function AuthenticatedLayout({ header, children }) {
                             </li>
                         )}
 
-                        {hasPermission(['view addon-request kopi-times']) && (
+                        {hasPermission(['view addon-requests kopi-times']) && (
                             <li>
-                                <Link href={route('admin.kopi-times.addon-request.index')} className={linkClass(isActive('admin.ajp.news.*'))}>
+                                <Link href={route('admin.kopi-times.addon-requests.index')} className={linkClass(isActive('admin.kopi-times.addon-requests.*'))}>
                                     <Blocks size={16} /> Addon Request Kopi Times
                                 </Link>
                             </li>
@@ -606,7 +606,7 @@ export default function AuthenticatedLayout({ header, children }) {
 
                         {hasPermission(['view transaction kopi-times']) && (
                             <li>
-                                <Link href={route('admin.kopi-times.transaction.index')} className={linkClass(isActive('admin.ajp.news.*'))}>
+                                <Link href={route('admin.kopi-times.transaction.index')} className={linkClass(isActive('admin.kopi-times.transaction.*'))}>
                                     <Banknote size={16} /> Transaksi Kopi Times
                                 </Link>
                             </li>
