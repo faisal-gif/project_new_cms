@@ -36,7 +36,7 @@ function Edit({ news, writers, editors, kanal, fokus, hasEditor, editor_id }) {
         tag: news.tags_array ?? [], // Data tag lama dari controller
         is_content: news.news_content ?? '',
         is_headline: news.news_headline ?? 0,
-        image_thumbnail: '', // Dikosongkan, hanya diisi jika user upload ulang
+        image_thumbnail: null, // Dikosongkan, hanya diisi jika user upload ulang
         image_watermark: false,
         image_caption: news.news_caption ?? '',
         datepub: news.news_datepub,
@@ -48,7 +48,9 @@ function Edit({ news, writers, editors, kanal, fokus, hasEditor, editor_id }) {
     const submit = (e) => {
         e.preventDefault();
         // Post ke route update, _method: 'PUT' akan menangani perubahannya
-        post(route('admin.nasional.news.update', news.news_id));
+        post(route('admin.nasional.news.update', news.news_id), {
+            forceFormData: true,
+        });
     };
 
     return (
@@ -230,7 +232,7 @@ function Edit({ news, writers, editors, kanal, fokus, hasEditor, editor_id }) {
                                                 dateFormat="yyyy-MM-dd HH:mm"  // Tampilan akhir di dalam kotak teks (Format 24 Jam)
                                                 className="input border border-input mt-1 block w-full"
                                                 placeholderText="Pilih Tanggal dan Waktu..."
-                                               
+
                                             />
                                             <InputError message={errors.datepub} className="mt-2" />
                                         </div>
