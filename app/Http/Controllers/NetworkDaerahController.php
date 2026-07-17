@@ -164,7 +164,7 @@ class NetworkDaerahController extends Controller
                 $file = $request->file('logo');
                 $ImageLogo = "{$baseSlug}-ImageLogo-{$timestamp}";
 
-                $ImageLogoUrl = $this->cdnService->uploadImage($file, $ImageLogo, 1, 'convert', 0) ?? $ImageLogoUrl;
+                $ImageLogoUrl = $this->cdnService->uploadImage($file, $ImageLogo, 1, 'raw', 0) ?? $ImageLogoUrl;
             }
 
             if ($request->hasFile('logo_m')) {
