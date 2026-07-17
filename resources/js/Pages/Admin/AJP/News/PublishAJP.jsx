@@ -49,7 +49,7 @@ function PublishAJP({ news, editors, fokus, hasEditor, editor_id }) {
 
     const submit = (e) => {
         e.preventDefault();
-        post(route('admin.ajp.news.publish.store', news.is_code));
+        post(route('admin.ajp.news.publish.store', news.id));
     };
 
     return (

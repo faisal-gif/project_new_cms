@@ -178,15 +178,21 @@ class NewsAJPController extends Controller
         ]);
     }
 
-    public function publishStore(PublishNewsAjpRequest $request, $isCode)
+    public function publishStore(PublishNewsAjpRequest $request, $id)
     {
+        // 1. Tentukan is_code final di awal. 
+        // Menggunakan filled() adalah best practice Laravel untuk mengecek string yang tidak kosong.
+        $finalIsCode = $request->filled('is_code')
+            ? $request->is_code
+            : 'KT-' . Str::upper(Str::random(8));
+
         // Gunakan koneksi mysql_nasional untuk transaksi
         DB::connection('mysql_nasional')->beginTransaction();
 
         try {
-
             $thumbnailUrl = null;
             $imageWatermark = $request->image_watermark;
+
             if ($request->hasFile('image_thumbnail')) {
                 try {
                     $file = $request->file('image_thumbnail');
@@ -197,12 +203,10 @@ class NewsAJPController extends Controller
                 }
             }
 
-
             $tagData = $this->tagNasionalService->processTags($request->tag, $request->is_content);
 
-
             $news = NewsNasional::create([
-                'is_code'          => $request->is_code,
+                'is_code'          => $finalIsCode, // 2. Gunakan variabel $finalIsCode di sini
                 'editor_id'        => $request->editor,
                 'catnews_id'       => '30',
                 'news_title'       => $request->title,
@@ -214,22 +218,22 @@ class NewsAJPController extends Controller
                 'news_city'        => $request->locus,
                 'news_datepub'     => $request->datepub ?? now(),
                 'news_headline'    => $request->is_headline ? 1 : 0,
-                'news_tags'        => $tagData['tagString'], // Menggunakan array tag yang sudah dibersihkan
+                'news_tags'        => $tagData['tagString'],
             ]);
 
-            // 3. Simpan Tags (Many-to-Many) ke tabel Tag Nasional dengan Urutan yang Terpelihara
+            // 3. Simpan Tags (Many-to-Many) ke tabel Tag Nasional
             if (!empty($tagData['syncData'])) {
                 $news->tags()->sync($tagData['syncData']);
             }
 
-            $isCode = $request->input('is_code');
-            $ajpNews = NewsBerbayar::where('is_code', $isCode)->firstOrFail();
-
+            // 4. Perbaikan Logika Query: 
+            // Gunakan $isCode dari parameter (URL/Route) untuk mencari data original, bukan dari request.
+            $ajpNews = NewsBerbayar::findOrFail($id);
 
             $ajpNews->update([
                 'is_code' => $news->is_code,
-                'status' => '1',
-                'url' => 'https://timesindonesia.co.id/indonesia-positif/' . $news->news_id  . '/' . Str::slug($news->news_title),
+                'status'  => '1',
+                'url'     => 'https://timesindonesia.co.id/indonesia-positif/' . $news->news_id  . '/' . Str::slug($news->news_title),
             ]);
 
             DB::connection('mysql_nasional')->commit();

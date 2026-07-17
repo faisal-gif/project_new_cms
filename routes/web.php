@@ -117,7 +117,7 @@ Route::middleware('auth')->prefix('admin')->name('admin.')->group(function () {
             Route::resource('news', NewsAJPController::class);
             Route::get('/transaction/report', [PaymentsAjpController::class, 'report'])->name('transaction.report');
             Route::get('/news/publish/{id}', [NewsAJPController::class, 'publish'])->name('news.publish');
-            Route::post('/news/publish/{isCode}/store', [NewsAJPController::class, 'publishStore'])->name('news.publish.store');
+            Route::post('/news/publish/{id}/store', [NewsAJPController::class, 'publishStore'])->name('news.publish.store');
             Route::resource('writer', WriterAjpController::class);
         }
     );
@@ -128,7 +128,7 @@ Route::middleware('auth')->prefix('admin')->name('admin.')->group(function () {
             Route::resource('news', NewsKTController::class);
             Route::get('/transaction/report', [PaymentsKTController::class, 'report'])->name('transaction.report');
             Route::get('/news/publish/{id}', [NewsKTController::class, 'publish'])->name('news.publish');
-            
+
             Route::get('/addon-requests', [KtAddonRequestController::class, 'index'])->name('addon-requests.index');
             Route::get('/addon-requests/{id}', [KtAddonRequestController::class, 'show'])->name('addon-requests.show');
             Route::put('/addon-requests/{id}', [KtAddonRequestController::class, 'update'])->name('addon-requests.update');
