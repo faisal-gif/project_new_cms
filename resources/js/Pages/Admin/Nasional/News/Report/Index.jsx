@@ -2,7 +2,7 @@ import Card from '@/Components/Card'
 import TextInput from '@/Components/TextInput'
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout'
 import { Head, router, useForm, usePage } from '@inertiajs/react'
-import { Download, Search, BarChart3, Eye, FileText, TrendingUp } from 'lucide-react'
+import { Download, Search, BarChart3, Eye, FileText, TrendingUp, Trophy, Layers } from 'lucide-react'
 import React, { useEffect, useState } from 'react'
 import Select from "react-select"
 
