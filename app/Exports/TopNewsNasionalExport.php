@@ -4,84 +4,89 @@ namespace App\Exports;
 
 use App\Models\NewsNasional;
 use Carbon\Carbon;
-use Illuminate\Support\Facades\DB;
-use Maatwebsite\Excel\Concerns\FromCollection;
+use Illuminate\Support\Str;
 use Maatwebsite\Excel\Concerns\Exportable;
+use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithMapping;
+use Maatwebsite\Excel\Concerns\ShouldAutoSize;
 use Maatwebsite\Excel\Concerns\WithStyles;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 
-class TopCategoryNasionalExport implements FromCollection, WithHeadings, WithMapping, WithStyles
+class TopNewsNasionalExport implements FromCollection, WithHeadings, WithMapping, ShouldAutoSize, WithStyles
 {
     use Exportable;
 
-    protected $filters;
-    protected $rowNumber = 0;
+    protected array $filters;
 
     public function __construct(array $filters)
     {
         $this->filters = $filters;
     }
 
+    /**
+     * Eksekusi query agregasi di level MySQL
+     */
     public function collection()
     {
         $query = NewsNasional::query()
-            ->join('news_category', 'news.catnews_id', '=', 'news_category.catnews_id')
-            ->leftJoin('news_views', 'news.news_id', '=', 'news_views.news_id')
-            ->whereBetween('news.news_datepub', [
+            ->join('news_views', 'news.news_id', '=', 'news_views.news_id')
+            ->select('news.news_id', 'news.news_title', 'news.news_datepub', 'news.catnews_id', 'news_views.pageviews')
+            ->with(['kanal']); // Hindari N+1 query untuk relasi
+
+        // Terapkan Filter Tanggal
+        if (!empty($this->filters['start_date']) && !empty($this->filters['end_date'])) {
+            $query->whereBetween('news.news_datepub', [
                 Carbon::parse($this->filters['start_date'])->startOfDay(),
                 Carbon::parse($this->filters['end_date'])->endOfDay(),
-            ]);
-
-        if (!empty($this->filters['kanal'])) {
-            $query->where('news.catnews_id', $this->filters['kanal']);
+            ])->where('news.news_status', 1); // Hanya berita yang sudah publish
         }
 
-        if (!empty($this->filters['writer'])) {
-            $query->where('news.news_writer', $this->filters['writer']);
-        }
+        // Terapkan Filter Lain (Opsional, sesuai input React)
+        if (!empty($this->filters['kanal'])) $query->where('news.catnews_id', $this->filters['kanal']);
+        if (!empty($this->filters['writer'])) $query->where('news.news_writer', $this->filters['writer']);
 
-        if (!empty($this->filters['editor'])) {
-            $query->where('news.editor_id', $this->filters['editor']);
-        }
-
-        if (!empty($this->filters['tag'])) {
-            $tagId = $this->filters['tag'];
-            $query->whereHas('tags', fn($q) => $q->where('tags.id', $tagId));
-        }
-
-        return $query
-            ->select(
-                'news_category.catnews_title',
-                DB::raw('COUNT(DISTINCT news.news_id) as total_berita'),
-                DB::raw('SUM(COALESCE(news_views.pageviews, 0)) as total_views')
-            )
-            ->groupBy('news_category.catnews_id', 'news_category.catnews_title')
-            ->orderByDesc('total_views')
-            ->get();
+        // Ambil TOP 50 Berita Berdasarkan Views
+        // Karena datanya dibatasi (limit), ini sangat aman dan tidak butuh sistem Queue yang rumit.
+        return $query->orderBy('news_views.pageviews', 'DESC')->limit(50)->get();
     }
 
     public function headings(): array
     {
-        return ['No', 'Kanal', 'Jumlah Berita', 'Total Views', 'Rata-rata Views'];
+        return [
+            'Peringkat',
+            'Judul Berita',
+            'Kanal',
+            'Tanggal Publish',
+            'Total Pageviews',
+            'URL'
+        ];
     }
 
-    public function map($row): array
+    public function map($news): array
     {
-        $this->rowNumber++;
+        // Fitur auto-increment untuk kolom 'Peringkat'
+        static $rank = 0;
+        $rank++;
+
+        $kanalSlug = $news->kanal ? Str::slug($news->kanal->catnews_title) : 'uncategorized';
+        $titleSlug = Str::slug($news->news_title);
+        $url = "https://timesindonesia.co.id/{$kanalSlug}/{$news->news_id}/{$titleSlug}";
 
         return [
-            $this->rowNumber,
-            $row->catnews_title,
-            (int) $row->total_berita,
-            (int) $row->total_views,
-            $row->total_berita > 0 ? round($row->total_views / $row->total_berita, 1) : 0,
+            $rank,
+            $news->news_title,
+            $news->kanal ? $news->kanal->catnews_title : '-',
+            Carbon::parse($news->news_datepub)->format('d/m/Y H:i'),
+            (int) $news->pageviews,
+            $url,
         ];
     }
 
     public function styles(Worksheet $sheet)
     {
-        return [1 => ['font' => ['bold' => true]]];
+        return [
+            1 => ['font' => ['bold' => true, 'size' => 12]], // Bold header
+        ];
     }
 }
