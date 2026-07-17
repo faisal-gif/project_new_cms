@@ -184,7 +184,7 @@ class NewsAJPController extends Controller
         // Menggunakan filled() adalah best practice Laravel untuk mengecek string yang tidak kosong.
         $finalIsCode = $request->filled('is_code')
             ? $request->is_code
-            : 'KT-' . Str::upper(Str::random(8));
+            : 'AJP-' . Str::upper(Str::random(8));
 
         // Gunakan koneksi mysql_nasional untuk transaksi
         DB::connection('mysql_nasional')->beginTransaction();
