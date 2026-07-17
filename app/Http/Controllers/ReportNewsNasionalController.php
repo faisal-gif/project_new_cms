@@ -211,18 +211,37 @@ class ReportNewsNasionalController extends Controller
         return back()->with('success', 'Laporan Berita Nasional sedang diproses di belakang layar. Silakan cek lonceng notifikasi dalam beberapa saat.');
     }
 
-    public function exportTopNews(Request $request)
-    {
-        $filters = $request->validate([
-            'start_date' => 'required|date',
-            'end_date'   => 'required|date|after_or_equal:start_date',
-            'kanal'      => 'nullable',
-            'writer'     => 'nullable',
-        ]);
+ public function exportTopNews(Request $request)
+{
+    $filters = $request->validate([
+        'start_date' => 'required|date',
+        'end_date'   => 'required|date|after_or_equal:start_date',
+        'kanal'      => 'nullable',
+        'writer'     => 'nullable',
+        'editor'     => 'nullable',
+        'tag'        => 'nullable',
+    ]);
 
-        $fileName = 'Top-50-Berita-' . Carbon::parse($filters['start_date'])->format('dMy') . '-sd-' . Carbon::parse($filters['end_date'])->format('dMy') . '.xlsx';
+    $fileName = 'Top-50-Berita-'
+        . Carbon::parse($filters['start_date'])->format('Ymd') . '-sd-'
+        . Carbon::parse($filters['end_date'])->format('Ymd')
+        . '_' . Auth::id() . '_' . time() . '.xlsx';
 
-        // Langsung return download, tidak perlu Queue
-        return Excel::download(new TopNewsNasionalExport($filters), $fileName);
-    }
+    $userId = Auth::id();
+
+    Excel::queue(
+        new TopNewsNasionalExport($filters),
+        'exports/' . $fileName,
+        'public'
+    )->chain([
+        function () use ($userId, $fileName) {
+            $user = User::find($userId);
+            if ($user) {
+                $user->notify(new ExportReadyNotification($fileName));
+            }
+        }
+    ]);
+
+    return back()->with('success', 'Laporan Top 50 Berita sedang diproses. Silakan cek lonceng notifikasi.');
+}
 }

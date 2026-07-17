@@ -21,6 +21,7 @@ export default function ReportIndex({ summary, chart_data, top_news, top_categor
   const { flash } = usePage().props;
 
   const [tag, setTag] = useState(() => filters.tag || null);
+  const [topNewsProcessing, setTopNewsProcessing] = useState(false);
 
   const tagId = tag ? tag.value : '';
   const initialTagId = filters.tag ? filters.tag.value : '';
@@ -70,20 +71,15 @@ export default function ReportIndex({ summary, chart_data, top_news, top_categor
 
   const handleExportTopNews = () => {
     if (!data.start_date || !data.end_date) {
-      alert("Tanggal wajib diisi");
+      alert("Rentang tanggal wajib diisi untuk melakukan export data.");
       return;
     }
 
-    // Ubah state menjadi query string untuk dikirim via URL GET
-    const queryParams = new URLSearchParams({
-      start_date: data.start_date,
-      end_date: data.end_date,
-      kanal: data.kanal || '',
-      writer: data.writer || ''
-    }).toString();
-
-    // Trigger unduhan langsung
-    window.location.href = route('admin.nasional.news.report.export-top-news') + '?' + queryParams;
+    setTopNewsProcessing(true);
+    router.post(route('admin.nasional.news.report.export-top-news'), data, {
+      preserveScroll: true,
+      onFinish: () => setTopNewsProcessing(false),
+    });
   };
 
   const loadTagOptions = async (inputValue) => {
@@ -397,8 +393,17 @@ export default function ReportIndex({ summary, chart_data, top_news, top_categor
               {exportProcessing ? 'Memproses ke Queue...' : 'Export Laporan Excel'}
             </button>
 
-            <button onClick={handleExportTopNews} className="btn btn-primary">
-              <Download size={18} /> Export Top 50 Berita
+            <button
+              onClick={handleExportTopNews}
+              disabled={topNewsProcessing}
+              className="btn btn-primary w-full md:w-auto"
+            >
+              {topNewsProcessing ? (
+                <span className="loading loading-spinner loading-sm"></span>
+              ) : (
+                <Download size={18} />
+              )}
+              {topNewsProcessing ? 'Memproses ke Queue...' : 'Export Top 50 Berita'}
             </button>
           </Card>
 
