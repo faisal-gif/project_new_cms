@@ -17,7 +17,7 @@ import {
 import axios from 'axios'
 import AsyncSelect from 'react-select/async'
 
-export default function ReportIndex({ summary, chart_data, writers, editors, kanals, filters }) {
+export default function ReportIndex({ summary, chart_data, top_news, top_categories, writers, editors, kanals, filters }) {
   const { flash } = usePage().props;
 
   const [tag, setTag] = useState(() => filters.tag || null);
@@ -293,6 +293,68 @@ export default function ReportIndex({ summary, chart_data, writers, editors, kan
               )}
             </div>
           </Card>
+
+          {/* ==========================================
+              SECTION FITUR BARU: TOP NEWS & TOP KATEGORI
+          ========================================== */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+
+            {/* Kartu Top Berita */}
+            <Card className="border border-gray-200 shadow-sm p-6">
+              <div className="mb-4 flex items-center gap-2">
+                <Trophy size={20} className="text-yellow-500" />
+                <h3 className="font-bold text-lg text-foreground">Top 5 Berita (Berdasarkan Views)</h3>
+              </div>
+              <div className="space-y-4">
+                {top_news && top_news.length > 0 ? (
+                  top_news.map((news, index) => (
+                    <div key={news.news_id} className="flex justify-between items-start gap-4 pb-3 border-b border-gray-100 last:border-0">
+                      <div className="flex gap-3">
+                        <span className="font-bold text-gray-400">#{index + 1}</span>
+                        <p className="text-sm font-medium text-gray-800 line-clamp-2 leading-snug">
+                          {news.news_title}
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-1.5 bg-blue-50 text-blue-700 px-2 py-1 rounded-md shrink-0">
+                        <Eye size={14} />
+                        <span className="text-xs font-bold">{Number(news.pageviews).toLocaleString('id-ID')}</span>
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <p className="text-sm text-gray-500 italic text-center py-4">Data tidak ditemukan.</p>
+                )}
+              </div>
+            </Card>
+
+            {/* Kartu Top Kategori */}
+            <Card className="border border-gray-200 shadow-sm p-6">
+              <div className="mb-4 flex items-center gap-2">
+                <Layers size={20} className="text-purple-500" />
+                <h3 className="font-bold text-lg text-foreground">Top 5 Kanal (Berdasarkan Views)</h3>
+              </div>
+              <div className="space-y-4">
+                {top_categories && top_categories.length > 0 ? (
+                  top_categories.map((cat, index) => (
+                    <div key={index} className="flex justify-between items-center gap-4 pb-3 border-b border-gray-100 last:border-0">
+                      <div className="flex gap-3 items-center">
+                        <span className="font-bold text-gray-400">#{index + 1}</span>
+                        <p className="text-sm font-medium text-gray-800">
+                          {cat.catnews_title}
+                        </p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-sm font-bold text-gray-900">{Number(cat.total_views).toLocaleString('id-ID')} <span className="text-xs font-normal text-gray-500">views</span></p>
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <p className="text-sm text-gray-500 italic text-center py-4">Data tidak ditemukan.</p>
+                )}
+              </div>
+            </Card>
+
+          </div>
 
           {/* ==========================================
               SECTION 4: EXPORT AKSI (QUEUE JOB)

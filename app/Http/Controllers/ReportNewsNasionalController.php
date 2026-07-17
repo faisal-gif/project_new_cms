@@ -28,7 +28,7 @@ class ReportNewsNasionalController extends Controller
         // Karena kita sudah menyuntikkan nilai default di index(), 
         // blok ini akan selalu tereksekusi dengan aman.
         if ($request->filled('start_date') && $request->filled('end_date')) {
-            $query->whereBetween('news_datepub', [
+            $query->whereBetween('news.news_datepub', [
                 Carbon::parse($request->start_date)->startOfDay(),
                 Carbon::parse($request->end_date)->endOfDay(),
             ]);
@@ -90,6 +90,25 @@ class ReportNewsNasionalController extends Controller
             ->orderBy('date', 'ASC')
             ->get();
 
+        $topNews = (clone $baseQuery)
+            ->join('news_views', 'news.news_id', '=', 'news_views.news_id')
+            ->select('news.news_id', 'news.news_title', 'news_views.pageviews')
+            ->orderBy('news_views.pageviews', 'DESC')
+            ->limit(5)
+            ->get();
+
+        $topCategories = (clone $baseQuery)
+            ->join('news_category', 'news.catnews_id', '=', 'news_category.catnews_id')
+            ->leftJoin('news_views', 'news.news_id', '=', 'news_views.news_id')
+            ->select(
+                'news_category.catnews_title',
+                DB::raw('SUM(COALESCE(news_views.pageviews, 0)) as total_views')
+            )
+            ->groupBy('news_category.catnews_id', 'news_category.catnews_title')
+            ->orderBy('total_views', 'DESC')
+            ->limit(5)
+            ->get();
+
         $writers = WriterNasional::select('id', 'name')->where('status', '1')->get()
             ->map(fn($u) => ['value' => $u->name, 'label' => $u->name]);
 
@@ -110,8 +129,8 @@ class ReportNewsNasionalController extends Controller
             'writers' => $writers,
             'editors' => $editors,
             'kanals' => $kanals,
-            // Variabel 'filters' ini sekarang PASTI berisi tanggal bulan ini
-            // sehingga React di sisi depan akan otomatis mengisi input kolom tanggal.
+            'top_news' => $topNews,             
+            'top_categories' => $topCategories, 
             'filters' => $request->only(['start_date', 'end_date', 'kanal', 'writer', 'editor', 'tag']),
         ]);
     }
