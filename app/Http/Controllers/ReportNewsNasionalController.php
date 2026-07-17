@@ -107,7 +107,7 @@ class ReportNewsNasionalController extends Controller
                 DB::raw('SUM(COALESCE(news_views.pageviews, 0)) as total_views')
             )
             ->groupBy('news_category.catnews_id', 'news_category.catnews_title')
-            ->orderBy('total_views', 'DESC')
+            ->orderByRaw('SUM(COALESCE(news_views.pageviews, 0)) DESC')
             ->limit(5)
             ->get();
 
@@ -245,38 +245,38 @@ class ReportNewsNasionalController extends Controller
 
         return back()->with('success', 'Laporan Top 50 Berita sedang diproses. Silakan cek lonceng notifikasi.');
     }
-    
+
     public function exportTopCategory(Request $request)
-{
-    $filters = $request->validate([
-        'start_date' => 'required|date',
-        'end_date'   => 'required|date|after_or_equal:start_date',
-        'kanal'      => 'nullable',
-        'writer'     => 'nullable',
-        'editor'     => 'nullable',
-        'tag'        => 'nullable',
-    ]);
+    {
+        $filters = $request->validate([
+            'start_date' => 'required|date',
+            'end_date'   => 'required|date|after_or_equal:start_date',
+            'kanal'      => 'nullable',
+            'writer'     => 'nullable',
+            'editor'     => 'nullable',
+            'tag'        => 'nullable',
+        ]);
 
-    $fileName = 'Top-Kanal-'
-        . Carbon::parse($filters['start_date'])->format('Ymd') . '-sd-'
-        . Carbon::parse($filters['end_date'])->format('Ymd')
-        . '_' . Auth::id() . '_' . time() . '.xlsx';
+        $fileName = 'Top-Kanal-'
+            . Carbon::parse($filters['start_date'])->format('Ymd') . '-sd-'
+            . Carbon::parse($filters['end_date'])->format('Ymd')
+            . '_' . Auth::id() . '_' . time() . '.xlsx';
 
-    $userId = Auth::id();
+        $userId = Auth::id();
 
-    Excel::queue(
-        new TopCategoryNasionalExport($filters),
-        'exports/' . $fileName,
-        'public'
-    )->chain([
-        function () use ($userId, $fileName) {
-            $user = User::find($userId);
-            if ($user) {
-                $user->notify(new ExportReadyNotification($fileName));
+        Excel::queue(
+            new TopCategoryNasionalExport($filters),
+            'exports/' . $fileName,
+            'public'
+        )->chain([
+            function () use ($userId, $fileName) {
+                $user = User::find($userId);
+                if ($user) {
+                    $user->notify(new ExportReadyNotification($fileName));
+                }
             }
-        }
-    ]);
+        ]);
 
-    return back()->with('success', 'Laporan Top Kanal sedang diproses. Silakan cek lonceng notifikasi.');
-}
+        return back()->with('success', 'Laporan Top Kanal sedang diproses. Silakan cek lonceng notifikasi.');
+    }
 }
