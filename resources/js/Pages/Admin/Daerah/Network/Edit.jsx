@@ -27,12 +27,12 @@ function Edit({ network }) {
         ig: network.ig || '',
         yt: network.yt || '',
         gp: network.gp || '',
-        
+
         // Inisialisasi awal dengan URL existing dari database
         logo: null,
-        logo_m:  null,
-        img_socmed:  null,
-        
+        logo_m: null,
+        img_socmed: null,
+
         is_main: network.is_main ?? '0', // Gunakan ?? agar nilai 0 tidak tertimpa falsy OR (||)
         is_web: network.is_web ?? '1',
         status: network.status ?? '1',
@@ -316,20 +316,21 @@ function Edit({ network }) {
                                                     existingImage={network.logo}
                                                     onChange={(file) => setData('logo', file)}
                                                     enableCrop={false}
-                                                    targetWidth={600} 
-                                                    targetHeight={150} 
+                                                    targetWidth={600}
+                                                    targetHeight={150}
                                                 />
                                                 <InputError message={errors.logo} className="mt-2" />
                                             </div>
-                                            
+
                                             <div className='w-full'>
                                                 <InputImage
                                                     label="Logo Mobile / Favicon"
                                                     value={data.logo_m}
                                                     existingImage={network.logo_m}
                                                     onChange={(file) => setData('logo_m', file)}
-                                                    targetWidth={600} 
-                                                    targetHeight={150} 
+                                                    enableCrop={false}
+                                                    targetWidth={600}
+                                                    targetHeight={150}
                                                 />
                                                 <InputError message={errors.logo_m} className="mt-2" />
                                             </div>
@@ -340,8 +341,8 @@ function Edit({ network }) {
                                                     value={data.img_socmed}
                                                     existingImage={network.img_socmed}
                                                     onChange={(file) => setData('img_socmed', file)}
-                                                    targetWidth={200} 
-                                                    targetHeight={200} 
+                                                    targetWidth={200}
+                                                    targetHeight={200}
                                                 />
                                                 <InputError message={errors.img_socmed} className="mt-2" />
                                             </div>
