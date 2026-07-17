@@ -18,6 +18,7 @@ class TopNewsNasionalExport implements FromCollection, WithHeadings, WithMapping
     use Exportable;
 
     protected array $filters;
+    protected int $rank = 0;
 
     public function __construct(array $filters)
     {
@@ -65,16 +66,14 @@ class TopNewsNasionalExport implements FromCollection, WithHeadings, WithMapping
 
     public function map($news): array
     {
-        // Fitur auto-increment untuk kolom 'Peringkat'
-        static $rank = 0;
-        $rank++;
+        $this->rank++;
 
         $kanalSlug = $news->kanal ? Str::slug($news->kanal->catnews_title) : 'uncategorized';
         $titleSlug = Str::slug($news->news_title);
         $url = "https://timesindonesia.co.id/{$kanalSlug}/{$news->news_id}/{$titleSlug}";
 
         return [
-            $rank,
+            $this->rank,
             $news->news_title,
             $news->kanal ? $news->kanal->catnews_title : '-',
             Carbon::parse($news->news_datepub)->format('d/m/Y H:i'),
