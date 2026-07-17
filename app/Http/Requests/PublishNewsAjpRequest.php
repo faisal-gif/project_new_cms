@@ -22,7 +22,7 @@ class PublishNewsAjpRequest extends FormRequest
      public function rules(): array
     {
         return [
-            'is_code'         => 'required|string',
+            'is_code'         => 'nullable|string',
             'status'          => 'required|string',
             'editor'          => 'required',
             'title'           => 'required|string|max:255',
