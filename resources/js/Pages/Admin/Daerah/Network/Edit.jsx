@@ -315,6 +315,7 @@ function Edit({ network }) {
                                                     value={data.logo}
                                                     existingImage={network.logo}
                                                     onChange={(file) => setData('logo', file)}
+                                                    enableCrop={false}
                                                     targetWidth={600} 
                                                     targetHeight={150} 
                                                 />
