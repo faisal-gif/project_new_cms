@@ -61,6 +61,7 @@ class TopCategoryNasionalExport implements FromQuery, WithHeadings, WithMapping,
             ->groupBy('news_category.catnews_id', 'news_category.catnews_title')
             ->orderBy('total_views', 'DESC');
     }
+    
 
     public function headings(): array
     {
