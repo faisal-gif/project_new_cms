@@ -68,6 +68,24 @@ export default function ReportIndex({ summary, chart_data, top_news, top_categor
     });
   };
 
+  const handleExportTopNews = () => {
+    if (!data.start_date || !data.end_date) {
+      alert("Tanggal wajib diisi");
+      return;
+    }
+
+    // Ubah state menjadi query string untuk dikirim via URL GET
+    const queryParams = new URLSearchParams({
+      start_date: data.start_date,
+      end_date: data.end_date,
+      kanal: data.kanal || '',
+      writer: data.writer || ''
+    }).toString();
+
+    // Trigger unduhan langsung
+    window.location.href = route('admin.nasional.news.report.export-top-news') + '?' + queryParams;
+  };
+
   const loadTagOptions = async (inputValue) => {
     if (!inputValue) return []; // Jangan hit backend jika input kosong
     try {
@@ -377,6 +395,10 @@ export default function ReportIndex({ summary, chart_data, top_news, top_categor
                 <Download size={18} />
               )}
               {exportProcessing ? 'Memproses ke Queue...' : 'Export Laporan Excel'}
+            </button>
+
+            <button onClick={handleExportTopNews} className="btn btn-primary">
+              <Download size={18} /> Export Top 50 Berita
             </button>
           </Card>
 
