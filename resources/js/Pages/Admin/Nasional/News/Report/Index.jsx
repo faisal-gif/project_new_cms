@@ -22,6 +22,7 @@ export default function ReportIndex({ summary, chart_data, top_news, top_categor
 
   const [tag, setTag] = useState(() => filters.tag || null);
   const [topNewsProcessing, setTopNewsProcessing] = useState(false);
+  const [topCategoryProcessing, setTopCategoryProcessing] = useState(false);
 
   const tagId = tag ? tag.value : '';
   const initialTagId = filters.tag ? filters.tag.value : '';
@@ -79,6 +80,19 @@ export default function ReportIndex({ summary, chart_data, top_news, top_categor
     router.post(route('admin.nasional.news.report.export-top-news'), data, {
       preserveScroll: true,
       onFinish: () => setTopNewsProcessing(false),
+    });
+  };
+
+  const handleExportTopCategory = () => {
+    if (!data.start_date || !data.end_date) {
+      alert("Rentang tanggal wajib diisi untuk melakukan export data.");
+      return;
+    }
+
+    setTopCategoryProcessing(true);
+    router.post(route('admin.nasional.news.report.export-top-category'), data, {
+      preserveScroll: true,
+      onFinish: () => setTopCategoryProcessing(false),
     });
   };
 
@@ -404,6 +418,19 @@ export default function ReportIndex({ summary, chart_data, top_news, top_categor
                 <Download size={18} />
               )}
               {topNewsProcessing ? 'Memproses ke Queue...' : 'Export Top 50 Berita'}
+            </button>
+
+            <button
+              onClick={handleExportTopCategory}
+              disabled={topCategoryProcessing}
+              className="btn btn-secondary w-full md:w-auto"
+            >
+              {topCategoryProcessing ? (
+                <span className="loading loading-spinner loading-sm"></span>
+              ) : (
+                <Download size={18} />
+              )}
+              {topCategoryProcessing ? 'Memproses ke Queue...' : 'Export Top Kanal'}
             </button>
           </Card>
 

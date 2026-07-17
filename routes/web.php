@@ -99,6 +99,7 @@ Route::middleware('auth')->prefix('admin')->name('admin.')->group(function () {
             Route::get('fotografi/report', [ReportGalleryController::class, 'index'])->name('fotografi.report.index');
             Route::post('news/export', [ReportNewsNasionalController::class, 'export'])->name('news.report.export');
             Route::post('news/export-top-news', [ReportNewsNasionalController::class, 'exportTopNews'])->name('news.report.export-top-news');
+            Route::post('news/export-top-category', [ReportNewsNasionalController::class, 'exportTopCategory'])->name('news.report.export-top-category');
             Route::post('fotografi/export', [ReportGalleryController::class, 'export'])->name('fotografi.report.export');
             Route::get('tags/search', [NewsNasionalController::class, 'searchTags'])->name('tags.search');
             Route::resource('ads', AdsNasionalController::class);
