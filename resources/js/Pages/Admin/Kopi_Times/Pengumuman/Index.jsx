@@ -94,6 +94,7 @@ function Index({ pengumuman, filters }) {
                                 <div className="breadcrumbs text-sm">
                                     <ul>
                                         <li><a>Home</a></li>
+                                        <li>Kopi Times</li>
                                         <li>Pengumuman</li>
                                     </ul>
                                 </div>
@@ -244,7 +245,7 @@ function Index({ pengumuman, filters }) {
                                                     </tr>
                                                 );
                                             })}
-                                            
+
                                             {/* Empty State */}
                                             {pengumuman.data.length === 0 && (
                                                 <tr>

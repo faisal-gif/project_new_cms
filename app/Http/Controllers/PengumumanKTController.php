@@ -17,7 +17,7 @@ class PengumumanKTController extends Controller
     public function index(Request $request)
     {
         // Mengambil data pengumuman menggunakan query builder
-        $pengumuman = PengumumanWebBerbayar::where('type',4)
+        $pengumuman = PengumumanWebBerbayar::where('type', 4)
             ->when($request->search, function ($query, $search) {
                 $query->where('title', 'like', "%{$search}%");
             })
@@ -65,6 +65,48 @@ class PengumumanKTController extends Controller
 
             return redirect()->route('admin.kopi-times.pengumuman.index')
                 ->with('success', 'Pengumuman Kopi Times berhasil diterbitkan!');
+        } catch (\Exception $e) {
+            DB::rollback();
+
+            return back()->withErrors([
+                'error' => 'Terjadi kesalahan sistem saat menyimpan data: ' . $e->getMessage()
+            ]);
+        }
+    }
+
+    /**
+     * Menampilkan halaman form edit pengumuman.
+     */
+    public function edit($id)
+    {
+        $pengumuman = PengumumanWebBerbayar::findOrFail($id);
+
+        return Inertia::render('Admin/Kopi_Times/Pengumuman/Edit', [
+            'pengumuman' => $pengumuman
+        ]);
+    }
+
+    /**
+     * Memperbarui data pengumuman di database.
+     */
+    public function update(PengumumanKTRequest $request, $id)
+    {
+        $pengumuman = PengumumanWebBerbayar::findOrFail($id);
+
+        $validated = $request->validated();
+        
+        try {
+            if (isset($validated['kategori'])) {
+                $validated['kategori'] = $validated['kategori'];
+                unset($validated['kategori']);
+            }
+
+            $validated['is_active'] = $request->input('is_active', false);
+
+            $pengumuman->update($validated);
+
+            return redirect()->route('admin.kopi-times.pengumuman.index')
+                ->with('success', 'Pengumuman Kopi Times berhasil diperbarui!');
         } catch (\Exception $e) {
             DB::rollback();
 

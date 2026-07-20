@@ -7,26 +7,32 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout'
 import { Head, useForm } from '@inertiajs/react'
 import React from 'react'
 
-function Create() {
-    // Inisialisasi state sesuai dengan request backend PengumumanWebBerbayarRequest
-    const { data, setData, post, processing, errors } = useForm({
-        title: '',
-        content: '',
-        kategori: 'info', // Default value
-        start_date: '',
-        end_date: '',
-        is_active: true,  // Default aktif
+function Edit({ pengumuman }) {
+    // Helper untuk mengubah "2026-07-20 14:30:00" menjadi "2026-07-20T14:30" untuk datetime-local
+    const formatForInput = (dateString) => {
+        if (!dateString) return '';
+        return dateString.replace(' ', 'T').substring(0, 16);
+    };
+
+    // Pre-fill state form dengan data pengumuman yang dikirim dari Controller
+    const { data, setData, put, processing, errors } = useForm({
+        title: pengumuman.title || '',
+        content: pengumuman.content || '',
+        kategori: pengumuman.kategori || 'info', 
+        start_date: formatForInput(pengumuman.start_date),
+        end_date: formatForInput(pengumuman.end_date),
+        is_active: pengumuman.is_active === 1 || pengumuman.is_active === true,
     });
 
     const submit = (e) => {
         e.preventDefault();
-        // Sesuaikan dengan nama route store pengumuman di web kamu
-        post(route('admin.kopi-times.pengumuman.store'));
+        // Menggunakan PUT method untuk proses update
+        put(route('admin.kopi-times.pengumuman.update', pengumuman.id));
     };
 
     return (
         <>
-            <Head title="Tambah Pengumuman" />
+            <Head title="Edit Pengumuman Kopi Times" />
             <AuthenticatedLayout>
                 <div className="py-12">
                     <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -35,7 +41,7 @@ function Create() {
                             <div className='flex flex-col md:flex-row justify-between md:items-center gap-2'>
                                 {/* start Header */}
                                 <div>
-                                    <h1 className="text-3xl font-bold text-foreground">Tambah Pengumuman</h1>
+                                    <h1 className="text-3xl font-bold text-foreground">Edit Pengumuman Kopi Times</h1>
                                 </div>
                                 {/* end Header */}
 
@@ -45,7 +51,7 @@ function Create() {
                                         <li><a>Home</a></li>
                                         <li>Kopi Times</li>
                                         <li>Pengumuman</li>
-                                        <li>Tambah Pengumuman</li>
+                                        <li>Edit Pengumuman</li>
                                     </ul>
                                 </div>
                                 {/* end breadcrumbs */}
@@ -54,7 +60,7 @@ function Create() {
                             {/* START: Main Form */}
                             <Card>
                                 <form onSubmit={submit} className='grid grid-cols-1 lg:grid-cols-6 gap-4 p-4'>
-
+                                    
                                     {/* Field: Title */}
                                     <div className='lg:col-span-6 w-full'>
                                         <InputLabel
@@ -81,7 +87,6 @@ function Create() {
                                             value="Isi Pengumuman"
                                             className='mb-2 font-bold'
                                         />
-                                        {/* Menggunakan textarea standar bawaan HTML yang di-styling mirip TextInput */}
                                         <textarea
                                             id="content"
                                             name="content"
@@ -118,7 +123,7 @@ function Create() {
                                         <TextInput
                                             id="start_date"
                                             name="start_date"
-                                            type="datetime-local" // Menggunakan datetime-local agar bisa set jam
+                                            type="datetime-local"
                                             className="mt-1 block w-full"
                                             value={data.start_date}
                                             onChange={(e) => setData('start_date', e.target.value)}
@@ -169,7 +174,7 @@ function Create() {
                                             className="btn btn-primary"
                                             disabled={processing}
                                         >
-                                            {processing ? 'Menyimpan...' : 'Simpan Pengumuman'}
+                                            {processing ? 'Menyimpan Perubahan...' : 'Update Pengumuman'}
                                         </button>
                                     </div>
                                 </form>
@@ -184,4 +189,4 @@ function Create() {
     )
 }
 
-export default Create
+export default Edit
