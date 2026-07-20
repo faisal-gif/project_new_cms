@@ -585,7 +585,7 @@ export default function AuthenticatedLayout({ header, children }) {
 
                         {hasPermission(['view pengumuman kopi-times']) && (
                             <li>
-                                <Link href={route('admin.kopi-times.addon-requests.index')} className={linkClass(isActive('admin.kopi-times.addon-requests.*'))}>
+                                <Link href={route('admin.kopi-times.pengumuman.index')} className={linkClass(isActive('admin.kopi-times.addon-requests.*'))}>
                                     <Megaphone size={16} /> Pengumuman Kopi Times
                                 </Link>
                             </li>
