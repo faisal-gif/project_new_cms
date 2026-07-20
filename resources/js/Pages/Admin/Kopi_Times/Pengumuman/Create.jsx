@@ -21,7 +21,7 @@ function Create() {
     const submit = (e) => {
         e.preventDefault();
         // Sesuaikan dengan nama route store pengumuman di web kamu
-        post(route('admin.pengumuman.store')); 
+        post(route('admin.kopi-times.pengumuman.store')); 
     };
 
     return (
