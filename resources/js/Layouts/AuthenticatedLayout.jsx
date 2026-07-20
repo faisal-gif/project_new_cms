@@ -36,7 +36,8 @@ import {
     Globe2Icon,
     User2Icon,
     Blocks,
-    Banknote
+    Banknote,
+    Megaphone
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
@@ -581,6 +582,15 @@ export default function AuthenticatedLayout({ header, children }) {
                     <>
                         <div className="divider my-1 bg-white/10 h-[1px]"></div>
                         <h2 className="menu-title text-yellow-300/50 uppercase text-xs tracking-wider">Kopi Times</h2>
+
+                        {hasPermission(['view pengumuman kopi-times']) && (
+                            <li>
+                                <Link href={route('admin.kopi-times.addon-requests.index')} className={linkClass(isActive('admin.kopi-times.addon-requests.*'))}>
+                                    <Megaphone size={16} /> Pengumuman Kopi Times
+                                </Link>
+                            </li>
+                        )}
+
                         {hasPermission(['view member kopi-times']) && (
                             <li>
                                 <Link href={route('admin.kopi-times.writer.index')} className={linkClass(isActive('admin.kopi-times.writer.*'))}>

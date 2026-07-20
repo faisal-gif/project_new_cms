@@ -232,7 +232,7 @@ function Index({ pengumuman, filters }) {
 
                                                         {/* Aksi */}
                                                         <td className="py-4 align-top text-right">
-                                                            {hasPermission('edit pengumuman') && (
+                                                            {hasPermission('edit pengumuman kopi-times') && (
                                                                 <Link
                                                                     href={route('admin.pengumuman.edit', item.id)}
                                                                     className="btn btn-sm btn-ghost gap-1.5"
