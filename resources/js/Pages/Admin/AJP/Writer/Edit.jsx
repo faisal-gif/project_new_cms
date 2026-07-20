@@ -196,7 +196,7 @@ export default function Edit({ paket, writer }) {
 
                                             <div className='lg:col-span-3 w-full'>
                                                 <InputLabel htmlFor="password" value="Password (Kosongkan jika tidak diubah)" className='mb-2 font-bold' />
-                                                <InputPassword id="password" name="password" value={data.password} placeholder="••••••••" className="mt-1 w-full" onChange={(e) => setData('password', e.target.value)} />
+                                                <InputPassword id="password" name="password" value={data.password} placeholder="••••••••"  className="mt-1 w-full" onChange={(e) => setData('password', e.target.value)} />
                                                 <InputError message={errors.password} className="mt-2" />
                                             </div>
 

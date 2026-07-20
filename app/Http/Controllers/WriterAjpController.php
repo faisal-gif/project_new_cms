@@ -120,7 +120,6 @@ class WriterAjpController extends Controller
         return Inertia::render('Admin/AJP/Writer/Edit', [
             'writer' => $writer,
             'paket'  => $pakets,
-            // ... kirim data pendukung lainnya (provinsi, kota, dll)
         ]);
     }
     /**

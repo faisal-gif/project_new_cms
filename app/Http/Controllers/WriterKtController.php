@@ -124,46 +124,50 @@ class WriterKtController extends Controller
      */
     public function update(WriterKtRequest $request, string $id)
     {
-        $writer = WriterBerbayar::find($id);
+        $writer = WriterBerbayar::findOrFail($id);
 
         $validated = $request->validated();
-        $paket = PaketBerita::findOrFail($validated['paket_berita']);
-
 
         try {
             DB::beginTransaction();
 
-            $packageData = $this->resolvePackageData($paket, $validated);
-
             $updateData = [
-                'nama'       => $validated['name'],
-                'email'      => $validated['email'],
-                'contact'    => $validated['phone'],
-                'instansi'   => $validated['instansi'],
-                'kategori'   => $validated['kategori'],
-                'prov'       => $validated['provinsi'],
-                'city'       => $validated['kota'],
-                'address'    => $validated['alamat'],
-                'status'     => $validated['status'],
-                'package_id' => $paket->id,
-                'quota_news' => $packageData['quota'],
-                'dateexp'    => $packageData['dateexp'],
-                'type'       => 4,
+                'nama'     => $validated['name'],
+                'email'    => $validated['email'],
+                'contact'  => $validated['phone'] ?? null,
+                'instansi' => $validated['instansi'] ?? null,
+                'prov'     => $validated['provinsi'] ?? null,
+                'city'     => $validated['kota'] ?? null,
+                'address'  => $validated['alamat'] ?? null,
+                'kategori' => $validated['kategori'],
+                'status'   => $validated['status'],
+                'type'     => 4,
             ];
 
-            // Hanya update password jika admin mengisinya di form edit
             if (!empty($validated['password'])) {
                 $updateData['password'] = Hash::make($validated['password']);
+            }
+
+            if (!empty($validated['is_update_package'])) {
+                $updateData['package_id'] = $validated['paket_berita'];
+                $updateData['quota_news'] = $validated['quota_news'];
+                $updateData['dateexp']    = $validated['date_exp']
+                    ? Carbon::parse($validated['date_exp'])->format('Y-m-d')
+                    : null;
             }
 
             $writer->update($updateData);
 
             DB::commit();
+
             return redirect()->route('admin.kopi-times.writer.index')
                 ->with('success', 'Data penulis Kopi Times berhasil diperbarui.');
         } catch (\Exception $e) {
             DB::rollback();
-            return back()->withErrors(['error' => 'Terjadi kesalahan saat menyimpan data: ' . $e->getMessage()]);
+
+            return back()->withErrors([
+                'error' => 'Terjadi kesalahan sistem saat menyimpan data: ' . $e->getMessage()
+            ]);
         }
     }
 
