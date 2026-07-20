@@ -15,6 +15,7 @@ class PengumumanWebBerbayar extends Model
     protected $fillable = [
         'title',
         'content',
+        'kategori',
         'type',
         'start_date',
         'end_date',
