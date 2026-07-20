@@ -27,6 +27,7 @@ use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\PageStaticController;
 use App\Http\Controllers\PaymentsAjpController;
 use App\Http\Controllers\PaymentsKTController;
+use App\Http\Controllers\PengumumanKTController;
 use App\Http\Controllers\PermissionController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ReportGalleryController;
@@ -128,14 +129,14 @@ Route::middleware('auth')->prefix('admin')->name('admin.')->group(function () {
         function () {
             Route::resource('transaction', PaymentsKTController::class)->only('index');
             Route::resource('news', NewsKTController::class);
+            Route::resource('writer', WriterKtController::class);
+            Route::resource('pengumuman', PengumumanKTController::class);
             Route::get('/transaction/report', [PaymentsKTController::class, 'report'])->name('transaction.report');
             Route::get('/news/publish/{id}', [NewsKTController::class, 'publish'])->name('news.publish');
-
             Route::get('/addon-requests', [KtAddonRequestController::class, 'index'])->name('addon-requests.index');
             Route::get('/addon-requests/{id}', [KtAddonRequestController::class, 'show'])->name('addon-requests.show');
             Route::put('/addon-requests/{id}', [KtAddonRequestController::class, 'update'])->name('addon-requests.update');
             Route::post('/news/publish/{isCode}/store', [NewsKTController::class, 'publishStore'])->name('news.publish.store');
-            Route::resource('writer', WriterKtController::class);
         }
     );
 });
