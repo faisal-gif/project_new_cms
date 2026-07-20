@@ -94,13 +94,9 @@ class PengumumanKTController extends Controller
         $pengumuman = PengumumanWebBerbayar::findOrFail($id);
 
         $validated = $request->validated();
-        
-        try {
-            if (isset($validated['kategori'])) {
-                $validated['kategori'] = $validated['kategori'];
-                unset($validated['kategori']);
-            }
 
+        try {
+            
             $validated['is_active'] = $request->input('is_active', false);
 
             $pengumuman->update($validated);
