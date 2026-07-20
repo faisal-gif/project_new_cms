@@ -234,7 +234,7 @@ function Index({ pengumuman, filters }) {
                                                         <td className="py-4 align-top text-right">
                                                             {hasPermission('edit pengumuman kopi-times') && (
                                                                 <Link
-                                                                    href={route('admin.pengumuman.edit', item.id)}
+                                                                    href={route('admin.kopi-times.pengumuman.edit', item.id)}
                                                                     className="btn btn-sm btn-ghost gap-1.5"
                                                                 >
                                                                     <Pencil className="w-3.5 h-3.5" /> Edit
