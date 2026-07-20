@@ -68,8 +68,8 @@ function Index({ pengumuman, filters }) {
     }
 
     // Badge untuk Kategori Urgent/Info
-    function getTypeBadge(type) {
-        if (type === 'urgent') {
+    function getKategoriBadge(kategori) {
+        if (kategori === 'urgent') {
             return <Badge className="bg-red-200 text-red-800 hover:bg-red-300">Urgent</Badge>;
         }
         return <Badge className="bg-blue-200 text-blue-800 hover:bg-blue-300">Info Biasa</Badge>;
@@ -149,7 +149,7 @@ function Index({ pengumuman, filters }) {
                                             <div className="flex justify-between items-start mb-3 gap-2">
                                                 <div>
                                                     <p className="font-semibold text-base line-clamp-2">{item.title}</p>
-                                                    <div className="mt-1">{getTypeBadge(item.type)}</div>
+                                                    <div className="mt-1">{getKategoriBadge(item.kategori)}</div>
                                                 </div>
                                                 {getStatusBadge(item.is_active)}
                                             </div>
@@ -209,7 +209,7 @@ function Index({ pengumuman, filters }) {
 
                                                         {/* Kategori */}
                                                         <td className="py-4 align-top">
-                                                            {getTypeBadge(item.type)}
+                                                            {getKategoriBadge(item.kategori)}
                                                         </td>
 
                                                         {/* Jadwal Tayang */}
