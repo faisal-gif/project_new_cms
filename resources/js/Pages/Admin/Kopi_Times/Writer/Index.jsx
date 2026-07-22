@@ -94,7 +94,7 @@ function Index({ writers, filters }) {
                             {/* Start Head */}
                             <Card>
                                 <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-                                    {hasPermission(['create writer kopi-times']) && (
+                                    {hasPermission(['create member kopi-times']) && (
                                         <Link href={route('admin.kopi-times.writer.create')} className="btn btn-primary rounded-lg">
                                             <Plus size={16} /> Tambah Writers
                                         </Link>
@@ -157,7 +157,7 @@ function Index({ writers, filters }) {
                                                     <span>{formatDate(writer.created)}</span>
                                                 </div>
                                             </div>
-                                            {hasPermission(['edit writer kopi-times']) && (
+                                            {hasPermission(['edit member kopi-times']) && (
                                                 <div className="flex gap-2 mt-4">
                                                     <Link href={route('admin.kopi-times.writer.edit', writer.id)} className="btn btn-sm btn-warning btn-outline w-full">Edit Profil</Link>
                                                 </div>
@@ -204,7 +204,7 @@ function Index({ writers, filters }) {
                                                         {getStatusBadge(writer.status)}
                                                     </td>
                                                     <td>
-                                                        {hasPermission(['edit writer kopi-times']) && (
+                                                        {hasPermission(['edit member kopi-times']) && (
                                                             <div className="flex justify-end gap-2">
                                                                 <Link href={route('admin.kopi-times.writer.edit', writer.id)} className="btn btn-sm btn-warning btn-outline">Edit</Link>
                                                             </div>
