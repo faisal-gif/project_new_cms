@@ -16,7 +16,7 @@ function Index({ writers, filters }) {
 
     const isFirst = useRef(true);
     // PERBAIKAN: Ubah dari daerah ke ajp agar sesuai konteks
-    const INDEX_ROUTE = route('admin.kopi-times.writer.index'); 
+    const INDEX_ROUTE = route('admin.kopi-times.writer.index');
 
     const { auth } = usePage().props;
     const userPermissions = auth.permissions || [];
@@ -94,9 +94,11 @@ function Index({ writers, filters }) {
                             {/* Start Head */}
                             <Card>
                                 <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-                                    <Link href={route('admin.kopi-times.writer.create')} className="btn btn-primary rounded-lg">
-                                        <Plus size={16} /> Tambah Writers
-                                    </Link>
+                                    {hasPermission(['create writer kopi-times']) && (
+                                        <Link href={route('admin.kopi-times.writer.create')} className="btn btn-primary rounded-lg">
+                                            <Plus size={16} /> Tambah Writers
+                                        </Link>
+                                    )}
 
                                     <div className="flex flex-col md:flex-row gap-4 w-full md:w-auto">
                                         <div className="w-full md:w-80">
@@ -129,7 +131,7 @@ function Index({ writers, filters }) {
                                 <div className="md:hidden flex flex-col gap-4">
                                     {writers.data.map((writer) => (
                                         <div key={writer.id} className="border rounded-xl p-4 bg-base-100 shadow-sm">
-                                            
+
                                             <div className="flex justify-between items-start mb-3">
                                                 <div>
                                                     {/* PERBAIKAN: Gunakan nama, bukan name */}
@@ -142,23 +144,24 @@ function Index({ writers, filters }) {
                                             <div className="text-sm space-y-2 mt-2 bg-gray-50 p-3 rounded-lg border border-gray-100">
                                                 {/* PENAMBAHAN INFO BARU */}
                                                 <div className="flex justify-between">
-                                                    <span className="font-medium text-gray-600">Kuota Berita:</span> 
+                                                    <span className="font-medium text-gray-600">Kuota Berita:</span>
                                                     <span className="font-bold text-blue-600">{writer.quota_news ?? 0}</span>
                                                 </div>
                                                 <div className="flex justify-between">
                                                     {/* PERBAIKAN: Gunakan dateexp, bukan date_exp */}
-                                                    <span className="font-medium text-gray-600">Masa Berlaku:</span> 
+                                                    <span className="font-medium text-gray-600">Masa Berlaku:</span>
                                                     <span>{formatDate(writer.dateexp)}</span>
                                                 </div>
                                                 <div className="flex justify-between">
-                                                    <span className="font-medium text-gray-600">Terdaftar:</span> 
+                                                    <span className="font-medium text-gray-600">Terdaftar:</span>
                                                     <span>{formatDate(writer.created)}</span>
                                                 </div>
                                             </div>
-
-                                            <div className="flex gap-2 mt-4">
-                                                <Link href={route('admin.kopi-times.writer.edit', writer.id)} className="btn btn-sm btn-warning btn-outline w-full">Edit Profil</Link>
-                                            </div>
+                                            {hasPermission(['edit writer kopi-times']) && (
+                                                <div className="flex gap-2 mt-4">
+                                                    <Link href={route('admin.kopi-times.writer.edit', writer.id)} className="btn btn-sm btn-warning btn-outline w-full">Edit Profil</Link>
+                                                </div>
+                                            )}
                                         </div>
                                     ))}
                                 </div>
@@ -201,13 +204,15 @@ function Index({ writers, filters }) {
                                                         {getStatusBadge(writer.status)}
                                                     </td>
                                                     <td>
-                                                        <div className="flex justify-end gap-2">
-                                                            <Link href={route('admin.kopi-times.writer.edit', writer.id)} className="btn btn-sm btn-warning btn-outline">Edit</Link>
-                                                        </div>
+                                                        {hasPermission(['edit writer kopi-times']) && (
+                                                            <div className="flex justify-end gap-2">
+                                                                <Link href={route('admin.kopi-times.writer.edit', writer.id)} className="btn btn-sm btn-warning btn-outline">Edit</Link>
+                                                            </div>
+                                                        )}
                                                     </td>
                                                 </tr>
                                             ))}
-                                            
+
                                             {writers.data.length === 0 && (
                                                 <tr>
                                                     <td colSpan="7" className="text-center py-8 text-gray-500">

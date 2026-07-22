@@ -37,7 +37,8 @@ import {
     User2Icon,
     Blocks,
     Banknote,
-    Megaphone
+    Megaphone,
+    Package
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
@@ -598,6 +599,15 @@ export default function AuthenticatedLayout({ header, children }) {
                                 </Link>
                             </li>
                         )}
+
+                          {hasPermission(['view paket kopi-times']) && (
+                            <li>
+                                <Link href={route('admin.kopi-times.paket.index')} className={linkClass(isActive('admin.kopi-times.paket.*'))}>
+                                    <Package size={16} /> Paket Kopi Times
+                                </Link>
+                            </li>
+                        )}
+
                         {hasPermission(['view news kopi-times']) && (
                             <li>
                                 <Link href={route('admin.kopi-times.news.index')} className={linkClass(isActive('admin.kopi-times.news.*'))}>

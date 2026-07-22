@@ -50,4 +50,9 @@ class PaketBerita extends Model
         'flash_sale'  => 'boolean', // tinyint(1) -> true/false
         'status'      => 'boolean', // tinyint(1) -> true/false
     ];
+
+    public function itemsLainnya()
+    {
+        return $this->hasMany(ItemsLainnya::class, 'news_package_id');
+    }
 }
