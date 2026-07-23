@@ -626,7 +626,7 @@ export default function AuthenticatedLayout({ header, children }) {
 
                         {hasPermission(['view merchandise kopi-times']) && (
                             <li>
-                                <Link href={route('admin.kopi-times.shipments.index')} className={linkClass(isActive('admin.kopi-times.addon-requests.*'))}>
+                                <Link href={route('admin.kopi-times.shipments.index')} className={linkClass(isActive('admin.kopi-times.shipments.*'))}>
                                     <Package size={16} /> Merchandise Kopi Times
                                 </Link>
                             </li>
