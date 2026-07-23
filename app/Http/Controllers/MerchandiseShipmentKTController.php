@@ -26,7 +26,8 @@ class MerchandiseShipmentKTController extends Controller
             ->paginate(10)
             ->withQueryString();
 
-        return Inertia::render('Admin/Kopi_Times/Merchandise/Shipment/Index', [
+ 
+            return Inertia::render('Admin/Kopi_Times/Merchandise/Shipment/Index', [
             'shipments' => $shipments,
             'filters'   => $request->only(['search', 'status']),
         ]);

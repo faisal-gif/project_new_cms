@@ -153,8 +153,8 @@ function Index({ shipments, filters }) {
                                                     
                                                     {/* User Info */}
                                                     <td className="py-4 align-top">
-                                                        <div className="font-bold text-base-content">{item.user?.nama || 'Unknown User'}</div>
-                                                        <div className="text-xs text-base-content/60">KT-{item.user?.id}</div>
+                                                        <div className="font-bold text-base-content">{item.member?.nama || 'Unknown User'}</div>
+                                                        <div className="text-xs text-base-content/60">KT-{item.member?.id}</div>
                                                     </td>
 
                                                     {/* Item Info */}
@@ -225,7 +225,7 @@ function Index({ shipments, filters }) {
                     
                     {selectedShipment && (
                         <div className="mb-4 p-3 bg-base-200/50 rounded-lg text-sm">
-                            <p><span className="font-semibold">Penerima:</span> {selectedShipment.user?.nama}</p>
+                            <p><span className="font-semibold">Penerima:</span> {selectedShipment.member?.nama}</p>
                             <p><span className="font-semibold">Item:</span> {selectedShipment.item_name}</p>
                         </div>
                     )}
