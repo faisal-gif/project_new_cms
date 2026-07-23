@@ -600,7 +600,7 @@ export default function AuthenticatedLayout({ header, children }) {
                             </li>
                         )}
 
-                          {hasPermission(['view paket kopi-times']) && (
+                        {hasPermission(['view paket kopi-times']) && (
                             <li>
                                 <Link href={route('admin.kopi-times.paket.index')} className={linkClass(isActive('admin.kopi-times.paket.*'))}>
                                     <Package size={16} /> Paket Kopi Times
@@ -620,6 +620,14 @@ export default function AuthenticatedLayout({ header, children }) {
                             <li>
                                 <Link href={route('admin.kopi-times.addon-requests.index')} className={linkClass(isActive('admin.kopi-times.addon-requests.*'))}>
                                     <Blocks size={16} /> Addon Request Kopi Times
+                                </Link>
+                            </li>
+                        )}
+
+                        {hasPermission(['view merchandise kopi-times']) && (
+                            <li>
+                                <Link href={route('admin.kopi-times.shipments.index')} className={linkClass(isActive('admin.kopi-times.addon-requests.*'))}>
+                                    <Package size={16} /> Merchandise Kopi Times
                                 </Link>
                             </li>
                         )}
