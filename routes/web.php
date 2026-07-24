@@ -30,6 +30,7 @@ use App\Http\Controllers\PaketAjpController;
 use App\Http\Controllers\PaketKTController;
 use App\Http\Controllers\PaymentsAjpController;
 use App\Http\Controllers\PaymentsKTController;
+use App\Http\Controllers\PengumumanAjpController;
 use App\Http\Controllers\PengumumanKTController;
 use App\Http\Controllers\PermissionController;
 use App\Http\Controllers\ProfileController;
@@ -126,6 +127,7 @@ Route::middleware('auth')->prefix('admin')->name('admin.')->group(function () {
             Route::post('/news/publish/{id}/store', [NewsAJPController::class, 'publishStore'])->name('news.publish.store');
             Route::resource('writer', WriterAjpController::class);
             Route::resource('paket', PaketAjpController::class);
+            Route::resource('pengumuman', PengumumanAjpController::class);
         }
     );
 

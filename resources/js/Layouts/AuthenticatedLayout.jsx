@@ -556,6 +556,13 @@ export default function AuthenticatedLayout({ header, children }) {
                     <>
                         <div className="divider my-1 bg-white/10 h-[1px]"></div>
                         <h2 className="menu-title text-yellow-300/50 uppercase text-xs tracking-wider">AJP</h2>
+                        {hasPermission(['view pengumuman ajp']) && (
+                            <li>
+                                <Link href={route('admin.ajp.pengumuman.index')} className={linkClass(isActive('admin.ajp.pengumuman.*'))}>
+                                    <Megaphone size={16} /> Pengumuman AJP
+                                </Link>
+                            </li>
+                        )}
                         {hasPermission(['view member ajp']) && (
                             <li>
                                 <Link href={route('admin.ajp.writer.index')} className={linkClass(isActive('admin.ajp.writer.*'))}>
