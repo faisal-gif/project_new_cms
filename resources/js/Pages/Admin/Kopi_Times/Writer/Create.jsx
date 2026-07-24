@@ -12,6 +12,8 @@ import Select from "react-select";
 
 function Create({ paket }) {
     const [isCustomMode, setIsCustomMode] = useState(false);
+    // Benefit paket terpilih (feed_instagram, ekoran, wa_channel) - hanya preview, diisi backend dari paket
+    const [packageInfo, setPackageInfo] = useState(null);
 
     const { data, setData, post, processing, errors } = useForm({
         name: '',
@@ -43,11 +45,13 @@ function Create({ paket }) {
     const handlePaketChange = (selectedOption) => {
         if (!selectedOption) {
             setIsCustomMode(false);
+            setPackageInfo(null);
             setData(prevData => ({ ...prevData, paket_berita: null, quota_news: '', date_exp: '' }));
             return;
         }
 
         const pkg = selectedOption.paketDetail;
+        setPackageInfo(pkg);
 
         // Cek apakah ini paket "Custom" (mengandalkan quota yang bernilai null)
         if (pkg.quota === null) {
@@ -249,6 +253,22 @@ function Create({ paket }) {
                                                     className={`mt-1 block w-full transition-all ${!isCustomMode ? 'bg-gray-100 cursor-not-allowed border-gray-300 text-gray-500' : 'bg-white border-blue-400 ring-1 ring-blue-200'}`}
                                                 />
                                                 <InputError message={errors.date_exp} className="mt-2" />
+                                            </div>
+
+                                            {/* Benefit dari paket (otomatis, terisi dari paket yang dipilih) */}
+                                            <div className="lg:col-span-2">
+                                                <InputLabel value="Feed Instagram" className='mb-2 font-bold text-gray-700' />
+                                                <TextInput type="number" value={packageInfo?.feed_instagram ?? ''} readOnly className="mt-1 block w-full bg-gray-100 cursor-not-allowed border-gray-300 text-gray-500 font-bold" placeholder="Dari paket..." />
+                                            </div>
+
+                                            <div className="lg:col-span-2">
+                                                <InputLabel value="E-Koran" className='mb-2 font-bold text-gray-700' />
+                                                <TextInput type="number" value={packageInfo?.ekoran ?? ''} readOnly className="mt-1 block w-full bg-gray-100 cursor-not-allowed border-gray-300 text-gray-500 font-bold" placeholder="Dari paket..." />
+                                            </div>
+
+                                            <div className="lg:col-span-2">
+                                                <InputLabel value="WA Channel" className='mb-2 font-bold text-gray-700' />
+                                                <TextInput type="number" value={packageInfo?.wa_channel ?? ''} readOnly className="mt-1 block w-full bg-gray-100 cursor-not-allowed border-gray-300 text-gray-500 font-bold" placeholder="Dari paket..." />
                                             </div>
 
                                         </div>

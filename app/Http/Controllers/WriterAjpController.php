@@ -70,6 +70,9 @@ class WriterAjpController extends Controller
         try {
             DB::beginTransaction();
 
+            // Atribut yang berasal dari paket yang dipilih
+            $paket = PaketBerita::find($validated['paket_berita']);
+
             // 2. Langsung simpan data ke database tanpa resolvePackageData
             WriterBerbayar::create([
                 'nama'       => $validated['name'],
@@ -87,6 +90,9 @@ class WriterAjpController extends Controller
 
                 'package_id' => $validated['paket_berita'],
                 'quota_news' => $validated['quota_news'],
+                'feed_instagram' => $paket?->feed_instagram,
+                'ekoran'         => $paket?->ekoran,
+                'wa_channel'     => $paket?->wa_channel,
                 'dateexp'    => $validated['date_exp']
                     ? Carbon::parse($validated['date_exp'])->format('Y-m-d')
                     : null,
@@ -151,11 +157,17 @@ class WriterAjpController extends Controller
             }
 
             if (!empty($validated['is_update_package'])) {
+                // Ikut sinkronkan atribut yang berasal dari paket yang dipilih
+                $paket = PaketBerita::find($validated['paket_berita']);
+
                 $updateData['package_id'] = $validated['paket_berita'];
                 $updateData['quota_news'] = $validated['quota_news'];
                 $updateData['dateexp']    = $validated['date_exp']
                     ? Carbon::parse($validated['date_exp'])->format('Y-m-d')
                     : null;
+                $updateData['feed_instagram'] = $paket?->feed_instagram;
+                $updateData['ekoran']         = $paket?->ekoran;
+                $updateData['wa_channel']     = $paket?->wa_channel;
             }
 
             $writer->update($updateData);

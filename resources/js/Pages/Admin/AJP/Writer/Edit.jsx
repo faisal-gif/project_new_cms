@@ -329,6 +329,22 @@ export default function Edit({ paket, writer }) {
                                                     />
                                                     <InputError message={errors.date_exp} className="mt-2" />
                                                 </div>
+
+                                                {/* Benefit dari paket (otomatis, terisi dari paket yang dipilih) */}
+                                                <div className="lg:col-span-2">
+                                                    <InputLabel value="Feed Instagram" className='mb-2 font-bold text-gray-700' />
+                                                    <TextInput type="number" value={selectedPackageData?.feed_instagram ?? ''} readOnly className="mt-1 block w-full bg-gray-100 cursor-not-allowed border-gray-300 text-gray-500 font-bold" placeholder="Dari paket..." />
+                                                </div>
+
+                                                <div className="lg:col-span-2">
+                                                    <InputLabel value="E-Koran" className='mb-2 font-bold text-gray-700' />
+                                                    <TextInput type="number" value={selectedPackageData?.ekoran ?? ''} readOnly className="mt-1 block w-full bg-gray-100 cursor-not-allowed border-gray-300 text-gray-500 font-bold" placeholder="Dari paket..." />
+                                                </div>
+
+                                                <div className="lg:col-span-2">
+                                                    <InputLabel value="WA Channel" className='mb-2 font-bold text-gray-700' />
+                                                    <TextInput type="number" value={selectedPackageData?.wa_channel ?? ''} readOnly className="mt-1 block w-full bg-gray-100 cursor-not-allowed border-gray-300 text-gray-500 font-bold" placeholder="Dari paket..." />
+                                                </div>
                                             </div>
                                             
                                             {!data.is_update_package && (

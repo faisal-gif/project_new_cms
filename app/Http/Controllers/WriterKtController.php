@@ -84,6 +84,9 @@ class WriterKtController extends Controller
                 'package_id' => $paket->id,
                 'quota_news' => $packageData['quota'],
                 'dateexp'    => $packageData['dateexp'],
+                'feed_instagram' => $paket->feed_instagram,
+                'ekoran'         => $paket->ekoran,
+                'wa_channel'     => $paket->wa_channel,
                 'type'       => 4,
 
             ]);
@@ -149,11 +152,17 @@ class WriterKtController extends Controller
             }
 
             if (!empty($validated['is_update_package'])) {
+                // Ikut sinkronkan atribut yang berasal dari paket yang dipilih
+                $paket = PaketBerita::find($validated['paket_berita']);
+
                 $updateData['package_id'] = $validated['paket_berita'];
                 $updateData['quota_news'] = $validated['quota_news'];
                 $updateData['dateexp']    = $validated['date_exp']
                     ? Carbon::parse($validated['date_exp'])->format('Y-m-d')
                     : null;
+                $updateData['feed_instagram'] = $paket?->feed_instagram;
+                $updateData['ekoran']         = $paket?->ekoran;
+                $updateData['wa_channel']     = $paket?->wa_channel;
             }
 
             $writer->update($updateData);
