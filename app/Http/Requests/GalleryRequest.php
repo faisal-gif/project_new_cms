@@ -50,13 +50,7 @@ class GalleryRequest extends FormRequest
             $rules['new_images.*.caption']            = ['nullable', 'string', 'max:255'];
             $rules['new_images.*.is_cover']           = ['nullable', 'boolean']; // <-- Wajib ada
         }
-        // 2. Logika untuk CREATE (Method POST)
-        else {
-            $rules['gallery_images']               = ['required', 'array', 'min:1'];
-            $rules['gallery_images.*.file']        = ['required', 'image', 'mimes:jpeg,png,jpg,webp', 'max:5120'];
-            $rules['gallery_images.*.caption']     = ['nullable', 'string', 'max:255'];
-            $rules['gallery_images.*.is_cover']    = ['required', 'boolean'];
-        }
+        // 2. CREATE (POST): hanya metadata. Foto ditambahkan satu per satu di halaman Edit.
 
         return $rules;
     }

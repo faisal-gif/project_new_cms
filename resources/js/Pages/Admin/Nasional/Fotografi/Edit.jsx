@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react";
 import { useForm, router, Head } from "@inertiajs/react";
 import {
     ArrowLeft,
-    Plus,
     Trash2,
     Star,
     StarOff,
@@ -23,6 +22,16 @@ import InputError from "@/Components/InputError";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
 import InputImage from "@/Components/InputImage";
 import InputEditor from "@/Components/InputEditor";
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from "@/Components/ui/alert-dialog";
 
 // Helper untuk format tanggal dari DB (YYYY-MM-DD HH:mm:ss) ke datetime-local (YYYY-MM-DDThh:mm)
 const formatForDateTimeLocal = (dateString) => {
@@ -49,106 +58,73 @@ export default function Edit({ editors, writers, categories, gallery, isFotograf
         status: gallery.gal_status?.toString() || "0", // Pastikan string
         datepub: formatForDateTimeLocal(gallery.gal_datepub),
 
-        // Array khusus untuk dikirim ke backend
-        new_images: [],
+        // Metadata caption/cover foto yang sudah tersimpan (dikirim saat "Perbarui Galeri")
         existing_images_meta: [],
-        deleted_images: [], // Menyimpan ID gambar lama yang dihapus user
     });
 
-    // 2. State untuk menampilkan gambar di UI (kombinasi lama & baru)
-    const [images, setImages] = useState(() => {
-        if (!gallery.images) return [];
-        return gallery.images.map(img => ({
-            id: img.gi_id, // ID asli dari database
-            is_existing: true, // Penanda bahwa ini gambar dari DB
-            url: img.gi_image, // URL CDN
-            caption: img.gi_caption || "",
-            isCover: img.gi_cover === 1,
-        }));
-    });
+    // 2. State untuk menampilkan gambar di UI. Foto ditambah/dihapus langsung ke server,
+    //    jadi daftar ini disinkronkan ulang dari prop `gallery.images` tiap kali jumlahnya berubah.
+    const mapImages = (imgs) => (imgs || []).map(img => ({
+        id: img.gi_id, // ID asli dari database
+        url: img.gi_image, // URL CDN
+        caption: img.gi_caption || "",
+        isCover: img.gi_cover === 1,
+    }));
 
+    const [images, setImages] = useState(() => mapImages(gallery.images));
+    const [uploading, setUploading] = useState(false);
     const [newImageCaption, setNewImageCaption] = useState("");
-    const [pendingImageFile, setPendingImageFile] = useState(null);
 
-    // Fungsi Tambah Gambar (Mirip Create, tapi is_existing: false)
-    const addImage = () => {
-        if (!pendingImageFile) {
-            alert("Pilih gambar terlebih dahulu");
-            return;
-        }
+    // Sinkronkan ulang saat foto ditambah/dihapus (jumlah berubah).
+    useEffect(() => {
+        setImages(mapImages(gallery.images));
+    }, [gallery.images?.length]);
 
-        const previewUrl = URL.createObjectURL(pendingImageFile);
-        const newImg = {
-            id: `new-${Date.now()}`, // ID sementara untuk UI
-            is_existing: false, // Penanda ini gambar baru
-            file: pendingImageFile,
-            url: previewUrl,
-            fileName: pendingImageFile.name,
+    // Selesai crop → langsung unggah ke CDN (via backend), berikut caption.
+    const uploadImage = (file) => {
+        if (!file) return;
+        setUploading(true);
+        router.post(route('admin.nasional.fotografi.images.store', gallery.gal_id), {
+            file,
             caption: newImageCaption,
-            isCover: images.length === 0, // Cover otomatis jika ini foto pertama
-        };
-
-        setImages((prev) => [...prev, newImg]);
-        setPendingImageFile(null);
-        setNewImageCaption("");
-    };
-
-    // Fungsi Hapus Gambar (Logika kompleks Existing vs New)
-    const removeImage = (imgId) => {
-        const imgToRemove = images.find(img => img.id === imgId);
-
-        // Jika yang dihapus adalah gambar dari DB, catat ID-nya ke data.deleted_images
-        if (imgToRemove && imgToRemove.is_existing) {
-            setData('deleted_images', [...data.deleted_images, imgToRemove.id]);
-        }
-
-        // Hapus dari state visual
-        setImages((prev) => {
-            // Jika gambar baru, bersihkan memori blob
-            if (imgToRemove && !imgToRemove.is_existing && imgToRemove.url.startsWith('blob:')) {
-                URL.revokeObjectURL(imgToRemove.url);
-            }
-            const filtered = prev.filter((img) => img.id !== imgId);
-
-            // Re-assign cover jika cover dihapus dan masih ada gambar tersisa
-            if (filtered.length > 0 && !filtered.some((img) => img.isCover)) {
-                filtered[0].isCover = true;
-            }
-            return filtered;
+            is_cover: images.length === 0 ? 1 : 0, // foto pertama otomatis cover
+        }, {
+            forceFormData: true,
+            preserveScroll: true,
+            onSuccess: () => setNewImageCaption(""),
+            onFinish: () => setUploading(false),
         });
     };
 
-    // Fungsi Set Cover (Sama seperti Create)
+    // Hapus satu foto: buka AlertDialog konfirmasi dulu, lalu hapus di server.
+    const [deleteTargetId, setDeleteTargetId] = useState(null);
+
+    const removeImage = (imgId) => setDeleteTargetId(imgId);
+
+    const confirmDelete = () => {
+        if (!deleteTargetId) return;
+        router.delete(route('admin.nasional.fotografi.images.destroy', deleteTargetId), {
+            preserveScroll: true,
+        });
+    };
+
+    // Set cover disimpan bersama tombol "Perbarui Galeri" (via existing_images_meta).
     const setCover = (imgId) => {
         setImages((prev) => prev.map((img) => ({ ...img, isCover: img.id === imgId })));
     };
 
-    // Fungsi Submit (Logika Pengelompokan Data Gambar)
+    // Simpan metadata galeri + caption/cover foto yang sudah tersimpan.
     const handleSubmit = (e) => {
         e.preventDefault();
 
-        // 1. Pisahkan gambar baru (berupa File) untuk diupload ke CDN
-        data.new_images = images
-            .filter(img => !img.is_existing)
-            .map(img => ({
-                file: img.file,
-                caption: img.caption,
-                is_cover: img.isCover ? 1 : 0,
-            }));
+        data.existing_images_meta = images.map(img => ({
+            id: img.id,
+            caption: img.caption,
+            is_cover: img.isCover ? 1 : 0,
+        }));
 
-        // 2. Pisahkan metadata gambar lama (jika user ubah caption/cover langsung di list)
-        data.existing_images_meta = images
-            .filter(img => img.is_existing)
-            .map(img => ({
-                id: img.id,
-                caption: img.caption,
-                is_cover: img.isCover ? 1 : 0,
-            }));
-
-        // Submit menggunakan method POST (Inertia akan mengubahnya jadi PUT berkat _method: 'PUT')
-        post(route('admin.nasional.fotografi.update', gallery.gal_id), {
-            forceFormData: true, // Wajib agar file terkirim dengan method spoofing PUT
-        });
+        // POST + _method:'PUT' (method spoofing Laravel)
+        post(route('admin.nasional.fotografi.update', gallery.gal_id));
     };
 
     const customSelectStyles = {
@@ -178,6 +154,17 @@ export default function Edit({ editors, writers, categories, gallery, isFotograf
                             Perbarui informasi dan kelola foto-foto untuk: <span className="font-semibold text-base-content">{gallery.gal_title}</span>
                         </p>
                     </div>
+                </div>
+
+                {/* --- STEP INDICATOR --- */}
+                <div className="bg-base-100 p-5 rounded-2xl shadow-sm border border-base-200">
+                    <ul className="steps steps-horizontal w-full text-sm">
+                        <li className="step step-primary" data-content="✓">Isi Info Galeri</li>
+                        <li className="step step-primary font-semibold" data-content="2">Tambah Foto</li>
+                    </ul>
+                    <p className="text-center text-xs text-base-content/60 mt-3">
+                        Langkah 2 dari 2 — tambahkan foto satu per satu. Setiap foto otomatis tersimpan.
+                    </p>
                 </div>
 
                 {/* --- MAIN GRID --- */}
@@ -296,48 +283,63 @@ export default function Edit({ editors, writers, categories, gallery, isFotograf
                             </p>
 
                             <div className="space-y-6">
-                                {/* Upload Box untuk Foto BARU */}
+                                {/* Upload Box untuk Foto BARU — langsung ke CDN setelah crop */}
                                 <div className="bg-base-200/50 rounded-2xl p-6 border-2 border-dashed border-base-300">
-                                    <p className="font-medium mb-3 text-sm">Tambahkan Foto Baru</p>
+                                    <p className="font-medium mb-3 text-sm flex items-center gap-2">
+                                        Tambahkan Foto Baru
+                                        {uploading && <span className="loading loading-spinner loading-sm"></span>}
+                                    </p>
+
+                                    {/* Caption diisi DULU, lalu pilih & crop foto (upload otomatis setelah crop) */}
+                                    <div className="mb-4">
+                                        <InputTextarea
+                                            label="Caption Foto (isi sebelum pilih foto)"
+                                            maxLength={255}
+                                            placeholder="Ceritakan peristiwa di foto ini..."
+                                            value={newImageCaption}
+                                            onChange={(e) => setNewImageCaption(e.target.value)}
+                                            disabled={uploading}
+                                        />
+                                    </div>
+
                                     <InputImage
                                         label=""
                                         targetHeight={1067}
                                         targetWidth={1600}
-                                        value={pendingImageFile}
+                                        value={null}
                                         enableCrop={true}
-                                        onChange={(file) => setPendingImageFile(file)}
+                                        allowPortrait={true}
+                                        onChange={uploadImage}
                                         previewClass="h-72 rounded-xl shadow-sm"
                                     />
-
-                                    {pendingImageFile && (
-                                        <div className="space-y-3 mt-6 p-4 bg-base-100 rounded-xl border border-base-200 shadow-sm animate-fade-in">
-                                            <InputTextarea
-                                                label="Caption Foto (Wajib)"
-                                                maxLength={255}
-                                                placeholder="Caption foto..."
-                                                value={newImageCaption}
-                                                onChange={(e) => setNewImageCaption(e.target.value)}
-                                            />
-                                            <button type="button" className="btn btn-primary w-full" onClick={addImage}>
-                                                <Plus className="h-5 w-5 mr-1" /> Simpan Foto ke Daftar
-                                            </button>
-                                        </div>
-                                    )}
+                                    <p className="text-xs text-base-content/50 mt-2">
+                                        Foto langsung terunggah ke CDN begitu selesai di-crop.
+                                    </p>
+                                    <InputError message={errors.file} className="mt-1" />
                                 </div>
 
-                                {/* List Gambar (Existing + New) */}
+                                {/* Empty state — bantu pemula tahu langkah berikutnya */}
+                                {images.length === 0 && !uploading && (
+                                    <div className="flex flex-col items-center text-center py-10 px-4 rounded-2xl border-2 border-dashed border-base-300 bg-base-100 mt-6">
+                                        <ImageIcon className="h-10 w-10 text-base-content/30 mb-3" />
+                                        <p className="font-semibold text-base-content">Belum ada foto</p>
+                                        <p className="text-sm text-base-content/60 mt-1 max-w-sm">
+                                            Isi caption di atas, lalu pilih &amp; crop foto. Foto akan langsung tersimpan dan muncul di sini.
+                                        </p>
+                                    </div>
+                                )}
+
+                                {/* List Gambar */}
                                 {images.length > 0 && (
                                     <div className="space-y-3 mt-6">
-                                        <h3 className="font-bold text-sm text-base-content/70 uppercase tracking-wider mb-3">
+                                        <h3 className="font-bold text-sm text-base-content/70 uppercase tracking-wider mb-1">
                                             Daftar Foto Saat Ini ({images.length})
                                         </h3>
+                                        <p className="text-xs text-base-content/50 mb-3">
+                                            Perubahan caption &amp; cover baru tersimpan setelah klik <span className="font-semibold">"Perbarui Galeri"</span>.
+                                        </p>
                                         {images.map((img, index) => (
                                             <div key={img.id} className="flex flex-col sm:flex-row gap-4 p-4 mt-4 rounded-xl border border-base-200 bg-base-100 shadow-sm hover:shadow-md transition-all relative">
-
-                                                {/* Label Existing vs New */}
-                                                <span className={`badge badge-sm absolute -top-2 -right-2 font-bold z-10 ${img.is_existing ? 'badge-neutral' : 'badge-success text-white'}`}>
-                                                    {img.is_existing ? 'Tersimpan' : 'Baru'}
-                                                </span>
 
                                                 {/* 1. THUMBNAIL GAMBAR */}
                                                 {/* Di mobile menggunakan aspect-video agar proporsional, di desktop menjadi kotak 32x24 */}
@@ -441,7 +443,7 @@ export default function Edit({ editors, writers, categories, gallery, isFotograf
                             <button
                                 className="btn btn-primary w-full text-base"
                                 onClick={handleSubmit}
-                                disabled={processing || images.length === 0}
+                                disabled={processing}
                             >
                                 {processing ? (
                                     <span className="loading loading-spinner"></span>
@@ -462,6 +464,27 @@ export default function Edit({ editors, writers, categories, gallery, isFotograf
                     </div>
                 </div>
             </div>
+
+            {/* Dialog konfirmasi hapus foto (shadcn) */}
+            <AlertDialog
+                open={deleteTargetId !== null}
+                onOpenChange={(open) => { if (!open) setDeleteTargetId(null); }}
+            >
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Hapus foto ini?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            Foto akan dihapus permanen dan tindakan ini tidak dapat dibatalkan.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel>Batal</AlertDialogCancel>
+                        <AlertDialogAction variant="destructive" onClick={confirmDelete}>
+                            Hapus
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </AuthenticatedLayout>
     );
 }

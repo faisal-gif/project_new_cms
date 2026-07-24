@@ -37,6 +37,7 @@ export default function InputImage({
   enableCrop = true,
   targetWidth = 1200,
   targetHeight = 800,
+  allowPortrait = false,
 }) {
   const inputRef = useRef(null);
   const imgRef = useRef(null);
@@ -47,8 +48,20 @@ export default function InputImage({
   const [crop, setCrop] = useState();
   const [completedCrop, setCompletedCrop] = useState(null);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [orientation, setOrientation] = useState("landscape");
 
-  const ASPECT_RATIO = targetWidth / targetHeight;
+  // Orientasi menentukan rasio & dimensi output. Portrait = dimensi ditukar.
+  const isPortrait = allowPortrait && orientation === "portrait";
+  const outWidth = isPortrait ? targetHeight : targetWidth;
+  const outHeight = isPortrait ? targetWidth : targetHeight;
+  const ASPECT_RATIO = outWidth / outHeight;
+
+  // Saat orientasi diganti, hitung ulang area crop mengikuti rasio baru.
+  useEffect(() => {
+    if (!imgRef.current) return;
+    const { width, height } = imgRef.current;
+    setCrop(centerCrop(makeAspectCrop({ unit: "%", width: 90 }, ASPECT_RATIO, width, height), width, height));
+  }, [ASPECT_RATIO]);
 
   // Manajemen State Preview
   useEffect(() => {
@@ -123,7 +136,7 @@ export default function InputImage({
     if (!completedCrop || !imgRef.current) return;
     setIsProcessing(true);
     try {
-      const croppedFile = await getCroppedImg(imgRef.current, completedCrop, cropData.fileName, targetWidth, targetHeight);
+      const croppedFile = await getCroppedImg(imgRef.current, completedCrop, cropData.fileName, outWidth, outHeight);
       const compressedFile = await imageCompression(croppedFile, {
         maxSizeMB: 1.5,
         maxWidthOrHeight: Math.max(targetWidth, targetHeight),
@@ -190,6 +203,25 @@ export default function InputImage({
         <div className="modal modal-open z-[9999] bg-black/60">
           <div className="modal-box max-w-3xl bg-base-100">
             <h3 className="font-bold text-lg mb-4">Sesuaikan Gambar</h3>
+
+            {allowPortrait && (
+              <div className="flex justify-center gap-2 mb-4">
+                <button
+                  type="button"
+                  className={`btn btn-sm ${!isPortrait ? "btn-primary" : "btn-ghost border-base-300"}`}
+                  onClick={() => setOrientation("landscape")}
+                >
+                  Landscape
+                </button>
+                <button
+                  type="button"
+                  className={`btn btn-sm ${isPortrait ? "btn-primary" : "btn-ghost border-base-300"}`}
+                  onClick={() => setOrientation("portrait")}
+                >
+                  Portrait
+                </button>
+              </div>
+            )}
 
             <div className="flex justify-center items-center bg-base-200 overflow-auto max-h-[60vh] rounded-lg">
               <ReactCrop crop={crop} onChange={(_, p) => setCrop(p)} onComplete={(c) => setCompletedCrop(c)} aspect={ASPECT_RATIO}>

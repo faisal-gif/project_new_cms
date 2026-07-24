@@ -114,6 +114,8 @@ Route::middleware('auth')->prefix('admin')->name('admin.')->group(function () {
             Route::resource('fokus', FokusNasionalController::class);
             Route::resource('writer', WriterNasionalController::class);
             Route::resource('editor', EditorNasionalController::class);
+            Route::post('fotografi/{galleryId}/images', [GalleryController::class, 'storeImage'])->name('fotografi.images.store');
+            Route::delete('fotografi/images/{imageId}', [GalleryController::class, 'destroyImage'])->name('fotografi.images.destroy');
             Route::resource('fotografi', GalleryController::class);
             Route::resource('ekoran', EKoranController::class);
             Route::resource('page-static', PageStaticController::class);

@@ -1,14 +1,8 @@
-import React, { useState } from "react";
+import React from "react";
 import { useForm, router } from "@inertiajs/react";
 import {
     ArrowLeft,
-    Plus,
-    Trash2,
-    Star,
-    StarOff,
-    Image as ImageIcon,
-    Eye,
-    Save,
+    ArrowRight,
     FileText,
     MapPin
 } from "lucide-react";
@@ -22,7 +16,6 @@ import InputSelect from "@/Components/InputSelect";
 import InputLabel from "@/Components/InputLabel";
 import InputError from "@/Components/InputError";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
-import InputImage from "@/Components/InputImage";
 import InputEditor from "@/Components/InputEditor";
 
 
@@ -44,64 +37,14 @@ export default function Create({ editors, writers, categories, isFotografer, use
         categoryId: "",
         status: "2",
         datepub: "",
-        gallery_images: [],
     });
-
-    const [images, setImages] = useState([]);
-    const [newImageCaption, setNewImageCaption] = useState("");
-    const [pendingImageFile, setPendingImageFile] = useState(null);
-
-
-
-    const addImage = () => {
-        if (!pendingImageFile) {
-            toast({ title: "Error", description: "Pilih gambar terlebih dahulu", variant: "destructive" });
-            return;
-        }
-
-        const previewUrl = URL.createObjectURL(pendingImageFile);
-        const newImg = {
-            id: Date.now(),
-            file: pendingImageFile,
-            url: previewUrl,
-            fileName: pendingImageFile.name || `gambar-${images.length + 1}.jpg`,
-            caption: newImageCaption,
-            isCover: images.length === 0,
-            status: 1,
-        };
-
-        setImages((prev) => [...prev, newImg]);
-        setPendingImageFile(null);
-        setNewImageCaption("");
-    };
-
-    const removeImage = (imgId) => {
-        setImages((prev) => {
-            const imgToRemove = prev.find(img => img.id === imgId);
-            if (imgToRemove && imgToRemove.url && imgToRemove.url.startsWith('blob:')) {
-                URL.revokeObjectURL(imgToRemove.url);
-            }
-            const filtered = prev.filter((img) => img.id !== imgId);
-            if (filtered.length > 0 && !filtered.some((img) => img.isCover)) {
-                filtered[0].isCover = true;
-            }
-            return filtered;
-        });
-    };
-
-    const setCover = (imgId) => {
-        setImages((prev) => prev.map((img) => ({ ...img, isCover: img.id === imgId })));
-    };
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        data.gallery_images = images.map(img => ({
-            file: img.file,
-            caption: img.caption,
-            is_cover: img.isCover ? 1 : 0,
-        }));
+        // Simpan metadata saja; setelah berhasil di-redirect ke Edit untuk menambah foto.
         post(route('admin.nasional.fotografi.store'), data);
     };
+
     // Styling khusus untuk react-select agar selaras dengan DaisyUI & tidak tertimpa editor
     const customSelectStyles = {
         control: (base) => ({
@@ -125,9 +68,20 @@ export default function Create({ editors, writers, categories, isFotografer, use
                     <div>
                         <h1 className="text-2xl md:text-3xl font-bold text-base-content">Tambah Galeri Foto</h1>
                         <p className="text-base-content/60 mt-1 text-sm md:text-base">
-                            Isi formulir dari atas ke bawah untuk mempublikasikan karya fotografi Anda.
+                            Isi informasi galeri terlebih dahulu. Setelah disimpan, Anda akan diarahkan untuk menambahkan foto satu per satu.
                         </p>
                     </div>
+                </div>
+
+                {/* --- STEP INDICATOR (orientasi alur 2 langkah) --- */}
+                <div className="bg-base-100 p-5 rounded-2xl shadow-sm border border-base-200">
+                    <ul className="steps steps-horizontal w-full text-sm">
+                        <li className="step step-primary font-semibold" data-content="1">Isi Info Galeri</li>
+                        <li className="step" data-content="2">Tambah Foto</li>
+                    </ul>
+                    <p className="text-center text-xs text-base-content/60 mt-3">
+                        Langkah 1 dari 2 — setelah galeri disimpan, Anda akan diarahkan untuk menambahkan foto.
+                    </p>
                 </div>
 
                 {/* --- MAIN GRID (3 Columns) --- */}
@@ -236,104 +190,6 @@ export default function Create({ editors, writers, categories, isFotografer, use
                                 </div>
                             </div>
                         </Card>
-
-                        {/* SECTION 3: Image Manager */}
-                        <Card padding="p-6 md:p-8" className="border border-base-200">
-                            <h2 className="text-xl font-bold mb-2 flex items-center gap-2">
-                                <ImageIcon className="h-5 w-5 text-primary" /> 3. Unggah Foto
-                            </h2>
-                            <p className="text-sm text-base-content/60 mb-6 border-b pb-4">
-                                Tambahkan foto-foto resolusi tinggi. Foto pertama akan otomatis menjadi sampul (cover).
-                            </p>
-
-                            <div className="space-y-6">
-                                {/* Upload Box */}
-                                <div className="bg-base-200/50 rounded-2xl p-6 border-2 border-dashed border-base-300">
-                                    <InputImage
-                                        label=""
-                                        targetHeight={1067}
-                                        targetWidth={1600}
-                                        value={pendingImageFile}
-                                        enableCrop={true}
-                                        onChange={(file) => setPendingImageFile(file)}
-                                        previewClass="h-72 rounded-xl shadow-sm"
-                                    />
-
-                                    {/* Form Caption muncul otomatis jika ada gambar di-pilih */}
-                                    {pendingImageFile && (
-                                        <div className="space-y-3 mt-6 p-4 bg-base-100 rounded-xl border border-base-200 shadow-sm animate-fade-in">
-                                            <InputTextarea
-                                                label="Caption Foto (Wajib)"
-                                                maxLength={255}
-                                                placeholder="Ceritakan peristiwa apa yang terjadi di foto ini..."
-                                                value={newImageCaption}
-                                                onChange={(e) => setNewImageCaption(e.target.value)}
-                                            />
-                                            <button
-                                                type="button"
-                                                className="btn btn-primary w-full"
-                                                onClick={addImage}
-                                            >
-                                                <Plus className="h-5 w-5 mr-1" /> Simpan Foto ke Daftar
-                                            </button>
-                                        </div>
-                                    )}
-                                </div>
-
-                                {/* List Gambar */}
-                                {images.length > 0 && (
-                                    <div className="space-y-3 mt-6">
-                                        <h3 className="font-bold text-sm text-base-content/70 uppercase tracking-wider mb-3">
-                                            Daftar Foto ({images.length})
-                                        </h3>
-                                        {images.map((img, index) => (
-                                            <div key={img.id} className="flex flex-col sm:flex-row gap-4 p-4 mt-4 rounded-xl border border-base-200 bg-base-100 shadow-sm hover:shadow-md transition-all">
-
-                                                {/* 1. THUMBNAIL GAMBAR */}
-                                                <div className="relative w-full aspect-video sm:aspect-auto sm:w-32 sm:h-24 rounded-lg overflow-hidden flex-shrink-0 bg-base-300">
-                                                    <img src={img.url} alt={img.caption} className="w-full h-full object-cover" />
-                                                    {img.isCover && (
-                                                        <span className="badge badge-warning font-bold absolute top-2 left-2 shadow-sm text-xs">
-                                                            COVER
-                                                        </span>
-                                                    )}
-                                                </div>
-
-                                                {/* 2. AREA TEKS & CAPTION */}
-                                                <div className="flex-1 min-w-0 flex flex-col justify-center">
-                                                    <p className="text-sm font-bold text-primary mb-1">Foto {index + 1}</p>
-                                                    <p className="text-sm text-base-content/80 italic line-clamp-2">
-                                                        {img.caption || "Tidak ada caption."}
-                                                    </p>
-                                                </div>
-
-                                                {/* 3. AREA TOMBOL AKSI (Mobile-Friendly Grid) */}
-                                                <div className="grid grid-cols-2 sm:flex sm:flex-col gap-2 items-center justify-center border-t sm:border-t-0 sm:border-l border-base-200 pt-4 sm:pt-0 sm:pl-4 mt-2 sm:mt-0">
-                                                    <button
-                                                        type="button"
-                                                        className={`btn btn-sm w-full ${img.isCover ? 'btn-warning' : 'btn-ghost border-base-300'}`}
-                                                        onClick={() => setCover(img.id)}
-                                                    >
-                                                        {img.isCover ? <Star className="h-4 w-4 mr-1 sm:mr-0 lg:mr-1" /> : <StarOff className="h-4 w-4 mr-1 sm:mr-0 lg:mr-1 text-base-content/50" />}
-                                                        <span className="sm:hidden lg:inline">{img.isCover ? 'Cover Aktif' : 'Jadikan Cover'}</span>
-                                                    </button>
-
-                                                    <button
-                                                        type="button"
-                                                        className="btn btn-sm w-full btn-outline border-base-300 text-error hover:bg-error hover:border-error hover:text-white"
-                                                        onClick={() => removeImage(img.id)}
-                                                    >
-                                                        <Trash2 className="h-4 w-4 mr-1 sm:mr-0 lg:mr-1" />
-                                                        <span className="sm:hidden lg:inline">Hapus</span>
-                                                    </button>
-                                                </div>
-
-                                            </div>
-                                        ))}
-                                    </div>
-                                )}
-                            </div>
-                        </Card>
                     </div>
 
                     {/* KOLOM KANAN (Lebar 1/3) - Pengaturan Publikasi yang Sticky */}
@@ -390,12 +246,12 @@ export default function Create({ editors, writers, categories, isFotografer, use
                             <button
                                 className="btn btn-primary w-full text-base"
                                 onClick={handleSubmit}
-                                disabled={processing || images.length === 0}
+                                disabled={processing}
                             >
                                 {processing ? (
                                     <span className="loading loading-spinner"></span>
                                 ) : (
-                                    <><Save className="h-5 w-5 mr-2" /> Simpan Galeri</>
+                                    <>Lanjut: Tambah Foto <ArrowRight className="h-5 w-5 ml-2" /></>
                                 )}
                             </button>
 

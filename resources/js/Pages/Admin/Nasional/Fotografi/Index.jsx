@@ -7,7 +7,7 @@ import { useAuthorization } from '@/Hooks/useAuthorization'
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout'
 import { formatDateTime } from '@/Utils/formatter'
 import { Head, Link, router, usePage } from '@inertiajs/react'
-import { Plus, Search, Camera } from 'lucide-react'
+import { Plus, Search, Camera, ExternalLink } from 'lucide-react'
 import React, { useEffect, useRef, useState } from 'react'
 import Select from "react-select";
 
@@ -75,6 +75,21 @@ function Index({ galleries, writers, categories, filters }) {
       { preserveState: true, replace: true }
     );
   }
+
+  // URL publik galeri: https://timesindonesia.co.id/foto/{id}/{slug-judul}
+  const createSlug = (text) => {
+    if (!text) return '';
+    return text
+      .toString()
+      .toLowerCase()
+      .replace(/\s+/g, '-')
+      .replace(/[^\w\-]+/g, '')
+      .replace(/\-\-+/g, '-')
+      .replace(/^-+/, '')
+      .replace(/-+$/, '');
+  };
+
+  const galleryUrl = (g) => `https://timesindonesia.co.id/foto/${g.gal_id}/${createSlug(g.gal_title)}`;
 
   function getStatusBadge(status) {
     switch (status) {
@@ -256,6 +271,9 @@ function Index({ galleries, writers, categories, filters }) {
 
                         {/* Actions Mobile Card */}
                         <div className="flex gap-2 mt-2 pt-2 border-t">
+                          <a href={galleryUrl(g)} target="_blank" rel="noreferrer" className="btn btn-sm btn-ghost btn-outline flex-1">
+                            <ExternalLink size={14} /> Lihat
+                          </a>
                           {hasPermission('edit gallery nasional') && (
                             <Link href={route('admin.nasional.fotografi.edit', g.gal_id)} className="btn btn-sm btn-warning btn-outline flex-1">
                               Edit
@@ -311,6 +329,9 @@ function Index({ galleries, writers, categories, filters }) {
                             </td>
                             <td>
                               <div className="flex justify-end gap-2">
+                                <a href={galleryUrl(g)} target="_blank" rel="noreferrer" className="btn btn-sm btn-ghost btn-outline" title="Lihat di situs">
+                                  <ExternalLink size={14} /> Lihat
+                                </a>
                                 {hasPermission('edit gallery nasional') && (
                                   <Link href={route('admin.nasional.fotografi.edit', g.gal_id)} className="btn btn-sm btn-warning btn-outline">
                                     Edit

@@ -109,77 +109,87 @@ class GalleryController extends Controller
      */
     public function store(GalleryRequest $request)
     {
-        // Jika kode sampai di baris ini, artinya validasi SUDAH LOLOS.
-        // Kita tinggal mengambil data yang sudah divalidasi dan dibersihkan.
+        // Buat galeri (metadata saja). Foto ditambahkan satu per satu di halaman Edit.
         $validated = $request->validated();
 
-        DB::beginTransaction();
+        $gallery = Gallery::create([
+            'gal_catid' => $validated['categoryId'],
+            'gal_title' => $validated['title'],
+            'gal_subtitle' => $validated['subtitle'] ?? null,
+            'gal_description' => $validated['description'] ?? null,
+            'gal_content' => $validated['content'] ?? null,
+            'gal_city' => $validated['city'] ?? null,
+            'gal_pewarta' => $validated['fotografer'] ?? null,
+            'fotografer_id' => $validated['fotografer_id'] ?? null,
+            'editor_id' => $validated['editor'] ?? null,
+            'gal_status' => $validated['status'],
+            'gal_datepub' => $validated['datepub'],
+            'created_by' => Auth::id() ?? 1,
+            'created' => now(),
+            'gal_view' => 1,
+        ]);
 
-        try {
-            $user_id = Auth::id() ?? 1;
-            $now = now();
+        return redirect()
+            ->route('admin.nasional.fotografi.edit', $gallery->gal_id)
+            ->with('success', 'Galeri dibuat. Sekarang tambahkan foto satu per satu.');
+    }
 
-            // 2. Insert tabel 'gallery'
-            $gallery = Gallery::create([
-                'gal_catid' => $validated['categoryId'],
-                'gal_title' => $validated['title'],
-                'gal_subtitle' => $validated['subtitle'] ?? null,
-                'gal_description' => $validated['description'] ?? null,
-                'gal_content' => $validated['content'] ?? null,
-                'gal_city' => $validated['city'] ?? null,
-                'gal_pewarta' => $validated['fotografer'] ?? null,
-                'fotografer_id' => $validated['fotografer_id'] ?? null,
-                'editor_id' => $validated['editor'] ?? null,
-                'gal_status' => $validated['status'],
-                'gal_datepub' => $validated['datepub'],
-                'created_by' => $user_id,
-                'created' => $now,
-                'gal_view' => 1,
-            ]);
+    /**
+     * Tambah satu foto ke galeri yang sudah ada (upload langsung ke CDN).
+     */
+    public function storeImage(Request $request, $galleryId)
+    {
+        $validated = $request->validate([
+            'file'     => ['required', 'image', 'mimes:jpeg,png,jpg,webp', 'max:5120'],
+            'caption'  => ['nullable', 'string', 'max:255'],
+            'is_cover' => ['nullable', 'boolean'],
+        ]);
 
+        $gallery = Gallery::findOrFail($galleryId);
 
-            // 3. Proses Upload Array Gambar
-            // Karena kita menggunakan $request->file(), kita bisa memanggil loop dari Request utama
-            foreach ($request->gallery_images as $index => $image) {
+        $fileNameToCDN = Str::slug($gallery->gal_title) . '-' . time();
+        $cdnImageUrl = $this->cdnService->uploadImage($validated['file'], $fileNameToCDN, 7, 'convert', true) ?? null;
 
-                $file = $image['file'];
-
-                // Buat nama unik untuk file di CDN (mencegah bentrok)
-                $fileNameToCDN = Str::slug($validated['title']) . '-' . time() . '-' . $index;
-
-                // ASUMSI: API CDN mengembalikan URL lengkap atau path pada key 'data.url' atau 'url'
-                // Anda HARUS menyesuaikan ini dengan struktur response JSON dari API Anda
-                $cdnImageUrl = $this->cdnService->uploadImage($file, $fileNameToCDN, 7, 'convert', true) ?? null;
-
-                if (!$cdnImageUrl) {
-                    throw new \Exception('Respons CDN tidak valid atau tidak mengembalikan URL.');
-                }
-
-                // 3. Simpan URL dari CDN ke tabel 'gallery_img'
-                GalleryImage::create([
-                    'gal_id' => $gallery->gal_id,
-                    'gi_image' => $cdnImageUrl, // Simpan URL CDN
-                    'gi_caption' => $image['caption'] ?? null,
-                    'gi_cover' => $image['is_cover'] ? 1 : 0,
-                    'gi_status' => 1,
-                    'created_by' => $user_id,
-                    'created' => $now,
-                ]);
-            }
-
-            DB::commit();
-
-            return redirect()
-                ->route('admin.nasional.fotografi.index')
-                ->with('success', 'Galeri fotografi berhasil dipublikasikan!');
-        } catch (\Exception $e) {
-            DB::rollBack();
-            Log::error('Error Store Gallery: ' . $e->getMessage());
-
-            return back()->withErrors([
-                'error' => 'Terjadi kesalahan sistem: ' . $e->getMessage()
-            ])->withInput();
+        if (!$cdnImageUrl) {
+            return back()->withErrors(['file' => 'Gagal mengunggah gambar ke CDN.']);
         }
+
+        // Foto pertama otomatis cover; jika user memilih cover, lepaskan cover lama.
+        $isCover = $request->boolean('is_cover') || $gallery->images()->count() === 0;
+        if ($isCover) {
+            GalleryImage::where('gal_id', $gallery->gal_id)->update(['gi_cover' => 0]);
+        }
+
+        GalleryImage::create([
+            'gal_id'     => $gallery->gal_id,
+            'gi_image'   => $cdnImageUrl,
+            'gi_caption' => $validated['caption'] ?? null,
+            'gi_cover'   => $isCover ? 1 : 0,
+            'gi_status'  => 1,
+            'created_by' => Auth::id() ?? 1,
+            'created'    => now(),
+        ]);
+
+        return back()->with('success', 'Foto berhasil ditambahkan.');
+    }
+
+    /**
+     * Hapus satu foto dari galeri.
+     */
+    public function destroyImage($imageId)
+    {
+        $image = GalleryImage::findOrFail($imageId);
+        $wasCover = $image->gi_cover === 1;
+        $galId = $image->gal_id;
+        $image->delete();
+
+        // Jika cover terhapus, jadikan foto tersisa berikutnya sebagai cover.
+        if ($wasCover) {
+            $next = GalleryImage::where('gal_id', $galId)->orderBy('created', 'desc')->first();
+            $next?->update(['gi_cover' => 1]);
+        }
+
+        return back()->with('success', 'Foto berhasil dihapus.');
     }
 
     /**
