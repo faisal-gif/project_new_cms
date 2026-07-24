@@ -6,8 +6,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class NewsBerbayarAddOnRequest extends Model
 {
-    
-  // Menggunakan koneksi database spesifik
+
+    // Menggunakan koneksi database spesifik
     protected $connection = 'mysql_berbayar';
 
     // Nama tabel di database
@@ -17,6 +17,7 @@ class NewsBerbayarAddOnRequest extends Model
     protected $fillable = [
         'news_id',
         'wartawan_id',
+        'type',
         'jenis_request',
         'status',
         'keterangan_admin',
@@ -38,5 +39,4 @@ class NewsBerbayarAddOnRequest extends Model
     {
         return $this->belongsTo(WriterBerbayar::class, 'wartawan_id');
     }
-
 }

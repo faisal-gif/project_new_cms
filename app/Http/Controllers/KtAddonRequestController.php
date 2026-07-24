@@ -20,7 +20,7 @@ class KtAddonRequestController extends Controller
         $query = NewsBerbayarAddOnRequest::with([
             'news:id,title',
             'wartawan:id,nama' // Pastikan kolom nama wartawan di tabelmu benar 'nama'
-        ])->orderBy('created_at', 'DESC');
+        ])->where('type', 4)->orderBy('created_at', 'DESC');
 
         // Filter berdasarkan jenis request (Feed / Ekoran)
         if ($request->filled('jenis')) {
@@ -66,7 +66,7 @@ class KtAddonRequestController extends Controller
 
         // PENTING: Gunakan koneksi spesifik untuk transaksi database
         DB::connection('mysql_berbayar')->beginTransaction();
-        
+
         try {
             $statusLama = $addon->status;
             $statusBaru = $request->status;
@@ -76,16 +76,16 @@ class KtAddonRequestController extends Controller
                 $wartawan = WriterBerbayar::find($addon->wartawan_id);
                 if ($wartawan) {
                     // Tambahkan kembali +1 kuota (entah itu feed_instagram atau ekoran)
-                    $wartawan->increment($addon->jenis_request, 1); 
+                    $wartawan->increment($addon->jenis_request, 1);
                 }
-            } 
-            
+            }
+
             // LOGIKA 2: BATAL REFUND (Jika admin salah tolak, dan dikembalikan ke status diproses)
             elseif ($statusLama === 'rejected' && $statusBaru !== 'rejected') {
                 $wartawan = WriterBerbayar::find($addon->wartawan_id);
                 if ($wartawan) {
                     // Potong kembali -1 kuota karena dilanjutkan
-                    $wartawan->decrement($addon->jenis_request, 1); 
+                    $wartawan->decrement($addon->jenis_request, 1);
                 }
             }
 
@@ -97,12 +97,11 @@ class KtAddonRequestController extends Controller
             ]);
 
             DB::connection('mysql_berbayar')->commit();
-            
+
             return redirect()->route('admin.kopi-times.addon-requests.index')->with('success', 'Status antrean berhasil diperbarui.');
-            
         } catch (\Exception $e) {
             DB::connection('mysql_berbayar')->rollBack();
-            
+
             return back()->with('error', 'Terjadi kesalahan sistem saat memperbarui status: ' . $e->getMessage());
         }
     }
