@@ -4,14 +4,15 @@ import TextInput from '@/Components/TextInput'
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout'
 import { formatDate } from '@/Utils/formatter'
 import { Head, Link, router } from '@inertiajs/react'
-import { Receipt, Users, Calendar, RotateCcw, Wallet, BarChart3, ListFilter } from 'lucide-react'
+// Import icon Sparkles ditambahkan untuk representasi AI
+import { Receipt, Users, Calendar, RotateCcw, Wallet, BarChart3, ListFilter, Sparkles, AlertCircle, CheckCircle2 } from 'lucide-react'
 import React, { useEffect, useRef, useState } from 'react'
 import {
     AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
     BarChart, Bar
 } from 'recharts';
 
-export default function Report({ packages, statistics, chart_data, package_distribution, filters }) {
+export default function Report({ packages, statistics, chart_data, package_distribution, ai_insights, filters }) {
     const [packageId, setPackageId] = useState(() => filters.package_id || '');
     const [startDate, setStartDate] = useState(() => filters.start_date || '');
     const [endDate, setEndDate] = useState(() => filters.end_date || '');
@@ -125,6 +126,59 @@ export default function Report({ packages, statistics, chart_data, package_distr
                                     </div>
                                 </Card>
                             </div>
+
+                            {/* PANEL REKOMENDASI AI (Ditenagai oleh Gemini 1.5 Flash) */}
+                            {ai_insights && ai_insights.has_data && (
+                                <div className="bg-gradient-to-r from-purple-50 to-indigo-50 border border-purple-200 rounded-2xl p-6 shadow-sm">
+                                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
+                                        <div className="flex items-center gap-2">
+                                            <div className="p-2 bg-purple-600 text-white rounded-xl shadow-md shadow-purple-200">
+                                                <Sparkles size={18} className="animate-pulse" />
+                                            </div>
+                                            <div>
+                                                <h2 className="text-lg font-bold text-gray-800">AI Business Insights & Saran Strategi</h2>
+                                                <p className="text-xs text-gray-500">{ai_insights.summary}</p>
+                                            </div>
+                                        </div>
+                                        {/* Badge Indicator Model AI */}
+                                        <span className="px-2.5 py-1 text-[10px] font-bold tracking-wider uppercase rounded-full bg-purple-200/60 text-purple-700 border border-purple-300 w-max">
+                                            Gemini 1.5 Flash
+                                        </span>
+                                    </div>
+
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-2 border-t border-purple-100 pt-4">
+                                        {/* Kolom Kiri: Temuan Sistem */}
+                                        <div>
+                                            <h4 className="text-sm font-bold text-purple-900 mb-2 flex items-center gap-1.5">
+                                                <AlertCircle size={15} /> Analisis Temuan AI
+                                            </h4>
+                                            <ul className="space-y-2 text-sm text-gray-700">
+                                                {ai_insights.findings.map((finding, idx) => (
+                                                    <li key={idx} className="flex gap-2 items-start bg-white/60 p-2.5 rounded-lg border border-purple-100/50">
+                                                        <span className="text-purple-600 font-bold">•</span>
+                                                        <span dangerouslySetInnerHTML={{ __html: finding }} />
+                                                    </li>
+                                                ))}
+                                            </ul>
+                                        </div>
+
+                                        {/* Kolom Kanan: Rekomendasi Aksi */}
+                                        <div>
+                                            <h4 className="text-sm font-bold text-indigo-900 mb-2 flex items-center gap-1.5">
+                                                <CheckCircle2 size={15} className="text-indigo-600" /> Rekomendasi Aksi Kedepan
+                                            </h4>
+                                            <ul className="space-y-2 text-sm text-gray-700">
+                                                {ai_insights.recommendations.map((rec, idx) => (
+                                                    <li key={idx} className="flex gap-2 items-start bg-indigo-600/5 text-indigo-950 p-2.5 rounded-lg border border-indigo-100">
+                                                        <span className="text-indigo-600 font-bold">✓</span>
+                                                        <span>{rec}</span>
+                                                    </li>
+                                                ))}
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
 
                             {/* FILTER PANEL */}
                             <Card>

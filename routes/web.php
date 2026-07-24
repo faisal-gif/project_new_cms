@@ -26,6 +26,7 @@ use App\Http\Controllers\NewsNasionalController;
 use App\Http\Controllers\NewsNoteController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\PageStaticController;
+use App\Http\Controllers\PaketAjpController;
 use App\Http\Controllers\PaketKTController;
 use App\Http\Controllers\PaymentsAjpController;
 use App\Http\Controllers\PaymentsKTController;
@@ -124,6 +125,7 @@ Route::middleware('auth')->prefix('admin')->name('admin.')->group(function () {
             Route::get('/news/publish/{id}', [NewsAJPController::class, 'publish'])->name('news.publish');
             Route::post('/news/publish/{id}/store', [NewsAJPController::class, 'publishStore'])->name('news.publish.store');
             Route::resource('writer', WriterAjpController::class);
+            Route::resource('paket', PaketAjpController::class);
         }
     );
 

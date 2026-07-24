@@ -59,7 +59,7 @@ function Create() {
 
     const submit = (e) => {
         e.preventDefault();
-        post(route('admin.kopi-times.paket.store'), {
+        post(route('admin.ajp.paket.store'), {
             // Kirim quota null jika mode custom
             transform: (formData) => ({
                 ...formData,
@@ -83,7 +83,7 @@ function Create() {
                                 <div className="breadcrumbs text-sm">
                                     <ul>
                                         <li><a>Home</a></li>
-                                        <li>Kopi Times</li>
+                                        <li>AJP</li>
                                         <li>Paket Berita</li>
                                         <li>Tambah Paket</li>
                                     </ul>

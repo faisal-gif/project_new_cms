@@ -16,6 +16,9 @@ export default function Edit({ paket }) {
         name: paket.name || '',
         feature: paket.feature || '',
         quota: paket.quota ?? '',
+        feed_instagram: paket.feed_instagram ?? '',
+        ekoran: paket.ekoran ?? '',
+        wa_channel: paket.wa_channel ?? '',
         price: paket.price ?? '',
         period: paket.period ?? '',
         jenis_periode: paket.jenis_periode || 'bulan',
@@ -179,6 +182,24 @@ export default function Edit({ paket }) {
                                                     placeholder={isCustomQuota ? "Diisi saat assign ke penulis" : "Contoh: 10"}
                                                 />
                                                 <InputError message={errors.quota} className="mt-2" />
+                                            </div>
+
+                                            <div className="lg:col-span-2">
+                                                <InputLabel htmlFor="feed_instagram" value="Feed Instagram" className='mb-2 font-bold' />
+                                                <TextInput id="feed_instagram" type="number" value={data.feed_instagram} onChange={(e) => setData('feed_instagram', e.target.value)} className="mt-1 block w-full" placeholder="Contoh: 10" />
+                                                <InputError message={errors.feed_instagram} className="mt-2" />
+                                            </div>
+
+                                            <div className="lg:col-span-2">
+                                                <InputLabel htmlFor="ekoran" value="E-Koran" className='mb-2 font-bold' />
+                                                <TextInput id="ekoran" type="number" value={data.ekoran} onChange={(e) => setData('ekoran', e.target.value)} className="mt-1 block w-full" placeholder="Contoh: 10" />
+                                                <InputError message={errors.ekoran} className="mt-2" />
+                                            </div>
+
+                                            <div className="lg:col-span-2">
+                                                <InputLabel htmlFor="wa_channel" value="WA Channel" className='mb-2 font-bold' />
+                                                <TextInput id="wa_channel" type="number" value={data.wa_channel} onChange={(e) => setData('wa_channel', e.target.value)} className="mt-1 block w-full" placeholder="Contoh: 10" />
+                                                <InputError message={errors.wa_channel} className="mt-2" />
                                             </div>
 
                                             <div className="lg:col-span-2">

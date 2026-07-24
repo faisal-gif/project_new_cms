@@ -563,6 +563,13 @@ export default function AuthenticatedLayout({ header, children }) {
                                 </Link>
                             </li>
                         )}
+                        {hasPermission(['view paket ajp']) && (
+                            <li>
+                                <Link href={route('admin.ajp.paket.index')} className={linkClass(isActive('admin.ajp.paket.*'))}>
+                                    <Package size={16} /> Paket AJP
+                                </Link>
+                            </li>
+                        )}
                         {hasPermission(['view news ajp']) && (
                             <li>
                                 <Link href={route('admin.ajp.news.index')} className={linkClass(isActive('admin.ajp.news.*'))}>

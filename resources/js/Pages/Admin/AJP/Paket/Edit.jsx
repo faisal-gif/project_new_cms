@@ -9,27 +9,34 @@ import { Head, useForm } from '@inertiajs/react'
 import { Plus, Trash2 } from 'lucide-react'
 import React, { useState } from 'react'
 
-function Create() {
-    const [isCustomQuota, setIsCustomQuota] = useState(false);
+export default function Edit({ paket }) {
+    const [isCustomQuota, setIsCustomQuota] = useState(paket.quota === null);
 
-    const { data, setData, post, processing, errors } = useForm({
-        name: '',
-        feature: '',
-        quota: '',
-        feed_instagram: '',
-        ekoran: '',
-        wa_channel: '',
-        price: '',
-        period: '',
-        jenis_periode: 'bulan',
-        popular: false,
-        promo: false,
-        level: '',
-        badge: '',
-        flash_sale: false,
-        kategori_produk: '',
-        status: '1',
-        items_lainnya: [],
+    const { data, setData, put, processing, errors } = useForm({
+        name: paket.name || '',
+        feature: paket.feature || '',
+        quota: paket.quota ?? '',
+        feed_instagram: paket.feed_instagram ?? '',
+        ekoran: paket.ekoran ?? '',
+        wa_channel: paket.wa_channel ?? '',
+        price: paket.price ?? '',
+        period: paket.period ?? '',
+        jenis_periode: paket.jenis_periode || 'bulan',
+        popular: Boolean(paket.popular),
+        promo: Boolean(paket.promo),
+        level: paket.level ?? '',
+        badge: paket.badge || '',
+        flash_sale: Boolean(paket.flash_sale),
+        kategori_produk: paket.kategori_produk || 'paket',
+        status: String(paket.status ? '1' : '0'),
+
+        // Item lama dibawa beserta id agar backend bisa sync (update/delete)
+        items_lainnya: (paket.items_lainnya || []).map(item => ({
+            id: item.id,
+            nama_item: item.nama_item || '',
+            type: item.type || '',
+            qty: item.qty ?? 1,
+        })),
     });
 
     // Toggle mode kuota custom (quota dikirim null)
@@ -43,7 +50,7 @@ function Create() {
     const addItem = () => {
         setData('items_lainnya', [
             ...data.items_lainnya,
-            { nama_item: '', type: '', qty: 1 }
+            { id: null, nama_item: '', type: '', qty: 1 }
         ]);
     };
 
@@ -59,7 +66,7 @@ function Create() {
 
     const submit = (e) => {
         e.preventDefault();
-        post(route('admin.kopi-times.paket.store'), {
+        put(route('admin.ajp.paket.update', paket.id), {
             // Kirim quota null jika mode custom
             transform: (formData) => ({
                 ...formData,
@@ -70,7 +77,7 @@ function Create() {
 
     return (
         <>
-            <Head title="Tambah Paket Berita" />
+            <Head title={`Edit Paket - ${paket.name}`} />
             <AuthenticatedLayout>
                 <div className="py-12">
                     <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -78,14 +85,14 @@ function Create() {
                         <div className="space-y-6">
                             <div className='flex flex-col md:flex-row justify-between md:items-center gap-2'>
                                 <div>
-                                    <h1 className="text-3xl font-bold text-foreground">Tambah Paket Berita</h1>
+                                    <h1 className="text-3xl font-bold text-foreground">Edit Paket Berita</h1>
                                 </div>
                                 <div className="breadcrumbs text-sm">
                                     <ul>
                                         <li><a>Home</a></li>
-                                        <li>Kopi Times</li>
+                                        <li>AJP</li>
                                         <li>Paket Berita</li>
-                                        <li>Tambah Paket</li>
+                                        <li>Edit Paket</li>
                                     </ul>
                                 </div>
                             </div>
@@ -106,7 +113,7 @@ function Create() {
 
                                             <div className="lg:col-span-3">
                                                 <InputLabel htmlFor="kategori_produk" value="Kategori Produk" className='mb-2 font-bold' />
-                                                <InputSelect id="status" value={data.kategori_produk} onChange={(e) => setData('kategori_produk', e.target.value)} className="mt-1"
+                                                <InputSelect id="kategori_produk" value={data.kategori_produk} onChange={(e) => setData('kategori_produk', e.target.value)} className="mt-1"
                                                     options={[
                                                         { label: "Paket", value: "paket" },
                                                         { label: "Satuan", value: "satuan" }
@@ -130,7 +137,6 @@ function Create() {
                                                     className="mt-1 block w-full textarea textarea-bordered"
                                                     placeholder="Tulis fitur paket, pisahkan tiap baris jika perlu..."
                                                 />
-
                                                 <InputError message={errors.feature} className="mt-2" />
                                             </div>
 
@@ -155,6 +161,12 @@ function Create() {
                                                 Paket Kuota Manual (kuota diisi admin saat menambahkan penulis)
                                             </label>
                                         </div>
+
+                                        {isCustomQuota && (
+                                            <p className="text-sm text-amber-600 mb-4 font-medium bg-amber-50 p-2 rounded border border-amber-100">
+                                                ⭐ Paket ini akan tampil sebagai <b>Input Manual</b> pada form penulis. Kuota disimpan sebagai <code>null</code>.
+                                            </p>
+                                        )}
 
                                         <div className='grid grid-cols-1 lg:grid-cols-6 gap-4'>
 
@@ -279,7 +291,7 @@ function Create() {
 
                                         <div className="space-y-3">
                                             {data.items_lainnya.map((item, index) => (
-                                                <div key={index} className="grid grid-cols-1 lg:grid-cols-12 gap-3 items-end p-3 border rounded-lg bg-gray-50">
+                                                <div key={item.id ?? `new-${index}`} className="grid grid-cols-1 lg:grid-cols-12 gap-3 items-end p-3 border rounded-lg bg-gray-50">
                                                     <div className="lg:col-span-5">
                                                         <InputLabel value="Nama Item" className='mb-1 text-xs font-bold' />
                                                         <TextInput type="text" value={item.nama_item} onChange={(e) => updateItem(index, 'nama_item', e.target.value)} className="block w-full" placeholder="Contoh: Sertifikat" />
@@ -287,7 +299,7 @@ function Create() {
                                                     </div>
                                                     <div className="lg:col-span-4">
                                                         <InputLabel value="Type" className='mb-1 text-xs font-bold' />
-                                                        <InputSelect id="status" value={item.type} onChange={(e) => updateItem(index, 'type', e.target.value)} className="mt-1"
+                                                        <InputSelect value={item.type} onChange={(e) => updateItem(index, 'type', e.target.value)} className="mt-1"
                                                             options={[
                                                                 { label: "Merchandise", value: "merchandise" },
                                                                 { label: "Digital Service", value: "digital_service" }
@@ -311,8 +323,8 @@ function Create() {
                                 </Card>
 
                                 <div className='flex flex-row justify-end mt-8 pt-4'>
-                                    <button type="submit" className="btn btn-primary px-8" disabled={processing}>
-                                        {processing ? 'Menyimpan...' : 'Simpan Paket'}
+                                    <button type="submit" className="btn btn-primary px-8 shadow-lg" disabled={processing}>
+                                        {processing ? 'Menyimpan...' : 'Perbarui Paket'}
                                     </button>
                                 </div>
                             </form>
@@ -324,5 +336,3 @@ function Create() {
         </>
     )
 }
-
-export default Create

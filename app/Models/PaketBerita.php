@@ -20,6 +20,9 @@ class PaketBerita extends Model
         'type',
         'feature',
         'quota',
+        'feed_instagram',
+        'ekoran',
+        'wa_channel',
         'price',
         'period',
         'jenis_periode',
@@ -41,7 +44,10 @@ class PaketBerita extends Model
      * @var array<string, string>
      */
     protected $casts = [
-        'quota'       => 'integer',
+        'quota'          => 'integer',
+        'feed_instagram' => 'integer',
+        'ekoran'         => 'integer',
+        'wa_channel'     => 'integer',
         'price'       => 'integer',
         'period'      => 'integer',
         'popular'     => 'boolean', // tinyint(4) -> true/false
