@@ -15,6 +15,7 @@ use App\Http\Controllers\FokusNasionalController;
 use App\Http\Controllers\GalleryController;
 use App\Http\Controllers\KanalDaerahController;
 use App\Http\Controllers\KanalNasionalController;
+use App\Http\Controllers\AjpAddonRequestController;
 use App\Http\Controllers\KtAddonRequestController;
 use App\Http\Controllers\MerchandiseShipmentKTController;
 use App\Http\Controllers\NetworkDaerahController;
@@ -128,6 +129,9 @@ Route::middleware('auth')->prefix('admin')->name('admin.')->group(function () {
             Route::resource('writer', WriterAjpController::class);
             Route::resource('paket', PaketAjpController::class);
             Route::resource('pengumuman', PengumumanAjpController::class);
+            Route::get('/addon-requests', [AjpAddonRequestController::class, 'index'])->name('addon-requests.index');
+            Route::get('/addon-requests/{id}', [AjpAddonRequestController::class, 'show'])->name('addon-requests.show');
+            Route::put('/addon-requests/{id}', [AjpAddonRequestController::class, 'update'])->name('addon-requests.update');
         }
     );
 

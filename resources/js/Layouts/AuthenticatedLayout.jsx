@@ -584,6 +584,13 @@ export default function AuthenticatedLayout({ header, children }) {
                                 </Link>
                             </li>
                         )}
+                        {hasPermission(['view addon-requests ajp']) && (
+                            <li>
+                                <Link href={route('admin.ajp.addon-requests.index')} className={linkClass(isActive('admin.ajp.addon-requests.*'))}>
+                                    <Blocks size={16} /> Addon Request AJP
+                                </Link>
+                            </li>
+                        )}
                         {hasPermission(['view transaction ajp']) && (
                             <li>
                                 <Link href={route('admin.ajp.transaction.index')} className={linkClass(isActive('admin.ajp.news.*'))}>
