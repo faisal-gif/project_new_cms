@@ -17,6 +17,12 @@ class RolePermissionSeeder extends Seeder
         app()[PermissionRegistrar::class]->forgetCachedPermissions();
 
         $permissions = [
+            'Dashboard' => [
+                'view dashboard news',
+                'view dashboard editor performance',
+                'view dashboard photo',
+                'view dashboard kopi times',
+            ],
             'News Master' => [
                 'view news master',
                 'create news master',

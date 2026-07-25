@@ -2,16 +2,16 @@ import React from 'react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, usePage } from '@inertiajs/react';
 import Card from '@/Components/Card';
-import { 
-    CheckIcon, Loader, Pause, Search, Database, Camera, Clock, 
-    CheckCircle2, AlertCircle, XCircle, Activity, FileEdit 
+import {
+    CheckIcon, Loader, Pause, Search, Database, Camera, Clock,
+    CheckCircle2, AlertCircle, XCircle, Activity, FileEdit, Coffee, FileStack
 } from 'lucide-react';
 import { useAuthorization } from '@/Hooks/useAuthorization';
 import { formatNumber } from '@/Utils/formatter';
 
 export default function Dashboard({ stats }) {
     const { auth } = usePage().props;
-    const { hasAnyRole, hasRole } = useAuthorization();
+    const { hasPermission } = useAuthorization();
 
     // 1. KOMPONEN: Performa Harian Editor
     const EditorPerformance = ({ data }) => (
@@ -168,6 +168,54 @@ export default function Dashboard({ stats }) {
         </div>
     );
 
+    // 5. KOMPONEN: Kopi Times (berita berbayar)
+    const KopiTimesStats = ({ data }) => (
+        <div className="mb-8 md:mb-10">
+            <h3 className="text-base md:text-lg font-bold text-gray-700 mb-3 md:mb-4 pb-2 border-b border-gray-200 flex items-center gap-2">
+                <Coffee className="w-5 h-5 text-amber-700" />
+                {data.title}
+            </h3>
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
+                <Card color="bg-amber-700">
+                    <div className="flex items-center justify-between text-white p-1 md:p-2">
+                        <div>
+                            <div className="text-2xl md:text-4xl font-bold">{formatNumber(data.total)}</div>
+                            <div className="mt-1 md:mt-2 text-[10px] md:text-sm opacity-90">Total Berita</div>
+                        </div>
+                        <FileStack className="w-8 h-8 md:w-16 md:h-16 text-amber-300 opacity-70" />
+                    </div>
+                </Card>
+                <Card color="bg-success">
+                    <div className="flex items-center justify-between text-white p-1 md:p-2">
+                        <div>
+                            <div className="text-2xl md:text-4xl font-bold">{formatNumber(data.published)}</div>
+                            <div className="mt-1 md:mt-2 text-[10px] md:text-sm opacity-90">Published</div>
+                        </div>
+                        <CheckIcon className="w-8 h-8 md:w-16 md:h-16 text-success-content opacity-70" />
+                    </div>
+                </Card>
+                <Card color="bg-warning">
+                    <div className="flex items-center justify-between text-white p-1 md:p-2">
+                        <div>
+                            <div className="text-2xl md:text-4xl font-bold">{formatNumber(data.on_pro)}</div>
+                            <div className="mt-1 md:mt-2 text-[10px] md:text-sm opacity-90">On Pro</div>
+                        </div>
+                        <Loader className="w-8 h-8 md:w-16 md:h-16 text-warning-content opacity-70 animate-spin-slow" />
+                    </div>
+                </Card>
+                <Card color="bg-secondary">
+                    <div className="flex items-center justify-between text-gray-600 p-1 md:p-2">
+                        <div>
+                            <div className="text-2xl md:text-4xl font-bold">{formatNumber(data.draft)}</div>
+                            <div className="mt-1 md:mt-2 text-[10px] md:text-sm opacity-90">Draft</div>
+                        </div>
+                        <FileEdit className="w-8 h-8 md:w-16 md:h-16 text-gray-600 opacity-70" />
+                    </div>
+                </Card>
+            </div>
+        </div>
+    );
+
     return (
         <AuthenticatedLayout>
             <Head title="Dashboard" />
@@ -177,9 +225,9 @@ export default function Dashboard({ stats }) {
                 <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
 
                     {/* Tampilan Admin / Editor */}
-                    {hasAnyRole(['super-admin','admin', 'editor']) && stats.news && (
+                    {hasPermission('view dashboard news') && stats.news && (
                         <>
-                            {hasRole('editor') && stats.editor_performance && (
+                            {hasPermission('view dashboard editor performance') && stats.editor_performance && (
                                 <EditorPerformance data={stats.editor_performance} />
                             )}
 
@@ -192,8 +240,13 @@ export default function Dashboard({ stats }) {
                         </>
                     )}
 
+                    {/* Tampilan Kopi Times */}
+                    {hasPermission('view dashboard kopi times') && stats.kopi_times && (
+                        <KopiTimesStats data={stats.kopi_times} />
+                    )}
+
                     {/* Tampilan Fotografer */}
-                    {hasAnyRole(['fotografer']) && stats.photos && (
+                    {hasPermission('view dashboard photo') && stats.photos && (
                         <div className="mb-10">
                             <PhotoStats data={stats.photos} />
                         </div>

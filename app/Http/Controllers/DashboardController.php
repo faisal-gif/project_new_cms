@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Gallery;
 use App\Models\News;
+use App\Models\NewsBerbayar;
 use App\Models\NewsDaerah;
 use App\Models\NewsNasional;
 use Carbon\Carbon;
@@ -19,7 +20,7 @@ class DashboardController extends Controller
         $stats = [];
 
         // 1. Logika untuk Level Manajerial & Editor
-        if ($user->hasAnyRole(['super-admin', 'admin', 'editor'])) {
+        if ($user->can('view dashboard news')) {
 
             // Caching agregasi selama 5 menit untuk mencegah query berlebih ke DB
             $stats['news'] = Cache::remember('dashboard_news_stats_v6', 60 * 5, function () {
@@ -65,7 +66,7 @@ class DashboardController extends Controller
 
             // Logika Spesifik: Produktivitas Harian Editor
             // Tidak di-cache agar Editor bisa melihat progress real-time setiap kali refresh
-            if ($user->hasRole('editor')) {
+            if ($user->can('view dashboard editor performance')) {
                 $today = Carbon::today();
 
                 // Pastikan kolom 'updated_at' valid untuk model NewsDaerah Anda
@@ -86,8 +87,26 @@ class DashboardController extends Controller
             }
         }
 
-        // 2. Logika untuk Fotografer
-        if ($user->hasRole('fotografer')) {
+        // 2. Logika untuk Kopi Times (berita berbayar, type = 4)
+        if ($user->can('view dashboard kopi times')) {
+            $ktCounts = Cache::remember('dashboard_kt_stats_v1', 60 * 5, function () {
+                return NewsBerbayar::where('type', 4)
+                    ->selectRaw('status, COUNT(*) as total')
+                    ->groupBy('status')
+                    ->pluck('total', 'status');
+            });
+
+            $stats['kopi_times'] = [
+                'title'     => 'Berita Kopi Times',
+                'draft'     => $ktCounts[0] ?? 0,
+                'published' => $ktCounts[1] ?? 0,
+                'on_pro'    => $ktCounts[2] ?? 0,
+                'total'     => $ktCounts->sum(),
+            ];
+        }
+
+        // 3. Logika untuk Fotografer
+        if ($user->can('view dashboard photo')) {
             $stats['photos'] = [
                 // Pastikan kolom 'created' dan 'id_fotografer' akurat sesuai skema tabel Gallery
                 'uploaded_today' => Gallery::whereDate('created', today())
