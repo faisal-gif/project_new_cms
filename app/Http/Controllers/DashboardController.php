@@ -82,25 +82,29 @@ class DashboardController extends Controller
             );
 
             // Logika Spesifik: Produktivitas Harian Editor
-            // Tidak di-cache agar Editor bisa melihat progress real-time setiap kali refresh
+            // Di-cache per-user 2 menit: cukup real-time tapi tidak membebani DB tiap refresh
             if ($user->can('view dashboard editor performance')) {
-                $today = Carbon::today();
+                $stats['editor_performance'] = Cache::remember(
+                    "dashboard_editor_perf_{$user->id}_" . today()->toDateString(),
+                    60 * 2,
+                    function () use ($user) {
+                        $today = Carbon::today();
 
-                // Pastikan kolom 'updated_at' valid untuk model NewsDaerah Anda
-                $countDaerah = NewsDaerah::where('editor_id', $user->editor->id_daerah)
-                    ->whereDate('created_at', $today)
-                    ->count();
+                        $countDaerah = NewsDaerah::where('editor_id', $user->editor->id_daerah)
+                            ->whereDate('created_at', $today)
+                            ->count();
 
-                // Pastikan kolom 'modified' valid untuk model NewsNasional Anda
-                $countNasional = NewsNasional::where('editor_id', $user->editor->id_ti)
-                    ->whereDate('created', $today)
-                    ->count();
+                        $countNasional = NewsNasional::where('editor_id', $user->editor->id_ti)
+                            ->whereDate('created', $today)
+                            ->count();
 
-                $stats['editor_performance'] = [
-                    'total_today' => $countDaerah + $countNasional,
-                    'daerah'      => $countDaerah,
-                    'nasional'    => $countNasional,
-                ];
+                        return [
+                            'total_today' => $countDaerah + $countNasional,
+                            'daerah'      => $countDaerah,
+                            'nasional'    => $countNasional,
+                        ];
+                    }
+                );
             }
         }
 
@@ -144,18 +148,24 @@ class DashboardController extends Controller
             ];
         }
 
-        // 4. Logika untuk Fotografer
+        // 4. Logika untuk Fotografer (cache per-user 2 menit)
         if ($user->can('view dashboard photo')) {
-            $stats['photos'] = [
-                // Pastikan kolom 'created' dan 'id_fotografer' akurat sesuai skema tabel Gallery
-                'uploaded_today' => Gallery::whereDate('created', today())
-                    ->where('fotografer_id', $user->id_fotografer)
-                    ->count(),
+            $stats['photos'] = Cache::remember(
+                "dashboard_photos_{$user->id}_" . today()->toDateString(),
+                60 * 2,
+                function () use ($user) {
+                    return [
+                        // Pastikan kolom 'created' dan 'id_fotografer' akurat sesuai skema tabel Gallery
+                        'uploaded_today' => Gallery::whereDate('created', today())
+                            ->where('fotografer_id', $user->id_fotografer)
+                            ->count(),
 
-                'pending_review' => Gallery::where('gal_status', 0)
-                    ->where('fotografer_id', $user->id_fotografer)
-                    ->count(),
-            ];
+                        'pending_review' => Gallery::where('gal_status', 0)
+                            ->where('fotografer_id', $user->id_fotografer)
+                            ->count(),
+                    ];
+                }
+            );
         }
 
         return Inertia::render('Dashboard', [
