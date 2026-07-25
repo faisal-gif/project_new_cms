@@ -66,6 +66,21 @@ class DashboardController extends Controller
                 ];
             });
 
+            // Ranking berita nasional populer hari ini (berdasarkan pageviews)
+            $stats['news']['popular_today'] = Cache::remember(
+                'dashboard_popular_news_today_' . today()->toDateString(),
+                60 * 5,
+                function () {
+                    return NewsNasional::query()
+                        ->leftJoin('news_views', 'news.news_id', '=', 'news_views.news_id')
+                        ->whereDate('news.news_datepub', today())
+                        ->selectRaw('news.news_id, news.news_title, COALESCE(news_views.pageviews, 0) as pageviews')
+                        ->orderByDesc('pageviews')
+                        ->limit(10)
+                        ->get();
+                }
+            );
+
             // Logika Spesifik: Produktivitas Harian Editor
             // Tidak di-cache agar Editor bisa melihat progress real-time setiap kali refresh
             if ($user->can('view dashboard editor performance')) {

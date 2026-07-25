@@ -5,7 +5,7 @@ import Card from '@/Components/Card';
 import {
     CheckIcon, Loader, Pause, Search, Database, Camera, Clock,
     CheckCircle2, AlertCircle, XCircle, Activity, FileEdit, Coffee, FileStack, Newspaper,
-    Wallet, Receipt, UserPlus
+    Wallet, Receipt, UserPlus, TrendingUp, Eye
 } from 'lucide-react';
 import { useAuthorization } from '@/Hooks/useAuthorization';
 import { formatNumber, formatRupiah } from '@/Utils/formatter';
@@ -169,6 +169,33 @@ export default function Dashboard({ stats }) {
         </div>
     );
 
+    // 4b. KOMPONEN: Berita Nasional Populer Hari Ini
+    const PopularNews = ({ items }) => (
+        <div className="mb-8 md:mb-10">
+            <h3 className="text-base md:text-lg font-bold text-gray-700 mb-3 md:mb-4 pb-2 border-b border-gray-200 flex items-center gap-2">
+                <TrendingUp className="w-5 h-5 text-rose-600" />
+                Berita Nasional Populer Hari Ini
+            </h3>
+            {items.length === 0 ? (
+                <p className="text-sm text-gray-500">Belum ada berita nasional yang tayang hari ini.</p>
+            ) : (
+                <div className="rounded-lg border border-gray-200 divide-y divide-gray-100 bg-white">
+                    {items.map((item, index) => (
+                        <div key={item.news_id} className="flex items-center gap-3 px-3 py-2 md:px-4 md:py-3">
+                            <span className={`flex-shrink-0 w-7 h-7 md:w-8 md:h-8 flex items-center justify-center rounded-full text-xs md:text-sm font-bold ${index < 3 ? 'bg-rose-600 text-white' : 'bg-gray-100 text-gray-600'}`}>
+                                {index + 1}
+                            </span>
+                            <span className="flex-1 text-sm md:text-base text-gray-700 truncate">{item.news_title}</span>
+                            <span className="flex-shrink-0 flex items-center gap-1 text-xs md:text-sm text-gray-500">
+                                <Eye className="w-4 h-4" /> {formatNumber(item.pageviews)}
+                            </span>
+                        </div>
+                    ))}
+                </div>
+            )}
+        </div>
+    );
+
     // 5. KOMPONEN: Berita Berbayar (Kopi Times / AJP)
     const PaidNewsStats = ({ data, Icon = FileStack, accent = 'bg-amber-700', iconClass = 'text-amber-700' }) => (
         <div className="mb-8 md:mb-10">
@@ -270,6 +297,8 @@ export default function Dashboard({ stats }) {
 
                             {stats.news.nasional && <StatRow data={stats.news.nasional} />}
                             {stats.news.daerah && <StatRow data={stats.news.daerah} />}
+
+                            {stats.news.popular_today && <PopularNews items={stats.news.popular_today} />}
                         </>
                     )}
 
