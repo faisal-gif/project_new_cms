@@ -6,6 +6,7 @@ use App\Models\Gallery;
 use App\Models\News;
 use App\Models\NewsBerbayar;
 use App\Models\PaymentsNewsBerbayar;
+use App\Models\WriterBerbayar;
 use App\Models\NewsDaerah;
 use App\Models\NewsNasional;
 use Carbon\Carbon;
@@ -104,6 +105,7 @@ class DashboardController extends Controller
                 'on_pro'    => $ktCounts[2] ?? 0,
                 'total'     => $ktCounts->sum(),
                 'payment'   => $this->paidNewsPayment(4),
+                'new_users' => $this->newActiveWriters(4),
             ];
         }
 
@@ -123,6 +125,7 @@ class DashboardController extends Controller
                 'on_pro'    => $ajpCounts[2] ?? 0,
                 'total'     => $ajpCounts->sum(),
                 'payment'   => $this->paidNewsPayment(1),
+                'new_users' => $this->newActiveWriters(1),
             ];
         }
 
@@ -146,13 +149,16 @@ class DashboardController extends Controller
     }
 
     /**
-     * Agregasi pembayaran berita berbayar (paid) per tipe (1 = AJP, 4 = Kopi Times).
+     * Agregasi pembayaran berita berbayar (paid) BULAN INI per tipe (1 = AJP, 4 = Kopi Times).
      */
     private function paidNewsPayment(int $type): array
     {
-        $agg = Cache::remember("dashboard_payment_stats_v1_{$type}", 60 * 5, function () use ($type) {
+        $period = now()->format('Y_m');
+        $agg = Cache::remember("dashboard_payment_stats_v2_{$type}_{$period}", 60 * 5, function () use ($type) {
             return PaymentsNewsBerbayar::where('type', $type)
                 ->where('status', 'paid')
+                ->whereMonth('created_at', now()->month)
+                ->whereYear('created_at', now()->year)
                 ->selectRaw('COUNT(*) as transactions, COALESCE(SUM(amount), 0) as revenue')
                 ->first();
         });
@@ -161,5 +167,20 @@ class DashboardController extends Controller
             'revenue'      => (int) ($agg->revenue ?? 0),
             'transactions' => (int) ($agg->transactions ?? 0),
         ];
+    }
+
+    /**
+     * Jumlah penulis berbayar baru bulan ini yang berstatus aktif (status = 1).
+     */
+    private function newActiveWriters(int $type): int
+    {
+        $period = now()->format('Y_m');
+        return Cache::remember("dashboard_new_writers_v1_{$type}_{$period}", 60 * 5, function () use ($type) {
+            return WriterBerbayar::where('type', $type)
+                ->where('status', 1)
+                ->whereMonth('created', now()->month)
+                ->whereYear('created', now()->year)
+                ->count();
+        });
     }
 }

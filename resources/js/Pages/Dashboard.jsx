@@ -5,7 +5,7 @@ import Card from '@/Components/Card';
 import {
     CheckIcon, Loader, Pause, Search, Database, Camera, Clock,
     CheckCircle2, AlertCircle, XCircle, Activity, FileEdit, Coffee, FileStack, Newspaper,
-    Wallet, Receipt
+    Wallet, Receipt, UserPlus
 } from 'lucide-react';
 import { useAuthorization } from '@/Hooks/useAuthorization';
 import { formatNumber, formatRupiah } from '@/Utils/formatter';
@@ -216,12 +216,12 @@ export default function Dashboard({ stats }) {
             </div>
 
             {data.payment && (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4 mt-3 md:mt-4">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 md:gap-4 mt-3 md:mt-4">
                     <Card color="bg-emerald-600">
                         <div className="flex items-center justify-between text-white p-2">
                             <div>
                                 <div className="text-2xl md:text-3xl font-bold">{formatRupiah(data.payment.revenue)}</div>
-                                <div className="mt-1 text-xs md:text-sm opacity-90">Total Pendapatan (Lunas)</div>
+                                <div className="mt-1 text-xs md:text-sm opacity-90">Pendapatan Bulan Ini</div>
                             </div>
                             <Wallet className="w-10 h-10 md:w-14 md:h-14 text-emerald-200 opacity-70" />
                         </div>
@@ -230,9 +230,18 @@ export default function Dashboard({ stats }) {
                         <div className="flex items-center justify-between text-white p-2">
                             <div>
                                 <div className="text-2xl md:text-3xl font-bold">{formatNumber(data.payment.transactions)}</div>
-                                <div className="mt-1 text-xs md:text-sm opacity-90">Transaksi Lunas</div>
+                                <div className="mt-1 text-xs md:text-sm opacity-90">Transaksi Lunas Bulan Ini</div>
                             </div>
                             <Receipt className="w-10 h-10 md:w-14 md:h-14 text-sky-200 opacity-70" />
+                        </div>
+                    </Card>
+                    <Card color="bg-violet-700">
+                        <div className="flex items-center justify-between text-white p-2">
+                            <div>
+                                <div className="text-2xl md:text-3xl font-bold">{formatNumber(data.new_users || 0)}</div>
+                                <div className="mt-1 text-xs md:text-sm opacity-90">Penulis Baru Aktif Bulan Ini</div>
+                            </div>
+                            <UserPlus className="w-10 h-10 md:w-14 md:h-14 text-violet-200 opacity-70" />
                         </div>
                     </Card>
                 </div>
