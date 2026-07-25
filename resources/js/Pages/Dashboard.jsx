@@ -4,10 +4,11 @@ import { Head, usePage } from '@inertiajs/react';
 import Card from '@/Components/Card';
 import {
     CheckIcon, Loader, Pause, Search, Database, Camera, Clock,
-    CheckCircle2, AlertCircle, XCircle, Activity, FileEdit, Coffee, FileStack
+    CheckCircle2, AlertCircle, XCircle, Activity, FileEdit, Coffee, FileStack, Newspaper,
+    Wallet, Receipt
 } from 'lucide-react';
 import { useAuthorization } from '@/Hooks/useAuthorization';
-import { formatNumber } from '@/Utils/formatter';
+import { formatNumber, formatRupiah } from '@/Utils/formatter';
 
 export default function Dashboard({ stats }) {
     const { auth } = usePage().props;
@@ -168,21 +169,21 @@ export default function Dashboard({ stats }) {
         </div>
     );
 
-    // 5. KOMPONEN: Kopi Times (berita berbayar)
-    const KopiTimesStats = ({ data }) => (
+    // 5. KOMPONEN: Berita Berbayar (Kopi Times / AJP)
+    const PaidNewsStats = ({ data, Icon = FileStack, accent = 'bg-amber-700', iconClass = 'text-amber-700' }) => (
         <div className="mb-8 md:mb-10">
             <h3 className="text-base md:text-lg font-bold text-gray-700 mb-3 md:mb-4 pb-2 border-b border-gray-200 flex items-center gap-2">
-                <Coffee className="w-5 h-5 text-amber-700" />
+                <Icon className={`w-5 h-5 ${iconClass}`} />
                 {data.title}
             </h3>
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
-                <Card color="bg-amber-700">
+                <Card color={accent}>
                     <div className="flex items-center justify-between text-white p-1 md:p-2">
                         <div>
                             <div className="text-2xl md:text-4xl font-bold">{formatNumber(data.total)}</div>
                             <div className="mt-1 md:mt-2 text-[10px] md:text-sm opacity-90">Total Berita</div>
                         </div>
-                        <FileStack className="w-8 h-8 md:w-16 md:h-16 text-amber-300 opacity-70" />
+                        <FileStack className="w-8 h-8 md:w-16 md:h-16 text-white opacity-40" />
                     </div>
                 </Card>
                 <Card color="bg-success">
@@ -213,6 +214,29 @@ export default function Dashboard({ stats }) {
                     </div>
                 </Card>
             </div>
+
+            {data.payment && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4 mt-3 md:mt-4">
+                    <Card color="bg-emerald-600">
+                        <div className="flex items-center justify-between text-white p-2">
+                            <div>
+                                <div className="text-2xl md:text-3xl font-bold">{formatRupiah(data.payment.revenue)}</div>
+                                <div className="mt-1 text-xs md:text-sm opacity-90">Total Pendapatan (Lunas)</div>
+                            </div>
+                            <Wallet className="w-10 h-10 md:w-14 md:h-14 text-emerald-200 opacity-70" />
+                        </div>
+                    </Card>
+                    <Card color="bg-sky-700">
+                        <div className="flex items-center justify-between text-white p-2">
+                            <div>
+                                <div className="text-2xl md:text-3xl font-bold">{formatNumber(data.payment.transactions)}</div>
+                                <div className="mt-1 text-xs md:text-sm opacity-90">Transaksi Lunas</div>
+                            </div>
+                            <Receipt className="w-10 h-10 md:w-14 md:h-14 text-sky-200 opacity-70" />
+                        </div>
+                    </Card>
+                </div>
+            )}
         </div>
     );
 
@@ -242,7 +266,12 @@ export default function Dashboard({ stats }) {
 
                     {/* Tampilan Kopi Times */}
                     {hasPermission('view dashboard kopi times') && stats.kopi_times && (
-                        <KopiTimesStats data={stats.kopi_times} />
+                        <PaidNewsStats data={stats.kopi_times} Icon={Coffee} accent="bg-amber-700" iconClass="text-amber-700" />
+                    )}
+
+                    {/* Tampilan AJP */}
+                    {hasPermission('view dashboard ajp') && stats.ajp && (
+                        <PaidNewsStats data={stats.ajp} Icon={Newspaper} accent="bg-teal-700" iconClass="text-teal-700" />
                     )}
 
                     {/* Tampilan Fotografer */}

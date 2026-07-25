@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Gallery;
 use App\Models\News;
 use App\Models\NewsBerbayar;
+use App\Models\PaymentsNewsBerbayar;
 use App\Models\NewsDaerah;
 use App\Models\NewsNasional;
 use Carbon\Carbon;
@@ -102,10 +103,30 @@ class DashboardController extends Controller
                 'published' => $ktCounts[1] ?? 0,
                 'on_pro'    => $ktCounts[2] ?? 0,
                 'total'     => $ktCounts->sum(),
+                'payment'   => $this->paidNewsPayment(4),
             ];
         }
 
-        // 3. Logika untuk Fotografer
+        // 3. Logika untuk AJP (berita berbayar, type = 1)
+        if ($user->can('view dashboard ajp')) {
+            $ajpCounts = Cache::remember('dashboard_ajp_stats_v1', 60 * 5, function () {
+                return NewsBerbayar::where('type', 1)
+                    ->selectRaw('status, COUNT(*) as total')
+                    ->groupBy('status')
+                    ->pluck('total', 'status');
+            });
+
+            $stats['ajp'] = [
+                'title'     => 'Berita AJP',
+                'draft'     => $ajpCounts[0] ?? 0,
+                'published' => $ajpCounts[1] ?? 0,
+                'on_pro'    => $ajpCounts[2] ?? 0,
+                'total'     => $ajpCounts->sum(),
+                'payment'   => $this->paidNewsPayment(1),
+            ];
+        }
+
+        // 4. Logika untuk Fotografer
         if ($user->can('view dashboard photo')) {
             $stats['photos'] = [
                 // Pastikan kolom 'created' dan 'id_fotografer' akurat sesuai skema tabel Gallery
@@ -122,5 +143,23 @@ class DashboardController extends Controller
         return Inertia::render('Dashboard', [
             'stats' => $stats
         ]);
+    }
+
+    /**
+     * Agregasi pembayaran berita berbayar (paid) per tipe (1 = AJP, 4 = Kopi Times).
+     */
+    private function paidNewsPayment(int $type): array
+    {
+        $agg = Cache::remember("dashboard_payment_stats_v1_{$type}", 60 * 5, function () use ($type) {
+            return PaymentsNewsBerbayar::where('type', $type)
+                ->where('status', 'paid')
+                ->selectRaw('COUNT(*) as transactions, COALESCE(SUM(amount), 0) as revenue')
+                ->first();
+        });
+
+        return [
+            'revenue'      => (int) ($agg->revenue ?? 0),
+            'transactions' => (int) ($agg->transactions ?? 0),
+        ];
     }
 }

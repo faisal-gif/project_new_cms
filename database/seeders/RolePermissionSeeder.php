@@ -22,6 +22,7 @@ class RolePermissionSeeder extends Seeder
                 'view dashboard editor performance',
                 'view dashboard photo',
                 'view dashboard kopi times',
+                'view dashboard ajp',
             ],
             'News Master' => [
                 'view news master',
