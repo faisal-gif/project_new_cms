@@ -19,7 +19,7 @@ import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
 import InputEditor from "@/Components/InputEditor";
 
 
-export default function Create({ editors, writers, categories, isFotografer, userFotograferId }) {
+export default function Create({ editors, writers, categories, isFotografer, userFotograferId, canSelectEditor }) {
 
     const defaultFotografer = isFotografer
         ? writers.find(w => String(w.value) === String(userFotograferId))
@@ -147,19 +147,21 @@ export default function Create({ editors, writers, categories, isFotografer, use
                                 <MapPin className="h-5 w-5 text-primary" /> 2. Detail Tim & Lokasi
                             </h2>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <div className="w-full">
-                                    <InputLabel value="Editor *" className="font-bold mb-2" />
-                                    <Select
-                                        value={editors.find(e => e.value === data.editor)}
-                                        options={editors}
-                                        placeholder="Pilih Editor yang bertugas..."
-                                        onChange={(val) => setData('editor', val?.value)}
-                                        styles={customSelectStyles}
-                                        menuPortalTarget={document.body}
-                                        menuPosition="fixed"
-                                    />
-                                    <InputError message={errors.editor} className="mt-1" />
-                                </div>
+                                {canSelectEditor && (
+                                    <div className="w-full">
+                                        <InputLabel value="Editor *" className="font-bold mb-2" />
+                                        <Select
+                                            value={editors.find(e => e.value === data.editor)}
+                                            options={editors}
+                                            placeholder="Pilih Editor yang bertugas..."
+                                            onChange={(val) => setData('editor', val?.value)}
+                                            styles={customSelectStyles}
+                                            menuPortalTarget={document.body}
+                                            menuPosition="fixed"
+                                        />
+                                        <InputError message={errors.editor} className="mt-1" />
+                                    </div>
+                                )}
 
                                 <div className="w-full">
                                     <InputLabel value="Fotografer/Pewarta *" className="font-bold mb-2" />

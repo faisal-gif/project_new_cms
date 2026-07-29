@@ -101,6 +101,7 @@ class GalleryController extends Controller
             'categories' => $categories,
             'isFotografer'     => $user->hasRole('fotografer'),
             'userFotograferId' => $user->id_fotografer ?? null,
+            'canSelectEditor'  => $user->can('select editor gallery nasional'),
         ]);
     }
 
@@ -112,6 +113,11 @@ class GalleryController extends Controller
         // Buat galeri (metadata saja). Foto ditambahkan satu per satu di halaman Edit.
         $validated = $request->validated();
 
+        // Editor hanya boleh diisi oleh user yang punya izin memilih editor.
+        $editorId = $request->user()->can('select editor gallery nasional')
+            ? ($validated['editor'] ?: null)
+            : null;
+
         $gallery = Gallery::create([
             'gal_catid' => $validated['categoryId'],
             'gal_title' => $validated['title'],
@@ -121,7 +127,7 @@ class GalleryController extends Controller
             'gal_city' => $validated['city'] ?? null,
             'gal_pewarta' => $validated['fotografer'] ?? null,
             'fotografer_id' => $validated['fotografer_id'] ?? null,
-            'editor_id' => $validated['editor'] ?? null,
+            'editor_id' => $editorId,
             'gal_status' => $validated['status'],
             'gal_datepub' => $validated['datepub'],
             'created_by' => Auth::id() ?? 1,
@@ -224,6 +230,7 @@ class GalleryController extends Controller
             'editors'    => $editors,
             'writers'    => $writers,
             'isFotografer' => $user->hasRole('fotografer'),
+            'canSelectEditor' => $user->can('select editor gallery nasional'),
         ]);
     }
 
@@ -252,7 +259,10 @@ class GalleryController extends Controller
                 'gal_city'        => $validated['city'] ?? null,
                 'gal_pewarta'     => $validated['fotografer'] ?? null,
                 'fotografer_id'   => $validated['fotografer_id'] ?? null,
-                'editor_id'       => $validated['editor'] ?? null,
+                // Editor hanya boleh diubah oleh user berizin; selain itu pertahankan nilai lama.
+                'editor_id'       => $request->user()->can('select editor gallery nasional')
+                    ? ($validated['editor'] ?: null)
+                    : $gallery->editor_id,
                 'gal_status'      => collect(['pending' => 0, 'publish' => 1, 'review' => 2, 'on_pro' => 3])->get($validated['status'], $validated['status']),
                 'gal_datepub'     => $validated['datepub'],
                 'modified_by'      => $user_id,
