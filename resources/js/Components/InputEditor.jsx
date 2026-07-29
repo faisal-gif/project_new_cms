@@ -11,7 +11,7 @@ export default function InputEditor({
     // 💡 UPDATE: Menambahkan 'searchreplace' di sebelah 'undo redo'
     const toolbarConfig = [
         'undo redo searchreplace | styles | bold italic underline | alignleft aligncenter alignright alignjustify',
-        'bullist numlist outdent indent | ' + (enableImageUpload ? 'customImage ' : '') + 'media link | blockquote table hr'
+        'bullist numlist outdent indent | ' + (enableImageUpload ? 'customImage ' : '') + 'media link | blockquote table hr | code'
     ];
 
     return (
