@@ -23,6 +23,12 @@ class AdsNasionalController extends Controller
         protected CdnService $cdnService
     ) {}
 
+    /** GIF harus 'raw' agar animasi tidak hilang saat konversi CDN. */
+    private function cdnProcessType(\Illuminate\Http\UploadedFile $file): string
+    {
+        return strtolower($file->getClientOriginalExtension()) === 'gif' ? 'raw' : 'convert';
+    }
+
     /**
      * Display a listing of the resource.
      */
@@ -64,12 +70,13 @@ class AdsNasionalController extends Controller
             $baseSlug = Str::slug($request->title);
 
             // PERBAIKAN 1: Gunakan hasFile() agar tidak error jika salah satu gambar tidak diunggah
+            // GIF pakai 'raw' agar CDN tidak men-transcode & mematikan animasi.
             $desktopImgUrl = $request->hasFile('d_img')
-                ? $this->cdnService->uploadImage($request->file('d_img'), "{$baseSlug}-desktop", 1, 'convert', 0)
+                ? $this->cdnService->uploadImage($request->file('d_img'), "{$baseSlug}-desktop", 1, $this->cdnProcessType($request->file('d_img')), 0)
                 : null;
 
             $mobileImgUrl  = $request->hasFile('m_img')
-                ? $this->cdnService->uploadImage($request->file('m_img'), "{$baseSlug}-mobile", 1, 'convert', 0)
+                ? $this->cdnService->uploadImage($request->file('m_img'), "{$baseSlug}-mobile", 1, $this->cdnProcessType($request->file('m_img')), 0)
                 : null;
 
             DB::beginTransaction();

@@ -90,6 +90,14 @@ export default function InputAdsImage({
 
     setIsDeleted(false);
 
+    // GIF: crop via <canvas> mengekspor jadi PNG statis dan mematikan animasi.
+    // Kirim file asli apa adanya (ukuran harus sudah sesuai lokasi iklan).
+    if (file.type === "image/gif") {
+      onChange?.(file);
+      if (inputRef.current) inputRef.current.value = "";
+      return;
+    }
+
     // Jika crop dimatikan, langsung kirim file asli tanpa kompresi apa pun
     if (!enableCrop) {
       onChange?.(file);

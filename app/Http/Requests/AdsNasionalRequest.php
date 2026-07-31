@@ -33,15 +33,15 @@ class AdsNasionalRequest extends FormRequest
             // - Wajib saat Create JIKA lokasinya dipilih
             // - Opsional/Nullable saat Update (karena bisa menggunakan gambar lama)
             'd_img'     => [
-                $isUpdate ? 'nullable' : 'required_with:locate_desktop', 
-                'image', 
-                'mimes:jpeg,png,jpg,webp', 
+                $isUpdate ? 'nullable' : 'required_with:locate_desktop',
+                'image',
+                'mimes:jpeg,png,jpg,webp,gif',
                 'max:2048'
             ],
             'm_img'     => [
-                $isUpdate ? 'nullable' : 'required_with:locate_mobile', 
-                'image', 
-                'mimes:jpeg,png,jpg,webp', 
+                $isUpdate ? 'nullable' : 'required_with:locate_mobile',
+                'image',
+                'mimes:jpeg,png,jpg,webp,gif',
                 'max:2048'
             ],
 
