@@ -42,7 +42,7 @@ const formatForDateTimeLocal = (dateString) => {
     return new Date(date.getTime() - tzOffset).toISOString().slice(0, 16);
 };
 
-export default function Edit({ editors, writers, categories, gallery, isFotografer, canSelectEditor, userEditorId }) {
+export default function Edit({ editors, writers, categories, gallery, isFotografer, canSelectEditor, userEditorId, canSelectFotografer }) {
     // 1. Inisialisasi useForm dengan data yang sudah ada dari prop 'gallery'
     const { data, setData, post, processing, errors } = useForm({
         _method: 'PUT', // Wajib untuk upload file saat update di Laravel
@@ -255,7 +255,7 @@ export default function Edit({ editors, writers, categories, gallery, isFotograf
                                             setData('fotografer_id', val?.value);
                                         }}
                                         styles={customSelectStyles}
-                                        isDisabled={isFotografer}
+                                        isDisabled={!canSelectFotografer}
                                         menuPortalTarget={document.body}
                                         menuPosition="fixed"
                                     />

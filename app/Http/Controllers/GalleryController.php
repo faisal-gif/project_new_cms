@@ -102,6 +102,7 @@ class GalleryController extends Controller
             'isFotografer'     => $user->hasRole('fotografer'),
             'userFotograferId' => $user->id_fotografer ?? null,
             'canSelectEditor'  => $user->can('select editor gallery nasional'),
+            'canSelectFotografer' => $user->can('select fotografer gallery nasional'),
         ]);
     }
 
@@ -120,6 +121,18 @@ class GalleryController extends Controller
             ? ($validated['editor'] ?: null)
             : $user->editor?->id_ti;
 
+        // Fotografer: berizin bebas memilih; selain itu otomatis = fotografer yang login.
+        if ($user->can('select fotografer gallery nasional')) {
+            $fotograferId = $validated['fotografer_id'] ?: null;
+            $pewarta      = $validated['fotografer'] ?? null;
+        } elseif ($user->id_fotografer) {
+            $fotograferId = $user->id_fotografer;
+            $pewarta      = WriterNasional::find($fotograferId)?->name;
+        } else {
+            $fotograferId = null;
+            $pewarta      = null;
+        }
+
         $gallery = Gallery::create([
             'gal_catid' => $validated['categoryId'],
             'gal_title' => $validated['title'],
@@ -127,8 +140,8 @@ class GalleryController extends Controller
             'gal_description' => $validated['description'] ?? null,
             'gal_content' => $validated['content'] ?? null,
             'gal_city' => $validated['city'] ?? null,
-            'gal_pewarta' => $validated['fotografer'] ?? null,
-            'fotografer_id' => $validated['fotografer_id'] ?? null,
+            'gal_pewarta' => $pewarta,
+            'fotografer_id' => $fotograferId,
             'editor_id' => $editorId,
             'gal_status' => $validated['status'],
             'gal_datepub' => $validated['datepub'],
@@ -234,6 +247,7 @@ class GalleryController extends Controller
             'isFotografer' => $user->hasRole('fotografer'),
             'canSelectEditor' => $user->can('select editor gallery nasional'),
             'userEditorId' => $user->editor?->id_ti,
+            'canSelectFotografer' => $user->can('select fotografer gallery nasional'),
         ]);
     }
 
@@ -259,6 +273,19 @@ class GalleryController extends Controller
             $editorId = $gallery->editor_id;
         }
 
+        // Fotografer: berizin bebas memilih; fotografer tanpa izin → dirinya sendiri;
+        // user lain → pertahankan fotografer lama.
+        if ($user->can('select fotografer gallery nasional')) {
+            $fotograferId = $validated['fotografer_id'] ?: null;
+            $pewarta      = $validated['fotografer'] ?? null;
+        } elseif ($user->id_fotografer) {
+            $fotograferId = $user->id_fotografer;
+            $pewarta      = WriterNasional::find($fotograferId)?->name;
+        } else {
+            $fotograferId = $gallery->fotografer_id;
+            $pewarta      = $gallery->gal_pewarta;
+        }
+
         // Memulai Transaksi: Jika gagal di tengah jalan (misal CDN error), semua dibatalkan
         DB::beginTransaction();
 
@@ -271,8 +298,8 @@ class GalleryController extends Controller
                 'gal_description' => $validated['description'] ?? null,
                 'gal_content'     => $validated['content'] ?? null,
                 'gal_city'        => $validated['city'] ?? null,
-                'gal_pewarta'     => $validated['fotografer'] ?? null,
-                'fotografer_id'   => $validated['fotografer_id'] ?? null,
+                'gal_pewarta'     => $pewarta,
+                'fotografer_id'   => $fotograferId,
                 'editor_id'       => $editorId,
                 'gal_status'      => collect(['pending' => 0, 'publish' => 1, 'review' => 2, 'on_pro' => 3])->get($validated['status'], $validated['status']),
                 'gal_datepub'     => $validated['datepub'],

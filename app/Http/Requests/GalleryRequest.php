@@ -28,8 +28,9 @@ class GalleryRequest extends FormRequest
             'description'   => ['nullable', 'string', 'max:255'],
             'content'       => ['nullable', 'string'],
             'city'          => ['nullable', 'string', 'max:255'],
-            'fotografer'    => ['required'],
-            'fotografer_id' => ['required'], // Hilangkan dulu validasi exists jika database berbeda koneksi/skema
+            // Fotografer wajib hanya bila user berizin memilihnya; selain itu opsional (di-set server).
+            'fotografer'    => [$this->user()?->can('select fotografer gallery nasional') ? 'required' : 'nullable'],
+            'fotografer_id' => [$this->user()?->can('select fotografer gallery nasional') ? 'required' : 'nullable'],
             // Editor wajib hanya bila user berizin memilihnya; selain itu opsional.
             'editor'        => [$this->user()?->can('select editor gallery nasional') ? 'required' : 'nullable'],
             'status'        => ['required', 'in:0,1,2,3,4'],

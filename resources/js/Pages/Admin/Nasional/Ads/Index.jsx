@@ -44,8 +44,8 @@ export default function Index({ ads }) {
                             </Link>
                         </div>
 
-                        {/* --- TABEL DATA --- */}
-                        <div className="overflow-x-auto">
+                        {/* --- TABEL DATA (Desktop) --- */}
+                        <div className="overflow-x-auto hidden md:block">
                             <table className="table">
                                 <thead>
                                     <tr className="bg-gray-100 text-gray-600 uppercase text-sm leading-normal border-b border-gray-200">
@@ -116,6 +116,53 @@ export default function Index({ ads }) {
                                     )}
                                 </tbody>
                             </table>
+                        </div>
+
+                        {/* --- KARTU DATA (Mobile) --- */}
+                        <div className="md:hidden space-y-4">
+                            {ads.data.length === 0 ? (
+                                <div className="py-8 text-center text-gray-500 text-sm">
+                                    Belum ada data iklan. Silakan tambahkan kampanye baru.
+                                </div>
+                            ) : (
+                                ads.data.map((ad) => (
+                                    <div key={ad.id} className="border border-gray-200 rounded-lg p-4 space-y-3">
+                                        <div className="flex justify-between items-start gap-3">
+                                            <div className="min-w-0">
+                                                <div className="font-bold text-gray-800 break-words">{ad.title}</div>
+                                                <a href={ad.url} target="_blank" rel="noreferrer" className="text-xs text-blue-500 hover:underline break-all">
+                                                    {ad.url}
+                                                </a>
+                                                <div className="text-xs text-gray-400 mt-1">ID: {ad.unique_id}</div>
+                                            </div>
+                                            {ad.is_status == 1 ? (
+                                                <span className="shrink-0 bg-green-100 text-green-700 py-1 px-3 rounded-full text-xs font-bold">Aktif</span>
+                                            ) : (
+                                                <span className="shrink-0 bg-red-100 text-red-700 py-1 px-3 rounded-full text-xs font-bold">Tidak Aktif</span>
+                                            )}
+                                        </div>
+
+                                        <div className="grid grid-cols-2 gap-2 text-sm border-t border-gray-100 pt-3">
+                                            <div>
+                                                <div className="text-xs text-gray-400">Periode</div>
+                                                <div className="font-semibold text-gray-700">{ad.datestart}</div>
+                                                <div className="text-xs text-gray-500">s/d {ad.dateend}</div>
+                                            </div>
+                                            <div className="text-right">
+                                                <div className="text-xs text-gray-400">Anggaran</div>
+                                                <div className="font-bold text-gray-800">{formatRupiah(ad.cost)}</div>
+                                                <div className="text-xs text-gray-500">CPC: {formatRupiah(ad.cpc)}</div>
+                                            </div>
+                                        </div>
+
+                                        <div className="flex items-center justify-end gap-4 border-t border-gray-100 pt-3">
+                                            <Link href={route('admin.nasional.ads.show', ad.id)} className="text-gray-600 hover:text-gray-900 font-medium text-sm">Detail</Link>
+                                            <Link href={route('admin.nasional.ads.invoice', ad.id)} className="text-emerald-600 hover:text-emerald-900 font-medium text-sm">Invoice</Link>
+                                            <Link href={route('admin.nasional.ads.edit', ad.id)} className="text-indigo-600 hover:text-indigo-900 font-medium text-sm">Edit</Link>
+                                        </div>
+                                    </div>
+                                ))
+                            )}
                         </div>
 
                         {/* --- PAGINATION --- */}

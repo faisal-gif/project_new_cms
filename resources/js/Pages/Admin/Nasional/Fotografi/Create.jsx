@@ -19,7 +19,7 @@ import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
 import InputEditor from "@/Components/InputEditor";
 
 
-export default function Create({ editors, writers, categories, isFotografer, userFotograferId, canSelectEditor }) {
+export default function Create({ editors, writers, categories, isFotografer, userFotograferId, canSelectEditor, canSelectFotografer }) {
 
     const defaultFotografer = isFotografer
         ? writers.find(w => String(w.value) === String(userFotograferId))
@@ -174,7 +174,7 @@ export default function Create({ editors, writers, categories, isFotografer, use
                                             setData('fotografer_id', val?.value);
                                         }}
                                         styles={customSelectStyles}
-                                        isDisabled={isFotografer}
+                                        isDisabled={!canSelectFotografer}
                                         menuPortalTarget={document.body}
                                         menuPosition="fixed"
                                     />
