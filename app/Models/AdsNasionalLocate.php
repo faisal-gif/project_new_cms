@@ -11,4 +11,9 @@ class AdsNasionalLocate extends Model
     protected $fillable = ['ads_id','locate_id','is_views','is_clicks'];
 
     public $timestamps = false;
+
+    public function master()
+    {
+        return $this->belongsTo(AdsNasionalLocateMaster::class, 'locate_id', 'id');
+    }
 }

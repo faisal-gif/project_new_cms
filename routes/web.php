@@ -108,6 +108,7 @@ Route::middleware('auth')->prefix('admin')->name('admin.')->group(function () {
             Route::post('news/export-top-category', [ReportNewsNasionalController::class, 'exportTopCategory'])->name('news.report.export-top-category');
             Route::post('fotografi/export', [ReportGalleryController::class, 'export'])->name('fotografi.report.export');
             Route::get('tags/search', [NewsNasionalController::class, 'searchTags'])->name('tags.search');
+            Route::get('ads/{ads}/invoice', [AdsNasionalController::class, 'invoice'])->name('ads.invoice');
             Route::resource('ads', AdsNasionalController::class);
             Route::resource('news', NewsNasionalController::class);
             Route::resource('kanal', KanalNasionalController::class);

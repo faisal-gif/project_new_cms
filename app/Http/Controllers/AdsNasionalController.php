@@ -144,9 +144,25 @@ class AdsNasionalController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(AdsNasional $adsNasional)
+    public function show($id)
     {
-        //
+        $ad = AdsNasional::with(['locates.master'])->findOrFail($id);
+
+        return Inertia::render('Admin/Nasional/Ads/Show', [
+            'ad' => $ad,
+        ]);
+    }
+
+    /**
+     * Invoice campaign iklan (halaman printable).
+     */
+    public function invoice($id)
+    {
+        $ad = AdsNasional::with(['locates.master'])->findOrFail($id);
+
+        return Inertia::render('Admin/Nasional/Ads/Invoice', [
+            'ad' => $ad,
+        ]);
     }
 
     /**

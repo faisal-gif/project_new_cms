@@ -92,6 +92,18 @@ export default function Index({ ads }) {
                                                 <td className="py-4 px-6 text-center">
                                                     <div className="flex item-center justify-center gap-3">
                                                         <Link
+                                                            href={route('admin.nasional.ads.show', ad.id)}
+                                                            className="text-gray-600 hover:text-gray-900 font-medium"
+                                                        >
+                                                            Detail
+                                                        </Link>
+                                                        <Link
+                                                            href={route('admin.nasional.ads.invoice', ad.id)}
+                                                            className="text-emerald-600 hover:text-emerald-900 font-medium"
+                                                        >
+                                                            Invoice
+                                                        </Link>
+                                                        <Link
                                                             href={route('admin.nasional.ads.edit', ad.id)}
                                                             className="text-indigo-600 hover:text-indigo-900 font-medium"
                                                         >
