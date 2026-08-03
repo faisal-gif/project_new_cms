@@ -7,7 +7,10 @@ use App\Models\EditorNasional;
 use App\Models\Gallery;
 use App\Models\GalleryCategory;
 use App\Models\GalleryImage;
+use App\Models\User;
 use App\Models\WriterNasional;
+use App\Notifications\NewGalleryNotification;
+use Illuminate\Support\Facades\Notification;
 use App\Services\CdnService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -149,6 +152,10 @@ class GalleryController extends Controller
             'created' => now(),
             'gal_view' => 1,
         ]);
+
+        // Notifikasi ke user yang bisa mereview galeri (real-time via Reverb + tersimpan di DB).
+        $reviewers = User::permission('edit gallery nasional')->get();
+        Notification::send($reviewers, new NewGalleryNotification($gallery->gal_id, $gallery->gal_title, $pewarta));
 
         return redirect()
             ->route('admin.nasional.fotografi.edit', $gallery->gal_id)
