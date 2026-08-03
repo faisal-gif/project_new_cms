@@ -153,6 +153,20 @@ class GalleryController extends Controller
             'gal_view' => 1,
         ]);
 
+        // Activity Logging Spatie (samakan gaya dengan News Master)
+        activity('Gallery')
+            ->performedOn($gallery)
+            ->causedBy(auth()->user())
+            ->withProperties([
+                'attributes' => [
+                    'title'         => $gallery->gal_title,
+                    'fotografer_id' => $fotograferId,
+                    'editor_id'     => $editorId,
+                    'status'        => $gallery->gal_status,
+                ]
+            ])
+            ->log('Membuat galeri baru');
+
         // Notifikasi ke user yang bisa mereview galeri (real-time via Reverb + tersimpan di DB).
         $reviewers = User::permission('edit gallery nasional')->get();
         Notification::send($reviewers, new NewGalleryNotification($gallery->gal_id, $gallery->gal_title, $pewarta));

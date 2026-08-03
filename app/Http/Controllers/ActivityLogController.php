@@ -10,10 +10,40 @@ class ActivityLogController extends Controller
 {
     public function index(Request $request)
     {
-        // Ambil data log, urutkan dari yang terbaru, dan paginasi (15 data per halaman)
+        $search = $request->search;
+        $logName = $request->log_name;
+        $action = $request->action; // created | updated | deleted
+
         $activities = Activity::with(['causer', 'subject'])
+            ->when($logName, fn ($q) => $q->where('log_name', $logName))
+            ->when($action, function ($q) use ($action) {
+                // Samakan dengan pengelompokan badge di frontend (parseAction):
+                // aksi Spatie bawaan + log manual berbahasa Indonesia.
+                $map = [
+                    'created' => ['created', '%buat%', '%tambah%'],
+                    'updated' => ['updated', '%edit%', '%update%'],
+                    'deleted' => ['deleted', '%hapus%'],
+                ];
+                $terms = $map[$action] ?? [$action];
+                $q->where(function ($sub) use ($terms) {
+                    foreach ($terms as $t) {
+                        str_contains($t, '%')
+                            ? $sub->orWhere('description', 'like', $t)
+                            : $sub->orWhere('description', $t);
+                    }
+                });
+            })
+            ->when($search, function ($q) use ($search) {
+                $q->where(function ($sub) use ($search) {
+                    $sub->where('description', 'like', "%{$search}%")
+                        ->orWhere('subject_type', 'like', "%{$search}%")
+                        ->orWhere('subject_id', $search)
+                        ->orWhereHas('causer', fn ($c) => $c->where('full_name', 'like', "%{$search}%"));
+                });
+            })
             ->latest()
             ->paginate(15)
+            ->withQueryString()
             ->through(function ($activity) {
                 return [
                     'id'           => $activity->id,
@@ -30,6 +60,13 @@ class ActivityLogController extends Controller
 
         return Inertia::render('Admin/History/Index', [
             'activities' => $activities,
+            'filters'    => [
+                'search'   => $search,
+                'log_name' => $logName,
+                'action'   => $action,
+            ],
+            // Daftar modul unik untuk dropdown filter.
+            'logNames'   => Activity::query()->distinct()->orderBy('log_name')->pluck('log_name')->filter()->values(),
         ]);
     }
 }
