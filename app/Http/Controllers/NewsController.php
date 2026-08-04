@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\NewsDaerahImportFormRequest;
 use App\Http\Requests\NewsFormRequest;
 use App\Http\Requests\NewsNasionalImportFormRequest;
+use App\Jobs\CrawlAffiliateLink;
 use App\Models\EditorDaerah;
 use App\Models\EditorNasional;
 use App\Models\FokusDaerah;
@@ -13,6 +14,7 @@ use App\Models\KanalDaerah;
 use App\Models\KanalNasional;
 use App\Models\NetworkDaerah;
 use App\Models\News;
+use App\Models\NewsCommerceNasional;
 use App\Models\NewsDaerah;
 use App\Models\NewsNasional;
 use App\Models\Tags;
@@ -392,6 +394,7 @@ class NewsController extends Controller implements HasMiddleware
             'editors' => $editors,
             'kanal' => $kanal,
             'fokus' => $fokus,
+            'commerceKanalId' => NewsCommerceNasional::KANAL_ID,
 
             // Pre-fill data untuk React useForm
             'initialData' => [
@@ -458,6 +461,16 @@ class NewsController extends Controller implements HasMiddleware
                 $news->tags()->sync($tagData['syncData']);
             }
 
+            // 3b. Kanal Commerce: simpan link affiliate (crawl OG meta jalan async)
+            $isCommerce = (int) $request->kanal === NewsCommerceNasional::KANAL_ID;
+            if ($isCommerce) {
+                NewsCommerceNasional::create([
+                    'news_id'        => $news->news_id,
+                    'affiliate_link' => $request->affiliate_link,
+                    'crawl_status'   => 'pending',
+                ]);
+            }
+
             activity('Import Berita')
                 ->performedOn($masterNews) // Mengikat log ini ke berita Master
                 ->causedBy(auth()->user()) // Siapa yang melakukan import
@@ -473,6 +486,11 @@ class NewsController extends Controller implements HasMiddleware
                 ->log('Import Ke Nasional');
 
             DB::connection('mysql_nasional')->commit();
+
+            // Dispatch SETELAH commit agar worker tidak jalan sebelum baris ter-commit.
+            if ($isCommerce) {
+                CrawlAffiliateLink::dispatch($news->news_id);
+            }
 
             return redirect()->route('admin.news.index')->with('success', 'Berita Nasional berhasil diterbitkan!');
         } catch (\Exception $e) {

@@ -39,6 +39,7 @@ class NewsNasionalImportFormRequest extends FormRequest
             'locus'           => 'nullable|string|max:255',
             'focus'           => 'nullable',
             'kanal'           => 'required',
+            'affiliate_link'  => 'nullable|url|required_if:kanal,' . \App\Models\NewsCommerceNasional::KANAL_ID,
 
         ];
     }
@@ -61,6 +62,8 @@ class NewsNasionalImportFormRequest extends FormRequest
             'datepub.required'         => 'Tanggal publish wajib ditentukan.',
             'datepub.date'             => 'Format tanggal publish tidak valid.',
             'kanal.required'           => 'Kanal berita wajib dipilih.',
+            'affiliate_link.required_if' => 'Link affiliate Shopee wajib diisi untuk kanal Commerce.',
+            'affiliate_link.url'         => 'Link affiliate harus berupa URL yang valid.',
             'image_thumbnail.required' => 'Gambar thumbnail wajib diunggah.',
             'image_thumbnail.url'      => 'Gambar thumbnail harus berupa URL yang valid.',
             'image_caption.max'        => 'Caption gambar tidak boleh lebih dari 255 karakter.',

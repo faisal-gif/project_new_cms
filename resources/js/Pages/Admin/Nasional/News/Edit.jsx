@@ -18,7 +18,7 @@ import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import CustomTimeInput from '@/Components/CustomTimeInput'
 
-function Edit({ news, writers, editors, kanal, fokus, hasEditor, editor_id }) {
+function Edit({ news, writers, editors, kanal, fokus, hasEditor, editor_id, commerceKanalId }) {
     // Format date untuk input type datetime-local (YYYY-MM-DDThh:mm)
 
 
@@ -43,6 +43,7 @@ function Edit({ news, writers, editors, kanal, fokus, hasEditor, editor_id }) {
         locus: news.news_city ?? '',
         focus: news.focnews_id ?? '',
         kanal: news.catnews_id ?? '',
+        affiliate_link: news.affiliate_link ?? '',
     });
 
     const submit = (e) => {
@@ -255,6 +256,27 @@ function Edit({ news, writers, editors, kanal, fokus, hasEditor, editor_id }) {
                                             />
                                             <InputError message={errors.kanal} className="mt-2" />
                                         </div>
+
+                                        {Number(data.kanal) === commerceKanalId && (
+                                            <div className='lg:col-span-6'>
+                                                <InputLabel
+                                                    htmlFor="affiliate_link"
+                                                    value="Link Affiliate Shopee"
+                                                    className='mb-2 label-text font-bold'
+                                                />
+                                                <TextInput
+                                                    id="affiliate_link"
+                                                    name="affiliate_link"
+                                                    type="url"
+                                                    className="mt-1 block w-full"
+                                                    value={data.affiliate_link}
+                                                    onChange={(e) => setData('affiliate_link', e.target.value)}
+                                                    placeholder="https://s.shopee.co.id/..."
+                                                />
+                                                <InputError message={errors.affiliate_link} className="mt-2" />
+                                            </div>
+                                        )}
+
                                         <div className='lg:col-span-3'>
                                             <InputLabel value="Fokus" className='mb-2 label-text font-bold' />
                                             <Select

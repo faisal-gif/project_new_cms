@@ -4,7 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Exports\NewsNasionalExport;
 use App\Http\Requests\NewsNasionalFormRequest;
+use App\Jobs\CrawlAffiliateLink;
 use App\Models\EditorNasional;
+use App\Models\NewsCommerceNasional;
 use App\Models\FokusNasional;
 use App\Models\KanalNasional;
 use App\Models\NewsNasional;
@@ -147,6 +149,7 @@ class NewsNasionalController extends Controller
             'writers' => $writers,
             'kanal' => $kanals,
             'fokus' => $fokus,
+            'commerceKanalId' => NewsCommerceNasional::KANAL_ID,
             'hasEditor' => $user->hasRole('editor') ? true : false,
             'editor_id' => $user->editor ? $user->editor->id_ti : null,
             'initialData' => [
@@ -205,7 +208,22 @@ class NewsNasionalController extends Controller
                 $news->tags()->sync($tagData['syncData']);
             }
 
+            // 5. Kanal Commerce: simpan link affiliate (crawl OG meta jalan async)
+            $isCommerce = (int) $request->kanal === NewsCommerceNasional::KANAL_ID;
+            if ($isCommerce) {
+                NewsCommerceNasional::create([
+                    'news_id'        => $news->news_id,
+                    'affiliate_link' => $request->affiliate_link,
+                    'crawl_status'   => 'pending',
+                ]);
+            }
+
             DB::connection('mysql_nasional')->commit();
+
+            // Dispatch SETELAH commit agar worker tidak jalan sebelum baris ter-commit.
+            if ($isCommerce) {
+                CrawlAffiliateLink::dispatch($news->news_id);
+            }
 
             return redirect()->route('admin.nasional.news.index')->with('success', 'Berita Nasional berhasil diterbitkan!');
         } catch (\Exception $e) {
@@ -269,12 +287,25 @@ class NewsNasionalController extends Controller
             'kanal:catnews_id,catnews_title', // Sesuaikan kolom nama pada tabel Anda
             'fokus:focnews_id,focnews_title',
             'writer:id,name',
-            'tags'
+            'tags',
+            'commerce',
         ])->findOrFail($id);
 
         return inertia('Admin/Nasional/News/Show', [
             'news' => $news
         ]);
+    }
+
+    /**
+     * Crawl ulang link affiliate (dipakai saat crawl_status = failed).
+     */
+    public function recrawl($id)
+    {
+        $commerce = NewsCommerceNasional::where('news_id', $id)->firstOrFail();
+        $commerce->update(['crawl_status' => 'pending']);
+        CrawlAffiliateLink::dispatch((int) $id);
+
+        return back()->with('success', 'Crawl ulang link affiliate sedang diproses.');
     }
 
     /**
@@ -287,6 +318,7 @@ class NewsNasionalController extends Controller
 
         // Format tags menjadi array string biasa untuk input frontend
         $news->tags_array = $news->tags->pluck('name')->toArray();
+        $news->affiliate_link = NewsCommerceNasional::where('news_id', $id)->value('affiliate_link');
         $user = auth()->user();
         // 2. Ambil data dropdown dari database mysql_nasional
         $editors = EditorNasional::select('editor_id as value', 'editor_name as label')->get();
@@ -301,6 +333,7 @@ class NewsNasionalController extends Controller
             'editors' => $editors,
             'kanal'   => $kanal,
             'fokus'   => $fokus,
+            'commerceKanalId' => NewsCommerceNasional::KANAL_ID,
             'hasEditor' => auth()->user()->hasRole('editor') ? true : false,
             'editor_id' => $news->editor_id ?: ($user->hasRole('editor') ? $user->editor?->id_ti : null),
         ]);
@@ -359,7 +392,27 @@ class NewsNasionalController extends Controller
             // Fungsi sync() akan mengosongkan relasi jika $syncData kosong (user menghapus semua tag)
             $news->tags()->sync($tagData['syncData']);
 
+            // 5. Kanal Commerce: buat/perbarui link, hapus baris jika pindah dari kanal Commerce.
+            $isCommerce = (int) $request->kanal === NewsCommerceNasional::KANAL_ID;
+            $shouldCrawl = false;
+            if ($isCommerce) {
+                $commerce = NewsCommerceNasional::firstOrNew(['news_id' => $news->news_id]);
+                // Crawl ulang hanya kalau baris baru atau link-nya berubah.
+                $shouldCrawl = !$commerce->exists || $commerce->affiliate_link !== $request->affiliate_link;
+                $commerce->affiliate_link = $request->affiliate_link;
+                if ($shouldCrawl) {
+                    $commerce->crawl_status = 'pending';
+                }
+                $commerce->save();
+            } else {
+                NewsCommerceNasional::where('news_id', $news->news_id)->delete();
+            }
+
             DB::connection('mysql_nasional')->commit();
+
+            if ($isCommerce && $shouldCrawl) {
+                CrawlAffiliateLink::dispatch($news->news_id);
+            }
 
             return redirect()->route('admin.nasional.news.index')->with('success', 'Berita Nasional berhasil diperbarui!');
         } catch (\Exception $e) {

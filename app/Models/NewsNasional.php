@@ -45,6 +45,11 @@ class NewsNasional extends Model
         return $this->belongsTo(KanalNasional::class, 'catnews_id');
     }
 
+    public function commerce()
+    {
+        return $this->hasOne(NewsCommerceNasional::class, 'news_id', 'news_id');
+    }
+
 
     public function fokus()
     {

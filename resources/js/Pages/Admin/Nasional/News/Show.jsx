@@ -1,13 +1,15 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import Card from '@/Components/Card';
-import { Head, Link } from '@inertiajs/react';
+import { Head, Link, router } from '@inertiajs/react';
 import {
     CalendarIcon,
     FolderIcon,
     TagIcon,
     UserIcon,
     ArrowLeftIcon,
-    EyeIcon
+    EyeIcon,
+    ShoppingBagIcon,
+    RotateCwIcon
 } from 'lucide-react';
 import React from 'react';
 import { formatDateTimeLong } from '@/Utils/formatter';
@@ -122,6 +124,53 @@ export default function Show({ news }) {
                                                         {tag.name}
                                                     </Badge>
                                                 ))}
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {/* Produk Affiliate (Kanal Commerce) */}
+                                    {news.commerce && (
+                                        <div className="pt-6 border-t border-gray-100">
+                                            <div className="flex items-center gap-2 mb-4">
+                                                <ShoppingBagIcon className="w-5 h-5 text-primary" />
+                                                <span className="font-semibold text-gray-700">Produk Affiliate</span>
+                                                <Badge className={`badge badge-sm ${news.commerce.crawl_status === 'success' ? 'badge-success' : news.commerce.crawl_status === 'failed' ? 'badge-error' : 'badge-warning'}`}>
+                                                    {news.commerce.crawl_status}
+                                                </Badge>
+                                            </div>
+                                            <div className="flex flex-col sm:flex-row gap-4 bg-gray-50 p-4 rounded-xl border border-gray-100">
+                                                {news.commerce.product_image && (
+                                                    <img
+                                                        src={news.commerce.product_image}
+                                                        alt={news.commerce.product_title || 'Produk'}
+                                                        className="w-32 h-32 object-cover rounded-lg shadow-sm shrink-0"
+                                                    />
+                                                )}
+                                                <div className="flex flex-col gap-2 min-w-0">
+                                                    {news.commerce.product_title && (
+                                                        <p className="font-semibold text-gray-900">{news.commerce.product_title}</p>
+                                                    )}
+                                                    {news.commerce.product_description && (
+                                                        <p className="text-sm text-gray-600 line-clamp-2">{news.commerce.product_description}</p>
+                                                    )}
+                                                    <a
+                                                        href={news.commerce.resolved_url || news.commerce.affiliate_link}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer nofollow"
+                                                        className="text-sm text-primary underline break-all"
+                                                    >
+                                                        {news.commerce.resolved_url || news.commerce.affiliate_link}
+                                                    </a>
+                                                    {news.commerce.crawl_status === 'failed' && (
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => router.post(route('admin.nasional.news.recrawl', news.news_id))}
+                                                            className="btn btn-sm btn-outline btn-warning w-fit mt-1"
+                                                        >
+                                                            <RotateCwIcon className="w-4 h-4" /> Crawl Ulang
+                                                        </button>
+                                                    )}
+                                                </div>
                                             </div>
                                         </div>
                                     )}
