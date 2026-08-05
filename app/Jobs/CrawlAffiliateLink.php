@@ -44,7 +44,7 @@ class CrawlAffiliateLink implements ShouldQueue
         $productImage = $ogImage;
         if ($ogImage) {
             try {
-                $productImage = $cdn->uploadFromUrl($ogImage, 'commerce-' . $this->newsId);
+                $productImage = $cdn->uploadFromUrl($ogImage, 'commerce-' . $this->newsId, 1, 'raw', false);
             } catch (\Throwable $e) {
                 Log::warning("Upload CDN gagal untuk news_id {$this->newsId}, pakai URL asli: " . $e->getMessage());
             }
@@ -66,8 +66,10 @@ class CrawlAffiliateLink implements ShouldQueue
     public static function og(string $html, string $prop): ?string
     {
         $p = preg_quote($prop, '/');
-        if (preg_match('/<meta[^>]+property=["\']og:' . $p . '["\'][^>]+content=["\']([^"\']*)["\']/i', $html, $m)
-            || preg_match('/<meta[^>]+content=["\']([^"\']*)["\'][^>]+property=["\']og:' . $p . '["\']/i', $html, $m)) {
+        if (
+            preg_match('/<meta[^>]+property=["\']og:' . $p . '["\'][^>]+content=["\']([^"\']*)["\']/i', $html, $m)
+            || preg_match('/<meta[^>]+content=["\']([^"\']*)["\'][^>]+property=["\']og:' . $p . '["\']/i', $html, $m)
+        ) {
             return html_entity_decode($m[1], ENT_QUOTES | ENT_HTML5);
         }
         return null;
