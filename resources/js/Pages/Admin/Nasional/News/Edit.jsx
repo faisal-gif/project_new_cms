@@ -261,7 +261,7 @@ function Edit({ news, writers, editors, kanal, fokus, hasEditor, editor_id, comm
                                             <div className='lg:col-span-6'>
                                                 <InputLabel
                                                     htmlFor="affiliate_link"
-                                                    value="Link Affiliate Shopee"
+                                                    value="Link Affiliate (opsional)"
                                                     className='mb-2 label-text font-bold'
                                                 />
                                                 <TextInput
@@ -271,7 +271,7 @@ function Edit({ news, writers, editors, kanal, fokus, hasEditor, editor_id, comm
                                                     className="mt-1 block w-full"
                                                     value={data.affiliate_link}
                                                     onChange={(e) => setData('affiliate_link', e.target.value)}
-                                                    placeholder="https://s.shopee.co.id/..."
+                                                    placeholder="https://... (Shopee, Tokopedia, dll)"
                                                 />
                                                 <InputError message={errors.affiliate_link} className="mt-2" />
                                             </div>

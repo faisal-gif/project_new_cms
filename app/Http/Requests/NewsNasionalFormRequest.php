@@ -2,7 +2,6 @@
 
 namespace App\Http\Requests;
 
-use App\Models\NewsCommerceNasional;
 use Illuminate\Foundation\Http\FormRequest;
 
 class NewsNasionalFormRequest extends FormRequest
@@ -39,7 +38,7 @@ class NewsNasionalFormRequest extends FormRequest
             'locus'           => 'nullable|string|max:255',
             'focus'           => 'nullable',
             'kanal'           => 'required',
-            'affiliate_link'  => 'nullable|url|required_if:kanal,' . NewsCommerceNasional::KANAL_ID,
+            'affiliate_link'  => 'nullable|url',
         ];
 
         // Jika request adalah create (POST), gambar wajib. Jika update (PUT/PATCH), gambar opsional.
@@ -70,7 +69,6 @@ class NewsNasionalFormRequest extends FormRequest
             'datepub.required'         => 'Tanggal publish wajib ditentukan.',
             'datepub.date'             => 'Format tanggal publish tidak valid.',
             'kanal.required'           => 'Kanal berita wajib dipilih.',
-            'affiliate_link.required_if' => 'Link affiliate Shopee wajib diisi untuk kanal Commerce.',
             'affiliate_link.url'         => 'Link affiliate harus berupa URL yang valid.',
             'image_thumbnail.required' => 'Gambar thumbnail wajib diunggah.',
             'image_thumbnail.image'    => 'File yang diunggah harus berupa gambar.',

@@ -461,9 +461,9 @@ class NewsController extends Controller implements HasMiddleware
                 $news->tags()->sync($tagData['syncData']);
             }
 
-            // 3b. Kanal Commerce: simpan link affiliate (crawl OG meta jalan async)
-            $isCommerce = (int) $request->kanal === NewsCommerceNasional::KANAL_ID;
-            if ($isCommerce) {
+            // 3b. Kanal Commerce: simpan link affiliate bila diisi (opsional, URL apa saja).
+            $hasLink = (int) $request->kanal === NewsCommerceNasional::KANAL_ID && filled($request->affiliate_link);
+            if ($hasLink) {
                 NewsCommerceNasional::create([
                     'news_id'        => $news->news_id,
                     'affiliate_link' => $request->affiliate_link,
@@ -488,7 +488,7 @@ class NewsController extends Controller implements HasMiddleware
             DB::connection('mysql_nasional')->commit();
 
             // Dispatch SETELAH commit agar worker tidak jalan sebelum baris ter-commit.
-            if ($isCommerce) {
+            if ($hasLink) {
                 CrawlAffiliateLink::dispatch($news->news_id);
             }
 

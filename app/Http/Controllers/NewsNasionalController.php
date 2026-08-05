@@ -208,9 +208,9 @@ class NewsNasionalController extends Controller
                 $news->tags()->sync($tagData['syncData']);
             }
 
-            // 5. Kanal Commerce: simpan link affiliate (crawl OG meta jalan async)
-            $isCommerce = (int) $request->kanal === NewsCommerceNasional::KANAL_ID;
-            if ($isCommerce) {
+            // 5. Kanal Commerce: simpan link affiliate bila diisi (opsional, URL apa saja).
+            $hasLink = (int) $request->kanal === NewsCommerceNasional::KANAL_ID && filled($request->affiliate_link);
+            if ($hasLink) {
                 NewsCommerceNasional::create([
                     'news_id'        => $news->news_id,
                     'affiliate_link' => $request->affiliate_link,
@@ -221,7 +221,7 @@ class NewsNasionalController extends Controller
             DB::connection('mysql_nasional')->commit();
 
             // Dispatch SETELAH commit agar worker tidak jalan sebelum baris ter-commit.
-            if ($isCommerce) {
+            if ($hasLink) {
                 CrawlAffiliateLink::dispatch($news->news_id);
             }
 
@@ -392,10 +392,11 @@ class NewsNasionalController extends Controller
             // Fungsi sync() akan mengosongkan relasi jika $syncData kosong (user menghapus semua tag)
             $news->tags()->sync($tagData['syncData']);
 
-            // 5. Kanal Commerce: buat/perbarui link, hapus baris jika pindah dari kanal Commerce.
-            $isCommerce = (int) $request->kanal === NewsCommerceNasional::KANAL_ID;
+            // 5. Kanal Commerce: buat/perbarui link bila diisi; hapus baris jika link
+            //    dikosongkan atau pindah dari kanal Commerce.
+            $hasLink = (int) $request->kanal === NewsCommerceNasional::KANAL_ID && filled($request->affiliate_link);
             $shouldCrawl = false;
-            if ($isCommerce) {
+            if ($hasLink) {
                 $commerce = NewsCommerceNasional::firstOrNew(['news_id' => $news->news_id]);
                 // Crawl ulang hanya kalau baris baru atau link-nya berubah.
                 $shouldCrawl = !$commerce->exists || $commerce->affiliate_link !== $request->affiliate_link;
@@ -410,7 +411,7 @@ class NewsNasionalController extends Controller
 
             DB::connection('mysql_nasional')->commit();
 
-            if ($isCommerce && $shouldCrawl) {
+            if ($shouldCrawl) {
                 CrawlAffiliateLink::dispatch($news->news_id);
             }
 
