@@ -3,6 +3,7 @@
 namespace App\Jobs;
 
 use App\Models\NewsCommerceNasional;
+use App\Services\CdnService;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -20,7 +21,7 @@ class CrawlAffiliateLink implements ShouldQueue
 
     public function __construct(public int $newsId) {}
 
-    public function handle(): void
+    public function handle(CdnService $cdn): void
     {
         $commerce = NewsCommerceNasional::where('news_id', $this->newsId)->first();
         if (!$commerce) {
@@ -37,10 +38,22 @@ class CrawlAffiliateLink implements ShouldQueue
 
         $html = $response->body();
 
+        // Download og:image ke CDN. Kalau gagal, fallback ke URL asli agar
+        // gambar tetap tampil (crawl tidak dianggap gagal karena CDN).
+        $ogImage = self::og($html, 'image');
+        $productImage = $ogImage;
+        if ($ogImage) {
+            try {
+                $productImage = $cdn->uploadFromUrl($ogImage, 'commerce-' . $this->newsId);
+            } catch (\Throwable $e) {
+                Log::warning("Upload CDN gagal untuk news_id {$this->newsId}, pakai URL asli: " . $e->getMessage());
+            }
+        }
+
         $commerce->update([
             'resolved_url'        => (string) $response->effectiveUri(),
             'product_title'       => self::og($html, 'title'),
-            'product_image'       => self::og($html, 'image'),
+            'product_image'       => $productImage,
             'product_description' => self::og($html, 'description'),
             'crawl_status'        => 'success',
         ]);

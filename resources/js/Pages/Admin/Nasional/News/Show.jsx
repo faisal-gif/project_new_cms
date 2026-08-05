@@ -134,6 +134,11 @@ export default function Show({ news }) {
                                             <div className="flex items-center gap-2 mb-4">
                                                 <ShoppingBagIcon className="w-5 h-5 text-primary" />
                                                 <span className="font-semibold text-gray-700">Produk Affiliate</span>
+                                                {news.commerce.platform && (
+                                                    <Badge className="badge badge-sm badge-primary">
+                                                        {news.commerce.platform}
+                                                    </Badge>
+                                                )}
                                                 <Badge className={`badge badge-sm ${news.commerce.crawl_status === 'success' ? 'badge-success' : news.commerce.crawl_status === 'failed' ? 'badge-error' : 'badge-warning'}`}>
                                                     {news.commerce.crawl_status}
                                                 </Badge>

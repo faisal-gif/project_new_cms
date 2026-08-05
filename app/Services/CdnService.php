@@ -37,15 +37,64 @@ class CdnService
         string $processType = 'convert',
         bool $addWatermark = false
     ): string {
+        return $this->push(
+            file_get_contents($file->getPathname()),
+            $file->getClientOriginalName(),
+            $fileNameToCDN,
+            $categoryId,
+            $processType,
+            $addWatermark
+        );
+    }
+
+    /**
+     * Download gambar dari URL remote lalu unggah ke CDN.
+     * Dipakai untuk gambar hasil crawl (mis. og:image produk affiliate).
+     *
+     * @return string URL gambar dari CDN
+     * @throws Exception
+     */
+    public function uploadFromUrl(
+        string $imageUrl,
+        string $fileNameToCDN,
+        int $categoryId = 6,
+        string $processType = 'convert',
+        bool $addWatermark = false
+    ): string {
+        $download = Http::timeout(60)->get($imageUrl);
+        if ($download->failed()) {
+            throw new Exception('Gagal mengunduh gambar dari URL sumber.');
+        }
+
+        // Ekstensi dari content-type; default jpg (CDN meng-convert ulang).
+        $ext = match ($download->header('Content-Type')) {
+            'image/png'  => 'png',
+            'image/webp' => 'webp',
+            'image/gif'  => 'gif',
+            default      => 'jpg',
+        };
+
+        return $this->push($download->body(), $fileNameToCDN . '.' . $ext, $fileNameToCDN, $categoryId, $processType, $addWatermark);
+    }
+
+    /**
+     * Kirim byte gambar ke CDN dan kembalikan URL-nya.
+     *
+     * @throws Exception
+     */
+    private function push(
+        string $contents,
+        string $originalName,
+        string $fileNameToCDN,
+        int $categoryId,
+        string $processType,
+        bool $addWatermark
+    ): string {
         $response = Http::timeout(120)
             ->withHeaders([
                 'x-api-key' => $this->apiKey
             ])
-            ->attach(
-                'file',
-                file_get_contents($file->getPathname()),
-                $file->getClientOriginalName()
-            )
+            ->attach('file', $contents, $originalName)
             ->post("{$this->baseUrl}/images/upload", [
                 'name'          => $fileNameToCDN,
                 'category_id'   => $categoryId,
