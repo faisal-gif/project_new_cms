@@ -37,10 +37,24 @@ class CrawlAffiliateLink implements ShouldQueue
             ->get($commerce->affiliate_link);
 
         $html = $response->body();
+        $resolvedUrl = (string) $response->effectiveUri();
+
+        // Instagram (dan sejenisnya) kadang lempar ke login wall saat kena
+        // rate-limit/anti-bot. Jangan simpan halaman login sebagai "produk" —
+        // throw agar job retry, dan kalau tetap gagal -> status failed (bisa
+        // di-crawl ulang manual saat IP sudah tidak diblok).
+        if (str_contains($resolvedUrl, '/accounts/login')) {
+            throw new \RuntimeException("Diblok login wall (anti-bot) untuk news_id {$this->newsId}.");
+        }
+
+        $ogTitle = self::og($html, 'title');
+        $ogImage = self::og($html, 'image');
+        if ($ogTitle === null && $ogImage === null) {
+            throw new \RuntimeException("OG meta tidak ditemukan untuk news_id {$this->newsId} (mungkin diblok anti-bot).");
+        }
 
         // Download og:image ke CDN. Kalau gagal, fallback ke URL asli agar
         // gambar tetap tampil (crawl tidak dianggap gagal karena CDN).
-        $ogImage = self::og($html, 'image');
         $productImage = $ogImage;
         if ($ogImage) {
             try {
@@ -51,8 +65,8 @@ class CrawlAffiliateLink implements ShouldQueue
         }
 
         $commerce->update([
-            'resolved_url'        => (string) $response->effectiveUri(),
-            'product_title'       => self::og($html, 'title'),
+            'resolved_url'        => $resolvedUrl,
+            'product_title'       => $ogTitle,
             'product_image'       => $productImage,
             'product_description' => self::og($html, 'description'),
             'crawl_status'        => 'success',
