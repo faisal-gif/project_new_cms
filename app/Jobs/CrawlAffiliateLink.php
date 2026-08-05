@@ -28,37 +28,22 @@ class CrawlAffiliateLink implements ShouldQueue
             return; // baris commerce sudah dihapus, tidak ada yang perlu di-crawl
         }
 
-        // Follow redirect short-link (s.shopee.co.id/...) sampai halaman produk asli.
-        // UA link-preview (WhatsApp): Shopee HANYA menyajikan OG meta ke crawler
-        // preview seperti ini. UA browser/bot biasa cuma dapat JS shell tanpa OG,
-        // UA Facebook malah 403. Terverifikasi 2026-08 dengan link produk asli.
-        $response = Http::timeout(30)
-            ->withHeaders(['User-Agent' => 'WhatsApp/2.23.20.0'])
-            ->get($commerce->affiliate_link);
+        // Hybrid: coba direct dulu (bagus & gratis untuk Shopee dsb), kalau
+        // diblok/kosong baru fallback ke layanan link-preview (Instagram, yang
+        // memblok IP datacenter server).
+        [$title, $image, $description, $resolvedUrl] = $this->fetchDirect($commerce->affiliate_link)
+            ?? $this->fetchViaProxy($commerce->affiliate_link);
 
-        $html = $response->body();
-        $resolvedUrl = (string) $response->effectiveUri();
-
-        // Instagram (dan sejenisnya) kadang lempar ke login wall saat kena
-        // rate-limit/anti-bot. Jangan simpan halaman login sebagai "produk" —
-        // throw agar job retry, dan kalau tetap gagal -> status failed (bisa
-        // di-crawl ulang manual saat IP sudah tidak diblok).
-        if (str_contains($resolvedUrl, '/accounts/login')) {
-            throw new \RuntimeException("Diblok login wall (anti-bot) untuk news_id {$this->newsId}.");
+        if ($title === null && $image === null) {
+            throw new \RuntimeException("Metadata tidak ditemukan untuk news_id {$this->newsId} (diblok anti-bot, direct & proxy gagal).");
         }
 
-        $ogTitle = self::og($html, 'title');
-        $ogImage = self::og($html, 'image');
-        if ($ogTitle === null && $ogImage === null) {
-            throw new \RuntimeException("OG meta tidak ditemukan untuk news_id {$this->newsId} (mungkin diblok anti-bot).");
-        }
-
-        // Download og:image ke CDN. Kalau gagal, fallback ke URL asli agar
-        // gambar tetap tampil (crawl tidak dianggap gagal karena CDN).
-        $productImage = $ogImage;
-        if ($ogImage) {
+        // Download image ke CDN. Kalau gagal, fallback ke URL asli agar gambar
+        // tetap tampil (crawl tidak dianggap gagal hanya karena CDN).
+        $productImage = $image;
+        if ($image) {
             try {
-                $productImage = $cdn->uploadFromUrl($ogImage, 'commerce-' . $this->newsId, 1, 'convert', false);
+                $productImage = $cdn->uploadFromUrl($image, 'commerce-' . $this->newsId, 1, 'convert', false);
             } catch (\Throwable $e) {
                 Log::warning("Upload CDN gagal untuk news_id {$this->newsId}, pakai URL asli: " . $e->getMessage());
             }
@@ -66,11 +51,62 @@ class CrawlAffiliateLink implements ShouldQueue
 
         $commerce->update([
             'resolved_url'        => $resolvedUrl,
-            'product_title'       => $ogTitle,
+            'product_title'       => $title,
             'product_image'       => $productImage,
-            'product_description' => self::og($html, 'description'),
+            'product_description' => $description,
             'crawl_status'        => 'success',
         ]);
+    }
+
+    /**
+     * Ambil OG meta langsung dari sumber. UA WhatsApp (link-preview): Shopee &
+     * banyak situs HANYA kasih OG meta ke crawler preview ini; UA browser cuma
+     * dapat JS shell. Return null kalau diblok (login wall) atau OG kosong —
+     * pemanggil lalu coba proxy.
+     *
+     * @return array{0:?string,1:?string,2:?string,3:string}|null
+     */
+    private function fetchDirect(string $url): ?array
+    {
+        try {
+            $r = Http::timeout(30)->withHeaders(['User-Agent' => 'WhatsApp/2.23.20.0'])->get($url);
+            $resolved = (string) $r->effectiveUri();
+            if (str_contains($resolved, '/accounts/login')) {
+                return null; // login wall -> biar fallback ke proxy
+            }
+            $html = $r->body();
+            $title = self::og($html, 'title');
+            $image = self::og($html, 'image');
+            if ($title === null && $image === null) {
+                return null;
+            }
+            return [$title, $image, self::og($html, 'description'), $resolved];
+        } catch (\Throwable $e) {
+            Log::warning("Direct crawl gagal untuk news_id {$this->newsId}: " . $e->getMessage());
+            return null;
+        }
+    }
+
+    /**
+     * Fallback lewat layanan link-preview (Microlink) yang fetch dari
+     * infrastruktur mereka, sehingga lolos blok IP datacenter (mis. Instagram).
+     *
+     * @return array{0:?string,1:?string,2:?string,3:string}
+     */
+    private function fetchViaProxy(string $url): array
+    {
+        try {
+            $r = Http::timeout(45)->get('https://api.microlink.io', ['url' => $url]);
+            $j = $r->json();
+            if (($j['status'] ?? null) === 'success') {
+                $d = $j['data'] ?? [];
+                return [$d['title'] ?? null, $d['image']['url'] ?? null, $d['description'] ?? null, $d['url'] ?? $url];
+            }
+            Log::warning("Proxy preview gagal untuk news_id {$this->newsId}: " . $r->body());
+        } catch (\Throwable $e) {
+            Log::warning("Proxy preview error untuk news_id {$this->newsId}: " . $e->getMessage());
+        }
+        return [null, null, null, $url];
     }
 
     /**
