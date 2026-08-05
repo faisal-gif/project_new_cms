@@ -44,7 +44,7 @@ class CrawlAffiliateLink implements ShouldQueue
         $productImage = $ogImage;
         if ($ogImage) {
             try {
-                $productImage = $cdn->uploadFromUrl($ogImage, 'commerce-' . $this->newsId, 1, 'raw', false);
+                $productImage = $cdn->uploadFromUrl($ogImage, 'commerce-' . $this->newsId, 1, 'convert', false);
             } catch (\Throwable $e) {
                 Log::warning("Upload CDN gagal untuk news_id {$this->newsId}, pakai URL asli: " . $e->getMessage());
             }
