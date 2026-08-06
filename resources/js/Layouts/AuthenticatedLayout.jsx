@@ -277,12 +277,6 @@ export default function AuthenticatedLayout({ header, children }) {
 
 
 
-                                <DropdownMenuItem asChild className="cursor-pointer py-2">
-                                    <Link href={route('profile.edit')} className="w-full flex items-center">
-                                        Profil Saya
-                                    </Link>
-                                </DropdownMenuItem>
-
                                 {auth?.roles?.includes('editor') && (
                                     <DropdownMenuItem asChild className="cursor-pointer py-2">
                                         <Link href={`${route('profile.edit')}#profil-editor`} className="w-full flex items-center">

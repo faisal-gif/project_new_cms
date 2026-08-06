@@ -10,7 +10,6 @@ export default function UpdateEditorProfileForm({ editor, className = '' }) {
     const { data, setData, post, errors, processing, recentlySuccessful } =
         useForm({
             name: editor.name || '',
-            alias: editor.alias || '',
             description: editor.description || '',
             image: null,
             no_whatsapp: editor.no_whatsapp || '',
@@ -51,17 +50,6 @@ export default function UpdateEditorProfileForm({ editor, className = '' }) {
                 {/* Field Nasional */}
                 {editor.has_nasional && (
                     <>
-                        <div>
-                            <InputLabel htmlFor="alias" value="Alias (Nasional)" />
-                            <TextInput
-                                id="alias"
-                                className="mt-1 block w-full"
-                                value={data.alias}
-                                onChange={(e) => setData('alias', e.target.value)}
-                            />
-                            <InputError className="mt-2" message={errors.alias} />
-                        </div>
-
                         <div>
                             <InputLabel htmlFor="description" value="Deskripsi (Nasional)" />
                             <InputTextarea

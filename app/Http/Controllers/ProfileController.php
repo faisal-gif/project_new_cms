@@ -8,7 +8,6 @@ use App\Services\CdnService;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Redirect;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
@@ -29,7 +28,6 @@ class ProfileController extends Controller
             $master = $user->editor->load('nasional', 'daerah');
             $editor = [
                 'name'         => $master->name,
-                'alias'        => $master->nasional->editor_alias ?? '',
                 'description'  => $master->nasional->editor_description ?? '',
                 'image'        => $master->nasional->editor_image ?? null,
                 'no_whatsapp'  => $master->daerah->no_whatsapp ?? '',
@@ -77,7 +75,7 @@ class ProfileController extends Controller
         $imageUrl = $master->nasional->editor_image ?? null;
         if ($request->hasFile('image')) {
             try {
-                $imageUrl = $cdn->uploadImage($request->file('image'), Str::slug($request->name) . '-editor', 6, 'convert', false);
+                $imageUrl = $cdn->uploadImage($request->file('image'), Str::slug($request->name) . '-editor', 2, 'convert', false);
             } catch (\Exception $e) {
                 return back()->withInput()->withErrors(['image' => 'Gagal mengunggah foto ke CDN: ' . $e->getMessage()]);
             }
@@ -92,7 +90,7 @@ class ProfileController extends Controller
         if ($master->nasional) {
             $master->nasional->update([
                 'editor_name'        => $request->name,
-                'editor_alias'       => $request->alias,
+                'editor_alias'       => Str::slug($request->name),
                 'editor_description' => $request->description,
                 'editor_image'       => $imageUrl,
             ]);
@@ -107,26 +105,5 @@ class ProfileController extends Controller
         }
 
         return Redirect::route('profile.edit')->with('success', 'Profil editor berhasil diperbarui.');
-    }
-
-    /**
-     * Delete the user's account.
-     */
-    public function destroy(Request $request): RedirectResponse
-    {
-        $request->validate([
-            'password' => ['required', 'current_password'],
-        ]);
-
-        $user = $request->user();
-
-        Auth::logout();
-
-        $user->delete();
-
-        $request->session()->invalidate();
-        $request->session()->regenerateToken();
-
-        return Redirect::to('/');
     }
 }

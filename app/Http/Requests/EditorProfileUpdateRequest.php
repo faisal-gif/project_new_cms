@@ -18,7 +18,6 @@ class EditorProfileUpdateRequest extends FormRequest
     {
         return [
             'name'        => 'required|string|max:255',
-            'alias'       => 'nullable|string|max:255',
             'description' => 'nullable|string',
             'image'       => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
             'no_whatsapp' => 'nullable|string|max:20',
