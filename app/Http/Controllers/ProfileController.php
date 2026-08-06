@@ -22,17 +22,21 @@ class ProfileController extends Controller
     {
         $user = $request->user();
 
-        // Data editor lintas-DB (master + nasional + daerah), hanya untuk role editor.
+        // Data editor lintas-DB (master + nasional + daerah). Untuk semua role
+        // editor — walau datanya belum ada, tetap render agar pesan "hubungi
+        // admin" muncul (tidak jadi link buntu).
         $editor = null;
-        if ($user->hasRole('editor') && $user->editor) {
-            $master = $user->editor->load('nasional', 'daerah');
+        if ($user->hasRole('editor')) {
+            $master = $user->editor;
+            $master?->load('nasional', 'daerah');
             $editor = [
-                'name'         => $master->name,
+                'has_master'   => (bool) $master,
+                'name'         => $master->name ?? '',
                 'description'  => $master->nasional->editor_description ?? '',
                 'image'        => $master->nasional->editor_image ?? null,
                 'no_whatsapp'  => $master->daerah->no_whatsapp ?? '',
-                'has_nasional' => (bool) $master->nasional,
-                'has_daerah'   => (bool) $master->daerah,
+                'has_nasional' => (bool) ($master && $master->nasional),
+                'has_daerah'   => (bool) ($master && $master->daerah),
             ];
         }
 
