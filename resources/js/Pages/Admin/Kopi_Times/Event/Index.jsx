@@ -145,11 +145,11 @@ function Index({ events, filters, public_url }) {
                                                                 <button
                                                                     type="button"
                                                                     onClick={() => copyPublicUrl(item.slug)}
-                                                                    className="mt-1 flex items-center gap-1 text-xs text-primary/80 hover:text-primary"
+                                                                    className="mt-1 flex items-center gap-1 text-xs text-primary/80 hover:text-primary max-w-full"
                                                                     title="Salin URL publik"
                                                                 >
-                                                                    <Copy className="w-3 h-3" />
-                                                                    /kirim-berita/{item.slug}
+                                                                    <Copy className="w-3 h-3 shrink-0" />
+                                                                    <span className="truncate">{public_url}/kirim-berita/{item.slug}</span>
                                                                 </button>
                                                             )}
                                                         </td>
