@@ -166,7 +166,7 @@ function Index({ events, filters, public_url }) {
                                                         <td className="py-4 align-top text-center">
                                                             <input
                                                                 type="checkbox"
-                                                                className="toggle toggle-success toggle-sm"
+                                                                className=""
                                                                 checked={!!item.enabled}
                                                                 onChange={() => toggleEnabled(item)}
                                                                 disabled={!can('edit event kopi-times')}
