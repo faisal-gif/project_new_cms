@@ -38,7 +38,8 @@ import {
     Blocks,
     Banknote,
     Megaphone,
-    Package
+    Package,
+    CalendarDays
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
@@ -635,6 +636,14 @@ export default function AuthenticatedLayout({ header, children }) {
                             <li>
                                 <Link href={route('admin.kopi-times.news.index')} className={linkClass(isActive('admin.kopi-times.news.*'))}>
                                     <Newspaper size={16} /> News Kopi Times
+                                </Link>
+                            </li>
+                        )}
+
+                        {hasPermission(['view event kopi-times']) && (
+                            <li>
+                                <Link href={route('admin.kopi-times.events.index')} className={linkClass(isActive('admin.kopi-times.events.*'))}>
+                                    <CalendarDays size={16} /> Event Kopi Times
                                 </Link>
                             </li>
                         )}

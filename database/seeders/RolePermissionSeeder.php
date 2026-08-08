@@ -154,6 +154,12 @@ class RolePermissionSeeder extends Seeder
                 'edit ads daerah location',
                 'delete ads daerah location',
             ],
+            'Event Kopi Times' => [
+                'view event kopi-times',
+                'create event kopi-times',
+                'edit event kopi-times',
+                'delete event kopi-times',
+            ],
         ];
 
         // Looping dan masukkan ke database

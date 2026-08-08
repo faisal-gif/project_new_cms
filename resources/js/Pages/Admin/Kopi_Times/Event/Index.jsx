@@ -5,7 +5,7 @@ import PaginationDaisy from '@/Components/PaginationDaisy'
 import { Badge } from '@/Components/ui/badge'
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout'
 import { formatDateTime } from '@/Utils/formatter'
-import { Head, Link, router } from '@inertiajs/react'
+import { Head, Link, router, usePage } from '@inertiajs/react'
 import { Copy, Inbox, Pencil, Plus, Search, Trash2 } from 'lucide-react'
 import React, { useEffect, useRef, useState } from 'react'
 
@@ -21,6 +21,10 @@ function Index({ events, filters, public_url }) {
 
     const isFirst = useRef(true);
     const INDEX_ROUTE = route('admin.kopi-times.events.index');
+
+    const { auth } = usePage().props;
+    const userPermissions = auth.permissions || [];
+    const can = (permission) => userPermissions.includes(permission);
 
     useEffect(() => {
         if (isFirst.current) {
@@ -82,9 +86,11 @@ function Index({ events, filters, public_url }) {
 
                             <Card>
                                 <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-                                    <Link href={route('admin.kopi-times.events.create')} className="btn btn-primary rounded-lg">
-                                        <Plus size={16} /> Buat Event
-                                    </Link>
+                                    {can('create event kopi-times') ? (
+                                        <Link href={route('admin.kopi-times.events.create')} className="btn btn-primary rounded-lg">
+                                            <Plus size={16} /> Buat Event
+                                        </Link>
+                                    ) : <span />}
                                     <div className="flex flex-col md:flex-row gap-4 w-full md:w-auto">
                                         <div className="w-full md:w-80">
                                             <InputWithPrefix
@@ -163,20 +169,25 @@ function Index({ events, filters, public_url }) {
                                                                 className="toggle toggle-success toggle-sm"
                                                                 checked={!!item.enabled}
                                                                 onChange={() => toggleEnabled(item)}
+                                                                disabled={!can('edit event kopi-times')}
                                                             />
                                                         </td>
                                                         <td className="py-4 align-top text-right whitespace-nowrap">
-                                                            {item.category === 'public_event' && (
+                                                            {can('view event kopi-times') && item.category === 'public_event' && (
                                                                 <Link href={route('admin.kopi-times.events.submissions', item.id)} className="btn btn-sm btn-ghost gap-1.5" title="Lihat kiriman">
                                                                     <Inbox className="w-3.5 h-3.5" /> Kiriman
                                                                 </Link>
                                                             )}
-                                                            <Link href={route('admin.kopi-times.events.edit', item.id)} className="btn btn-sm btn-ghost gap-1.5">
-                                                                <Pencil className="w-3.5 h-3.5" /> Edit
-                                                            </Link>
-                                                            <button onClick={() => destroy(item)} className="btn btn-sm btn-ghost text-error gap-1.5" disabled={item.submissions_count > 0} title={item.submissions_count > 0 ? 'Ada kiriman — non-aktifkan saja' : 'Hapus'}>
-                                                                <Trash2 className="w-3.5 h-3.5" /> Hapus
-                                                            </button>
+                                                            {can('edit event kopi-times') && (
+                                                                <Link href={route('admin.kopi-times.events.edit', item.id)} className="btn btn-sm btn-ghost gap-1.5">
+                                                                    <Pencil className="w-3.5 h-3.5" /> Edit
+                                                                </Link>
+                                                            )}
+                                                            {can('delete event kopi-times') && (
+                                                                <button onClick={() => destroy(item)} className="btn btn-sm btn-ghost text-error gap-1.5" disabled={item.submissions_count > 0} title={item.submissions_count > 0 ? 'Ada kiriman — non-aktifkan saja' : 'Hapus'}>
+                                                                    <Trash2 className="w-3.5 h-3.5" /> Hapus
+                                                                </button>
+                                                            )}
                                                         </td>
                                                     </tr>
                                                 );
