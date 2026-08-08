@@ -3,6 +3,7 @@ import InputSelect from '@/Components/InputSelect'
 import InputWithPrefix from '@/Components/InputWithPrefix'
 import PaginationDaisy from '@/Components/PaginationDaisy'
 import { Badge } from '@/Components/ui/badge'
+import { Switch } from '@/Components/ui/switch'
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout'
 import { formatDateTime } from '@/Utils/formatter'
 import { Head, Link, router, usePage } from '@inertiajs/react'
@@ -164,11 +165,9 @@ function Index({ events, filters, public_url }) {
                                                             <div className="text-xs text-base-content/60">sisa {remaining}</div>
                                                         </td>
                                                         <td className="py-4 align-top text-center">
-                                                            <input
-                                                                type="checkbox"
-                                                                className=""
+                                                            <Switch
                                                                 checked={!!item.enabled}
-                                                                onChange={() => toggleEnabled(item)}
+                                                                onCheckedChange={() => toggleEnabled(item)}
                                                                 disabled={!can('edit event kopi-times')}
                                                             />
                                                         </td>
