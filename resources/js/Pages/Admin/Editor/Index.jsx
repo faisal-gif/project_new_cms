@@ -205,7 +205,11 @@ function Index({ editors, filters }) {
                                             <div className="flex justify-between items-start mb-3">
                                                 <div>
                                                     <p className="font-semibold text-base">{editor.name}</p>
-                                                    <p className="text-sm text-gray-500">{editor.email}</p>
+                                                    {editor.user ? (
+                                                        <p className="text-sm text-gray-500">{editor.user.email}</p>
+                                                    ) : (
+                                                        <Badge variant="secondary" className="text-amber-700">Tanpa user</Badge>
+                                                    )}
                                                 </div>
 
                                                 {getStatusBadge(editor.status)}

@@ -23,6 +23,13 @@ return [
         'api_key' => env('TIN_CDN_API_KEY'),
     ],
 
+    // URL aplikasi publik (berbayar) — dipakai untuk merangkai link form kirim berita
+    // publik: {url}/kirim-berita/{slug}. Dipisah per brand (KT & AJP). Fallback APP_URL.
+    'berbayar' => [
+        'kt_url'  => env('APP_PUBLIC_KT_URL', env('APP_URL')),
+        'ajp_url' => env('APP_PUBLIC_AJP_URL', env('APP_URL')),
+    ],
+
     'gemini' => [
         'api_key' => env('GEMINI_API_KEY'),
     ],

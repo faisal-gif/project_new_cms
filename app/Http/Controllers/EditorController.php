@@ -2,106 +2,177 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\EditorRequest;
+use App\Http\Requests\EditorManageRequest;
 use App\Models\Editor;
-use App\Models\EditorDaerah;
-use App\Models\EditorNasional;
+use App\Models\User;
 use App\Services\CdnService;
+use App\Services\EditorSyncService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
-use Illuminate\Validation\Rules\In;
 use Inertia\Inertia;
-use Intervention\Image\Drivers\Gd\Driver;
-use Intervention\Image\ImageManager;
+use Spatie\Permission\Models\Role;
 
 class EditorController extends Controller
 {
+    public function __construct(
+        protected CdnService $cdn,
+        protected EditorSyncService $sync,
+    ) {}
+
     public function index(Request $request)
     {
-        $query =  Editor::with(['nasional:editor_id,editor_name,status', 'daerah:id,name,status']);
+        $query = Editor::with(['nasional:editor_id,editor_name,status', 'daerah:id,name,status', 'user:id,full_name,email']);
 
         if ($request->search) {
-            $query->where(function ($q) use ($request) {
-                $q->where('name', 'like', "%{$request->search}%");
-            });
+            $query->where('name', 'like', "%{$request->search}%");
         }
-
         if ($request->filled('status')) {
             $query->where('status', $request->status);
         }
 
-        $editors = $query->orderBy('id', 'desc')
-            ->paginate(10)
-            ->withQueryString();
-
         return Inertia::render('Admin/Editor/Index', [
-            'editors' => $editors,
+            'editors' => $query->orderBy('id', 'desc')->paginate(10)->withQueryString(),
             'filters' => $request->only(['search', 'status']),
         ]);
     }
 
     public function create()
     {
-        $nasionals = EditorNasional::select('editor_id as value', 'editor_name as label')->get();
-        $daerahs = EditorDaerah::select('id as value', 'name as label')->get();
-
         return Inertia::render('Admin/Editor/Create', [
-            'nasionals' => $nasionals,
-            'daerahs' => $daerahs,
+            'users' => $this->linkableUsers(),
+            'roles' => Role::pluck('name'),
         ]);
     }
 
     public function edit(Editor $editor)
     {
-        $nasionals = EditorNasional::select('editor_id as value', 'editor_name as label')->get();
-        $daerahs = EditorDaerah::select('id as value', 'name as label')->get();
+        $editor->load('nasional', 'daerah', 'user:id,full_name,email');
 
         return Inertia::render('Admin/Editor/Edit', [
-            'editor' => $editor,
-            'nasionals' => $nasionals,
-            'daerahs' => $daerahs,
+            'editor' => [
+                'id'           => $editor->id,
+                'name'         => $editor->name,
+                'status'       => (string) $editor->status,
+                'user_id'      => $editor->user_id,
+                'user'         => $editor->user,
+                'description'  => $editor->nasional->editor_description ?? '',
+                'image'        => $editor->nasional->editor_image ?? null,
+                'no_whatsapp'  => $editor->daerah->no_whatsapp ?? '',
+                'has_nasional' => (bool) $editor->nasional,
+                'has_daerah'   => (bool) $editor->daerah,
+            ],
+            'users' => $this->linkableUsers($editor->user_id),
+            'roles' => Role::pluck('name'),
         ]);
     }
 
-    public function store(EditorRequest $request)
+    public function store(EditorManageRequest $request)
     {
         try {
-            DB::beginTransaction();
-            
-            Editor::create([
-                'name' => $request->name,
-                'status' => $request->status,
-                'id_ti' => $request->id_nasional,
-                'id_daerah' => $request->id_daerah,
-            ]);
+            $userId = $this->resolveUserId($request);
 
-            DB::commit();
+            $master = new Editor(['user_id' => $userId]);
+            $master->save(); // butuh id sebelum wiring anak
+            $this->linkUser($userId, $master);
+            $this->applySync($master, $request);
+
             return redirect()->route('admin.editors.index')->with('success', 'Editor berhasil ditambahkan.');
         } catch (\Exception $e) {
-            DB::rollBack();
-            return redirect()->route('admin.editors.index')->with('error', 'Terjadi kesalahan saat menambahkan editor: ' . $e->getMessage());
+            return back()->withInput()->withErrors(['error' => 'Gagal menambahkan editor: ' . $e->getMessage()]);
         }
     }
 
-    public function update(EditorRequest $request, Editor $editor)
+    public function update(EditorManageRequest $request, Editor $editor)
     {
         try {
-            DB::beginTransaction();
-            $editor->update([
-                'name' => $request->name,
-                'status' => $request->status,
-                'id_ti' => $request->id_nasional,
-                'id_daerah' => $request->id_daerah,
-            ]);
+            $editor->load('nasional', 'daerah');
+            $previousUserId = $editor->user_id;
 
-            DB::commit();
+            $userId = $this->resolveUserId($request);
+            $editor->user_id = $userId;
+            $this->applySync($editor, $request); // save master (dengan user_id baru)
+
+            // Jaga pointer denormalisasi users.id_editor tetap konsisten.
+            if ($previousUserId && $previousUserId !== $userId) {
+                User::where('id', $previousUserId)->where('id_editor', $editor->id)->update(['id_editor' => null]);
+            }
+            $this->linkUser($userId, $editor);
+
             return redirect()->route('admin.editors.index')->with('success', 'Editor berhasil diperbarui.');
         } catch (\Exception $e) {
-            DB::rollBack();
-            return redirect()->route('admin.editors.index')->with('error', 'Terjadi kesalahan saat memperbarui editor: ' . $e->getMessage());
+            return back()->withInput()->withErrors(['error' => 'Gagal memperbarui editor: ' . $e->getMessage()]);
         }
+    }
+
+    /**
+     * Tentukan user_id: buat akun baru bila diminta, atau pakai yang dipilih.
+     */
+    private function resolveUserId(EditorManageRequest $request): ?int
+    {
+        if (!$request->boolean('create_user')) {
+            return $request->user_id;
+        }
+
+        $user = User::create([
+            'full_name' => $request->full_name,
+            'username'  => $request->username,
+            'email'     => $request->email,
+            'password'  => Hash::make($request->password),
+            'status'    => $request->status,
+        ]);
+        $user->syncRoles($request->roles ?? ['editor']);
+
+        return $user->id;
+    }
+
+    /**
+     * Isi users.id_editor (guarded -> set langsung) agar dua arah taut konsisten.
+     */
+    private function linkUser(?int $userId, Editor $master): void
+    {
+        if (!$userId) {
+            return;
+        }
+        $user = User::find($userId);
+        if ($user && $user->id_editor !== $master->id) {
+            $user->id_editor = $master->id;
+            $user->save();
+        }
+    }
+
+    /**
+     * Upload foto (bila ada) lalu cascade lewat service.
+     */
+    private function applySync(Editor $master, EditorManageRequest $request): void
+    {
+        $fields = [
+            'name'        => $request->name,
+            'status'      => $request->status,
+            'description' => $request->description,
+            'no_whatsapp' => $request->no_whatsapp,
+        ];
+        if ($request->hasFile('image')) {
+            $fields['image_url'] = $this->cdn->uploadImage($request->file('image'), Str::slug($request->name) . '-editor', 2, 'convert', false);
+        }
+
+        $this->sync->sync(
+            $master,
+            $fields,
+            createNasional: $request->boolean('create_nasional'),
+            createDaerah: $request->boolean('create_daerah'),
+        );
+    }
+
+    /**
+     * User master yang belum tertaut editor (plus user yang sedang diedit).
+     */
+    private function linkableUsers(?int $keepUserId = null)
+    {
+        return User::whereDoesntHave('editor')
+            ->when($keepUserId, fn($q) => $q->orWhere('id', $keepUserId))
+            ->select('id as value', 'full_name', 'email')
+            ->get()
+            ->map(fn($u) => ['value' => $u->value, 'label' => "{$u->full_name} ({$u->email})"]);
     }
 }

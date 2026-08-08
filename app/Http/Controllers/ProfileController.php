@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\EditorProfileUpdateRequest;
 use App\Http\Requests\ProfileUpdateRequest;
 use App\Services\CdnService;
+use App\Services\EditorSyncService;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -67,46 +68,29 @@ class ProfileController extends Controller
      * Update data editor (self-service). Nama disimpan ke master lalu
      * di-cascade ke editor nasional & daerah yang tertaut.
      */
-    public function updateEditor(EditorProfileUpdateRequest $request, CdnService $cdn): RedirectResponse
+    public function updateEditor(EditorProfileUpdateRequest $request, CdnService $cdn, EditorSyncService $sync): RedirectResponse
     {
         $user = $request->user();
         abort_unless($user->hasRole('editor') && $user->editor, 403);
 
         $master = $user->editor->load('nasional', 'daerah');
 
-        // Upload foto lebih dulu (di luar update). Kalau gagal, batalkan tanpa
-        // menyentuh data agar tidak setengah jadi.
-        $imageUrl = $master->nasional->editor_image ?? null;
+        // Upload foto lebih dulu. Kalau gagal, batalkan tanpa menyentuh data.
+        $fields = [
+            'name'        => $request->name,
+            'description' => $request->description,
+            'no_whatsapp' => $request->no_whatsapp,
+        ];
         if ($request->hasFile('image')) {
             try {
-                $imageUrl = $cdn->uploadImage($request->file('image'), Str::slug($request->name) . '-editor', 2, 'convert', false);
+                $fields['image_url'] = $cdn->uploadImage($request->file('image'), Str::slug($request->name) . '-editor', 2, 'convert', false);
             } catch (\Exception $e) {
                 return back()->withInput()->withErrors(['image' => 'Gagal mengunggah foto ke CDN: ' . $e->getMessage()]);
             }
         }
 
-        // ponytail: 3 koneksi DB berbeda, tak ada transaksi lintas-DB. Update
-        // berurutan; profil single-user jadi risiko konsistensi kecil.
-        // 1. Master = sumber nama.
-        $master->update(['name' => $request->name]);
-
-        // 2. Nasional: cascade nama + field khusus nasional.
-        if ($master->nasional) {
-            $master->nasional->update([
-                'editor_name'        => $request->name,
-                'editor_alias'       => Str::slug($request->name),
-                'editor_description' => $request->description,
-                'editor_image'       => $imageUrl,
-            ]);
-        }
-
-        // 3. Daerah: cascade nama + no WhatsApp.
-        if ($master->daerah) {
-            $master->daerah->update([
-                'name'        => $request->name,
-                'no_whatsapp' => $request->no_whatsapp,
-            ]);
-        }
+        // Self-service: hanya update record yang sudah ada (tidak membuat baru).
+        $sync->sync($master, $fields, createNasional: false, createDaerah: false);
 
         return Redirect::route('profile.edit')->with('success', 'Profil editor berhasil diperbarui.');
     }

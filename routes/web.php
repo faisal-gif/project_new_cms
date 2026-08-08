@@ -10,6 +10,7 @@ use App\Http\Controllers\EditorController;
 use App\Http\Controllers\EditorDaerahController;
 use App\Http\Controllers\EditorNasionalController;
 use App\Http\Controllers\EKoranController;
+use App\Http\Controllers\EventKTController;
 use App\Http\Controllers\FokusDaerahController;
 use App\Http\Controllers\FokusNasionalController;
 use App\Http\Controllers\GalleryController;
@@ -147,6 +148,9 @@ Route::middleware('auth')->prefix('admin')->name('admin.')->group(function () {
             Route::resource('pengumuman', PengumumanKTController::class);
             Route::resource('merchandise/shipments', MerchandiseShipmentKTController::class);
             Route::resource('paket', PaketKTController::class);
+            Route::patch('events/{event}/toggle', [EventKTController::class, 'toggle'])->name('events.toggle');
+            Route::get('events/{event}/submissions', [EventKTController::class, 'submissions'])->name('events.submissions');
+            Route::resource('events', EventKTController::class)->except('show');
             Route::get('/transaction/report', [PaymentsKTController::class, 'report'])->name('transaction.report');
             Route::get('/news/publish/{id}', [NewsKTController::class, 'publish'])->name('news.publish');
             Route::get('/addon-requests', [KtAddonRequestController::class, 'index'])->name('addon-requests.index');

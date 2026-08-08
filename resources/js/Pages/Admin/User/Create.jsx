@@ -162,7 +162,7 @@ function Create({ writers, fotografer, editors, roles }) {
                                     </div>
 
                                     <div className="lg:col-span-3 w-full">
-                                        <InputLabel htmlFor="password" value="Password (Kosongkan jika tidak diubah)" className='mb-2 font-bold text-gray-600' />
+                                        <InputLabel htmlFor="password" value="Password" className='mb-2 font-bold text-gray-600' />
                                         <InputPassword
                                             id="password"
                                             name="password"
