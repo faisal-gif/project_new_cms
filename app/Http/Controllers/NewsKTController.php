@@ -271,7 +271,8 @@ class NewsKTController extends Controller
         // Gunakan koneksi mysql_nasional untuk transaksi
         $isCode = $request->input('is_code');
         $ktNews = NewsBerbayar::where('is_code', $isCode)->firstOrFail();
-        $writerKT = WriterBerbayar::where('id', $ktNews->pewarta_id)->firstOrFail();
+        // Kiriman public_event dari guest tidak punya pewarta_id — writer bisa null.
+        $writerKT = $ktNews->pewarta_id ? WriterBerbayar::find($ktNews->pewarta_id) : null;
 
         DB::connection('mysql_nasional')->beginTransaction();
 
@@ -287,7 +288,8 @@ class NewsKTController extends Controller
             if ($request->hasFile('image_thumbnail')) {
                 try {
                     $file = $request->file('image_thumbnail');
-                    $nameThumbnail = 'kopi-times-' . Str::slug(Str::limit($writerKT->nama, 100, '')) . '-thumbnail';
+                    $writerName = $writerKT?->nama ?? $ktNews->narsum ?? 'public-event';
+                    $nameThumbnail = 'kopi-times-' . Str::slug(Str::limit($writerName, 100, '')) . '-thumbnail';
                     $finalImage = $this->cdnService->uploadImage($file, $nameThumbnail, 3, 'convert', false) ?? null;
                 } catch (\Exception $e) {
                     return back()->withInput()->withErrors(['error' => 'Gagal mengunggah gambar ke CDN: ' . $e->getMessage()]);

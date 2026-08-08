@@ -94,7 +94,7 @@ function PublishKT({ news, editors, kanal, writerkanal, hasEditor, editor_id }) 
                                         </div>
                                         <div className='lg:col-span-3 w-full'>
                                             <InputLabel value="Penulis" className='mb-2 label-text font-bold' />
-                                            <TextInput className="block w-full" value={news.writer.nama} disabled />
+                                            <TextInput className="block w-full" value={news.writer?.nama ?? (news.narsum ? `${news.narsum} (Public Event)` : '—')} disabled />
                                         </div>
 
 
