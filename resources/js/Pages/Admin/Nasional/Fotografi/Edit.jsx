@@ -42,7 +42,7 @@ const formatForDateTimeLocal = (dateString) => {
     return new Date(date.getTime() - tzOffset).toISOString().slice(0, 16);
 };
 
-export default function Edit({ editors, writers, categories, gallery, isFotografer, canSelectEditor, userEditorId, canSelectFotografer }) {
+export default function Edit({ editors, writers, categories, gallery, isFotografer, canSelectEditor, userEditorId, canSelectFotografer, canPublish }) {
     // 1. Inisialisasi useForm dengan data yang sudah ada dari prop 'gallery'
     const { data, setData, post, processing, errors } = useForm({
         _method: 'PUT', // Wajib untuk upload file saat update di Laravel
@@ -61,7 +61,6 @@ export default function Edit({ editors, writers, categories, gallery, isFotograf
         // Metadata caption/cover foto yang sudah tersimpan (dikirim saat "Perbarui Galeri")
         existing_images_meta: [],
     });
-
 
     // 2. State untuk menampilkan gambar di UI. Foto ditambah/dihapus langsung ke server,
     //    jadi daftar ini disinkronkan ulang dari prop `gallery.images` tiap kali jumlahnya berubah.
@@ -430,7 +429,7 @@ export default function Edit({ editors, writers, categories, gallery, isFotograf
                                             { value: "0", label: "Pending" },
                                             { value: "2", label: "Review" },
                                             { value: "3", label: "On Pro" },
-                                            { value: "1", label: "Publish" }
+                                            ...((canPublish || gallery.gal_status?.toString() === "1") ? [{ value: "1", label: "Publish" }] : [])
                                         ]}
                                         value={data.status}
                                         onChange={(e) => setData("status", e.target.value)}

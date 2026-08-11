@@ -85,6 +85,7 @@ class RolePermissionSeeder extends Seeder
                 'create gallery nasional',
                 'edit gallery nasional',
                 'delete gallery nasional',
+                'publish gallery nasional',
                 'select editor gallery nasional',
                 'select fotografer gallery nasional',
             ],

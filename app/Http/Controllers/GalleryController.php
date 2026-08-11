@@ -26,6 +26,22 @@ class GalleryController extends Controller
     public function __construct(
         protected CdnService $cdnService
     ) {}
+
+    /**
+     * Cegah user tanpa izin mem-publish galeri. Jika status yang diminta = Publish (1)
+     * dan user tidak berizin, turunkan ke Review (2) supaya perlu approval.
+     * Galeri yang SUDAH publish ($currentStatus == 1) tidak diturunkan hanya karena
+     * di-edit user tanpa izin — izin mengatur aksi publish, bukan mencabut publish.
+     */
+    private function guardPublishStatus($status, $user, $currentStatus = null)
+    {
+        $wantsPublish = (string) $status === '1';
+        $alreadyPublished = (string) $currentStatus === '1';
+        if ($wantsPublish && ! $alreadyPublished && ! $user->can('publish gallery nasional')) {
+            return '2';
+        }
+        return $status;
+    }
     /**
      * Display a listing of the resource.
      */
@@ -107,6 +123,7 @@ class GalleryController extends Controller
             'canSelectEditor'  => $user->can('select editor gallery nasional'),
             'userEditorId' => $user->editor?->id_ti,
             'canSelectFotografer' => $user->can('select fotografer gallery nasional'),
+            'canPublish' => $user->can('publish gallery nasional'),
         ]);
     }
 
@@ -147,7 +164,7 @@ class GalleryController extends Controller
             'gal_pewarta' => $pewarta,
             'fotografer_id' => $fotograferId,
             'editor_id' => $editorId,
-            'gal_status' => $validated['status'],
+            'gal_status' => $this->guardPublishStatus($validated['status'], $user),
             'gal_datepub' => $validated['datepub'],
             'created_by' => Auth::id() ?? 1,
             'created' => now(),
@@ -270,6 +287,7 @@ class GalleryController extends Controller
             'canSelectEditor' => $user->can('select editor gallery nasional'),
             'userEditorId' => $user->editor?->id_ti,
             'canSelectFotografer' => $user->can('select fotografer gallery nasional'),
+            'canPublish' => $user->can('publish gallery nasional'),
         ]);
     }
 
@@ -311,6 +329,8 @@ class GalleryController extends Controller
         // Memulai Transaksi: Jika gagal di tengah jalan (misal CDN error), semua dibatalkan
         DB::beginTransaction();
 
+        $status = $this->guardPublishStatus($validated['status'], $user, $gallery->gal_status);
+
         try {
             // 2. Update Informasi Utama Galeri
             $gallery->update([
@@ -323,7 +343,7 @@ class GalleryController extends Controller
                 'gal_pewarta'     => $pewarta,
                 'fotografer_id'   => $fotograferId,
                 'editor_id'       => $editorId,
-                'gal_status'      => collect(['pending' => 0, 'publish' => 1, 'review' => 2, 'on_pro' => 3])->get($validated['status'], $validated['status']),
+                'gal_status'      => collect(['pending' => 0, 'publish' => 1, 'review' => 2, 'on_pro' => 3])->get($status, $status),
                 'gal_datepub'     => $validated['datepub'],
                 'modified_by'      => $user_id,
                 'modified'      => now(),

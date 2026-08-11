@@ -19,7 +19,7 @@ import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
 import InputEditor from "@/Components/InputEditor";
 
 
-export default function Create({ editors, writers, categories, isFotografer, userFotograferId, canSelectEditor, canSelectFotografer }) {
+export default function Create({ editors, writers, categories, isFotografer, userFotograferId, canSelectEditor, canSelectFotografer, canPublish }) {
 
     const defaultFotografer = isFotografer
         ? writers.find(w => String(w.value) === String(userFotograferId))
@@ -231,7 +231,7 @@ export default function Create({ editors, writers, categories, isFotografer, use
                                                 { value: "0", label: "Pending" },
                                                 { value: "2", label: "Review" },
                                                 { value: "3", label: "On Pro" },
-                                                { value: "1", label: "Publish" }
+                                                ...(canPublish ? [{ value: "1", label: "Publish" }] : [])
                                             ]}
                                             value={data.status}
                                             onChange={(e) => setData("status", e.target.value)}
