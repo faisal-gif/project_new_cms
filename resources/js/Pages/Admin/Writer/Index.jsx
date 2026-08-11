@@ -74,11 +74,11 @@ function Index({ writers, filters }) {
         }
     }
 
-    function IndexCell({ item, editRoute, addLabel }) {
+    function IndexCell({ item, editRoute, addRoute, addLabel }) {
         if (!item) {
             return (
                 <Link
-                    href="#"
+                    href={addRoute || '#'}
                     className="btn btn-xs btn-outline btn-primary gap-1"
                 >
                     <Plus className="w-3 h-3" /> {addLabel}
@@ -198,6 +198,7 @@ function Index({ writers, filters }) {
                                                     <IndexCell
                                                         item={writer.daerah}
                                                         editRoute={writer.daerah ? route('admin.daerah.writer.edit', writer.daerah.id) : null}
+                                                        addRoute={route('admin.writers.edit', writer.id)}
                                                         addLabel="Daerah"
                                                     />
                                                 </div>
@@ -206,6 +207,7 @@ function Index({ writers, filters }) {
                                                     <IndexCell
                                                         item={writer.nasional}
                                                         editRoute={writer.nasional ? route('admin.nasional.writer.edit', writer.nasional.id) : null}
+                                                        addRoute={route('admin.writers.edit', writer.id)}
                                                         addLabel="Nasional"
                                                     />
                                                 </div>
@@ -262,6 +264,7 @@ function Index({ writers, filters }) {
                                                             <IndexCell
                                                                 item={writer.daerah}
                                                                 editRoute={writer.daerah ? route('admin.daerah.writer.edit', writer.daerah.id) : null}
+                                                                addRoute={route('admin.writers.edit', writer.id)}
                                                                 addLabel="Tambah Daerah"
                                                             />
                                                         </td>
@@ -271,6 +274,7 @@ function Index({ writers, filters }) {
                                                             <IndexCell
                                                                 item={writer.nasional}
                                                                 editRoute={writer.nasional ? route('admin.nasional.writer.edit', writer.nasional.id) : null}
+                                                                addRoute={route('admin.writers.edit', writer.id)}
                                                                 addLabel="Tambah Nasional"
                                                             />
                                                         </td>

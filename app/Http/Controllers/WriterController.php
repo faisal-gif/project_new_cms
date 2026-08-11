@@ -8,6 +8,7 @@ use App\Models\Writer;
 use App\Services\CdnService;
 use App\Services\WriterSyncService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
 
@@ -95,16 +96,16 @@ class WriterController extends Controller
     }
 
     /**
-     * Field master writer. Password: wajib saat create, opsional saat update.
-     * ponytail: mengikuti perilaku writer existing (password tidak di-hash);
-     * jangan ubah di sini karena menyangkut login writer.
+     * Field master writer. Password di-hash (bcrypt) saat ada input baru,
+     * konsisten dengan WriterDaerahController & login wartawan. Saat update
+     * tanpa password baru, pakai hash lama apa adanya.
      */
     private function masterFields(WriterManageRequest $request, ?Writer $existing = null): array
     {
         return [
             'name'        => $request->name,
             'email'       => $request->email,
-            'password'    => $request->filled('password') ? $request->password : ($existing->password ?? null),
+            'password'    => $request->filled('password') ? Hash::make($request->password) : ($existing->password ?? null),
             'no_whatsapp' => $request->no_whatsapp,
             'date_exp'    => $request->date_exp,
             'network_id'  => $request->network_id,

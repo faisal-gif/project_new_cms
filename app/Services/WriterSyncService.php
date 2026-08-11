@@ -53,7 +53,8 @@ class WriterSyncService
         $daerah = $master->daerah;
         if (!$daerah && $createDaerah) {
             $daerah = new WriterDaerah();
-            // password daerah wajib saat create: salin dari master (perilaku writer existing).
+            // password daerah wajib saat create: salin hash dari master (master sudah
+            // di-hash di controller; sama seperti ImportWriterDaerah menyalin hash lama).
             $daerah->password = $master->password;
         }
         if ($daerah) {
