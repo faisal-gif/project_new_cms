@@ -62,7 +62,7 @@ export default function Edit({ editors, writers, categories, gallery, isFotograf
         existing_images_meta: [],
     });
 
-    console.log("Initial form data:", data);
+    console.log("Initial form data:", gallery);
 
     // 2. State untuk menampilkan gambar di UI. Foto ditambah/dihapus langsung ke server,
     //    jadi daftar ini disinkronkan ulang dari prop `gallery.images` tiap kali jumlahnya berubah.
