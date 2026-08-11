@@ -53,7 +53,7 @@ export default function Edit({ editors, writers, categories, gallery, isFotograf
         city: gallery.gal_city || "",
         fotografer: gallery.gal_pewarta || "",
         fotografer_id: gallery.fotografer_id || "",
-        editor: (!canSelectEditor && userEditorId) ? userEditorId : (gallery.editor_id || ""),
+        editor: userEditorId || (gallery.editor_id || ""),
         categoryId: gallery.gal_catid?.toString() || "", // Pastikan string untuk InputSelect
         status: gallery.gal_status?.toString() || "0", // Pastikan string
         datepub: formatForDateTimeLocal(gallery.gal_datepub),
@@ -61,6 +61,8 @@ export default function Edit({ editors, writers, categories, gallery, isFotograf
         // Metadata caption/cover foto yang sudah tersimpan (dikirim saat "Perbarui Galeri")
         existing_images_meta: [],
     });
+
+    console.log("Initial form data:", data);
 
     // 2. State untuk menampilkan gambar di UI. Foto ditambah/dihapus langsung ke server,
     //    jadi daftar ini disinkronkan ulang dari prop `gallery.images` tiap kali jumlahnya berubah.
