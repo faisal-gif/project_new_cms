@@ -9,11 +9,12 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout'
 import { Head, useForm, Link } from '@inertiajs/react'
 import React from 'react'
 import Select from 'react-select'
+import EditorFieldset from './Partials/EditorFieldset'
 
 // Tambahkan props `roles` (semua role tersedia) dan `userRoles` (role yang dimiliki user saat ini)
-function Edit({ user, fotografer, writers, editors, roles, userRoles }) {
+function Edit({ user, fotografer, writers, editors, roles, userRoles, editor }) {
 
-    const { data, setData, put, processing, errors } = useForm({
+    const { data, setData, post, processing, errors } = useForm({
         full_name: user.full_name || '',
         username: user.username || '',
         email: user.email || '',
@@ -23,7 +24,16 @@ function Edit({ user, fotografer, writers, editors, roles, userRoles }) {
         id_editor: user.id_editor || null,
         id_fotografer: user.id_fotografer || null,
         // Hapus `role` lama (string), ganti dengan array roles dari Spatie
-        roles: userRoles || [] 
+        roles: userRoles || [],
+        // Data editor (opsional)
+        manage_editor: !!editor,
+        editor_name: editor?.name || '',
+        editor_description: editor?.description || '',
+        editor_no_whatsapp: editor?.no_whatsapp || '',
+        editor_image: null,
+        create_nasional: false,
+        create_daerah: false,
+        _method: 'PUT',
     });
 
     const selectedEditor = editors.find(e => e.value === data.id_editor) || null;
@@ -32,7 +42,7 @@ function Edit({ user, fotografer, writers, editors, roles, userRoles }) {
 
     const submit = (e) => {
         e.preventDefault();
-        put(route('admin.users.update', user.id));
+        post(route('admin.users.update', user.id), { forceFormData: true });
     };
 
     // Handler untuk Checkbox Role Spatie
@@ -221,6 +231,9 @@ function Edit({ user, fotografer, writers, editors, roles, userRoles }) {
                                         <InputError message={errors.roles} className="mt-2" />
                                     </div>
 
+                                    <div className="lg:col-span-6">
+                                        <EditorFieldset data={data} setData={setData} errors={errors} editor={editor} />
+                                    </div>
 
                                     {/* --- SUBMIT BUTTON --- */}
                                     <div className='lg:col-span-6 flex flex-row justify-end mt-4 pt-4 border-t'>

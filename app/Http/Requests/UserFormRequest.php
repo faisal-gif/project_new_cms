@@ -33,6 +33,15 @@ class UserFormRequest extends FormRequest
             'id_writer' => 'nullable|exists:writers,id|unique:users,id_writer,' . $userId,
             'id_editor' => 'nullable|exists:editors,id|unique:users,id_editor,' . $userId,
             'id_fotografer' => 'nullable|exists:writers,id|unique:users,id_fotografer,' . $userId,
+
+            // Data editor (opsional, dikelola bila manage_editor true).
+            'manage_editor'      => 'boolean',
+            'editor_name'        => 'nullable|required_if:manage_editor,true,1|string|max:255',
+            'editor_description' => 'nullable|string',
+            'editor_no_whatsapp' => 'nullable|string|max:20',
+            'editor_image'       => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+            'create_nasional'    => 'boolean',
+            'create_daerah'      => 'boolean',
         ];
     }
 

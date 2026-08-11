@@ -9,6 +9,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout'
 import { Head, useForm } from '@inertiajs/react'
 import React from 'react'
 import Select from 'react-select'
+import EditorFieldset from './Partials/EditorFieldset'
 
 function Create({ writers, fotografer, editors, roles }) {
 
@@ -22,13 +23,20 @@ function Create({ writers, fotografer, editors, roles }) {
         id_writer: null,
         id_editor: null,
         id_fotografer: null,
-        roles: []
+        roles: [],
+        // Data editor (opsional)
+        manage_editor: false,
+        editor_name: '',
+        editor_description: '',
+        editor_no_whatsapp: '',
+        editor_image: null,
+        create_nasional: false,
+        create_daerah: false,
     });
 
     const submit = (e) => {
         e.preventDefault();
-        post(route('admin.users.store'));
-
+        post(route('admin.users.store'), { forceFormData: true });
     };
 
     const handleRoleChange = (e) => {
@@ -210,6 +218,10 @@ function Create({ writers, fotografer, editors, roles }) {
                                             )}
                                         </div>
                                         <InputError message={errors.roles} className="mt-2" />
+                                    </div>
+
+                                    <div className="lg:col-span-6">
+                                        <EditorFieldset data={data} setData={setData} errors={errors} />
                                     </div>
 
                                     <div className=' lg:col-span-6 flex flex-row justify-end mt-4'>
