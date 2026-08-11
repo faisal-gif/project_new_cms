@@ -40,11 +40,13 @@ class EditorManageRequest extends FormRequest
             'roles.*'     => ['exists:roles,name'],
 
             // --- Field nasional ---
+            'nasional_id' => ['nullable', 'exists:mysql_nasional.editor,editor_id', Rule::unique('editors', 'id_ti')->ignore($editorId)],
             'description' => ['nullable', 'string'],
             'image'       => ['nullable', 'image', 'mimes:jpeg,png,jpg,gif,svg', 'max:2048'],
             'create_nasional' => ['boolean'],
 
             // --- Field daerah ---
+            'daerah_id'   => ['nullable', 'exists:mysql_daerah.editors,id', Rule::unique('editors', 'id_daerah')->ignore($editorId)],
             'no_whatsapp' => ['nullable', 'string', 'max:20'],
             'create_daerah'   => ['boolean'],
         ];

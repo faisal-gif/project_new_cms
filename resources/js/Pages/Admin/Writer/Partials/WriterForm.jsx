@@ -9,7 +9,7 @@ import TextInput from '@/Components/TextInput'
 import { useForm } from '@inertiajs/react'
 import Select from 'react-select'
 
-export default function WriterForm({ writer = null, networks = [] }) {
+export default function WriterForm({ writer = null, networks = [], nasionals = [], daerahs = [] }) {
     const isEdit = !!writer
 
     const { data, setData, post, processing, errors } = useForm({
@@ -21,6 +21,8 @@ export default function WriterForm({ writer = null, networks = [] }) {
         network_id: writer?.network_id || null,
         status: writer?.status ?? '1',
         // nasional (journalist)
+        nasional_id: null,
+        daerah_id: null,
         bio: writer?.bio || '',
         region: writer?.region || '',
         image: null,
@@ -35,7 +37,7 @@ export default function WriterForm({ writer = null, networks = [] }) {
         post(url, { forceFormData: true })
     }
 
-    const showNasional = writer?.has_nasional || data.create_nasional
+    const showNasional = writer?.has_nasional || data.create_nasional || !!data.nasional_id
 
     return (
         <form onSubmit={submit} className="space-y-6">
@@ -95,10 +97,24 @@ export default function WriterForm({ writer = null, networks = [] }) {
             <Card title="Penulis Nasional">
                 <div className="mt-4 space-y-4">
                     {!writer?.has_nasional && (
-                        <label className="flex items-center gap-2">
-                            <input type="checkbox" className="checkbox" checked={data.create_nasional} onChange={(e) => setData('create_nasional', e.target.checked)} />
-                            Buat data penulis nasional
-                        </label>
+                        <div className="space-y-2">
+                            <div>
+                                <InputLabel value="Taut ke penulis nasional yang sudah ada" className="mb-1 text-sm" />
+                                <Select
+                                    options={nasionals}
+                                    isClearable
+                                    isDisabled={data.create_nasional}
+                                    placeholder="Pilih akun nasional..."
+                                    value={nasionals.find((n) => n.value === data.nasional_id) || null}
+                                    onChange={(o) => setData('nasional_id', o ? o.value : null)}
+                                />
+                                <InputError message={errors.nasional_id} className="mt-2" />
+                            </div>
+                            <label className="flex items-center gap-2">
+                                <input type="checkbox" className="checkbox" checked={data.create_nasional} disabled={!!data.nasional_id} onChange={(e) => setData('create_nasional', e.target.checked)} />
+                                atau buat data penulis nasional baru
+                            </label>
+                        </div>
                     )}
                     {showNasional && (
                         <>
@@ -124,14 +140,28 @@ export default function WriterForm({ writer = null, networks = [] }) {
 
             {/* Daerah (writers) */}
             <Card title="Penulis Daerah">
-                <div className="mt-4">
+                <div className="mt-4 space-y-2">
                     {writer?.has_daerah ? (
                         <p className="text-sm text-gray-600">Data penulis daerah sudah ada & mengikuti nama di atas.</p>
                     ) : (
-                        <label className="flex items-center gap-2">
-                            <input type="checkbox" className="checkbox" checked={data.create_daerah} onChange={(e) => setData('create_daerah', e.target.checked)} />
-                            Buat data penulis daerah (menyalin email, no. WhatsApp, network dari master)
-                        </label>
+                        <>
+                            <div>
+                                <InputLabel value="Taut ke penulis daerah yang sudah ada" className="mb-1 text-sm" />
+                                <Select
+                                    options={daerahs}
+                                    isClearable
+                                    isDisabled={data.create_daerah}
+                                    placeholder="Pilih akun daerah..."
+                                    value={daerahs.find((d) => d.value === data.daerah_id) || null}
+                                    onChange={(o) => setData('daerah_id', o ? o.value : null)}
+                                />
+                                <InputError message={errors.daerah_id} className="mt-2" />
+                            </div>
+                            <label className="flex items-center gap-2">
+                                <input type="checkbox" className="checkbox" checked={data.create_daerah} disabled={!!data.daerah_id} onChange={(e) => setData('create_daerah', e.target.checked)} />
+                                atau buat data penulis daerah baru (menyalin email, no. WhatsApp, network dari master)
+                            </label>
+                        </>
                     )}
                 </div>
             </Card>

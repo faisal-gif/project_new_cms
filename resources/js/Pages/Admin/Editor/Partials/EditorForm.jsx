@@ -9,7 +9,7 @@ import TextInput from '@/Components/TextInput'
 import { Link, useForm } from '@inertiajs/react'
 import Select from 'react-select'
 
-export default function EditorForm({ editor = null, users = [], roles = [] }) {
+export default function EditorForm({ editor = null, users = [], roles = [], nasionals = [], daerahs = [] }) {
     const isEdit = !!editor
     const roleOptions = roles.map((r) => ({ value: r, label: r }))
 
@@ -25,6 +25,8 @@ export default function EditorForm({ editor = null, users = [], roles = [] }) {
         password: '',
         roles: ['editor'],
         // nasional / daerah
+        nasional_id: null,
+        daerah_id: null,
         description: editor?.description || '',
         image: null,
         no_whatsapp: editor?.no_whatsapp || '',
@@ -41,8 +43,8 @@ export default function EditorForm({ editor = null, users = [], roles = [] }) {
         post(url, { forceFormData: true })
     }
 
-    const showNasional = editor?.has_nasional || data.create_nasional
-    const showDaerah = editor?.has_daerah || data.create_daerah
+    const showNasional = editor?.has_nasional || data.create_nasional || !!data.nasional_id
+    const showDaerah = editor?.has_daerah || data.create_daerah || !!data.daerah_id
 
     return (
         <form onSubmit={submit} className="space-y-6">
@@ -154,15 +156,30 @@ export default function EditorForm({ editor = null, users = [], roles = [] }) {
             <Card title="Editor Nasional">
                 <div className="mt-4 space-y-4">
                     {!editor?.has_nasional && (
-                        <label className="flex items-center gap-2">
-                            <input
-                                type="checkbox"
-                                className="checkbox"
-                                checked={data.create_nasional}
-                                onChange={(e) => setData('create_nasional', e.target.checked)}
-                            />
-                            Buat data editor nasional
-                        </label>
+                        <div className="space-y-2">
+                            <div>
+                                <InputLabel value="Taut ke editor nasional yang sudah ada" className="mb-1 text-sm" />
+                                <Select
+                                    options={nasionals}
+                                    isClearable
+                                    isDisabled={data.create_nasional}
+                                    placeholder="Pilih akun nasional..."
+                                    value={nasionals.find((n) => n.value === data.nasional_id) || null}
+                                    onChange={(o) => setData('nasional_id', o ? o.value : null)}
+                                />
+                                <InputError message={errors.nasional_id} className="mt-2" />
+                            </div>
+                            <label className="flex items-center gap-2">
+                                <input
+                                    type="checkbox"
+                                    className="checkbox"
+                                    checked={data.create_nasional}
+                                    disabled={!!data.nasional_id}
+                                    onChange={(e) => setData('create_nasional', e.target.checked)}
+                                />
+                                atau buat data editor nasional baru
+                            </label>
+                        </div>
                     )}
                     {showNasional && (
                         <>
@@ -195,15 +212,30 @@ export default function EditorForm({ editor = null, users = [], roles = [] }) {
             <Card title="Editor Daerah">
                 <div className="mt-4 space-y-4">
                     {!editor?.has_daerah && (
-                        <label className="flex items-center gap-2">
-                            <input
-                                type="checkbox"
-                                className="checkbox"
-                                checked={data.create_daerah}
-                                onChange={(e) => setData('create_daerah', e.target.checked)}
-                            />
-                            Buat data editor daerah
-                        </label>
+                        <div className="space-y-2">
+                            <div>
+                                <InputLabel value="Taut ke editor daerah yang sudah ada" className="mb-1 text-sm" />
+                                <Select
+                                    options={daerahs}
+                                    isClearable
+                                    isDisabled={data.create_daerah}
+                                    placeholder="Pilih akun daerah..."
+                                    value={daerahs.find((d) => d.value === data.daerah_id) || null}
+                                    onChange={(o) => setData('daerah_id', o ? o.value : null)}
+                                />
+                                <InputError message={errors.daerah_id} className="mt-2" />
+                            </div>
+                            <label className="flex items-center gap-2">
+                                <input
+                                    type="checkbox"
+                                    className="checkbox"
+                                    checked={data.create_daerah}
+                                    disabled={!!data.daerah_id}
+                                    onChange={(e) => setData('create_daerah', e.target.checked)}
+                                />
+                                atau buat data editor daerah baru
+                            </label>
+                        </div>
                     )}
                     {showDaerah && (
                         <div>

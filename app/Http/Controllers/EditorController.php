@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\EditorManageRequest;
 use App\Models\Editor;
+use App\Models\EditorDaerah;
+use App\Models\EditorNasional;
 use App\Models\User;
 use App\Services\CdnService;
 use App\Services\EditorSyncService;
@@ -42,6 +44,8 @@ class EditorController extends Controller
         return Inertia::render('Admin/Editor/Create', [
             'users' => $this->linkableUsers(),
             'roles' => Role::pluck('name'),
+            'nasionals' => $this->linkableNasional(),
+            'daerahs' => $this->linkableDaerah(),
         ]);
     }
 
@@ -64,6 +68,8 @@ class EditorController extends Controller
             ],
             'users' => $this->linkableUsers($editor->user_id),
             'roles' => Role::pluck('name'),
+            'nasionals' => $this->linkableNasional($editor->id_ti),
+            'daerahs' => $this->linkableDaerah($editor->id_daerah),
         ]);
     }
 
@@ -161,12 +167,12 @@ class EditorController extends Controller
             $fields['image_url'] = $this->cdn->uploadImage($request->file('image'), Str::slug($request->name) . '-editor', 2, 'convert', false);
         }
 
-        $this->sync->sync(
-            $master,
-            $fields,
-            createNasional: $request->boolean('create_nasional'),
-            createDaerah: $request->boolean('create_daerah'),
-        );
+        $this->sync->sync($master, $fields, [
+            'nasional_id'     => $request->nasional_id,
+            'create_nasional' => $request->boolean('create_nasional'),
+            'daerah_id'       => $request->daerah_id,
+            'create_daerah'   => $request->boolean('create_daerah'),
+        ]);
     }
 
     /**
@@ -179,5 +185,29 @@ class EditorController extends Controller
             ->select('id as value', 'full_name', 'email')
             ->get()
             ->map(fn($u) => ['value' => $u->value, 'label' => "{$u->full_name} ({$u->email})"]);
+    }
+
+    /**
+     * Editor nasional yang belum tertaut master mana pun (plus yang sedang ditaut).
+     */
+    private function linkableNasional(?int $keepId = null)
+    {
+        $used = Editor::whereNotNull('id_ti')->pluck('id_ti')->all();
+        return EditorNasional::when($used, fn($q) => $q->whereNotIn('editor_id', $used))
+            ->when($keepId, fn($q) => $q->orWhere('editor_id', $keepId))
+            ->select('editor_id as value', 'editor_name as label')
+            ->get();
+    }
+
+    /**
+     * Editor daerah yang belum tertaut master mana pun (plus yang sedang ditaut).
+     */
+    private function linkableDaerah(?int $keepId = null)
+    {
+        $used = Editor::whereNotNull('id_daerah')->pluck('id_daerah')->all();
+        return EditorDaerah::when($used, fn($q) => $q->whereNotIn('id', $used))
+            ->when($keepId, fn($q) => $q->orWhere('id', $keepId))
+            ->select('id as value', 'name as label')
+            ->get();
     }
 }

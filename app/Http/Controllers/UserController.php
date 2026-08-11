@@ -215,7 +215,10 @@ class UserController extends Controller
             $fields['image_url'] = $cdn->uploadImage($request->file('editor_image'), Str::slug($request->editor_name) . '-editor', 2, 'convert', false);
         }
 
-        $sync->sync($master, $fields, $request->boolean('create_nasional'), $request->boolean('create_daerah'));
+        $sync->sync($master, $fields, [
+            'create_nasional' => $request->boolean('create_nasional'),
+            'create_daerah'   => $request->boolean('create_daerah'),
+        ]);
     }
 
     /**

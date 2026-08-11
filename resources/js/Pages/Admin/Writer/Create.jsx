@@ -2,7 +2,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout'
 import { Head } from '@inertiajs/react'
 import WriterForm from './Partials/WriterForm'
 
-export default function Create({ networks }) {
+export default function Create({ networks, nasionals, daerahs }) {
     return (
         <>
             <Head title="Tambah Penulis" />
@@ -19,7 +19,7 @@ export default function Create({ networks }) {
                                 </ul>
                             </div>
                         </div>
-                        <WriterForm networks={networks} />
+                        <WriterForm networks={networks} nasionals={nasionals} daerahs={daerahs} />
                     </div>
                 </div>
             </AuthenticatedLayout>

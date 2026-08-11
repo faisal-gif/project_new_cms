@@ -17,16 +17,21 @@ class WriterSyncService
      * master untuk sistem daerah (email/no_whatsapp/date_exp/network_id/password).
      *
      * @param array{name:string, status?:int|string, bio?:?string, region?:?string, image_url?:?string} $fields
+     * @param array{nasional_id?:?int, create_nasional?:bool, daerah_id?:?int, create_daerah?:bool} $opts
+     *        nasional_id/daerah_id = taut ke record yang SUDAH ada; create_* = buat baru.
      *
      * ponytail: 3 koneksi DB berbeda -> tak ada transaksi lintas-DB. Update berurutan.
      */
-    public function sync(Writer $master, array $fields, bool $createNasional = false, bool $createDaerah = false): void
+    public function sync(Writer $master, array $fields, array $opts = []): void
     {
         $name = $fields['name'];
 
         // --- Nasional (journalist) ---
         $nasional = $master->nasional;
-        if (!$nasional && $createNasional) {
+        if (!$nasional && !empty($opts['nasional_id'])) {
+            $nasional = WriterNasional::find($opts['nasional_id']); // taut existing
+        }
+        if (!$nasional && !empty($opts['create_nasional'])) {
             $nasional = new WriterNasional();
             $nasional->created_by = auth()->id();
         }
@@ -51,18 +56,25 @@ class WriterSyncService
 
         // --- Daerah (writers) = salinan master ---
         $daerah = $master->daerah;
-        if (!$daerah && $createDaerah) {
+        if (!$daerah && !empty($opts['daerah_id'])) {
+            $daerah = WriterDaerah::find($opts['daerah_id']); // taut existing
+        }
+        if (!$daerah && !empty($opts['create_daerah'])) {
             $daerah = new WriterDaerah();
             // password daerah wajib saat create: salin hash dari master (master sudah
             // di-hash di controller; sama seperti ImportWriterDaerah menyalin hash lama).
             $daerah->password = $master->password;
         }
         if ($daerah) {
-            $daerah->name        = $name;
-            $daerah->email       = $master->email;
-            $daerah->no_whatsapp = $master->no_whatsapp;
-            $daerah->date_exp    = $master->date_exp;
-            $daerah->network_id  = $master->network_id;
+            $daerah->name = $name; // cascade nama
+            // Salin identitas dari master HANYA untuk record daerah yang baru dibuat.
+            // Saat menaut record existing, jangan timpa email/no_wa/network-nya.
+            if (!$daerah->exists) {
+                $daerah->email       = $master->email;
+                $daerah->no_whatsapp = $master->no_whatsapp;
+                $daerah->date_exp    = $master->date_exp;
+                $daerah->network_id  = $master->network_id;
+            }
             if (array_key_exists('status', $fields)) {
                 $daerah->status = $fields['status'];
             }

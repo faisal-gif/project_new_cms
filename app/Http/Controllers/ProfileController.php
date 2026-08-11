@@ -89,8 +89,8 @@ class ProfileController extends Controller
             }
         }
 
-        // Self-service: hanya update record yang sudah ada (tidak membuat baru).
-        $sync->sync($master, $fields, createNasional: false, createDaerah: false);
+        // Self-service: hanya update record yang sudah ada (tidak membuat/menaut).
+        $sync->sync($master, $fields);
 
         return Redirect::route('profile.edit')->with('success', 'Profil editor berhasil diperbarui.');
     }

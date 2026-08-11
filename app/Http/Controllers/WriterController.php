@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Http\Requests\WriterManageRequest;
 use App\Models\NetworkDaerah;
 use App\Models\Writer;
+use App\Models\WriterDaerah;
+use App\Models\WriterNasional;
 use App\Services\CdnService;
 use App\Services\WriterSyncService;
 use Illuminate\Http\Request;
@@ -43,6 +45,8 @@ class WriterController extends Controller
     {
         return Inertia::render('Admin/Writer/Create', [
             'networks' => NetworkDaerah::select('id as value', 'name as label')->get(),
+            'nasionals' => $this->linkableNasional(),
+            'daerahs' => $this->linkableDaerah(),
         ]);
     }
 
@@ -66,7 +70,29 @@ class WriterController extends Controller
                 'has_daerah'   => (bool) $writer->daerah,
             ],
             'networks' => NetworkDaerah::select('id as value', 'name as label')->get(),
+            'nasionals' => $this->linkableNasional($writer->id_nasional),
+            'daerahs' => $this->linkableDaerah($writer->id_daerah),
         ]);
+    }
+
+    /** Penulis nasional (journalist) yang belum tertaut master. */
+    private function linkableNasional(?int $keepId = null)
+    {
+        $used = Writer::whereNotNull('id_nasional')->pluck('id_nasional')->all();
+        return WriterNasional::when($used, fn($q) => $q->whereNotIn('id', $used))
+            ->when($keepId, fn($q) => $q->orWhere('id', $keepId))
+            ->select('id as value', 'name as label')
+            ->get();
+    }
+
+    /** Penulis daerah (writers) yang belum tertaut master. */
+    private function linkableDaerah(?int $keepId = null)
+    {
+        $used = Writer::whereNotNull('id_daerah')->pluck('id_daerah')->all();
+        return WriterDaerah::when($used, fn($q) => $q->whereNotIn('id', $used))
+            ->when($keepId, fn($q) => $q->orWhere('id', $keepId))
+            ->select('id as value', 'name as label')
+            ->get();
     }
 
     public function store(WriterManageRequest $request)
@@ -125,11 +151,11 @@ class WriterController extends Controller
             $fields['image_url'] = $this->cdn->uploadImage($request->file('image'), Str::slug($request->name) . '-writer', 2, 'convert', false);
         }
 
-        $this->sync->sync(
-            $master,
-            $fields,
-            createNasional: $request->boolean('create_nasional'),
-            createDaerah: $request->boolean('create_daerah'),
-        );
+        $this->sync->sync($master, $fields, [
+            'nasional_id'     => $request->nasional_id,
+            'create_nasional' => $request->boolean('create_nasional'),
+            'daerah_id'       => $request->daerah_id,
+            'create_daerah'   => $request->boolean('create_daerah'),
+        ]);
     }
 }

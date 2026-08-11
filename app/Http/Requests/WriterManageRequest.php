@@ -31,12 +31,14 @@ class WriterManageRequest extends FormRequest
             'status'      => ['required', 'in:0,1'],
 
             // Nasional (journalist)
+            'nasional_id' => ['nullable', 'exists:mysql_nasional.journalist,id', Rule::unique('writers', 'id_nasional')->ignore($writerId)],
             'bio'    => ['nullable', 'string'],
             'region' => ['nullable', 'string', 'max:255'],
             'image'  => ['nullable', 'image', 'mimes:jpeg,png,jpg,gif,svg', 'max:2048'],
             'create_nasional' => ['boolean'],
 
             // Daerah (writers) = salinan master
+            'daerah_id'     => ['nullable', 'exists:mysql_daerah.writers,id', Rule::unique('writers', 'id_daerah')->ignore($writerId)],
             'create_daerah' => ['boolean'],
         ];
     }

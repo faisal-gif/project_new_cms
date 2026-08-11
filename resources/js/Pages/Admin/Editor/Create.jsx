@@ -2,7 +2,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout'
 import { Head } from '@inertiajs/react'
 import EditorForm from './Partials/EditorForm'
 
-export default function Create({ users, roles }) {
+export default function Create({ users, roles, nasionals, daerahs }) {
     return (
         <>
             <Head title="Tambah Editor" />
@@ -19,7 +19,7 @@ export default function Create({ users, roles }) {
                                 </ul>
                             </div>
                         </div>
-                        <EditorForm users={users} roles={roles} />
+                        <EditorForm users={users} roles={roles} nasionals={nasionals} daerahs={daerahs} />
                     </div>
                 </div>
             </AuthenticatedLayout>

@@ -2,7 +2,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout'
 import { Head } from '@inertiajs/react'
 import WriterForm from './Partials/WriterForm'
 
-export default function Edit({ writer, networks }) {
+export default function Edit({ writer, networks, nasionals, daerahs }) {
     return (
         <>
             <Head title="Edit Penulis" />
@@ -19,7 +19,7 @@ export default function Edit({ writer, networks }) {
                                 </ul>
                             </div>
                         </div>
-                        <WriterForm writer={writer} networks={networks} />
+                        <WriterForm writer={writer} networks={networks} nasionals={nasionals} daerahs={daerahs} />
                     </div>
                 </div>
             </AuthenticatedLayout>

@@ -19,19 +19,25 @@ class EditorSyncService
      *   name:string, status?:int|string,
      *   description?:?string, image_url?:?string, no_whatsapp?:?string
      * } $fields
-     * @param bool $createNasional buat record nasional bila belum ada, lalu wire id_ti
-     * @param bool $createDaerah   buat record daerah bila belum ada, lalu wire id_daerah
+     * @param array{
+     *   nasional_id?:?int, create_nasional?:bool,
+     *   daerah_id?:?int, create_daerah?:bool
+     * } $opts  nasional_id/daerah_id = taut ke record yang SUDAH ada;
+     *          create_* = buat baru bila belum ada & tidak menaut.
      *
      * ponytail: 3 koneksi DB berbeda -> tak ada transaksi lintas-DB. Update
      * berurutan; kalau butuh atomic penuh, pindah ke saga/kompensasi.
      */
-    public function sync(Editor $master, array $fields, bool $createNasional = false, bool $createDaerah = false): void
+    public function sync(Editor $master, array $fields, array $opts = []): void
     {
         $name = $fields['name'];
 
         // --- Nasional ---
         $nasional = $master->nasional;
-        if (!$nasional && $createNasional) {
+        if (!$nasional && !empty($opts['nasional_id'])) {
+            $nasional = EditorNasional::find($opts['nasional_id']); // taut existing
+        }
+        if (!$nasional && !empty($opts['create_nasional'])) {
             $nasional = new EditorNasional();
             $nasional->created_by = auth()->id();
         }
@@ -53,7 +59,10 @@ class EditorSyncService
 
         // --- Daerah ---
         $daerah = $master->daerah;
-        if (!$daerah && $createDaerah) {
+        if (!$daerah && !empty($opts['daerah_id'])) {
+            $daerah = EditorDaerah::find($opts['daerah_id']); // taut existing
+        }
+        if (!$daerah && !empty($opts['create_daerah'])) {
             $daerah = new EditorDaerah();
         }
         if ($daerah) {

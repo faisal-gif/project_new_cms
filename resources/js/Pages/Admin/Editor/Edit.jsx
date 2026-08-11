@@ -2,7 +2,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout'
 import { Head } from '@inertiajs/react'
 import EditorForm from './Partials/EditorForm'
 
-export default function Edit({ editor, users, roles }) {
+export default function Edit({ editor, users, roles, nasionals, daerahs }) {
     return (
         <>
             <Head title="Edit Editor" />
@@ -19,7 +19,7 @@ export default function Edit({ editor, users, roles }) {
                                 </ul>
                             </div>
                         </div>
-                        <EditorForm editor={editor} users={users} roles={roles} />
+                        <EditorForm editor={editor} users={users} roles={roles} nasionals={nasionals} daerahs={daerahs} />
                     </div>
                 </div>
             </AuthenticatedLayout>
