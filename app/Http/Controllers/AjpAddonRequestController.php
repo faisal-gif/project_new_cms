@@ -43,7 +43,7 @@ class AjpAddonRequestController extends Controller
 
     public function show($id)
     {
-        $addon = NewsBerbayarAddOnRequest::with(['news', 'wartawan'])->findOrFail($id);
+        $addon = NewsBerbayarAddOnRequest::with(['news.newsNasional:news_id,is_code,news_title,news_status', 'wartawan'])->findOrFail($id);
 
         return Inertia::render('Admin/AJP/AddonRequest/Show', [
             'addon' => $addon

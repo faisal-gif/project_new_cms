@@ -27,6 +27,25 @@ export default function Show({ addon }) {
         }
     }
 
+    // Status berita di Kopi Times (kolom status tabel news berbayar): 1=Published, 2=Review, lainnya=Draft
+    function getKtNewsBadge(status) {
+        switch (Number(status)) {
+            case 1: return <Badge className="bg-green-300 text-green-800 border-none">Published</Badge>;
+            case 2: return <Badge className="bg-yellow-300 text-yellow-800 border-none">Review</Badge>;
+            default: return <Badge variant="secondary">Draft</Badge>;
+        }
+    }
+
+    // Status berita di Nasional (news_status): 1=Publish, 2=Review, 0=Pending, null=belum terbit
+    function getNasionalNewsBadge(status) {
+        if (status === undefined || status === null) return <Badge variant="secondary">Belum Terbit</Badge>;
+        switch (Number(status)) {
+            case 1: return <Badge className="bg-green-300 text-green-800 border-none">Publish</Badge>;
+            case 2: return <Badge className="bg-yellow-300 text-yellow-800 border-none">Review</Badge>;
+            default: return <Badge variant="secondary">Pending</Badge>;
+        }
+    }
+
     return (
         <AuthenticatedLayout>
             <Head
@@ -116,6 +135,24 @@ export default function Show({ addon }) {
                                             {addon.news?.title}
                                         </h2>
                                         <p className="text-sm text-blue-600 font-mono mt-1">Kode: {addon.news?.is_code}</p>
+
+                                        {/* Status lintas platform + tautan publikasi Nasional */}
+                                        <div className="flex flex-wrap items-center gap-x-2 gap-y-1 mt-3">
+                                            <span className="text-sm text-muted-foreground">Kopi Times:</span>
+                                            {getKtNewsBadge(addon.news?.status)}
+                                            <span className="text-sm text-muted-foreground ml-2">Nasional:</span>
+                                            {getNasionalNewsBadge(addon.news?.news_nasional?.news_status)}
+                                            {addon.news?.news_nasional && addon.news?.url && (
+                                                <a
+                                                    href={addon.news.url}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="btn btn-xs btn-outline btn-success gap-1 ml-1"
+                                                >
+                                                    <LinkIcon size={12} /> Lihat di Nasional
+                                                </a>
+                                            )}
+                                        </div>
                                     </div>
 
                                     {/* Merender HTML konten berita */}
