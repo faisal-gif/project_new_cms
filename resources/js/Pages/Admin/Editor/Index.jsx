@@ -74,11 +74,11 @@ function Index({ editors, filters }) {
         }
     }
 
-    function IndexCell({ item, type, editRoute, addLabel }) {
+    function IndexCell({ item, type, editRoute, addRoute, addLabel }) {
         if (!item) {
             return (
                 <Link
-                    href="#"
+                    href={addRoute || '#'}
                     className="btn btn-xs btn-outline btn-primary gap-1"
                 >
                     <Plus className="w-3 h-3" /> {addLabel}
@@ -228,6 +228,7 @@ function Index({ editors, filters }) {
                                                         item={editor.daerah}
                                                         type="daerah"
                                                         editRoute={editor.daerah ? route('admin.daerah.editor.edit', editor.daerah.id) : null}
+                                                        addRoute={route('admin.editors.edit', editor.id)}
                                                         addLabel="Daerah"
                                                     />
                                                 </div>
@@ -237,6 +238,7 @@ function Index({ editors, filters }) {
                                                         item={editor.nasional}
                                                         type="nasional"
                                                         editRoute={editor.nasional ? route('admin.nasional.editor.edit', editor.nasional.editor_id) : null}
+                                                        addRoute={route('admin.editors.edit', editor.id)}
                                                         addLabel="Nasional"
                                                     />
                                                 </div>
@@ -286,6 +288,7 @@ function Index({ editors, filters }) {
                                                                 item={editor.daerah}
                                                                 type="daerah"
                                                                 editRoute={editor.daerah ? route('admin.daerah.editor.edit', editor.daerah.id) : null}
+                                                                addRoute={route('admin.editors.edit', editor.id)}
                                                                 addLabel="Tambah Daerah"
                                                             />
                                                         </td>
@@ -296,6 +299,7 @@ function Index({ editors, filters }) {
                                                                 item={editor.nasional}
                                                                 type="nasional"
                                                                 editRoute={editor.nasional ? route('admin.nasional.editor.edit', editor.nasional.editor_id) : null}
+                                                                addRoute={route('admin.editors.edit', editor.id)}
                                                                 addLabel="Tambah Nasional"
                                                             />
                                                         </td>
