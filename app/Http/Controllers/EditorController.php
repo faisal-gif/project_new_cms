@@ -72,8 +72,13 @@ class EditorController extends Controller
         try {
             $userId = $this->resolveUserId($request);
 
-            $master = new Editor(['user_id' => $userId]);
-            $master->save(); // butuh id sebelum wiring anak
+            // Isi name/status di awal: kolom name NOT NULL, dan butuh id sebelum wiring anak.
+            $master = new Editor([
+                'user_id' => $userId,
+                'name'    => $request->name,
+                'status'  => $request->status,
+            ]);
+            $master->save();
             $this->linkUser($userId, $master);
             $this->applySync($master, $request);
 
