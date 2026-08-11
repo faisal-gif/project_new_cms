@@ -105,6 +105,7 @@ class GalleryController extends Controller
             'isFotografer'     => $user->hasRole('fotografer'),
             'userFotograferId' => $user->id_fotografer ?? null,
             'canSelectEditor'  => $user->can('select editor gallery nasional'),
+            'userEditorId' => $user->editor?->id_ti,
             'canSelectFotografer' => $user->can('select fotografer gallery nasional'),
         ]);
     }
