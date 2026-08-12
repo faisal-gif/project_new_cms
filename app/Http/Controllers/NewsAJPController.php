@@ -40,15 +40,24 @@ class NewsAJPController extends Controller
             ->when($request->filled('status'), function ($query) use ($request) {
                 $query->where('status', $request->status);
             })
+            ->when($request->filled('member'), function ($query) use ($request) {
+                $query->where('pewarta_id', $request->member);
+            })
             // Urutkan berdasarkan waktu tayang (datetime) terbaru
             ->orderByDesc('id')
             ->paginate(10)
             ->withQueryString();
 
+        // Daftar member (pewarta) yang benar-benar punya berita AJP — untuk dropdown filter.
+        $memberIds = NewsBerbayar::where('type', '1')->distinct()->pluck('pewarta_id');
+        $members = WriterBerbayar::whereIn('id', $memberIds)
+            ->orderBy('nama')
+            ->get(['id as value', 'nama as label']);
 
         return Inertia::render('Admin/AJP/News/Index', [
             'news'    => $news,
-            'filters' => $request->only(['search', 'status']),
+            'members' => $members,
+            'filters' => $request->only(['search', 'status', 'member']),
         ]);
     }
 

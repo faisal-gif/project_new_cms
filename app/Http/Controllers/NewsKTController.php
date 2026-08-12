@@ -47,8 +47,9 @@ class NewsKTController extends Controller
             ->paginate(10)
             ->withQueryString();
 
-        // Daftar member (pewarta KT) untuk dropdown filter.
-        $members = WriterBerbayar::where('type', '4')
+        // Daftar member (pewarta) yang benar-benar punya berita KT — untuk dropdown filter.
+        $memberIds = NewsBerbayar::where('type', '4')->distinct()->pluck('pewarta_id');
+        $members = WriterBerbayar::whereIn('id', $memberIds)
             ->orderBy('nama')
             ->get(['id as value', 'nama as label']);
 

@@ -8,10 +8,12 @@ import { formatDate, formatDateTimeLong } from '@/Utils/formatter'
 import { Head, Link, router, usePage } from '@inertiajs/react'
 import { Plus, Search } from 'lucide-react'
 import React, { useEffect, useRef, useState } from 'react'
+import Select from 'react-select'
 
-export default function Index({ news, filters }) {
+export default function Index({ news, members = [], filters }) {
     const [search, setSearch] = useState(() => filters.search || '');
     const [status, setStatus] = useState(() => filters.status || '');
+    const [member, setMember] = useState(() => filters.member || '');
 
     const isFirst = useRef(true);
     const INDEX_ROUTE = route('admin.ajp.news.index');
@@ -35,13 +37,13 @@ export default function Index({ news, filters }) {
         const timeout = setTimeout(() => {
             router.get(
                 INDEX_ROUTE,
-                { search, status, page: 1 },
+                { search, status, member, page: 1 },
                 { preserveState: true, replace: true }
             );
         }, 400);
 
         return () => clearTimeout(timeout);
-    }, [search, status]);
+    }, [search, status, member]);
 
     function getStatusBadge(statusValue) {
         if (statusValue === 1 || statusValue === '1') {
@@ -88,6 +90,15 @@ export default function Index({ news, filters }) {
                                         placeholder="Cari Judul atau Kode..."
                                         value={search}
                                         onChange={(e) => setSearch(e.target.value)}
+                                    />
+                                </div>
+                                <div className="w-full md:w-56">
+                                    <Select
+                                        options={members}
+                                        value={members.find(m => String(m.value) === String(member)) || null}
+                                        placeholder="Semua Member"
+                                        onChange={(opt) => setMember(opt?.value ? String(opt.value) : '')}
+                                        isClearable
                                     />
                                 </div>
                                 <div className="w-full md:w-48">
