@@ -29,8 +29,10 @@ class NewsFormRequest extends FormRequest
             'tag.*'         => 'string',
             'content'       => 'required|string',
 
-            // Validasi Gambar
-            'image_thumbnail'       => 'required|image|mimes:jpeg,png,jpg,webp|max:2048', // Max 2MB
+            // Validasi Gambar — wajib ada, boleh dari upload file ATAU pilih galeri CDN.
+            'image_thumbnail'       => 'required_without:image_thumbnail_url|nullable|image|mimes:jpeg,png,jpg,webp|max:2048', // Max 2MB
+            'image_thumbnail_url'   => 'nullable|url',
+            'image_name'            => 'required_with:image_thumbnail|nullable|string|max:100', // Nama file wajib saat upload
             'image_watermark'       => 'required|boolean',
             'image_caption' => 'required|string|max:255',
         ];

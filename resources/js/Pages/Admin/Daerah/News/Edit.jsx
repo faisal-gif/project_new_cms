@@ -36,6 +36,8 @@ function Edit({ news, writers, editors, networks, kanal, fokus, hasEditor, edito
         is_editorial: news.is_editorial ?? 0,
         is_adv: news.is_adv ?? 0,
         image_thumbnail: '', // Kosongkan, hanya diisi jika user upload gambar baru
+        image_thumbnail_url: '', // Diisi bila memilih foto dari galeri CDN
+        image_name: '', // Nama file untuk CDN (agar mudah dicari di galeri) — hanya saat upload baru
         image_watermark: false,
         image_caption: news.caption ?? '',
         datepub: news.datepub,
@@ -178,12 +180,30 @@ function Edit({ news, writers, editors, networks, kanal, fokus, hasEditor, edito
                                                 />
                                                 <div className='flex items-center justify-center gap-0.5 mt-1'>
                                                     <InputImage
-                                                        existingImage={news.image}
+                                                        existingImage={data.image_thumbnail_url || news.image}
                                                         value={data.image_thumbnail}
-                                                        onChange={(file) => setData('image_thumbnail', file)}
+                                                        onChange={(file) => setData({ ...data, image_thumbnail: file, image_thumbnail_url: file ? '' : data.image_thumbnail_url })}
+                                                        onPickCdn={(url) => setData({ ...data, image_thumbnail: null, image_thumbnail_url: url })}
+                                                        onRemove={() => setData({ ...data, image_thumbnail: null, image_thumbnail_url: '', image_name: '' })}
                                                     />
 
                                                 </div>
+
+                                                {/* Nama file hanya relevan saat upload gambar baru; kosongkan bila memilih dari galeri. */}
+                                                {!data.image_thumbnail_url && (
+                                                    <div className="mt-3">
+                                                        <InputLabel htmlFor="image_name" value="Nama File Foto (untuk pencarian di galeri)" className='mb-2 label-text font-bold' />
+                                                        <TextInput
+                                                            id="image_name"
+                                                            type="text"
+                                                            className="w-full"
+                                                            placeholder="Contoh: bupati-malang-panen-raya-2026"
+                                                            value={data.image_name}
+                                                            onChange={(e) => setData('image_name', e.target.value)}
+                                                        />
+                                                        <InputError message={errors.image_name} className="mt-2" />
+                                                    </div>
+                                                )}
                                             </div>
                                         </div>
                                         <div className='lg:col-span-6'>

@@ -43,11 +43,16 @@ class NewsDaerahFormRequest extends FormRequest
             'datepub'       => ['required', 'date'],
             'image_watermark' => ['nullable', 'boolean'],
             'image_caption'   => ['required', 'string', 'max:255'],
+            // Diisi bila memilih foto dari galeri CDN (alternatif upload file).
+            'image_thumbnail_url' => ['nullable', 'url'],
+            // Nama file wajib saat mengunggah file (agar mudah dicari di galeri CDN).
+            'image_name' => ['required_with:image_thumbnail', 'nullable', 'string', 'max:100'],
         ];
 
-        // Cek jika request adalah create (POST), gambar wajib. Jika update (PUT/PATCH), gambar opsional.
+        // Create (POST): wajib ada gambar — boleh dari file ATAU galeri CDN.
+        // Update (PUT/PATCH): opsional (pertahankan gambar lama bila kosong).
         if ($this->isMethod('post')) {
-            $rules['image_thumbnail'] = ['required', 'image', 'mimes:jpeg,png,jpg,gif,svg', 'max:2048'];
+            $rules['image_thumbnail'] = ['required_without:image_thumbnail_url', 'nullable', 'image', 'mimes:jpeg,png,jpg,gif,svg', 'max:2048'];
         } else {
             $rules['image_thumbnail'] = ['nullable', 'image', 'mimes:jpeg,png,jpg,gif,svg', 'max:2048'];
         }
@@ -73,6 +78,8 @@ class NewsDaerahFormRequest extends FormRequest
             'focus.exists'        => 'Fokus berita yang dipilih tidak ditemukan.',
             'status.required'     => 'Status berita wajib ditentukan.',
             'image.required'      => 'Gambar wajib diunggah.',
+            'image_name.required_with' => 'Nama file foto wajib diisi saat mengunggah gambar.',
+            'image_name.max'      => 'Nama file foto maksimal 100 karakter.',
             'image.image'         => 'File yang diunggah harus berupa gambar.',
             'image.mimes'         => 'Format gambar tidak valid. Harus berupa JPEG, PNG, JPG, GIF, atau SVG.',
             'image.max'           => 'Ukuran gambar tidak boleh lebih dari 2MB.',

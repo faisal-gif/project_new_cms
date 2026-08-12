@@ -34,6 +34,8 @@ function Create({ writers, editors, kanal, fokus, hasEditor, editor_id, initialD
         is_content: '',
         is_headline: '',
         image_thumbnail: '',
+        image_thumbnail_url: '', // Diisi bila memilih foto dari galeri CDN (bukan upload file)
+        image_name: '', // Nama file untuk CDN (agar mudah dicari di galeri)
         image_watermark: false,
         image_caption: '',
         datepub: initialData.datepub || '', // Menangkap nilai default datepub dari backend
@@ -242,13 +244,32 @@ function Create({ writers, editors, kanal, fokus, hasEditor, editor_id, initialD
                                                     <div className='flex items-center justify-center gap-0.5 mt-1'>
                                                         <InputImage
                                                             value={data.image_thumbnail}
+                                                            existingImage={data.image_thumbnail_url || null}
                                                             targetHeight={800}
                                                             targetWidth={1200}
-                                                            onChange={(file) => setData('image_thumbnail', file)}
+                                                            onChange={(file) => setData({ ...data, image_thumbnail: file, image_thumbnail_url: file ? '' : data.image_thumbnail_url })}
+                                                            onPickCdn={(url) => setData({ ...data, image_thumbnail: null, image_thumbnail_url: url })}
+                                                            onRemove={() => setData({ ...data, image_thumbnail: null, image_thumbnail_url: '', image_name: '' })}
                                                         />
 
                                                     </div>
                                                 </div>
+
+                                                {/* Nama file wajib saat upload agar mudah dicari di galeri CDN. Tidak berlaku bila memilih dari galeri. */}
+                                                {!data.image_thumbnail_url && (
+                                                    <div>
+                                                        <InputLabel htmlFor="image_name" value="Nama File Foto (untuk pencarian di galeri)" className='mb-2 label-text font-bold' />
+                                                        <TextInput
+                                                            id="image_name"
+                                                            type="text"
+                                                            className="w-full"
+                                                            placeholder="Contoh: presiden-jokowi-panen-raya-2026"
+                                                            value={data.image_name}
+                                                            onChange={(e) => setData('image_name', e.target.value)}
+                                                        />
+                                                        <InputError message={errors.image_name} className="mt-2" />
+                                                    </div>
+                                                )}
                                                 <label className="flex items-center gap-2">
                                                     <Checkbox
                                                         checked={data.image_watermark}

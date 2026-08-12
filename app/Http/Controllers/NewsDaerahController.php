@@ -197,14 +197,18 @@ class NewsDaerahController extends Controller
     {
         $applyWatermark = $request->boolean('image_watermark') ? '1' : '0';
 
-        // 1. Proses Upload image_thumbnail ke CDN (DI LUAR DB TRANSACTION)
-        // Menghindari penguncian (locking) row DB saat menunggu respons HTTP CDN
+        // 1. Tentukan thumbnail. Foto galeri CDN sudah URL final; kalau tidak ada baru
+        //    upload file (DI LUAR DB TRANSACTION agar tak mengunci row DB saat tunggu CDN).
         $thumbnailUrl = null;
-        $thumbnailId = null;
-        if ($request->hasFile('image_thumbnail')) {
+        $thumbnailId = null; // hanya untuk file BARU yang di-upload (dihapus bila rollback)
+        if ($request->filled('image_thumbnail_url')) {
+            $thumbnailUrl = $request->image_thumbnail_url;
+        } elseif ($request->hasFile('image_thumbnail')) {
             try {
                 $file = $request->file('image_thumbnail');
-                $nameThumbnail = Str::slug(Str::limit($request->title, 100, '')) . '-thumbnail';
+                // Nama file dari input user agar mudah dicari di galeri CDN; fallback ke judul.
+                $baseName = filled($request->image_name) ? $request->image_name : $request->title;
+                $nameThumbnail = Str::slug(Str::limit($baseName, 100, '')) . '-thumbnail';
                 $thumbnailUrl = $this->cdnService->uploadImage($file, $nameThumbnail, 3, 'convert', $applyWatermark) ?? null;
                 $thumbnailId = $this->cdnService->getLastUploadedId();
             } catch (\Exception $e) {
@@ -321,13 +325,18 @@ class NewsDaerahController extends Controller
         // Default gunakan URL lama
         $thumbnailUrl = $news->image;
 
-        // 1. Proses Upload image_thumbnail (DI LUAR DB TRANSACTION)
+        // 1. Tentukan thumbnail: foto galeri CDN (URL final) diprioritaskan; kalau tidak
+        //    ada baru upload file (DI LUAR DB TRANSACTION).
         // Simpan id gambar BARU saja; gambar lama tidak boleh dihapus saat rollback.
         $newThumbnailId = null;
-        if ($request->hasFile('image_thumbnail')) {
+        if ($request->filled('image_thumbnail_url')) {
+            $thumbnailUrl = $request->image_thumbnail_url;
+        } elseif ($request->hasFile('image_thumbnail')) {
             try {
                 $file = $request->file('image_thumbnail');
-                $nameThumbnail = Str::slug(Str::limit($request->title, 100, '')) . '-thumbnail';
+                // Nama file dari input user agar mudah dicari di galeri CDN; fallback ke judul.
+                $baseName = filled($request->image_name) ? $request->image_name : $request->title;
+                $nameThumbnail = Str::slug(Str::limit($baseName, 100, '')) . '-thumbnail';
                 $thumbnailUrl = $this->cdnService->uploadImage($file, $nameThumbnail, 1, 'convert', $applyWatermark) ?? null;
                 $newThumbnailId = $this->cdnService->getLastUploadedId();
             } catch (\Exception $e) {

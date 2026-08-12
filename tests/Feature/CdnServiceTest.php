@@ -49,4 +49,26 @@ class CdnServiceTest extends TestCase
         $this->assertSame('https://cdn.test/foo.webp', $url);
         $this->assertSame('01JXYZ', $svc->getLastUploadedId());
     }
+
+    public function test_list_images_forwards_filters_and_returns_payload(): void
+    {
+        Http::fake(['*' => Http::response(['data' => [['id' => '1', 'url' => 'x']], 'meta' => ['last_page' => 2]], 200)]);
+
+        $out = (new CdnService)->listImages(['search' => 'jokowi', 'category_slug' => 'news', 'page' => 2]);
+
+        $this->assertCount(1, $out['data']);
+        $this->assertSame(2, $out['meta']['last_page']);
+        Http::assertSent(fn ($req) => str_starts_with($req->url(), 'https://cdn.test/api/v1/images')
+            && $req['search'] === 'jokowi'
+            && $req['category_slug'] === 'news'
+            && $req->hasHeader('x-api-key', 'secret-key'));
+    }
+
+    public function test_list_images_returns_empty_structure_on_failure(): void
+    {
+        Http::fake(['*' => Http::response('nope', 500)]);
+        $out = (new CdnService)->listImages([]);
+        $this->assertSame([], $out['data']);
+        $this->assertNull($out['meta']);
+    }
 }

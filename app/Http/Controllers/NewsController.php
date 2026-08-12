@@ -186,14 +186,18 @@ class NewsController extends Controller implements HasMiddleware
     {
         $applyWatermark = $request->boolean('image_watermark') ? '1' : '0';
 
-        // 1. Proses Upload image_thumbnail ke CDN (DI LUAR DB TRANSACTION)
-        // Kita tidak boleh menahan koneksi DB saat menunggu respon jaringan dari CDN.
+        // 1. Tentukan thumbnail. Foto dari galeri CDN sudah URL final; kalau tidak ada
+        //    baru upload file (DI LUAR DB TRANSACTION, agar tak menahan koneksi DB).
         $thumbnailUrl = null;
-        $thumbnailId = null;
-        if ($request->hasFile('image_thumbnail')) {
+        $thumbnailId = null; // hanya untuk file BARU yang di-upload (dihapus bila rollback)
+        if ($request->filled('image_thumbnail_url')) {
+            $thumbnailUrl = $request->image_thumbnail_url;
+        } elseif ($request->hasFile('image_thumbnail')) {
             try {
                 $file = $request->file('image_thumbnail');
-                $nameThumbnail = Str::slug(Str::limit($request->judul, 100, '')) . '-thumbnail';
+                // Nama file dari input user agar mudah dicari di galeri CDN; fallback ke judul.
+                $baseName = filled($request->image_name) ? $request->image_name : $request->judul;
+                $nameThumbnail = Str::slug(Str::limit($baseName, 100, '')) . '-thumbnail';
 
                 // Ambil URL dari response JSON CDN
                 $thumbnailUrl = $this->cdnService->uploadImage($file, $nameThumbnail, 3, 'convert', $applyWatermark) ?? null;

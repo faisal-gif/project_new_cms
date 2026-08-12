@@ -20,6 +20,8 @@ export default function Create({ writers }) {
         title: '',
         content: '',
         image: null,
+        image_url: '', // Diisi bila memilih foto dari galeri CDN
+        image_name: '', // Nama file untuk CDN (agar mudah dicari di galeri)
         image_watermark: false,
         caption: '',
         city: '',
@@ -208,12 +210,31 @@ export default function Create({ writers }) {
                                                     <div className='flex items-center justify-center gap-0.5 mt-1'>
                                                         <InputImage
                                                             value={data.image}
+                                                            existingImage={data.image_url || null}
                                                             targetHeight={800}
                                                             targetWidth={1200}
-                                                            onChange={(file) => setData('image', file)}
+                                                            onChange={(file) => setData({ ...data, image: file, image_url: file ? '' : data.image_url })}
+                                                            onPickCdn={(url) => setData({ ...data, image: null, image_url: url })}
+                                                            onRemove={() => setData({ ...data, image: null, image_url: '', image_name: '' })}
                                                         />
                                                     </div>
                                                 </div>
+
+                                                {/* Nama file wajib saat upload agar mudah dicari di galeri CDN. Tidak berlaku bila memilih dari galeri. */}
+                                                {!data.image_url && (
+                                                    <div>
+                                                        <InputLabel htmlFor="image_name" value="Nama File Foto (untuk pencarian di galeri)" className='mb-2 label-text font-bold' />
+                                                        <TextInput
+                                                            id="image_name"
+                                                            type="text"
+                                                            className="w-full"
+                                                            placeholder="Contoh: bupati-malang-panen-raya-2026"
+                                                            value={data.image_name}
+                                                            onChange={(e) => setData('image_name', e.target.value)}
+                                                        />
+                                                        <InputError message={errors.image_name} className="mt-2" />
+                                                    </div>
+                                                )}
                                             </div>
                                             <InputError message={errors.image} className="mt-2" />
                                         </div>

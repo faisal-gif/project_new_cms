@@ -39,11 +39,16 @@ class NewsNasionalFormRequest extends FormRequest
             'focus'           => 'nullable',
             'kanal'           => 'required',
             'affiliate_link'  => 'nullable|url',
+            // Diisi bila memilih foto dari galeri CDN (alternatif upload file).
+            'image_thumbnail_url' => 'nullable|url',
+            // Nama file wajib saat mengunggah file (agar mudah dicari di galeri CDN).
+            'image_name' => 'required_with:image_thumbnail|nullable|string|max:100',
         ];
 
-        // Jika request adalah create (POST), gambar wajib. Jika update (PUT/PATCH), gambar opsional.
+        // Create (POST): wajib ada gambar — boleh dari file ATAU dari galeri CDN.
+        // Update (PUT/PATCH): opsional (pertahankan gambar lama bila kosong).
         if ($this->isMethod('post')) {
-            $rules['image_thumbnail'] = 'required|image|mimes:jpeg,png,jpg,gif,svg|max:2048';
+            $rules['image_thumbnail'] = 'required_without:image_thumbnail_url|nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048';
         } else {
             $rules['image_thumbnail'] = 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048';
         }
@@ -70,8 +75,11 @@ class NewsNasionalFormRequest extends FormRequest
             'datepub.date'             => 'Format tanggal publish tidak valid.',
             'kanal.required'           => 'Kanal berita wajib dipilih.',
             'affiliate_link.url'         => 'Link affiliate harus berupa URL yang valid.',
-            'image_thumbnail.required' => 'Gambar thumbnail wajib diunggah.',
+            'image_thumbnail.required_without' => 'Gambar thumbnail wajib diunggah atau dipilih dari galeri CDN.',
             'image_thumbnail.image'    => 'File yang diunggah harus berupa gambar.',
+            'image_thumbnail_url.url'  => 'Foto galeri yang dipilih tidak valid.',
+            'image_name.required_with' => 'Nama file foto wajib diisi saat mengunggah gambar.',
+            'image_name.max'           => 'Nama file foto maksimal 100 karakter.',
             'image_thumbnail.mimes'    => 'Format gambar tidak valid. Harus berupa JPEG, PNG, JPG, GIF, atau SVG.',
             'image_thumbnail.max'      => 'Ukuran gambar tidak boleh lebih dari 2MB.',
             'image_caption.max'        => 'Caption gambar tidak boleh lebih dari 255 karakter.',

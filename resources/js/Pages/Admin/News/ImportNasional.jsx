@@ -9,15 +9,17 @@ import InputTextarea from '@/Components/InputTextarea'
 import TextInput from '@/Components/TextInput'
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout'
 import { Head, useForm } from '@inertiajs/react'
-import { CaptionsIcon, CopyIcon, EyeIcon, GlobeIcon, ImagesIcon, InfoIcon, NotebookPenIcon } from 'lucide-react'
-import React from 'react'
+import { CaptionsIcon, CopyIcon, EyeIcon, GlobeIcon, ImagesIcon, InfoIcon, LibraryIcon, NotebookPenIcon } from 'lucide-react'
+import React, { useState } from 'react'
 import Select from "react-select";
+import CdnImagePicker from '@/Components/CdnImagePicker';
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import CustomTimeInput from '@/Components/CustomTimeInput'
 
 function ImportNasional({ writers, editors, networks, kanal, fokus, initialData, commerceKanalId }) {
 
+    const [showPicker, setShowPicker] = useState(false);
 
     const { data, setData, post, processing, errors } = useForm({
         is_code: initialData?.is_code || '',
@@ -248,7 +250,7 @@ function ImportNasional({ writers, editors, networks, kanal, fokus, initialData,
                                                             className='mb-2 label-text font-bold'
                                                         />
                                                         <img
-                                                            src={initialData?.image_thumbnail || 'https://via.placeholder.com/150'}
+                                                            src={data.image_thumbnail || initialData?.image_thumbnail || 'https://via.placeholder.com/150'}
                                                             alt="preview"
                                                             className="w-full h-full object-contain rounded-lg"
                                                         />
@@ -270,6 +272,9 @@ function ImportNasional({ writers, editors, networks, kanal, fokus, initialData,
                                                                 <EyeIcon className='w-5 h-5' />
                                                             </button>
                                                         </div>
+                                                        <button type='button' onClick={() => setShowPicker(true)} className='btn btn-outline btn-sm w-full mt-2 gap-2'>
+                                                            <LibraryIcon className='w-4 h-4' /> Pilih dari Galeri CDN
+                                                        </button>
                                                     </div>
                                                 </div>
 
@@ -448,6 +453,12 @@ function ImportNasional({ writers, editors, networks, kanal, fokus, initialData,
                     </div>
                 </div>
             </AuthenticatedLayout>
+
+            <CdnImagePicker
+                open={showPicker}
+                onClose={() => setShowPicker(false)}
+                onSelect={({ url }) => { setData('image_thumbnail', url); setShowPicker(false); }}
+            />
         </div>
     )
 }

@@ -5,6 +5,7 @@ use App\Http\Controllers\AdsDaerahController;
 use App\Http\Controllers\AdsLocateController;
 use App\Http\Controllers\AdsNasionalController;
 use App\Http\Controllers\AJPController;
+use App\Http\Controllers\CdnLibraryController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\EditorController;
 use App\Http\Controllers\EditorDaerahController;
@@ -66,6 +67,10 @@ Route::middleware('auth')->group(function () {
 Route::post('/upload-image', [TextEditorController::class, 'upload']);
 Route::post('/upload-image-url', [TextEditorController::class, 'uploadFromUrl'])->name('editor.image.upload.url');
 Route::middleware('auth')->prefix('admin')->name('admin.')->group(function () {
+    // Proxy galeri CDN untuk fitur "pilih foto" (thumbnail & badan berita).
+    Route::get('cdn/images', [CdnLibraryController::class, 'images'])->name('cdn.images');
+    Route::get('cdn/categories', [CdnLibraryController::class, 'categories'])->name('cdn.categories');
+
     Route::resource('news', NewsController::class)->only('index', 'create', 'show', 'store');
     Route::get('/news/import-daerah/{is_code}', [NewsController::class, 'importDaerah'])->name('news.import.daerah');
     Route::post('/news/import-daerah', [NewsController::class, 'importDaerahStore'])->name('news.import.daerah.store');

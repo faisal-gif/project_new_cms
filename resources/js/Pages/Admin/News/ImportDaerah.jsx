@@ -9,14 +9,17 @@ import InputTextarea from '@/Components/InputTextarea'
 import TextInput from '@/Components/TextInput'
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout'
 import { Head, useForm } from '@inertiajs/react'
-import { CaptionsIcon, CopyIcon, EyeIcon, GlobeIcon, ImageIcon, ImagesIcon, InfoIcon, NotebookPenIcon } from 'lucide-react'
-import React from 'react'
+import { CaptionsIcon, CopyIcon, EyeIcon, GlobeIcon, ImageIcon, ImagesIcon, InfoIcon, LibraryIcon, NotebookPenIcon } from 'lucide-react'
+import React, { useState } from 'react'
+import CdnImagePicker from '@/Components/CdnImagePicker';
 import Select from "react-select";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import CustomTimeInput from '@/Components/CustomTimeInput'
 
 function ImportDaerah({ writers, editors, networks, kanal, fokus, initialData, canSelectAllNetwork = false }) {
+
+    const [showPicker, setShowPicker] = useState(false);
 
     const { data, setData, post, processing, errors, reset } = useForm({
         is_code: initialData?.is_code || '',
@@ -253,7 +256,7 @@ function ImportDaerah({ writers, editors, networks, kanal, fokus, initialData, c
                                                             className='mb-2 label-text font-bold'
                                                         />
                                                         <img
-                                                            src={initialData?.image_thumbnail || 'https://via.placeholder.com/150'}
+                                                            src={data.image_thumbnail || initialData?.image_thumbnail || 'https://via.placeholder.com/150'}
                                                             alt="preview"
                                                             className="w-full h-full object-contain rounded-lg"
                                                         />
@@ -276,6 +279,9 @@ function ImportDaerah({ writers, editors, networks, kanal, fokus, initialData, c
                                                                 <EyeIcon className='w-5 h-5' />
                                                             </button>
                                                         </div>
+                                                        <button type='button' onClick={() => setShowPicker(true)} className='btn btn-outline btn-sm w-full mt-2 gap-2'>
+                                                            <LibraryIcon className='w-4 h-4' /> Pilih dari Galeri CDN
+                                                        </button>
                                                     </div>
                                                 </div>
 
@@ -460,6 +466,12 @@ function ImportDaerah({ writers, editors, networks, kanal, fokus, initialData, c
                     </div>
                 </div>
             </AuthenticatedLayout>
+
+            <CdnImagePicker
+                open={showPicker}
+                onClose={() => setShowPicker(false)}
+                onSelect={({ url }) => { setData('image_thumbnail', url); setShowPicker(false); }}
+            />
         </div>
     )
 }

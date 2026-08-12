@@ -99,12 +99,17 @@ class NewsAJPController extends Controller
         }
 
         $imageUrl = null;
-        $imageId = null;
+        $imageId = null; // hanya untuk file BARU yang di-upload (dihapus bila rollback)
         $imageWatermark = $validated['image_watermark'] ?? false;
-        if ($request->hasFile('image')) {
+        if ($request->filled('image_url')) {
+            // Foto dipilih dari galeri CDN — sudah URL final, tidak perlu upload.
+            $imageUrl = $request->image_url;
+        } elseif ($request->hasFile('image')) {
             try {
                 $file = $request->file('image');
-                $imageName = Str::slug(Str::limit($validated['title'], 80, '')) . '-' . time();
+                // Nama file dari input user agar mudah dicari di galeri CDN; fallback ke judul.
+                $baseName = filled($request->image_name) ? $request->image_name : $validated['title'];
+                $imageName = Str::slug(Str::limit($baseName, 80, '')) . '-' . time();
 
                 $imageUrl = $this->cdnService->uploadImage($file, $imageName, 3, 'convert', $imageWatermark ? 1 : 0);
                 $imageId = $this->cdnService->getLastUploadedId();

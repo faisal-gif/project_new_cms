@@ -3,10 +3,11 @@
 "use client";
 
 import { useRef, useState, useEffect } from "react";
-import { ImageIcon, XIcon } from "lucide-react";
+import { ImageIcon, XIcon, LibraryIcon } from "lucide-react";
 import ReactCrop, { centerCrop, makeAspectCrop } from "react-image-crop";
 import "react-image-crop/dist/ReactCrop.css";
 import imageCompression from "browser-image-compression";
+import CdnImagePicker from "./CdnImagePicker";
 
 // --- Helper: Ekstrak area crop ---
 const getCroppedImg = async (image, crop, fileName, targetWidth, targetHeight) => {
@@ -33,6 +34,7 @@ export default function InputImage({
   existingImage = null,
   onChange,
   onRemove,
+  onPickCdn = null,
   className = "",
   enableCrop = true,
   targetWidth = 1200,
@@ -41,6 +43,7 @@ export default function InputImage({
 }) {
   const inputRef = useRef(null);
   const imgRef = useRef(null);
+  const [showPicker, setShowPicker] = useState(false);
 
   const [preview, setPreview] = useState(null);
   const [isDeleted, setIsDeleted] = useState(false);
@@ -158,6 +161,13 @@ export default function InputImage({
     if (inputRef.current) inputRef.current.value = "";
   };
 
+  // Foto dari galeri CDN sudah berupa URL final (tanpa crop/kompres di sini).
+  const handlePickCdn = ({ url, name }) => {
+    setIsDeleted(false);
+    onPickCdn?.(url, name);
+    setShowPicker(false);
+  };
+
   return (
     <div className={`w-full ${className}`}>
       {label && <div className="mb-3"><span className="text-base font-medium">{label}</span></div>}
@@ -197,6 +207,24 @@ export default function InputImage({
       )}
 
       <input ref={inputRef} type="file" accept="image/*" className="hidden" onChange={handleSelect} />
+
+      {onPickCdn && (
+        <button
+          type="button"
+          onClick={() => setShowPicker(true)}
+          className="btn btn-outline btn-sm w-full mt-3 gap-2"
+        >
+          <LibraryIcon className="w-4 h-4" /> Pilih dari Galeri CDN
+        </button>
+      )}
+
+      {onPickCdn && (
+        <CdnImagePicker
+          open={showPicker}
+          onClose={() => setShowPicker(false)}
+          onSelect={handlePickCdn}
+        />
+      )}
 
       {/* Modal Crop */}
       {cropData.src && (

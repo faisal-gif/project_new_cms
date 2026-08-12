@@ -6,11 +6,13 @@ import InputLabel from "./InputLabel";
 import imageCompression from "browser-image-compression";
 import ReactCrop from "react-image-crop";
 import "react-image-crop/dist/ReactCrop.css";
+import CdnImagePicker from "./CdnImagePicker";
 
 export default function EditorImageModal() {
     const [show, setShow] = useState(false);
     const [editor, setEditor] = useState(null);
     const [tab, setTab] = useState("upload");
+    const [showPicker, setShowPicker] = useState(false);
 
     const [file, setFile] = useState(null);
     const [originalFileName, setOriginalFileName] = useState("");
@@ -47,6 +49,7 @@ export default function EditorImageModal() {
         setCaption(""); 
         setTab("upload");
         setError("");
+        setShowPicker(false);
         setCrop(undefined);
         setCompletedCrop(null);
 
@@ -217,6 +220,22 @@ export default function EditorImageModal() {
         }
     };
 
+    // Pilih foto dari galeri CDN: sudah berupa URL final, tinggal disisipkan.
+    const handlePickFromCdn = ({ url, name }) => {
+        setImageUrl(url);
+        setImageName((prev) => prev || name || "");
+        setShowPicker(false);
+        setError("");
+    };
+
+    const insertFromCdn = () => {
+        if (!imageUrl || !editor) return;
+        if (!imageName.trim()) { setError("Nama gambar (Alt Text) wajib diisi"); return; }
+        if (!caption.trim()) { setError("Caption keterangan gambar wajib diisi"); return; }
+        insertImage(imageUrl, imageName, caption);
+        resetAndClose();
+    };
+
     // 💡 LOGIKA BARU UNTUK PROSES URL
     const insertFromUrl = async () => {
         if (!imageUrl || !editor) return;
@@ -292,6 +311,7 @@ export default function EditorImageModal() {
                 <Tabs
                     tabs={[
                         { label: "Upload File", value: "upload" },
+                        { label: "Galeri CDN", value: "cdn" },
                         { label: "Dari URL", value: "url" },
                     ]}
                     value={tab}
@@ -361,6 +381,53 @@ export default function EditorImageModal() {
                     </div>
                 )}
 
+                {/* --- TAB GALERI CDN --- */}
+                {tab === "cdn" && (
+                    <div className="space-y-4 pt-2">
+                        {imageUrl ? (
+                            <div className="border rounded-lg overflow-hidden bg-base-200">
+                                <img src={imageUrl} alt="Foto terpilih" className="w-full max-h-[300px] object-contain" />
+                            </div>
+                        ) : (
+                            <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center text-gray-500 text-sm">
+                                Belum ada foto dipilih.
+                            </div>
+                        )}
+
+                        <button className="btn btn-outline w-full" type="button" onClick={() => setShowPicker(true)}>
+                            {imageUrl ? "Ganti Foto dari Galeri" : "Pilih Foto dari Galeri CDN"}
+                        </button>
+
+                        {error && (
+                            <div className="p-3 bg-red-50 border border-red-200 rounded-md">
+                                <p className="text-error text-sm font-medium">{error}</p>
+                            </div>
+                        )}
+
+                        <div className="space-y-1">
+                            <InputLabel value={"Nama Gambar / Alt Text (Wajib diisi untuk SEO)"} />
+                            <TextInput
+                                type="text" className="w-full"
+                                placeholder="Contoh: presiden-jokowi-konferensi-pers"
+                                value={imageName} onChange={(e) => setImageName(e.target.value)}
+                            />
+                        </div>
+
+                        <div className="space-y-1">
+                            <InputLabel value={"Caption Keterangan Foto (Muncul di bawah gambar)"} />
+                            <TextInput
+                                type="text" className="w-full"
+                                placeholder="Contoh: Presiden Joko Widodo saat memberikan keterangan pers di Istana Negara, Jakarta."
+                                value={caption} onChange={(e) => setCaption(e.target.value)}
+                            />
+                        </div>
+
+                        <button className="btn btn-primary w-full" type="button" onClick={insertFromCdn} disabled={!imageUrl}>
+                            Sisipkan Gambar
+                        </button>
+                    </div>
+                )}
+
                 {/* --- TAB URL --- */}
                 {tab === "url" && (
                     <div className="space-y-4 pt-2">
@@ -410,6 +477,12 @@ export default function EditorImageModal() {
                     </button>
                 </div>
             </div>
+
+            <CdnImagePicker
+                open={showPicker}
+                onClose={() => setShowPicker(false)}
+                onSelect={handlePickFromCdn}
+            />
         </div>
     );
 }

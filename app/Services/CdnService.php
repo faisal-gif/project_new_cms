@@ -61,6 +61,60 @@ class CdnService
     }
 
     /**
+     * Ambil daftar gambar dari galeri CDN (paginated). Dipakai untuk fitur
+     * "pilih foto" — dipanggil server-side supaya X-API-KEY tidak bocor ke browser.
+     * Hanya meneruskan parameter yang aman. Mengembalikan payload CDN apa adanya
+     * (data + meta); pada kegagalan balikin struktur kosong agar UI tetap aman.
+     */
+    public function listImages(array $filters = []): array
+    {
+        $query = array_filter([
+            'search'        => $filters['search'] ?? null,
+            'category_slug' => $filters['category_slug'] ?? null,
+            'category_id'   => $filters['category_id'] ?? null,
+            'per_page'      => $filters['per_page'] ?? 24,
+            'page'          => $filters['page'] ?? 1,
+        ], fn ($v) => $v !== null && $v !== '');
+
+        try {
+            $response = Http::timeout(30)
+                ->withHeaders(['x-api-key' => $this->apiKey])
+                ->get("{$this->baseUrl}/images", $query);
+
+            if ($response->failed()) {
+                Log::warning('CDN List images gagal', ['status' => $response->status(), 'body' => $response->body()]);
+                return ['data' => [], 'meta' => null];
+            }
+
+            return $response->json() ?? ['data' => [], 'meta' => null];
+        } catch (Exception $e) {
+            Log::warning('CDN List images exception', ['error' => $e->getMessage()]);
+            return ['data' => [], 'meta' => null];
+        }
+    }
+
+    /**
+     * Ambil daftar kategori CDN untuk dropdown filter picker.
+     */
+    public function listCategories(): array
+    {
+        try {
+            $response = Http::timeout(30)
+                ->withHeaders(['x-api-key' => $this->apiKey])
+                ->get("{$this->baseUrl}/categories");
+
+            if ($response->failed()) {
+                return [];
+            }
+
+            return $response->json('data') ?? [];
+        } catch (Exception $e) {
+            Log::warning('CDN List categories exception', ['error' => $e->getMessage()]);
+            return [];
+        }
+    }
+
+    /**
      * Upload gambar ke CDN dengan parameter yang bisa dikustomisasi.
      *
      * @param UploadedFile $file File yang diunggah dari request
