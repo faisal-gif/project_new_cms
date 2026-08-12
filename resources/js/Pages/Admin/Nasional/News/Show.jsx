@@ -9,13 +9,14 @@ import {
     ArrowLeftIcon,
     EyeIcon,
     ShoppingBagIcon,
-    RotateCwIcon
+    RotateCwIcon,
+    ExternalLinkIcon
 } from 'lucide-react';
 import React from 'react';
 import { formatDateTimeLong } from '@/Utils/formatter';
 import { Badge } from '@/Components/ui/badge';
 
-export default function Show({ news }) {
+export default function Show({ news, publicUrl }) {
 
     return (
         <div>
@@ -182,6 +183,16 @@ export default function Show({ news }) {
 
                                     {/* Action Buttons */}
                                     <div className="flex justify-end gap-3 pt-6 mt-6 border-t border-gray-100">
+                                        {publicUrl && (
+                                            <a
+                                                href={publicUrl}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="btn btn-success btn-outline"
+                                            >
+                                                <ExternalLinkIcon className="w-4 h-4" /> Lihat di Website
+                                            </a>
+                                        )}
                                         <Link
                                             href={route('admin.nasional.news.edit', news.news_id)}
                                             className="btn btn-primary"

@@ -288,15 +288,22 @@ class NewsNasionalController extends Controller
     {
         // Menggunakan eager loading untuk optimasi performa database
         $news = NewsNasional::with([
-            'kanal:catnews_id,catnews_title', // Sesuaikan kolom nama pada tabel Anda
+            'kanal:catnews_id,catnews_title,catnews_slug', // Sesuaikan kolom nama pada tabel Anda
             'fokus:focnews_id,focnews_title',
             'writer:id,name',
             'tags',
             'commerce',
         ])->findOrFail($id);
 
+        // Link berita publik hanya bila sudah terbit (news_status == 1) dan kanal punya slug.
+        $publicUrl = null;
+        if ((int) $news->news_status === 1 && $news->kanal?->catnews_slug) {
+            $publicUrl = 'https://timesindonesia.co.id/' . $news->kanal->catnews_slug . '/' . $news->news_id . '/' . Str::slug($news->news_title);
+        }
+
         return inertia('Admin/Nasional/News/Show', [
-            'news' => $news
+            'news' => $news,
+            'publicUrl' => $publicUrl,
         ]);
     }
 
