@@ -39,15 +39,23 @@ class NewsKTController extends Controller
             ->when($request->filled('status'), function ($query) use ($request) {
                 $query->where('status', $request->status);
             })
+            ->when($request->filled('member'), function ($query) use ($request) {
+                $query->where('pewarta_id', $request->member);
+            })
             // Urutkan berdasarkan waktu tayang (datetime) terbaru
             ->orderByDesc('id')
             ->paginate(10)
             ->withQueryString();
 
+        // Daftar member (pewarta KT) untuk dropdown filter.
+        $members = WriterBerbayar::where('type', '4')
+            ->orderBy('nama')
+            ->get(['id as value', 'nama as label']);
 
         return Inertia::render('Admin/Kopi_Times/News/Index', [
             'news'    => $news,
-            'filters' => $request->only(['search', 'status']),
+            'members' => $members,
+            'filters' => $request->only(['search', 'status', 'member']),
         ]);
     }
 
@@ -89,6 +97,7 @@ class NewsKTController extends Controller
         }
 
         $imageUrl = null;
+        $imageId = null;
         $imageWatermark = $validated['image_watermark'] ?? false;
         if ($request->hasFile('image')) {
             try {
@@ -96,6 +105,7 @@ class NewsKTController extends Controller
                 $imageName = Str::slug(Str::limit($validated['title'], 80, '')) . '-' . time();
 
                 $imageUrl = $this->cdnService->uploadImage($file, $imageName, 3, 'convert', $imageWatermark ? 1 : 0);
+                $imageId = $this->cdnService->getLastUploadedId();
             } catch (\Exception $e) {
                 return back()->withErrors([
                     'image' => 'Sistem gagal mengunggah gambar ke CDN: ' . $e->getMessage()
@@ -133,6 +143,8 @@ class NewsKTController extends Controller
                 ->with('success', 'Berita berhasil disimpan ke sistem dan kuota penulis telah disesuaikan.');
         } catch (\Exception $e) {
             DB::rollBack();
+            // Berita batal tersimpan: hapus gambar yang sudah terlanjur di-upload ke CDN.
+            $this->cdnService->delete($imageId);
 
             return back()->withErrors([
                 'error' => 'Kegagalan pada database saat menyimpan berita: ' . $e->getMessage()
@@ -274,6 +286,9 @@ class NewsKTController extends Controller
         // Kiriman public_event dari guest tidak punya pewarta_id — writer bisa null.
         $writerKT = $ktNews->pewarta_id ? WriterBerbayar::find($ktNews->pewarta_id) : null;
 
+        // Id gambar BARU yang di-upload saat publish; dihapus dari CDN bila transaksi gagal.
+        $newThumbnailId = null;
+
         DB::connection('mysql_nasional')->beginTransaction();
 
         try {
@@ -291,6 +306,7 @@ class NewsKTController extends Controller
                     $writerName = $writerKT?->nama ?? $ktNews->narsum ?? 'public-event';
                     $nameThumbnail = 'kopi-times-' . Str::slug(Str::limit($writerName, 100, '')) . '-thumbnail';
                     $finalImage = $this->cdnService->uploadImage($file, $nameThumbnail, 3, 'convert', false) ?? null;
+                    $newThumbnailId = $this->cdnService->getLastUploadedId();
                 } catch (\Exception $e) {
                     return back()->withInput()->withErrors(['error' => 'Gagal mengunggah gambar ke CDN: ' . $e->getMessage()]);
                 }
@@ -327,6 +343,8 @@ class NewsKTController extends Controller
             return redirect()->route('admin.kopi-times.news.index')->with('success', 'Berita berhasil diterbitkan!');
         } catch (\Exception $e) {
             DB::connection('mysql_nasional')->rollBack();
+            // Publish batal: hapus HANYA gambar baru yang terlanjur di-upload (bukan gambar lama KT).
+            $this->cdnService->delete($newThumbnailId);
 
             return back()->withInput()->withErrors(['error' => 'Gagal simpan ke Nasional: ' . $e->getMessage()]);
         }

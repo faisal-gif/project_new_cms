@@ -189,6 +189,7 @@ class NewsController extends Controller implements HasMiddleware
         // 1. Proses Upload image_thumbnail ke CDN (DI LUAR DB TRANSACTION)
         // Kita tidak boleh menahan koneksi DB saat menunggu respon jaringan dari CDN.
         $thumbnailUrl = null;
+        $thumbnailId = null;
         if ($request->hasFile('image_thumbnail')) {
             try {
                 $file = $request->file('image_thumbnail');
@@ -196,6 +197,7 @@ class NewsController extends Controller implements HasMiddleware
 
                 // Ambil URL dari response JSON CDN
                 $thumbnailUrl = $this->cdnService->uploadImage($file, $nameThumbnail, 3, 'convert', $applyWatermark) ?? null;
+                $thumbnailId = $this->cdnService->getLastUploadedId();
             } catch (\Exception $e) {
                 // Jika upload gagal, kembalikan response sebelum menyentuh database sama sekali
                 return back()->withInput()->withErrors(['error' => 'Gagal mengunggah gambar ke CDN: ' . $e->getMessage()]);
@@ -255,6 +257,8 @@ class NewsController extends Controller implements HasMiddleware
         } catch (\Exception $e) {
             // Batalkan semua operasi insert/update di database jika ada script yang gagal
             DB::rollBack();
+            // Berita batal tersimpan: hapus gambar yang sudah terlanjur di-upload ke CDN.
+            $this->cdnService->delete($thumbnailId);
 
             return back()->withInput()->withErrors(['error' => 'Gagal menyimpan berita: ' . $e->getMessage()]);
         }

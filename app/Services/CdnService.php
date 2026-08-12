@@ -12,11 +12,52 @@ class CdnService
     protected string $baseUrl;
     protected string $apiKey;
 
+    // ULID gambar terakhir yang berhasil di-upload pada request ini. Dipakai untuk
+    // menghapus gambar yatim di CDN bila penyimpanan berita gagal (rollback).
+    protected ?string $lastUploadedId = null;
+
     public function __construct()
     {
         // Mengambil kredensial dari config
         $this->baseUrl = config('services.tin_cdn.url');
         $this->apiKey = config('services.tin_cdn.api_key');
+    }
+
+    /**
+     * ULID gambar terakhir yang berhasil di-upload. Tangkap tepat setelah upload,
+     * simpan ke variabel lokal, lalu pakai untuk delete() jika transaksi DB gagal.
+     */
+    public function getLastUploadedId(): ?string
+    {
+        return $this->lastUploadedId;
+    }
+
+    /**
+     * Hapus gambar dari CDN berdasarkan ULID. Sengaja TIDAK melempar exception
+     * supaya aman dipanggil di dalam blok catch (kompensasi rollback) tanpa
+     * menutupi error aslinya. Mengembalikan true bila terhapus.
+     */
+    public function delete(?string $id): bool
+    {
+        if (!$id) {
+            return false;
+        }
+
+        try {
+            $response = Http::timeout(30)
+                ->withHeaders(['x-api-key' => $this->apiKey])
+                ->delete("{$this->baseUrl}/images/{$id}");
+
+            if ($response->failed()) {
+                Log::warning('CDN Delete gagal', ['id' => $id, 'status' => $response->status(), 'body' => $response->body()]);
+                return false;
+            }
+
+            return true;
+        } catch (Exception $e) {
+            Log::warning('CDN Delete exception', ['id' => $id, 'error' => $e->getMessage()]);
+            return false;
+        }
     }
 
     /**
@@ -115,6 +156,7 @@ class CdnService
 
         $responseData = $response->json();
         $cdnImageUrl = $responseData['data']['url'] ?? $responseData['url'] ?? null;
+        $this->lastUploadedId = $responseData['data']['id'] ?? $responseData['id'] ?? null;
 
         if (!$cdnImageUrl) {
             Log::error('CDN Response Invalid', ['response' => $responseData]);

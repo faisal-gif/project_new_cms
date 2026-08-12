@@ -90,6 +90,7 @@ class NewsAJPController extends Controller
         }
 
         $imageUrl = null;
+        $imageId = null;
         $imageWatermark = $validated['image_watermark'] ?? false;
         if ($request->hasFile('image')) {
             try {
@@ -97,6 +98,7 @@ class NewsAJPController extends Controller
                 $imageName = Str::slug(Str::limit($validated['title'], 80, '')) . '-' . time();
 
                 $imageUrl = $this->cdnService->uploadImage($file, $imageName, 3, 'convert', $imageWatermark ? 1 : 0);
+                $imageId = $this->cdnService->getLastUploadedId();
             } catch (\Exception $e) {
                 return back()->withErrors([
                     'image' => 'Sistem gagal mengunggah gambar ke CDN: ' . $e->getMessage()
@@ -134,6 +136,8 @@ class NewsAJPController extends Controller
                 ->with('success', 'Berita berhasil disimpan ke sistem dan kuota penulis telah disesuaikan.');
         } catch (\Exception $e) {
             DB::rollBack();
+            // Berita batal tersimpan: hapus gambar yang sudah terlanjur di-upload ke CDN.
+            $this->cdnService->delete($imageId);
 
             return back()->withErrors([
                 'error' => 'Kegagalan pada database saat menyimpan berita: ' . $e->getMessage()
@@ -186,6 +190,9 @@ class NewsAJPController extends Controller
             ? $request->is_code
             : 'AJP-' . Str::upper(Str::random(8));
 
+        // Id gambar BARU yang di-upload saat publish; dihapus dari CDN bila transaksi gagal.
+        $newThumbnailId = null;
+
         // Gunakan koneksi mysql_nasional untuk transaksi
         DB::connection('mysql_nasional')->beginTransaction();
 
@@ -198,6 +205,7 @@ class NewsAJPController extends Controller
                     $file = $request->file('image_thumbnail');
                     $nameThumbnail = Str::slug(Str::limit($request->title, 100, '')) . '-thumbnail';
                     $thumbnailUrl = $this->cdnService->uploadImage($file, $nameThumbnail, 3, 'convert', $imageWatermark ? 1 : 0) ?? null;
+                    $newThumbnailId = $this->cdnService->getLastUploadedId();
                 } catch (\Exception $e) {
                     return back()->withInput()->withErrors(['error' => 'Gagal mengunggah gambar ke CDN: ' . $e->getMessage()]);
                 }
@@ -241,6 +249,8 @@ class NewsAJPController extends Controller
             return redirect()->route('admin.ajp.news.index')->with('success', 'Berita berhasil diterbitkan!');
         } catch (\Exception $e) {
             DB::connection('mysql_nasional')->rollBack();
+            // Publish batal: hapus HANYA gambar baru yang terlanjur di-upload (bukan gambar lama).
+            $this->cdnService->delete($newThumbnailId);
 
             return back()->withInput()->withErrors(['error' => 'Gagal simpan ke Nasional: ' . $e->getMessage()]);
         }

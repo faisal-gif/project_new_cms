@@ -167,11 +167,13 @@ class NewsNasionalController extends Controller
 
         // 1. Proses Upload image_thumbnail ke CDN (DI LUAR DB TRANSACTION)
         $thumbnailUrl = null;
+        $thumbnailId = null;
         if ($request->hasFile('image_thumbnail')) {
             try {
                 $file = $request->file('image_thumbnail');
                 $nameThumbnail = Str::slug(Str::limit($request->title, 100, '')) . '-thumbnail';
                 $thumbnailUrl = $this->cdnService->uploadImage($file, $nameThumbnail, 3, 'convert', $applyWatermark) ?? null;
+                $thumbnailId = $this->cdnService->getLastUploadedId();
             } catch (\Exception $e) {
                 return back()->withInput()->withErrors(['error' => 'Gagal mengunggah gambar ke CDN: ' . $e->getMessage()]);
             }
@@ -228,6 +230,8 @@ class NewsNasionalController extends Controller
             return redirect()->route('admin.nasional.news.index')->with('success', 'Berita Nasional berhasil diterbitkan!');
         } catch (\Exception $e) {
             DB::connection('mysql_nasional')->rollBack();
+            // Berita batal tersimpan: hapus gambar yang sudah terlanjur di-upload ke CDN.
+            $this->cdnService->delete($thumbnailId);
             Log::error('Store NewsNasional Error: ' . $e->getMessage());
 
             return back()->withInput()->withErrors(['error' => 'Gagal simpan ke Nasional: ' . $e->getMessage()]);
@@ -352,11 +356,14 @@ class NewsNasionalController extends Controller
         $thumbnailUrl = $news->news_image_new;
 
         // 1. Proses Upload image_thumbnail (DI LUAR DB TRANSACTION)
+        // Simpan id gambar BARU saja; gambar lama tidak boleh dihapus saat rollback.
+        $newThumbnailId = null;
         if ($request->hasFile('image_thumbnail')) {
             try {
                 $file = $request->file('image_thumbnail');
                 $nameThumbnail = Str::slug(Str::limit($request->title, 100, '')) . '-thumbnail';
                 $thumbnailUrl = $this->cdnService->uploadImage($file, $nameThumbnail, 1, 'convert', $applyWatermark) ?? null;
+                $newThumbnailId = $this->cdnService->getLastUploadedId();
             } catch (\Exception $e) {
                 return back()->withInput()->withErrors(['error' => 'Gagal mengunggah gambar baru ke CDN: ' . $e->getMessage()]);
             }
@@ -418,6 +425,8 @@ class NewsNasionalController extends Controller
             return redirect()->route('admin.nasional.news.index')->with('success', 'Berita Nasional berhasil diperbarui!');
         } catch (\Exception $e) {
             DB::connection('mysql_nasional')->rollBack();
+            // Update batal: hapus HANYA gambar baru yang terlanjur di-upload (bukan gambar lama).
+            $this->cdnService->delete($newThumbnailId);
             Log::error('Update NewsNasional Error: ' . $e->getMessage());
 
             return back()->withInput()->withErrors(['error' => 'Gagal update Nasional: ' . $e->getMessage()]);
