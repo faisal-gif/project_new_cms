@@ -3,7 +3,7 @@ import { Badge } from '@/Components/ui/badge'
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout'
 import { formatDate } from '@/Utils/formatter'
 import { Head, Link } from '@inertiajs/react'
-import { ArrowLeft, Edit, ImageIcon, InfoIcon, UploadCloudIcon } from 'lucide-react'
+import { ArrowLeft, Edit, ExternalLinkIcon, ImageIcon, InfoIcon, UploadCloudIcon } from 'lucide-react'
 import React from 'react'
 
 export default function Show({ news }) {
@@ -58,9 +58,18 @@ export default function Show({ news }) {
                             )}
 
                             {news.news_nasional && (
-                                <Link href={route('admin.nasional.news.show', news.news_nasional.news_id)} className="btn btn-info">
-                                    <InfoIcon size={16} /> Detail Berita
-                                </Link>
+                                <div className="flex gap-3">
+                                    <Link href={route('admin.nasional.news.show', news.news_nasional.news_id)} className="btn btn-info">
+                                        <InfoIcon size={16} /> Detail Berita
+                                    </Link>
+
+                                    {/* Tombol Website: link berita publik yang tersimpan saat publish */}
+                                    {news.url && (
+                                        <a href={news.url} target="_blank" rel="noopener noreferrer" className="btn btn-success btn-outline">
+                                            <ExternalLinkIcon size={16} /> Lihat di Website
+                                        </a>
+                                    )}
+                                </div>
                             )}
                         </div>
 
