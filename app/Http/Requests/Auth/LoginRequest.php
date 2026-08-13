@@ -68,6 +68,15 @@ class LoginRequest extends FormRequest
         }
 
         RateLimiter::clear($this->throttleKey());
+
+        // Hanya akun aktif (status '1') yang boleh login. Status '0' / 'banned' ditolak.
+        if ((string) Auth::user()->status !== '1') {
+            Auth::logout();
+
+            throw ValidationException::withMessages([
+                'email' => 'Akun Anda tidak aktif. Silakan hubungi administrator.',
+            ]);
+        }
     }
 
     /**
