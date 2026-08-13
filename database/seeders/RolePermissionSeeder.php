@@ -11,19 +11,16 @@ class RolePermissionSeeder extends Seeder
 {
     /**
      * Run the database seeds.
+     *
+     * Daftar permission mengikuti data production (net_master.permissions).
+     * Perhatikan sebagian resource sengaja tidak punya CRUD lengkap
+     * (mis. Ads Nasional tanpa delete, News AJP hanya view/create/publish).
      */
     public function run(): void
     {
         app()[PermissionRegistrar::class]->forgetCachedPermissions();
 
         $permissions = [
-            'Dashboard' => [
-                'view dashboard news',
-                'view dashboard editor performance',
-                'view dashboard photo',
-                'view dashboard kopi times',
-                'view dashboard ajp',
-            ],
             'News Master' => [
                 'view news master',
                 'create news master',
@@ -61,12 +58,13 @@ class RolePermissionSeeder extends Seeder
                 'create editor master',
                 'edit editor master',
                 'delete editor master',
-            ],            
+            ],
             'News Nasional' => [
                 'view news nasional',
                 'create news nasional',
                 'edit news nasional',
                 'delete news nasional',
+                'publish news nasional',
             ],
             'Kanal Nasional' => [
                 'view kanal nasional',
@@ -85,9 +83,9 @@ class RolePermissionSeeder extends Seeder
                 'create gallery nasional',
                 'edit gallery nasional',
                 'delete gallery nasional',
-                'publish gallery nasional',
                 'select editor gallery nasional',
                 'select fotografer gallery nasional',
+                'publish gallery nasional',
             ],
             'Ekoran Nasional' => [
                 'view ekoran nasional',
@@ -112,6 +110,8 @@ class RolePermissionSeeder extends Seeder
                 'create news daerah',
                 'edit news daerah',
                 'delete news daerah',
+                'publish news daerah',
+                'select all networks',
             ],
             'Kanal Daerah' => [
                 'view kanal daerah',
@@ -155,11 +155,88 @@ class RolePermissionSeeder extends Seeder
                 'edit ads daerah location',
                 'delete ads daerah location',
             ],
+            'Ads Nasional' => [
+                'view ads nasional',
+                'create ads nasional',
+                'edit ads nasional',
+            ],
+            'AJP' => [
+                'export ajp',
+            ],
+            'History' => [
+                'view history',
+            ],
+            'Page Static Nasional' => [
+                'view page static nasional',
+                'create page static nasional',
+                'edit page static nasional',
+            ],
+            'Member AJP' => [
+                'view member ajp',
+                'create member ajp',
+                'edit member ajp',
+            ],
+            'News AJP' => [
+                'view news ajp',
+                'create news ajp',
+                'publish news ajp',
+            ],
+            'News Kopi Times' => [
+                'view news kopi-times',
+                'publish news kopi-times',
+                'edit news kopi-times',
+            ],
+            'Transaction Kopi Times' => [
+                'view transaction kopi-times',
+            ],
+            'Transaction AJP' => [
+                'view transaction ajp',
+            ],
+            'Addons Request Kopi Times' => [
+                'view addon-requests kopi-times',
+            ],
+            'Pengumuman Kopi Times' => [
+                'view pengumuman kopi-times',
+                'create pengumuman kopi-times',
+                'edit pengumuman kopi-times',
+            ],
+            'Member Kopi Times' => [
+                'view member kopi-times',
+                'create member kopi-times',
+                'edit member kopi-times',
+            ],
+            'Paket Kopi Times' => [
+                'create paket kopi-times',
+                'view paket kopi-times',
+                'edit paket kopi-times',
+            ],
+            'Merchandise Kopi Times' => [
+                'view merchandise kopi-times',
+            ],
+            'Paket AJP' => [
+                'create paket ajp',
+                'edit paket ajp',
+                'view paket ajp',
+            ],
+            'Pengumuman AJP' => [
+                'view pengumuman ajp',
+                'create pengumuman ajp',
+                'edit pengumuman ajp',
+            ],
+            'Addons Request AJP' => [
+                'view addon-requests ajp',
+            ],
+            'Dashboard' => [
+                'view dashboard news',
+                'view dashboard editor performance',
+                'view dashboard photo',
+                'view dashboard kopi times',
+                'view dashboard ajp',
+            ],
             'Event Kopi Times' => [
                 'view event kopi-times',
                 'create event kopi-times',
                 'edit event kopi-times',
-                'delete event kopi-times',
             ],
         ];
 
@@ -168,7 +245,9 @@ class RolePermissionSeeder extends Seeder
             foreach ($perms as $permission) {
                 Permission::firstOrCreate([
                     'name' => $permission,
-                    'category' => $category // Simpan kategorinya
+                    'guard_name' => 'web',
+                ], [
+                    'category' => $category,
                 ]);
             }
         }

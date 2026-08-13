@@ -66,7 +66,7 @@ Route::middleware('auth')->group(function () {
 });
 Route::post('/upload-image', [TextEditorController::class, 'upload']);
 Route::post('/upload-image-url', [TextEditorController::class, 'uploadFromUrl'])->name('editor.image.upload.url');
-Route::middleware('auth')->prefix('admin')->name('admin.')->group(function () {
+Route::middleware(['auth', \App\Http\Middleware\EnforceRoutePermission::class])->prefix('admin')->name('admin.')->group(function () {
     // Proxy galeri CDN untuk fitur "pilih foto" (thumbnail & badan berita).
     Route::get('cdn/images', [CdnLibraryController::class, 'images'])->name('cdn.images');
     Route::get('cdn/categories', [CdnLibraryController::class, 'categories'])->name('cdn.categories');
