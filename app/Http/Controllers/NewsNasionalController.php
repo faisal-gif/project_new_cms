@@ -298,6 +298,7 @@ class NewsNasionalController extends Controller
             'writer:id,name',
             'tags',
             'commerce',
+            'viewData',
         ])->findOrFail($id);
 
         // Link berita publik hanya bila sudah terbit (news_status == 1) dan kanal punya slug.

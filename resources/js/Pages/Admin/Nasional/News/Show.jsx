@@ -48,32 +48,42 @@ export default function Show({ news, publicUrl }) {
                                 <article className="flex flex-col space-y-8 p-4">
 
                                     {/* Judul & Meta Informasi */}
-                                    <header className="border-b pb-6">
-                                        <h2 className="text-4xl font-extrabold text-gray-900 leading-tight">
+                                    <header className="border-b border-border pb-6">
+                                        <div className="flex flex-wrap items-center gap-2 mb-3">
+                                            <Badge className={`badge badge-sm ${Number(news.news_status) === 1 ? 'badge-success' : 'badge-ghost'}`}>
+                                                {Number(news.news_status) === 1 ? 'Terbit' : 'Draft'}
+                                            </Badge>
+                                            {news.fokus?.focnews_title && (
+                                                <Badge className="badge badge-sm badge-outline">
+                                                    {news.fokus.focnews_title}
+                                                </Badge>
+                                            )}
+                                        </div>
+                                        <h2 className="text-4xl font-extrabold text-foreground leading-tight">
                                             {news.news_title}
                                         </h2>
                                         {news.news_subtitle && (
-                                            <h3 className="text-2xl text-gray-600 mt-2 font-medium">
+                                            <h3 className="text-2xl text-muted-foreground mt-2 font-medium">
                                                 {news.news_subtitle}
                                             </h3>
                                         )}
 
-                                        <div className="flex flex-wrap items-center gap-6 mt-6 text-sm text-gray-600">
-                                            <span className="flex items-center gap-2 bg-gray-100 px-3 py-1 rounded-full">
+                                        <div className="flex flex-wrap items-center gap-6 mt-6 text-sm text-muted-foreground">
+                                            <span className="flex items-center gap-2 bg-muted px-3 py-1 rounded-full">
                                                 <UserIcon className="w-4 h-4 text-primary" />
                                                 {news.writer?.name || news.news_writer || 'Penulis Tidak Diketahui'}
                                             </span>
                                             <span className="flex items-center gap-2">
-                                                <CalendarIcon className="w-4 h-4 text-gray-400" />
+                                                <CalendarIcon className="w-4 h-4" />
                                                 {formatDateTimeLong(news.news_datepub)} WIB
                                             </span>
                                             <span className="flex items-center gap-2">
-                                                <FolderIcon className="w-4 h-4 text-gray-400" />
+                                                <FolderIcon className="w-4 h-4" />
                                                 {news.kanal?.catnews_title || 'Tanpa Kanal'}
                                             </span>
                                             <span className="flex items-center gap-2">
-                                                <EyeIcon className="w-4 h-4 text-gray-400" />
-                                                Dilihat
+                                                <EyeIcon className="w-4 h-4" />
+                                                {Number(news.view_data?.pageviews ?? 0).toLocaleString('id-ID')} dilihat
                                             </span>
                                         </div>
                                     </header>
@@ -92,8 +102,8 @@ export default function Show({ news, publicUrl }) {
 
                                             {/* Caption di Bawah Foto */}
                                             {news.news_caption && (
-                                                <figcaption className="w-full mt-4 text-sm text-gray-700 bg-gray-50 p-4 rounded-xl border border-gray-100 shadow-sm">
-                                                    <span className="font-bold text-gray-900 block mb-1">
+                                                <figcaption className="w-full mt-4 text-sm text-muted-foreground bg-muted p-4 rounded-xl border border-border shadow-sm">
+                                                    <span className="font-bold text-foreground block mb-1">
                                                        Caption Foto
                                                     </span>
                                                     <p className="leading-relaxed italic">
@@ -109,16 +119,16 @@ export default function Show({ news, publicUrl }) {
                                     {/* Isi Konten Berita */}
                                     {/* Menggunakan Tailwind Typography (prose) untuk styling otomatis tag HTML */}
                                     <div
-                                        className="prose prose-lg max-w-none prose-img:rounded-xl prose-a:text-primary"
+                                        className="prose prose-lg dark:prose-invert max-w-none prose-img:rounded-xl prose-a:text-primary"
                                         dangerouslySetInnerHTML={{ __html: news.news_content }}
                                     />
 
                                     {/* Tags */}
                                     {news.tags && news.tags.length > 0 && (
-                                        <div className="pt-6 border-t border-gray-100">
+                                        <div className="pt-6 border-t border-border">
                                             <div className="flex items-center gap-3 flex-wrap">
-                                                <TagIcon className="w-5 h-5 text-gray-400" />
-                                                <span className="font-semibold text-gray-700 text-sm">Tags:</span>
+                                                <TagIcon className="w-5 h-5 text-muted-foreground" />
+                                                <span className="font-semibold text-foreground text-sm">Tags:</span>
                                                 {news.tags.map((tag) => (
                                                     // Sesuaikan tag.name dengan field di tabel tags Anda
                                                     <Badge key={tag.id} className="badge badge-outline badge-md">
@@ -131,10 +141,10 @@ export default function Show({ news, publicUrl }) {
 
                                     {/* Produk Affiliate (Kanal Commerce) */}
                                     {news.commerce && (
-                                        <div className="pt-6 border-t border-gray-100">
+                                        <div className="pt-6 border-t border-border">
                                             <div className="flex items-center gap-2 mb-4">
                                                 <ShoppingBagIcon className="w-5 h-5 text-primary" />
-                                                <span className="font-semibold text-gray-700">Produk Affiliate</span>
+                                                <span className="font-semibold text-foreground">Produk Affiliate</span>
                                                 {news.commerce.platform && (
                                                     <Badge className="badge badge-sm badge-primary">
                                                         {news.commerce.platform}
@@ -144,7 +154,7 @@ export default function Show({ news, publicUrl }) {
                                                     {news.commerce.crawl_status}
                                                 </Badge>
                                             </div>
-                                            <div className="flex flex-col sm:flex-row gap-4 bg-gray-50 p-4 rounded-xl border border-gray-100">
+                                            <div className="flex flex-col sm:flex-row gap-4 bg-muted p-4 rounded-xl border border-border">
                                                 {news.commerce.product_image && (
                                                     <img
                                                         src={news.commerce.product_image}
@@ -154,10 +164,10 @@ export default function Show({ news, publicUrl }) {
                                                 )}
                                                 <div className="flex flex-col gap-2 min-w-0">
                                                     {news.commerce.product_title && (
-                                                        <p className="font-semibold text-gray-900">{news.commerce.product_title}</p>
+                                                        <p className="font-semibold text-foreground">{news.commerce.product_title}</p>
                                                     )}
                                                     {news.commerce.product_description && (
-                                                        <p className="text-sm text-gray-600 line-clamp-2">{news.commerce.product_description}</p>
+                                                        <p className="text-sm text-muted-foreground line-clamp-2">{news.commerce.product_description}</p>
                                                     )}
                                                     <a
                                                         href={news.commerce.resolved_url || news.commerce.affiliate_link}
@@ -182,7 +192,7 @@ export default function Show({ news, publicUrl }) {
                                     )}
 
                                     {/* Action Buttons */}
-                                    <div className="flex justify-end gap-3 pt-6 mt-6 border-t border-gray-100">
+                                    <div className="flex justify-end gap-3 pt-6 mt-6 border-t border-border">
                                         {publicUrl && (
                                             <a
                                                 href={publicUrl}
