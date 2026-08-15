@@ -1,0 +1,347 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+        "title": "TIN CMS API",
+        "description": "API internal CMS (first-party, auth via sesi web).",
+        "version": "1.0.0"
+    },
+    "servers": [
+        {
+            "url": "/",
+            "description": "Server aplikasi (relatif terhadap host saat ini)"
+        }
+    ],
+    "paths": {
+        "/api/kopi-times/members": {
+            "get": {
+                "tags": [
+                    "Kopi Times"
+                ],
+                "summary": "List / cari member Kopi Times",
+                "description": "Wartawan berbayar dengan type=KT.",
+                "operationId": "e79200b36ff90bfc70c3ad6bb8bff0b2",
+                "parameters": [
+                    {
+                        "name": "q_name",
+                        "in": "query",
+                        "description": "Cocokkan nama / email",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "q_instansi",
+                        "in": "query",
+                        "description": "Cocokkan instansi / city",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "active",
+                        "in": "query",
+                        "description": "Truthy: hanya langganan aktif (dateexp >= hari ini)",
+                        "required": false,
+                        "schema": {
+                            "type": "boolean"
+                        }
+                    },
+                    {
+                        "name": "status",
+                        "in": "query",
+                        "description": "Filter status (exact)",
+                        "required": false,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "per_page",
+                        "in": "query",
+                        "description": "Item per halaman (default 15, maks 100)",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "default": 15,
+                            "maximum": 100
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Daftar member KT (paginasi Laravel standar)",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "current_page": {
+                                            "type": "integer",
+                                            "example": 1
+                                        },
+                                        "per_page": {
+                                            "type": "integer",
+                                            "example": 15
+                                        },
+                                        "total": {
+                                            "type": "integer",
+                                            "example": 30
+                                        },
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "properties": {
+                                                    "id": {
+                                                        "type": "integer",
+                                                        "example": 9
+                                                    },
+                                                    "nama": {
+                                                        "type": "string",
+                                                        "example": "Budi Santoso"
+                                                    },
+                                                    "email": {
+                                                        "type": "string",
+                                                        "example": "budi@example.com"
+                                                    },
+                                                    "city": {
+                                                        "type": "string",
+                                                        "example": "Malang"
+                                                    },
+                                                    "prov": {
+                                                        "type": "string",
+                                                        "example": "Jawa Timur"
+                                                    },
+                                                    "instansi": {
+                                                        "type": "string",
+                                                        "example": "..."
+                                                    },
+                                                    "kategori": {
+                                                        "type": "string",
+                                                        "example": "..."
+                                                    },
+                                                    "type_label": {
+                                                        "type": "string",
+                                                        "example": "KT"
+                                                    },
+                                                    "is_active_subscriber": {
+                                                        "type": "boolean",
+                                                        "example": true
+                                                    },
+                                                    "dateexp": {
+                                                        "type": "string",
+                                                        "example": "2026-12-31"
+                                                    },
+                                                    "quota_news": {
+                                                        "type": "integer",
+                                                        "example": 10
+                                                    },
+                                                    "status": {
+                                                        "type": "integer",
+                                                        "example": 1
+                                                    }
+                                                },
+                                                "type": "object"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Belum terautentikasi"
+                    }
+                },
+                "security": [
+                    {
+                        "apiKey": []
+                    }
+                ]
+            }
+        },
+        "/api/kopi-times/news": {
+            "get": {
+                "tags": [
+                    "Kopi Times"
+                ],
+                "summary": "List / cari berita Kopi Times",
+                "description": "Berita berbayar type=KT, menyertakan data member dan berita nasional terkait (link, judul, deskripsi, body).",
+                "operationId": "16ccac7baa9141a6a6d6f91d423097b4",
+                "parameters": [
+                    {
+                        "name": "q_title",
+                        "in": "query",
+                        "description": "Cocokkan judul KT / is_code",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "q_member",
+                        "in": "query",
+                        "description": "Cocokkan nama / email member",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "member",
+                        "in": "query",
+                        "description": "Filter pewarta_id (exact)",
+                        "required": false,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "status",
+                        "in": "query",
+                        "description": "Filter status (exact)",
+                        "required": false,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "per_page",
+                        "in": "query",
+                        "description": "Item per halaman (default 15, maks 100)",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "default": 15,
+                            "maximum": 100
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Daftar berita KT (paginasi Laravel standar)",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "current_page": {
+                                            "type": "integer",
+                                            "example": 1
+                                        },
+                                        "per_page": {
+                                            "type": "integer",
+                                            "example": 15
+                                        },
+                                        "total": {
+                                            "type": "integer",
+                                            "example": 42
+                                        },
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "properties": {
+                                                    "id": {
+                                                        "type": "integer",
+                                                        "example": 123
+                                                    },
+                                                    "is_code": {
+                                                        "type": "string",
+                                                        "example": "KT-xxxx"
+                                                    },
+                                                    "title": {
+                                                        "type": "string",
+                                                        "example": "Judul versi KT"
+                                                    },
+                                                    "status": {
+                                                        "type": "integer",
+                                                        "example": 1
+                                                    },
+                                                    "datepub": {
+                                                        "type": "string",
+                                                        "example": "2026-08-15 10:00:00"
+                                                    },
+                                                    "member": {
+                                                        "properties": {
+                                                            "id": {
+                                                                "type": "integer",
+                                                                "example": 9
+                                                            },
+                                                            "nama": {
+                                                                "type": "string",
+                                                                "example": "Nama Pewarta"
+                                                            },
+                                                            "email": {
+                                                                "type": "string",
+                                                                "example": "pewarta@example.com"
+                                                            }
+                                                        },
+                                                        "type": "object",
+                                                        "nullable": true
+                                                    },
+                                                    "news_nasional": {
+                                                        "properties": {
+                                                            "news_id": {
+                                                                "type": "integer",
+                                                                "example": 45678
+                                                            },
+                                                            "link": {
+                                                                "type": "string",
+                                                                "example": "https://timesindonesia.co.id/kanal-slug/45678/judul-berita",
+                                                                "nullable": true
+                                                            },
+                                                            "title": {
+                                                                "type": "string",
+                                                                "example": "Judul Nasional"
+                                                            },
+                                                            "description": {
+                                                                "type": "string",
+                                                                "example": "Deskripsi..."
+                                                            },
+                                                            "body": {
+                                                                "type": "string",
+                                                                "example": "<p>Isi konten...</p>"
+                                                            }
+                                                        },
+                                                        "type": "object",
+                                                        "nullable": true
+                                                    }
+                                                },
+                                                "type": "object"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Belum terautentikasi"
+                    }
+                },
+                "security": [
+                    {
+                        "apiKey": []
+                    }
+                ]
+            }
+        }
+    },
+    "components": {
+        "securitySchemes": {
+            "apiKey": {
+                "type": "apiKey",
+                "description": "API key statis dari .env (API_KEY). Kirim di header X-API-KEY.",
+                "name": "X-API-KEY",
+                "in": "header"
+            }
+        }
+    },
+    "tags": [
+        {
+            "name": "Kopi Times",
+            "description": "Berita & member Kopi Times"
+        }
+    ]
+}

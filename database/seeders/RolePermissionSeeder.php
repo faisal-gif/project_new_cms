@@ -194,6 +194,7 @@ class RolePermissionSeeder extends Seeder
             ],
             'Addons Request Kopi Times' => [
                 'view addon-requests kopi-times',
+                'edit addon-requests kopi-times',
             ],
             'Pengumuman Kopi Times' => [
                 'view pengumuman kopi-times',
@@ -225,6 +226,7 @@ class RolePermissionSeeder extends Seeder
             ],
             'Addons Request AJP' => [
                 'view addon-requests ajp',
+                'edit addon-requests ajp',
             ],
             'Dashboard' => [
                 'view dashboard news',
@@ -237,6 +239,11 @@ class RolePermissionSeeder extends Seeder
                 'view event kopi-times',
                 'create event kopi-times',
                 'edit event kopi-times',
+            ],
+            'Report' => [
+                'view report news nasional',
+                'view report news daerah',
+                'view report gallery nasional',
             ],
         ];
 
