@@ -249,10 +249,6 @@
                                                         "type": "string",
                                                         "example": "KT-xxxx"
                                                     },
-                                                    "title": {
-                                                        "type": "string",
-                                                        "example": "Judul versi KT"
-                                                    },
                                                     "status": {
                                                         "type": "integer",
                                                         "example": 1
@@ -260,6 +256,26 @@
                                                     "datepub": {
                                                         "type": "string",
                                                         "example": "2026-08-15 10:00:00"
+                                                    },
+                                                    "title": {
+                                                        "type": "string",
+                                                        "example": "Judul Nasional",
+                                                        "nullable": true
+                                                    },
+                                                    "description": {
+                                                        "type": "string",
+                                                        "example": "Deskripsi...",
+                                                        "nullable": true
+                                                    },
+                                                    "body": {
+                                                        "type": "string",
+                                                        "example": "<p>Isi konten...</p>",
+                                                        "nullable": true
+                                                    },
+                                                    "link": {
+                                                        "type": "string",
+                                                        "example": "https://timesindonesia.co.id/kanal-slug/45678/judul-berita",
+                                                        "nullable": true
                                                     },
                                                     "member": {
                                                         "properties": {
@@ -274,33 +290,6 @@
                                                             "email": {
                                                                 "type": "string",
                                                                 "example": "pewarta@example.com"
-                                                            }
-                                                        },
-                                                        "type": "object",
-                                                        "nullable": true
-                                                    },
-                                                    "news_nasional": {
-                                                        "properties": {
-                                                            "news_id": {
-                                                                "type": "integer",
-                                                                "example": 45678
-                                                            },
-                                                            "link": {
-                                                                "type": "string",
-                                                                "example": "https://timesindonesia.co.id/kanal-slug/45678/judul-berita",
-                                                                "nullable": true
-                                                            },
-                                                            "title": {
-                                                                "type": "string",
-                                                                "example": "Judul Nasional"
-                                                            },
-                                                            "description": {
-                                                                "type": "string",
-                                                                "example": "Deskripsi..."
-                                                            },
-                                                            "body": {
-                                                                "type": "string",
-                                                                "example": "<p>Isi konten...</p>"
                                                             }
                                                         },
                                                         "type": "object",

@@ -47,20 +47,16 @@ class KopiTimesNewsController extends Controller
                     new OA\Property(property: 'data', type: 'array', items: new OA\Items(properties: [
                         new OA\Property(property: 'id', type: 'integer', example: 123),
                         new OA\Property(property: 'is_code', type: 'string', example: 'KT-xxxx'),
-                        new OA\Property(property: 'title', type: 'string', example: 'Judul versi KT'),
                         new OA\Property(property: 'status', type: 'integer', example: 1),
                         new OA\Property(property: 'datepub', type: 'string', example: '2026-08-15 10:00:00'),
+                        new OA\Property(property: 'title', type: 'string', nullable: true, example: 'Judul Nasional'),
+                        new OA\Property(property: 'description', type: 'string', nullable: true, example: 'Deskripsi...'),
+                        new OA\Property(property: 'body', type: 'string', nullable: true, example: '<p>Isi konten...</p>'),
+                        new OA\Property(property: 'link', type: 'string', nullable: true, example: 'https://timesindonesia.co.id/kanal-slug/45678/judul-berita'),
                         new OA\Property(property: 'member', type: 'object', nullable: true, properties: [
                             new OA\Property(property: 'id', type: 'integer', example: 9),
                             new OA\Property(property: 'nama', type: 'string', example: 'Nama Pewarta'),
                             new OA\Property(property: 'email', type: 'string', example: 'pewarta@example.com'),
-                        ]),
-                        new OA\Property(property: 'news_nasional', type: 'object', nullable: true, properties: [
-                            new OA\Property(property: 'news_id', type: 'integer', example: 45678),
-                            new OA\Property(property: 'link', type: 'string', nullable: true, example: 'https://timesindonesia.co.id/kanal-slug/45678/judul-berita'),
-                            new OA\Property(property: 'title', type: 'string', example: 'Judul Nasional'),
-                            new OA\Property(property: 'description', type: 'string', example: 'Deskripsi...'),
-                            new OA\Property(property: 'body', type: 'string', example: '<p>Isi konten...</p>'),
                         ]),
                     ])),
                 ])
@@ -100,20 +96,17 @@ class KopiTimesNewsController extends Controller
         $news->through(fn (NewsBerbayar $item) => [
             'id' => $item->id,
             'is_code' => $item->is_code,
-            'title' => $item->title,
             'status' => $item->status,
             'datepub' => $item->datepub,
+            // Judul/deskripsi/isi diambil dari berita nasional terkait (via is_code).
+            'title' => $item->newsNasional?->news_title,
+            'description' => $item->newsNasional?->news_description,
+            'body' => $item->newsNasional?->news_content,
+            'link' => $item->newsNasional ? $this->nasionalLink($item->newsNasional) : null,
             'member' => $item->writer ? [
                 'id' => $item->writer->id,
                 'nama' => $item->writer->nama,
                 'email' => $item->writer->email,
-            ] : null,
-            'news_nasional' => $item->newsNasional ? [
-                'news_id' => $item->newsNasional->news_id,
-                'link' => $this->nasionalLink($item->newsNasional),
-                'title' => $item->newsNasional->news_title,
-                'description' => $item->newsNasional->news_description,
-                'body' => $item->newsNasional->news_content,
             ] : null,
         ]);
 
