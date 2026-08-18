@@ -10,6 +10,13 @@ import { Head, Link, router, usePage } from '@inertiajs/react'
 import { Check, Copy, Download, Link2, Plus, Search } from 'lucide-react'
 import React, { useEffect, useRef, useState } from 'react'
 import Select from "react-select";
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuLabel,
+  DropdownMenuItem,
+} from '@/Components/ui/dropdown-menu'
 
 // Dropdown salin link publik per network tempat berita ini tayang.
 function CopyLinkDropdown({ links }) {
@@ -23,24 +30,28 @@ function CopyLinkDropdown({ links }) {
   };
 
   return (
-    <div className="dropdown dropdown-end">
-      <label tabIndex={0} className="btn btn-sm btn-info btn-outline gap-1">
-        <Link2 size={14} /> Copy Link
-      </label>
-      <ul tabIndex={0} className="dropdown-content menu bg-base-100 rounded-box z-[1] w-64 p-2 shadow border border-base-200 max-h-72 overflow-auto flex-nowrap">
-        <li className="menu-title text-xs">Pilih network</li>
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <button type="button" className="btn btn-sm btn-info btn-outline gap-1">
+          <Link2 size={14} /> Copy Link
+        </button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" className="w-64 max-h-72">
+        <DropdownMenuLabel>Pilih network</DropdownMenuLabel>
         {links.map((l, i) => (
-          <li key={i}>
-            <button type="button" onClick={() => copy(l.url, i)} className="justify-between">
-              <span className="truncate">{l.network}</span>
-              {copied === i
-                ? <Check size={14} className="text-success shrink-0" />
-                : <Copy size={14} className="shrink-0 opacity-60" />}
-            </button>
-          </li>
+          <DropdownMenuItem
+            key={i}
+            className="justify-between"
+            onSelect={(e) => { e.preventDefault(); copy(l.url, i); }}
+          >
+            <span className="truncate">{l.network}</span>
+            {copied === i
+              ? <Check size={14} className="text-green-600 shrink-0" />
+              : <Copy size={14} className="shrink-0 opacity-60" />}
+          </DropdownMenuItem>
         ))}
-      </ul>
-    </div>
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 }
 
