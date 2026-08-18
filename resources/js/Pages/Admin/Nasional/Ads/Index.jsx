@@ -1,10 +1,25 @@
-import React from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import Card from '@/Components/Card';
-import { Head, Link } from '@inertiajs/react';
+import { Head, Link, router } from '@inertiajs/react';
 
-export default function Index({ ads }) {
+export default function Index({ ads, filters = {} }) {
+
+    const [search, setSearch] = useState(filters.search || '');
+    const isFirst = useRef(true);
+
+    useEffect(() => {
+        if (isFirst.current) { isFirst.current = false; return; }
+        const t = setTimeout(() => {
+            router.get(route('admin.nasional.ads.index'), { search }, {
+                preserveState: true,
+                preserveScroll: true,
+                replace: true,
+            });
+        }, 350);
+        return () => clearTimeout(t);
+    }, [search]);
 
     // Helper untuk memformat angka menjadi Rupiah (IDR)
     const formatRupiah = (number) => {
@@ -34,14 +49,23 @@ export default function Index({ ads }) {
                     </div>
 
                     <Card>
-                        <div className="flex justify-between items-center mb-6">
+                        <div className="flex flex-col md:flex-row justify-between md:items-center gap-4 mb-6">
                             <h2 className="text-lg font-semibold text-gray-700">Daftar Campaign Iklan</h2>
-                            <Link
-                                href={route('admin.nasional.ads.create')}
-                                className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-md font-semibold transition duration-150 ease-in-out"
-                            >
-                                + Tambah Iklan
-                            </Link>
+                            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full md:w-auto">
+                                <input
+                                    type="text"
+                                    value={search}
+                                    onChange={(e) => setSearch(e.target.value)}
+                                    placeholder="Cari judul / ID iklan..."
+                                    className="input input-bordered w-full sm:w-64"
+                                />
+                                <Link
+                                    href={route('admin.nasional.ads.create')}
+                                    className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-md font-semibold transition duration-150 ease-in-out text-center whitespace-nowrap"
+                                >
+                                    + Tambah Iklan
+                                </Link>
+                            </div>
                         </div>
 
                         {/* --- TABEL DATA (Desktop) --- */}

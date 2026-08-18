@@ -32,15 +32,22 @@ class AdsNasionalController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        //// Gunakan pagination. Hindari N+1 Query jika Anda merelasikan tabel lain (gunakan with())
-        // Contoh: AdsTi::with('creatives')->orderBy('id', 'desc')->paginate(10);
-
-        $ads = AdsNasional::orderBy('id', 'desc')->paginate(10);
+        $ads = AdsNasional::query()
+            ->when($request->filled('search'), function ($q) use ($request) {
+                $search = $request->search;
+                $q->where(fn ($q) => $q
+                    ->where('title', 'like', "%{$search}%")
+                    ->orWhere('unique_id', 'like', "%{$search}%"));
+            })
+            ->orderBy('id', 'desc')
+            ->paginate(10)
+            ->withQueryString();
 
         return inertia('Admin/Nasional/Ads/Index', [
-            'ads' => $ads
+            'ads' => $ads,
+            'filters' => $request->only('search'),
         ]);
     }
 
