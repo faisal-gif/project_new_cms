@@ -52,6 +52,12 @@ class NetworkFormRequest extends FormRequest
             'is_main'     => ['required', Rule::in([0, 1])],
             'status'      => ['required', Rule::in([0, 1])],
             'is_web'      => ['required', Rule::in([0, 1])],
+
+            // Kanal & Fokus milik network (pivot network_kanal / network_fokus)
+            'kanals'      => ['nullable', 'array'],
+            'kanals.*'    => ['integer'],
+            'fokus'       => ['nullable', 'array'],
+            'fokus.*'     => ['integer'],
         ];
 
         // 2. Validasi Dinamis untuk Aset Gambar

@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\NetworkFormRequest;
+use App\Models\FokusDaerah;
+use App\Models\KanalDaerah;
 use App\Models\Network;
 use App\Models\NetworkDaerah;
 use App\Services\CdnService;
@@ -52,7 +54,21 @@ class NetworkDaerahController extends Controller
      */
     public function create()
     {
-        return Inertia::render('Admin/Daerah/Network/Create');
+        return Inertia::render('Admin/Daerah/Network/Create', [
+            'kanalOptions' => KanalDaerah::orderBy('name')->get(['id', 'name']),
+            'fokusOptions' => FokusDaerah::orderBy('name')->get(['id', 'name']),
+        ]);
+    }
+
+    /** Sync kanal (berurutan = sequence) & fokus milik network dari input request. */
+    private function syncKanalFokus(NetworkDaerah $network, NetworkFormRequest $request): void
+    {
+        $kanalSync = [];
+        foreach (array_values((array) $request->input('kanals', [])) as $i => $kanalId) {
+            $kanalSync[$kanalId] = ['sequence' => $i + 1];
+        }
+        $network->kanals()->sync($kanalSync);
+        $network->fokusList()->sync((array) $request->input('fokus', []));
     }
 
     /**
@@ -67,6 +83,7 @@ class NetworkDaerahController extends Controller
         $ImageSocmedUrl = null;
 
         try {
+            DB::beginTransaction();
 
             $baseSlug = Str::slug($request->name);
             $timestamp = time(); // Timestamp untuk mencegah isu caching pada CDN
@@ -115,6 +132,8 @@ class NetworkDaerahController extends Controller
                 'is_web' => $request->is_web,
                 'status' => $request->status,
             ]);
+
+            $this->syncKanalFokus($network, $request);
             DB::commit();
 
             return redirect()->route('admin.daerah.network.index')->with('success', 'Network Berhasil Ditambahkan');
@@ -140,8 +159,14 @@ class NetworkDaerahController extends Controller
      */
     public function edit(NetworkDaerah $network)
     {
+        $network->load('kanals:id', 'fokusList:id');
+
         return Inertia::render('Admin/Daerah/Network/Edit', [
             'network' => $network,
+            'kanalOptions' => KanalDaerah::orderBy('name')->get(['id', 'name']),
+            'fokusOptions' => FokusDaerah::orderBy('name')->get(['id', 'name']),
+            'selectedKanals' => $network->kanals->pluck('id'), // urut sesuai sequence
+            'selectedFokus' => $network->fokusList->pluck('id'),
         ]);
     }
 
@@ -155,6 +180,7 @@ class NetworkDaerahController extends Controller
         $ImageSocmedUrl = $network->img_socmed;
 
         try {
+            DB::beginTransaction();
 
             $baseSlug = Str::slug($request->name);
             $timestamp = time(); // Timestamp untuk mencegah isu caching pada CDN
@@ -204,6 +230,7 @@ class NetworkDaerahController extends Controller
 
             $network->save();
 
+            $this->syncKanalFokus($network, $request);
             DB::commit();
             return redirect()->route('admin.daerah.network.index')->with('success', 'Network Berhasil Diubah');
 

@@ -21,6 +21,18 @@ class NetworkDaerah extends Model
         return $this->belongsToMany(AdsDaerah::class, 'ads_network', 'net_id', 'ads_id');
     }
 
+    public function kanals()
+    {
+        return $this->belongsToMany(KanalDaerah::class, 'network_kanal', 'id_network', 'id_kanal')
+            ->withPivot('sequence')
+            ->orderByPivot('sequence');
+    }
+
+    public function fokusList()
+    {
+        return $this->belongsToMany(FokusDaerah::class, 'network_fokus', 'id_network', 'id_fokus');
+    }
+
     public function getActivitylogOptions(): LogOptions
     {
         return LogOptions::defaults()

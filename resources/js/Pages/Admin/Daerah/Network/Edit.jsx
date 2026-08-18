@@ -8,14 +8,17 @@ import InputImage from '@/Components/InputImage' // <-- Wajib import komponen In
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout'
 import { Head, useForm } from '@inertiajs/react'
 import React, { useEffect } from 'react'
+import Select from 'react-select'
 
-function Edit({ network }) {
+function Edit({ network, kanalOptions = [], fokusOptions = [], selectedKanals = [], selectedFokus = [] }) {
 
     // 1. Integrasi Method Spoofing: Gunakan 'post' dari useForm, dan tambahkan _method: 'put'
     const { data, setData, post, processing, errors, reset } = useForm({
         _method: 'put', // <-- Kunci utama untuk edit file di Laravel Inertia
         name: network.name || '',
         domain: network.domain || '',
+        kanals: selectedKanals || [],
+        fokus: selectedFokus || [],
         title: network.title || 'TIMES _DAERAH_',
         tagline: network.tagline || 'Media Online No 1 Pembangun Ketahanan Informasi di _DAERAH_',
         keyword: network.keyword || 'Berita, Terkini, terlengkap, politik, bisnis, olahraga, bola, entertainment, gosip, lifestyle, tekno, otomotif, liga, ketahanan informasi',
@@ -80,6 +83,48 @@ function Edit({ network }) {
                             </div>
 
                             <form onSubmit={submit} className='space-y-6'>
+                                {/* --- SECTION: KANAL & FOKUS --- */}
+                                <div className='space-y-4'>
+                                    <h2>
+                                        <span className="text-lg font-semibold text-foreground">Kanal & Fokus</span>
+                                    </h2>
+                                    <Card>
+                                        <div className='grid grid-cols-1 lg:grid-cols-2 gap-4'>
+                                            <div className="w-full">
+                                                <InputLabel value="Kanal" />
+                                                <Select
+                                                    isMulti
+                                                    classNamePrefix="react-select"
+                                                    placeholder="Pilih kanal..."
+                                                    options={kanalOptions.map((k) => ({ value: k.id, label: k.name }))}
+                                                    value={data.kanals
+                                                        .map((id) => kanalOptions.find((k) => k.id === id))
+                                                        .filter(Boolean)
+                                                        .map((k) => ({ value: k.id, label: k.name }))}
+                                                    onChange={(opts) => setData('kanals', opts.map((o) => o.value))}
+                                                />
+                                                <p className="text-xs text-muted-foreground mt-1">Urutan pemilihan menentukan urutan tampil (sequence).</p>
+                                                <InputError message={errors.kanals} className="mt-1" />
+                                            </div>
+                                            <div className="w-full">
+                                                <InputLabel value="Fokus" />
+                                                <Select
+                                                    isMulti
+                                                    classNamePrefix="react-select"
+                                                    placeholder="Pilih fokus..."
+                                                    options={fokusOptions.map((f) => ({ value: f.id, label: f.name }))}
+                                                    value={data.fokus
+                                                        .map((id) => fokusOptions.find((f) => f.id === id))
+                                                        .filter(Boolean)
+                                                        .map((f) => ({ value: f.id, label: f.name }))}
+                                                    onChange={(opts) => setData('fokus', opts.map((o) => o.value))}
+                                                />
+                                                <InputError message={errors.fokus} className="mt-1" />
+                                            </div>
+                                        </div>
+                                    </Card>
+                                </div>
+
                                 {/* --- SECTION: DETAIL NETWORK --- */}
                                 <div className='space-y-4'>
                                     <h2>
