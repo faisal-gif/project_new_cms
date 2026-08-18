@@ -163,9 +163,11 @@ function Index({ galleries, writers, categories, filters }) {
                   </Link>
                 )}
 
-                <Link href={route('admin.nasional.fotografi.report.index')} className="btn btn-success rounded-lg">
-                  Report Galeri
-                </Link>
+                {hasPermission('view report gallery nasional') && (
+                  <Link href={route('admin.nasional.fotografi.report.index')} className="btn btn-success rounded-lg">
+                    Report Galeri
+                  </Link>
+                )}
               </div>
               {/* End Head */}
 
