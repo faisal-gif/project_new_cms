@@ -55,8 +55,9 @@ class NewsDaerahController extends Controller
                 'writer:id,name',
                 'fokus:id,name',
                 // Network aktif tempat berita ini tayang — untuk copy link per network.
-                'networks' => fn ($q) => $q->where('network.status', 1)
-                    ->select('network.id', 'network.name', 'network.domain'),
+                // status kolom ENUM: bandingkan string '1', bukan int 1 (MySQL menganggap
+                // int sebagai indeks enum, bukan nilainya).
+                'networks' => fn ($q) => $q->where('network.status', '1'),
             ]);
 
         // Search
@@ -122,11 +123,14 @@ class NewsDaerahController extends Controller
         // Bangun link publik per network: https://{domain}/news/{kanal-slug}/{is_code}/{judul-slug}
         $news->getCollection()->transform(function ($item) {
             $titleSlug = Str::slug($item->title);
-            $kanalSlug = $item->kanal?->slug;
+            // Fallback ke slug dari nama kanal bila kolom slug kosong.
+            $kanalSlug = filled($item->kanal?->slug)
+                ? $item->kanal->slug
+                : Str::slug($item->kanal?->name ?? '');
 
             $item->share_links = $item->networks->map(fn ($net) => [
                 'network' => $net->name,
-                'url' => $kanalSlug
+                'url' => ($kanalSlug !== '' && filled($item->is_code))
                     ? "https://{$net->domain}/news/{$kanalSlug}/{$item->is_code}/{$titleSlug}"
                     : null,
             ])->filter(fn ($l) => $l['url'])->values();
@@ -154,7 +158,6 @@ class NewsDaerahController extends Controller
                 'value' => $u->id,
                 'label' => $u->name,
             ]);
-
 
         return Inertia::render('Admin/Daerah/News/Index', [
             'news'    => $news,
