@@ -168,8 +168,8 @@ export default function InputTag({ label = "Tags", value = [], onChange }) {
 
     return (
         <div className="space-y-2 w-full">
-            <label className="label mb-2">
-                <span className="label-text font-bold">{label}</span>
+            <label className="mb-2 block">
+                <span className="text-sm font-bold">{label}</span>
             </label>
 
             <div className="flex flex-wrap gap-2 rounded-box border border-input p-2 w-full">

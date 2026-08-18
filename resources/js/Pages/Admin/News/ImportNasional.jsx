@@ -324,7 +324,7 @@ function ImportNasional({ writers, editors, networks, kanal, fokus, initialData,
                                                 timeInputLabel="Jam (24j):"
                                                 timeFormat="HH:mm"             // Memaksa format 24 Jam di dropdown pilihan waktu
                                                 dateFormat="yyyy-MM-dd HH:mm"  // Tampilan akhir di dalam kotak teks (Format 24 Jam)
-                                                className="input border border-input mt-1 block w-full"
+                                                className="h-9 rounded-md border border-input px-3 text-sm mt-1 block w-full"
                                                 placeholderText="Pilih Tanggal dan Waktu..."
                                                
                                             />

@@ -23,13 +23,13 @@ export default function InputTextarea({
     return (
         <div className="w-full">
             {label && (
-                <label className="label mb-2">
-                    <span className="label-text font-bold">{label}</span>
+                <label className="mb-2 block">
+                    <span className="text-sm font-bold">{label}</span>
                 </label>
             )}
 
             <textarea
-                className={`textarea border border-input bg-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 w-full ${className}`}
+                className={`min-h-16 w-full rounded-md border border-input bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 ${className}`}
                 value={value}
                 onChange={handleChange}
                 placeholder={placeholder}
@@ -37,8 +37,8 @@ export default function InputTextarea({
             />
 
             {/* Character Counter */}
-            <div className="label justify-end">
-                <span className="label-text-alt font-light text-xs">
+            <div className="flex justify-end">
+                <span className="text-xs font-light text-muted-foreground">
                     {value.length}/{maxLength}
                 </span>
             </div>

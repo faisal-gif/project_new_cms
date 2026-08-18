@@ -107,7 +107,7 @@ export default function Create() {
                         <Card padding="p-6 md:p-8" className="border border-border">
                             <h2 className="text-xl font-bold mb-6 border-b pb-3 flex justify-between items-center">
                                 <span>Halaman Reguler</span>
-                                <Badge className="bg-neutral-700/10 text-neutral-600 text-sm font-normal badge">
+                                <Badge className="bg-neutral-700/10 text-neutral-600 text-sm font-normal">
                                     {regularPages.length} / {MAX_REGULAR_PAGES}
                                 </Badge>
                             </h2>
@@ -131,7 +131,7 @@ export default function Create() {
                             </h2>
                             <div className="flex justify-between items-center border-b pb-4 mb-6">
                                 <p className="text-sm text-foreground/60">Halaman sisipan khusus.</p>
-                                <Badge className="bg-amber-500/10 text-amber-600 text-sm font-normal badge">
+                                <Badge className="bg-amber-500/10 text-amber-600 text-sm font-normal">
                                     {spesialPages.length} / {MAX_PROMO_PAGES}
                                 </Badge>
                             </div>

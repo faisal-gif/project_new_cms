@@ -10,14 +10,15 @@ export default function InputWithPrefix({
     ...props
 }) {
     return (
-        <label className={`input border border-input bg-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 ${className}`}>
-            {prefix && <span className="label">{prefix}</span>}
+        <label className={`flex h-9 items-center gap-2 rounded-md border border-input bg-background px-3 text-sm focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2 ${className}`}>
+            {prefix && <span className="text-muted-foreground">{prefix}</span>}
 
             <input
                 type={type}
                 placeholder={placeholder}
                 value={value}
                 onChange={onChange}
+                className="h-full flex-1 bg-transparent outline-none placeholder:text-muted-foreground"
                 {...props}
             />
         </label>

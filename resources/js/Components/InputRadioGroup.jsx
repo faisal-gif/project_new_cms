@@ -12,8 +12,8 @@ export default function InputRadioGroup({
     return (
         <div className={`space-y-2 ${className}`}>
             {label && (
-                <label className="label">
-                    <span className="label-text font-bold">{label}</span>
+                <label className="mb-1 block">
+                    <span className="text-sm font-bold">{label}</span>
                 </label>
             )}
 

@@ -41,12 +41,12 @@ const getStatusBadge = (status) => {
 const getDistributionBadge = (status) => {
     switch (Number(status)) {
         case 2:
-            return <Badge className="badge bg-emerald-500 text-white border-none">Sudah di Semua Jaringan</Badge>;
+            return <Badge className="bg-emerald-500 text-white border-none">Sudah di Semua Jaringan</Badge>;
         case 1:
-            return <Badge className="badge bg-sky-500 text-white border-none">Tayang Parsial</Badge>;
+            return <Badge className="bg-sky-500 text-white border-none">Tayang Parsial</Badge>;
         case 0:
         default:
-            return <Badge className="badge bg-secondary text-gray-500 border-none">Draft / Belum Tayang</Badge>;
+            return <Badge className="bg-secondary text-gray-500 border-none">Draft / Belum Tayang</Badge>;
     }
 };
 
@@ -56,7 +56,7 @@ const getDistributionBadge = (status) => {
 
 // --- 1. Mobile Card View ---
 const NewsMobileCard = ({ item, hasPermission }) => (
-    <div className="card bg-background border border-border shadow-sm overflow-hidden">
+    <div className="bg-background border border-border shadow-sm overflow-hidden">
         <div className="flex flex-col p-4 sm:p-5 gap-0">
             {/* Header: Title */}
             <div className="flex justify-between items-start gap-3 mb-2">

@@ -24,12 +24,12 @@ export default function InputPhoneNumber({
 
     return (
         <div className="w-full">
-            <label className="input border border-input flex items-center gap-2 w-full" >
+            <label className="flex h-9 items-center gap-2 w-full rounded-md border border-input bg-background px-3 text-sm" >
                 <span className="opacity-70">{prefix}</span>
 
                 <input
                     type="text"
-                    className={`grow ${className}`}
+                    className={`grow bg-transparent outline-none ${className}`}
                     value={value}
                     onChange={handleChange}
                     placeholder={placeholder}
@@ -38,8 +38,8 @@ export default function InputPhoneNumber({
                 />
             </label>
 
-            <div className="label justify-end">
-                <span className="label-text-alt font-light text-xs">
+            <div className="flex justify-end">
+                <span className="text-xs font-light text-muted-foreground">
                     {value.length}/{maxLength} digits
                 </span>
             </div>

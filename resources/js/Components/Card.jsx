@@ -14,7 +14,7 @@ export default function Card({
 }) {
     return (
         <div
-            className={`card ${color} ${shadow} ${border} ${rounded} 
+            className={`${color} ${shadow} ${border} ${rounded}
                 ${hover ? "hover:shadow-lg transition-all" : ""} 
                 ${className}`}
         >
