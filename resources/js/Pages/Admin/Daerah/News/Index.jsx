@@ -7,9 +7,42 @@ import { Badge } from '@/Components/ui/badge'
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout'
 import { formatDateTime, formatNumber } from '@/Utils/formatter'
 import { Head, Link, router, usePage } from '@inertiajs/react'
-import { Download, Plus, Search } from 'lucide-react'
+import { Check, Copy, Download, Link2, Plus, Search } from 'lucide-react'
 import React, { useEffect, useRef, useState } from 'react'
 import Select from "react-select";
+
+// Dropdown salin link publik per network tempat berita ini tayang.
+function CopyLinkDropdown({ links }) {
+  const [copied, setCopied] = useState(null);
+  if (!links || links.length === 0) return null;
+
+  const copy = (url, i) => {
+    navigator.clipboard?.writeText(url);
+    setCopied(i);
+    setTimeout(() => setCopied((c) => (c === i ? null : c)), 1500);
+  };
+
+  return (
+    <div className="dropdown dropdown-end">
+      <label tabIndex={0} className="btn btn-sm btn-info btn-outline gap-1">
+        <Link2 size={14} /> Copy Link
+      </label>
+      <ul tabIndex={0} className="dropdown-content menu bg-base-100 rounded-box z-[1] w-64 p-2 shadow border border-base-200 max-h-72 overflow-auto flex-nowrap">
+        <li className="menu-title text-xs">Pilih network</li>
+        {links.map((l, i) => (
+          <li key={i}>
+            <button type="button" onClick={() => copy(l.url, i)} className="justify-between">
+              <span className="truncate">{l.network}</span>
+              {copied === i
+                ? <Check size={14} className="text-success shrink-0" />
+                : <Copy size={14} className="shrink-0 opacity-60" />}
+            </button>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
 
 
 function Index({ news, writers, kanals, fokus, filters }) {
@@ -297,6 +330,7 @@ function Index({ news, writers, kanals, fokus, filters }) {
                         {hasPermission('edit news daerah') && (
                           <Link href={route('admin.daerah.news.edit', n)} className="btn btn-sm btn-warning btn-outline">Edit</Link>
                         )}
+                        <CopyLinkDropdown links={n.share_links} />
                       </div>
                     </div>
                   ))}
@@ -341,6 +375,7 @@ function Index({ news, writers, kanals, fokus, filters }) {
                               {hasPermission('edit news daerah') && (
                                 <Link href={route('admin.daerah.news.edit', n)} className="btn btn-sm btn-warning btn-outline">Edit</Link>
                               )}
+                              <CopyLinkDropdown links={n.share_links} />
                             </div>
                           </td>
                         </tr>

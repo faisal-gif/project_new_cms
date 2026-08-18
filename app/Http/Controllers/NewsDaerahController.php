@@ -50,7 +50,14 @@ class NewsDaerahController extends Controller
                 'status',
                 'created_at'
             )
-            ->with(['kanal:id,name', 'writer:id,name', 'fokus:id,name']);
+            ->with([
+                'kanal:id,name,slug',
+                'writer:id,name',
+                'fokus:id,name',
+                // Network aktif tempat berita ini tayang — untuk copy link per network.
+                'networks' => fn ($q) => $q->where('network.status', 1)
+                    ->select('network.id', 'network.name', 'network.domain'),
+            ]);
 
         // Search
         if ($request->search) {
@@ -111,6 +118,22 @@ class NewsDaerahController extends Controller
         $query = $this->buildQuery($request);
         // Faster pagination
         $news = $query->simplePaginate(10)->withQueryString();
+
+        // Bangun link publik per network: https://{domain}/news/{kanal-slug}/{is_code}/{judul-slug}
+        $news->getCollection()->transform(function ($item) {
+            $titleSlug = Str::slug($item->title);
+            $kanalSlug = $item->kanal?->slug;
+
+            $item->share_links = $item->networks->map(fn ($net) => [
+                'network' => $net->name,
+                'url' => $kanalSlug
+                    ? "https://{$net->domain}/news/{$kanalSlug}/{$item->is_code}/{$titleSlug}"
+                    : null,
+            ])->filter(fn ($l) => $l['url'])->values();
+
+            $item->unsetRelation('networks'); // payload sudah diringkas ke share_links
+            return $item;
+        });
 
 
         $writers = WriterDaerah::select('id', 'name')->where('status', '1')->get()
