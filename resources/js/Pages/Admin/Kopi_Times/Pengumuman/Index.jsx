@@ -1,3 +1,6 @@
+import Breadcrumbs from '@/Components/Breadcrumbs'
+import { Table, TableHeader, TableBody, TableHead, TableRow, TableCell } from '@/Components/ui/table'
+import { Button } from '@/Components/ui/button'
 import Card from '@/Components/Card'
 import InputSelect from '@/Components/InputSelect'
 import InputWithPrefix from '@/Components/InputWithPrefix'
@@ -90,15 +93,7 @@ function Index({ pengumuman, filters }) {
                                 </div>
                                 {/* end Header */}
 
-                                {/* start breadcrumbs */}
-                                <div className="breadcrumbs text-sm">
-                                    <ul>
-                                        <li><a>Home</a></li>
-                                        <li>Kopi Times</li>
-                                        <li>Pengumuman</li>
-                                    </ul>
-                                </div>
-                                {/* end breadcrumbs */}
+                                <Breadcrumbs items={[{ label: 'Home', href: '/' }, { label: 'Kopi Times' }, { label: 'Pengumuman' }]} />
                             </div>
 
                             {/* Start Head (Toolbar) */}
@@ -107,9 +102,11 @@ function Index({ pengumuman, filters }) {
                                     {/* Button Tambah Pengumuman */}
                                     {/* Pastikan nama permission disesuaikan dengan yang ada di databasemu */}
                                     {hasPermission('create pengumuman kopi-times') && (
-                                        <Link href={route('admin.kopi-times.pengumuman.create')} className="btn btn-primary rounded-lg">
-                                            <Plus size={16} /> Buat Pengumuman
-                                        </Link>
+                                        <Button asChild className="rounded-lg">
+                                            <Link href={route('admin.kopi-times.pengumuman.create')}>
+                                                <Plus size={16} /> Buat Pengumuman
+                                            </Link>
+                                        </Button>
                                     )}
 
                                     {/* Field Search And Filter */}
@@ -144,7 +141,7 @@ function Index({ pengumuman, filters }) {
                                 {/* MOBILE VERSION (Card Mode) */}
                                 <div className="md:hidden flex flex-col gap-4">
                                     {pengumuman.data.map((item) => (
-                                        <div key={item.id} className="border rounded-xl p-4 bg-base-100 shadow-sm">
+                                        <div key={item.id} className="border rounded-xl p-4 bg-background shadow-sm">
                                             {/* Header (Judul + Status) */}
                                             <div className="flex justify-between items-start mb-3 gap-2">
                                                 <div>
@@ -155,17 +152,19 @@ function Index({ pengumuman, filters }) {
                                             </div>
 
                                             {/* Detail Jadwal */}
-                                            <div className="text-sm space-y-1 bg-base-200/50 p-2 rounded-lg mt-3">
-                                                <p><span className="font-medium text-base-content/70">Mulai:</span> {item.start_date ? formatDateTime(item.start_date) : 'Langsung Tayang'}</p>
-                                                <p><span className="font-medium text-base-content/70">Selesai:</span> {item.end_date ? formatDateTime(item.end_date) : 'Selamanya'}</p>
+                                            <div className="text-sm space-y-1 bg-muted/50 p-2 rounded-lg mt-3">
+                                                <p><span className="font-medium text-foreground/70">Mulai:</span> {item.start_date ? formatDateTime(item.start_date) : 'Langsung Tayang'}</p>
+                                                <p><span className="font-medium text-foreground/70">Selesai:</span> {item.end_date ? formatDateTime(item.end_date) : 'Selamanya'}</p>
                                             </div>
 
                                             {/* Actions */}
                                             <div className="flex items-center justify-end text-xs pt-3 mt-3 border-t">
                                                 {hasPermission('edit pengumuman kopi-times') && (
-                                                    <Link href={route('admin.kopi-times.pengumuman.edit', item.id)} className="btn btn-xs btn-warning btn-soft gap-1">
-                                                        <Pencil className="w-3 h-3" /> Edit
-                                                    </Link>
+                                                    <Button asChild size="xs" variant="outline" className="gap-1 border-amber-500 text-amber-600 hover:bg-amber-50 hover:text-amber-700 dark:border-amber-500/60 dark:text-amber-400 dark:hover:bg-amber-950/40">
+                                                        <Link href={route('admin.kopi-times.pengumuman.edit', item.id)}>
+                                                            <Pencil className="w-3 h-3" /> Edit
+                                                        </Link>
+                                                    </Button>
                                                 )}
                                             </div>
                                         </div>
@@ -177,85 +176,84 @@ function Index({ pengumuman, filters }) {
 
                                 {/* DESKTOP VERSION (Table Mode) */}
                                 <div className="hidden md:block overflow-x-auto">
-                                    <table className="table table-zebra w-full">
-                                        <thead>
-                                            <tr className="border-b border-base-200">
-                                                <th className="w-12 text-center">#</th>
-                                                <th>Pengumuman</th>
-                                                <th>Kategori</th>
-                                                <th>Jadwal Tayang</th>
-                                                <th className="text-center">Status</th>
-                                                <th className="text-right">Aksi</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
+                                    <Table>
+                                        <TableHeader>
+                                            <TableRow className="border-b border-border">
+                                                <TableHead className="w-12 text-center">#</TableHead>
+                                                <TableHead>Pengumuman</TableHead>
+                                                <TableHead>Kategori</TableHead>
+                                                <TableHead>Jadwal Tayang</TableHead>
+                                                <TableHead className="text-center">Status</TableHead>
+                                                <TableHead className="text-right">Aksi</TableHead>
+                                            </TableRow>
+                                        </TableHeader>
+                                        <TableBody>
                                             {pengumuman.data.map((item, index) => {
                                                 const from = pengumuman.from ?? 1;
                                                 return (
-                                                    <tr key={item.id} className="border-b border-base-200 last:border-0 hover:bg-base-200/40 transition-colors">
-                                                        <td className="text-xs text-base-content/50 align-top py-4 text-center">{from + index}</td>
+                                                    <TableRow key={item.id} className="border-b border-border last:border-0 hover:bg-muted/40 transition-colors">
+                                                        <TableCell className="text-xs text-foreground/50 align-top py-4 text-center">{from + index}</TableCell>
 
                                                         {/* Info Pengumuman (Judul & Cuplikan Isi) */}
-                                                        <td className="py-4 align-top max-w-xs">
+                                                        <TableCell className="py-4 align-top max-w-xs">
                                                             <div className="flex flex-col">
-                                                                <span className="text-sm font-bold text-base-content line-clamp-1" title={item.title}>
+                                                                <span className="text-sm font-bold text-foreground line-clamp-1" title={item.title}>
                                                                     {item.title}
                                                                 </span>
-                                                                <span className="text-xs text-base-content/60 line-clamp-2 mt-1" title={item.content}>
+                                                                <span className="text-xs text-foreground/60 line-clamp-2 mt-1" title={item.content}>
                                                                     {item.content}
                                                                 </span>
                                                             </div>
-                                                        </td>
+                                                        </TableCell>
 
                                                         {/* Kategori */}
-                                                        <td className="py-4 align-top">
+                                                        <TableCell className="py-4 align-top">
                                                             {getKategoriBadge(item.kategori)}
-                                                        </td>
+                                                        </TableCell>
 
                                                         {/* Jadwal Tayang */}
-                                                        <td className="py-4 align-top text-sm">
+                                                        <TableCell className="py-4 align-top text-sm">
                                                             <div className="flex flex-col gap-1">
-                                                                <span className="text-base-content/80">
-                                                                    <span className="text-xs font-semibold uppercase text-base-content/50 block">Mulai</span>
+                                                                <span className="text-foreground/80">
+                                                                    <span className="text-xs font-semibold uppercase text-foreground/50 block">Mulai</span>
                                                                     {item.start_date ? formatDateTime(item.start_date) : 'Langsung tayang'}
                                                                 </span>
-                                                                <span className="text-base-content/80 mt-1">
-                                                                    <span className="text-xs font-semibold uppercase text-base-content/50 block">Selesai</span>
+                                                                <span className="text-foreground/80 mt-1">
+                                                                    <span className="text-xs font-semibold uppercase text-foreground/50 block">Selesai</span>
                                                                     {item.end_date ? formatDateTime(item.end_date) : 'Selamanya (Tidak diatur)'}
                                                                 </span>
                                                             </div>
-                                                        </td>
+                                                        </TableCell>
 
                                                         {/* Status */}
-                                                        <td className="py-4 align-top text-center">
+                                                        <TableCell className="py-4 align-top text-center">
                                                             {getStatusBadge(item.is_active)}
-                                                        </td>
+                                                        </TableCell>
 
                                                         {/* Aksi */}
-                                                        <td className="py-4 align-top text-right">
+                                                        <TableCell className="py-4 align-top text-right">
                                                             {hasPermission('edit pengumuman kopi-times') && (
-                                                                <Link
-                                                                    href={route('admin.kopi-times.pengumuman.edit', item.id)}
-                                                                    className="btn btn-sm btn-ghost gap-1.5"
-                                                                >
-                                                                    <Pencil className="w-3.5 h-3.5" /> Edit
-                                                                </Link>
+                                                                <Button asChild size="sm" variant="outline" className="gap-1.5 border-amber-500 text-amber-600 hover:bg-amber-50 hover:text-amber-700 dark:border-amber-500/60 dark:text-amber-400 dark:hover:bg-amber-950/40">
+                                                                    <Link href={route('admin.kopi-times.pengumuman.edit', item.id)}>
+                                                                        <Pencil className="w-3.5 h-3.5" /> Edit
+                                                                    </Link>
+                                                                </Button>
                                                             )}
-                                                        </td>
-                                                    </tr>
+                                                        </TableCell>
+                                                    </TableRow>
                                                 );
                                             })}
 
                                             {/* Empty State */}
                                             {pengumuman.data.length === 0 && (
-                                                <tr>
-                                                    <td colSpan="6" className="text-center py-8 text-gray-500 bg-base-200/20">
+                                                <TableRow>
+                                                    <TableCell colSpan="6" className="text-center py-8 text-gray-500 bg-muted/20">
                                                         Tidak ada data pengumuman yang ditemukan.
-                                                    </td>
-                                                </tr>
+                                                    </TableCell>
+                                                </TableRow>
                                             )}
-                                        </tbody>
-                                    </table>
+                                        </TableBody>
+                                    </Table>
                                 </div>
                             </Card>
                             {/* End Table */}

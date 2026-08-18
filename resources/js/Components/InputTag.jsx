@@ -89,7 +89,7 @@ function TagItem({ id, text, onRemove, onEdit }) {
             <button
                 type="button"
                 onClick={() => onRemove(text)}
-                className="hover:bg-error rounded-full p-1"
+                className="hover:bg-destructive rounded-full p-1"
             >
                 <XIcon className="w-4 h-4" />
             </button>
@@ -197,7 +197,7 @@ export default function InputTag({ label = "Tags", value = [], onChange }) {
 
                 <input
                     type="text"
-                    className="input input-sm border-transparent focus:outline-none 
+                    className="border-transparent focus:outline-none
                         flex-1 min-w-[150px] bg-transparent shadow-none"
                     placeholder={value.length === 0 ? "Tulis tag lalu koma…" : ""}
                     value={tagInput}

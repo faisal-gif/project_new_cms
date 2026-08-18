@@ -1,3 +1,6 @@
+import Breadcrumbs from '@/Components/Breadcrumbs'
+import { Table, TableHeader, TableBody, TableHead, TableRow, TableCell } from '@/Components/ui/table'
+import { Button } from '@/Components/ui/button'
 import React from 'react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, Link, useForm, usePage } from '@inertiajs/react';
@@ -40,14 +43,7 @@ export default function Index({ roles }) {
                             </div>
                             {/* end Header */}
 
-                            {/* start breadcrumbs */}
-                            <div className="breadcrumbs text-sm">
-                                <ul>
-                                    <li><a>Home</a></li>
-                                    <li>Role</li>
-                                </ul>
-                            </div>
-                            {/* end breadcrumbs */}
+                            <Breadcrumbs items={[{ label: 'Home', href: '/' }, { label: 'Role' }]} />
 
                         </div>
 
@@ -56,9 +52,11 @@ export default function Index({ roles }) {
                             <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
                                 {/* Button Tambah User */}
                                 {hasPermission('create role master') && (
-                                    <Link href={route('admin.roles.create')} className="btn btn-primary rounded-lg">
-                                        <Plus size={16} /> Tambah Role
-                                    </Link>
+                                    <Button asChild className="rounded-lg">
+                                        <Link href={route('admin.roles.create')}>
+                                            <Plus size={16} /> Tambah Role
+                                        </Link>
+                                    </Button>
                                 )}
 
                             </div>
@@ -68,37 +66,39 @@ export default function Index({ roles }) {
                         {/* Start Table */}
                         <Card>
                             <div className="overflow-x-auto">
-                                <table className="table table-zebra w-full">
-                                    <thead>
-                                        <tr>
-                                            <th>ID</th>
-                                            <th>Nama Role</th>
-                                            <th>Total Permission</th>
-                                            <th className="text-right">Aksi</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
+                                <Table>
+                                    <TableHeader>
+                                        <TableRow>
+                                            <TableHead>ID</TableHead>
+                                            <TableHead>Nama Role</TableHead>
+                                            <TableHead>Total Permission</TableHead>
+                                            <TableHead className="text-right">Aksi</TableHead>
+                                        </TableRow>
+                                    </TableHeader>
+                                    <TableBody>
                                         {roles.data.map((role) => (
-                                            <tr key={role.id}>
-                                                <td>{role.id}</td>
-                                                <td className="font-semibold uppercase">{role.name}</td>
-                                                <td>
-                                                    <Badge className="bg-neutral">
+                                            <TableRow key={role.id}>
+                                                <TableCell>{role.id}</TableCell>
+                                                <TableCell className="font-semibold uppercase">{role.name}</TableCell>
+                                                <TableCell>
+                                                    <Badge className="bg-neutral-700">
                                                         {role.permissions.length} akses
                                                     </Badge>
-                                                </td>
-                                                <td className="flex justify-end gap-2">
+                                                </TableCell>
+                                                <TableCell className="flex justify-end gap-2">
                                                     {hasPermission('edit role master') && (
-                                                        <Link href={route('admin.roles.edit', role.id)} className="btn btn-warning btn-outline btn-sm">
-                                                            <Edit size={16} />
-                                                        </Link>
+                                                        <Button asChild size="sm" variant="outline" className="border-amber-500 text-amber-600 hover:bg-amber-50 hover:text-amber-700 dark:border-amber-500/60 dark:text-amber-400 dark:hover:bg-amber-950/40">
+                                                            <Link href={route('admin.roles.edit', role.id)}>
+                                                                <Edit size={16} />
+                                                            </Link>
+                                                        </Button>
                                                     )}
 
-                                                </td>
-                                            </tr>
+                                                </TableCell>
+                                            </TableRow>
                                         ))}
-                                    </tbody>
-                                </table>
+                                    </TableBody>
+                                </Table>
                             </div>
                         </Card>
                         {/* End Table */}

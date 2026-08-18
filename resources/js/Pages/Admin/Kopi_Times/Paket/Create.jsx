@@ -1,3 +1,5 @@
+import Breadcrumbs from '@/Components/Breadcrumbs'
+import { Button } from '@/Components/ui/button';
 import Card from '@/Components/Card'
 import InputError from '@/Components/InputError'
 import InputLabel from '@/Components/InputLabel'
@@ -80,14 +82,7 @@ function Create() {
                                 <div>
                                     <h1 className="text-3xl font-bold text-foreground">Tambah Paket Berita</h1>
                                 </div>
-                                <div className="breadcrumbs text-sm">
-                                    <ul>
-                                        <li><a>Home</a></li>
-                                        <li>Kopi Times</li>
-                                        <li>Paket Berita</li>
-                                        <li>Tambah Paket</li>
-                                    </ul>
-                                </div>
+                                <Breadcrumbs items={[{ label: 'Home', href: '/' }, { label: 'Kopi Times' }, { label: 'Paket Berita' }, { label: 'Tambah Paket' }]} />
                             </div>
 
                             <form onSubmit={submit} className='space-y-8'>
@@ -127,7 +122,7 @@ function Create() {
                                                     onChange={(e) => setData('feature', e.target.value)}
                                                     value={data.feature}
                                                     maxLength={255}
-                                                    className="mt-1 block w-full textarea textarea-bordered"
+                                                    className="mt-1 block w-full"
                                                     placeholder="Tulis fitur paket, pisahkan tiap baris jika perlu..."
                                                 />
 
@@ -266,9 +261,9 @@ function Create() {
                                     <div>
                                         <div className="flex justify-between items-center border-b pb-2 mb-4">
                                             <h2 className="text-xl font-bold text-gray-800">Items Lainnya</h2>
-                                            <button type="button" onClick={addItem} className="btn btn-sm btn-primary btn-outline">
+                                            <Button type="button" onClick={addItem} variant="outline" size="sm" className="border-primary text-primary hover:bg-primary/10">
                                                 <Plus size={14} /> Tambah Item
-                                            </button>
+                                            </Button>
                                         </div>
 
                                         {data.items_lainnya.length === 0 && (
@@ -300,9 +295,9 @@ function Create() {
                                                         <InputError message={errors[`items_lainnya.${index}.qty`]} className="mt-1" />
                                                     </div>
                                                     <div className="lg:col-span-1">
-                                                        <button type="button" onClick={() => removeItem(index)} className="btn btn-sm btn-error btn-outline w-full">
+                                                        <Button type="button" onClick={() => removeItem(index)} variant="outline" size="sm" className="w-full border-destructive text-destructive hover:bg-destructive/10">
                                                             <Trash2 size={14} />
-                                                        </button>
+                                                        </Button>
                                                     </div>
                                                 </div>
                                             ))}
@@ -311,9 +306,9 @@ function Create() {
                                 </Card>
 
                                 <div className='flex flex-row justify-end mt-8 pt-4'>
-                                    <button type="submit" className="btn btn-primary px-8" disabled={processing}>
+                                    <Button type="submit" className="px-8" disabled={processing}>
                                         {processing ? 'Menyimpan...' : 'Simpan Paket'}
-                                    </button>
+                                    </Button>
                                 </div>
                             </form>
 

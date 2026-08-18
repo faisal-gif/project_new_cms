@@ -1,4 +1,6 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
+import Breadcrumbs from '@/Components/Breadcrumbs';
+import { Button } from '@/Components/ui/button';
 import Card from '@/Components/Card';
 import { Head, Link, router } from '@inertiajs/react';
 import {
@@ -30,18 +32,14 @@ export default function Show({ news, publicUrl }) {
                             <div className='flex flex-col md:flex-row justify-between md:items-center gap-4'>
                                 <div className="flex items-center gap-3">
                                     {/* Sesuaikan route index Anda */}
-                                    <Link href={route('admin.nasional.news.index')} className="btn btn-circle btn-ghost btn-sm">
-                                        <ArrowLeftIcon className="w-5 h-5" />
-                                    </Link>
+                                    <Button asChild variant="ghost" size="icon">
+                                        <Link href={route('admin.nasional.news.index')}>
+                                            <ArrowLeftIcon className="w-5 h-5" />
+                                        </Link>
+                                    </Button>
                                     <h1 className="text-3xl font-bold text-foreground">Detail Berita</h1>
                                 </div>
-                                <div className="breadcrumbs text-sm">
-                                    <ul>
-                                        <li><Link href="/">Beranda</Link></li>
-                                        <li><Link href={route('admin.nasional.news.index')}>Berita Nasional</Link></li>
-                                        <li>Detail</li>
-                                    </ul>
-                                </div>
+                                <Breadcrumbs items={[{ label: 'Beranda' }, { label: 'Berita Nasional' }, { label: 'Detail' }]} />
                             </div>
 
                             <Card>
@@ -50,11 +48,11 @@ export default function Show({ news, publicUrl }) {
                                     {/* Judul & Meta Informasi */}
                                     <header className="border-b border-border pb-6">
                                         <div className="flex flex-wrap items-center gap-2 mb-3">
-                                            <Badge className={`badge badge-sm ${Number(news.news_status) === 1 ? 'badge-success' : 'badge-ghost'}`}>
+                                            <Badge className={Number(news.news_status) === 1 ? 'bg-green-300 text-green-700' : 'bg-muted text-muted-foreground'}>
                                                 {Number(news.news_status) === 1 ? 'Terbit' : 'Draft'}
                                             </Badge>
                                             {news.fokus?.focnews_title && (
-                                                <Badge className="badge badge-sm badge-outline">
+                                                <Badge variant="outline">
                                                     {news.fokus.focnews_title}
                                                 </Badge>
                                             )}
@@ -131,7 +129,7 @@ export default function Show({ news, publicUrl }) {
                                                 <span className="font-semibold text-foreground text-sm">Tags:</span>
                                                 {news.tags.map((tag) => (
                                                     // Sesuaikan tag.name dengan field di tabel tags Anda
-                                                    <Badge key={tag.id} className="badge badge-outline badge-md">
+                                                    <Badge key={tag.id} variant="outline">
                                                         {tag.name}
                                                     </Badge>
                                                 ))}
@@ -146,11 +144,11 @@ export default function Show({ news, publicUrl }) {
                                                 <ShoppingBagIcon className="w-5 h-5 text-primary" />
                                                 <span className="font-semibold text-foreground">Produk Affiliate</span>
                                                 {news.commerce.platform && (
-                                                    <Badge className="badge badge-sm badge-primary">
+                                                    <Badge>
                                                         {news.commerce.platform}
                                                     </Badge>
                                                 )}
-                                                <Badge className={`badge badge-sm ${news.commerce.crawl_status === 'success' ? 'badge-success' : news.commerce.crawl_status === 'failed' ? 'badge-error' : 'badge-warning'}`}>
+                                                <Badge className={news.commerce.crawl_status === 'success' ? 'bg-green-300 text-green-700' : news.commerce.crawl_status === 'failed' ? 'bg-destructive/10 text-destructive' : 'bg-amber-300 text-amber-900'}>
                                                     {news.commerce.crawl_status}
                                                 </Badge>
                                             </div>
@@ -178,13 +176,15 @@ export default function Show({ news, publicUrl }) {
                                                         {news.commerce.resolved_url || news.commerce.affiliate_link}
                                                     </a>
                                                     {news.commerce.crawl_status === 'failed' && (
-                                                        <button
+                                                        <Button
                                                             type="button"
+                                                            variant="outline"
+                                                            size="sm"
                                                             onClick={() => router.post(route('admin.nasional.news.recrawl', news.news_id))}
-                                                            className="btn btn-sm btn-outline btn-warning w-fit mt-1"
+                                                            className="w-fit mt-1 border-amber-500 text-amber-600 hover:bg-amber-50"
                                                         >
                                                             <RotateCwIcon className="w-4 h-4" /> Crawl Ulang
-                                                        </button>
+                                                        </Button>
                                                     )}
                                                 </div>
                                             </div>
@@ -194,21 +194,21 @@ export default function Show({ news, publicUrl }) {
                                     {/* Action Buttons */}
                                     <div className="flex justify-end gap-3 pt-6 mt-6 border-t border-border">
                                         {publicUrl && (
-                                            <a
-                                                href={publicUrl}
-                                                target="_blank"
-                                                rel="noopener noreferrer"
-                                                className="btn btn-success btn-outline"
-                                            >
-                                                <ExternalLinkIcon className="w-4 h-4" /> Lihat di Website
-                                            </a>
+                                            <Button asChild variant="outline" className="border-green-600 text-green-700 hover:bg-green-50">
+                                                <a
+                                                    href={publicUrl}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                >
+                                                    <ExternalLinkIcon className="w-4 h-4" /> Lihat di Website
+                                                </a>
+                                            </Button>
                                         )}
-                                        <Link
-                                            href={route('admin.nasional.news.edit', news.news_id)}
-                                            className="btn btn-primary"
-                                        >
-                                            Edit Berita
-                                        </Link>
+                                        <Button asChild>
+                                            <Link href={route('admin.nasional.news.edit', news.news_id)}>
+                                                Edit Berita
+                                            </Link>
+                                        </Button>
                                     </div>
 
                                 </article>

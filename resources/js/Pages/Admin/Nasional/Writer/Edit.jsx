@@ -1,4 +1,6 @@
 import Card from '@/Components/Card'
+import Breadcrumbs from '@/Components/Breadcrumbs';
+import { Button } from '@/Components/ui/button';
 import InputError from '@/Components/InputError'
 import InputImage from '@/Components/InputImage'
 import InputLabel from '@/Components/InputLabel'
@@ -50,13 +52,7 @@ export default function Edit({ writer }) {
                                 {/* end Header */}
 
                                 {/* start breadcrumbs */}
-                                <div className="breadcrumbs text-sm">
-                                    <ul>
-                                        <li><a>Home</a></li>
-                                        <li>Penulis Nasional</li>
-                                        <li>Edit Penulis Nasional</li>
-                                    </ul>
-                                </div>
+                                <Breadcrumbs items={[{ label: 'Home', href: '/' }, { label: 'Penulis Nasional' }, { label: 'Edit Penulis Nasional' }]} />
                                 {/* end breadcrumbs */}
 
                             </div>
@@ -94,7 +90,7 @@ export default function Edit({ writer }) {
                                         <InputLabel
                                             htmlFor="date_join"
                                             value="Tanggal Bergabung"
-                                            className='mb-2 label-text font-bold'
+                                            className='mb-2 font-bold'
                                         />
                                         <TextInput
                                             id="date_join"
@@ -130,7 +126,7 @@ export default function Edit({ writer }) {
                                         <InputLabel
                                             htmlFor="region"
                                             value="Wilayah"
-                                            className='mb-2 label-text font-bold'
+                                            className='mb-2 font-bold'
                                         />
                                         <TextInput
                                             id="region"
@@ -161,7 +157,7 @@ export default function Edit({ writer }) {
                                     <div className="lg:col-span-6 w-full">
                                         <InputLabel
                                             value="Foto Penulis"
-                                            className='mb-2 label-text font-bold'
+                                            className='mb-2 font-bold'
                                         />
                                         
                                         {/* Tampilkan preview gambar lama jika ada, dan user belum memilih gambar baru */}
@@ -191,13 +187,12 @@ export default function Edit({ writer }) {
                                     </div>
 
                                     <div className=' lg:col-span-6 flex flex-row justify-end mt-4 pt-4 border-t'>
-                                        <button
-                                            type="submit"
-                                            className="btn btn-primary px-8"
+                                        <Button
+                                            type="submit" className="px-8"
                                             disabled={processing}
                                         >
                                             {processing ? 'Memperbarui...' : 'Update'}
-                                        </button>
+                                        </Button>
                                     </div>
 
                                 </form>

@@ -1,3 +1,6 @@
+import Breadcrumbs from '@/Components/Breadcrumbs'
+import { Table, TableHeader, TableBody, TableHead, TableRow, TableCell } from '@/Components/ui/table'
+import { Button } from '@/Components/ui/button'
 import Card from '@/Components/Card'
 import InputSelect from '@/Components/InputSelect'
 import InputWithPrefix from '@/Components/InputWithPrefix'
@@ -76,21 +79,17 @@ function Index({ events, filters, public_url }) {
                         <div className="space-y-6">
                             <div className="flex flex-row justify-between items-center">
                                 <h1 className="text-3xl font-bold text-foreground">Daftar Event</h1>
-                                <div className="breadcrumbs text-sm">
-                                    <ul>
-                                        <li><a>Home</a></li>
-                                        <li>Kopi Times</li>
-                                        <li>Event</li>
-                                    </ul>
-                                </div>
+                                <Breadcrumbs items={[{ label: 'Home', href: '/' }, { label: 'Kopi Times' }, { label: 'Event' }]} />
                             </div>
 
                             <Card>
                                 <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
                                     {can('create event kopi-times') ? (
-                                        <Link href={route('admin.kopi-times.events.create')} className="btn btn-primary rounded-lg">
-                                            <Plus size={16} /> Buat Event
-                                        </Link>
+                                        <Button asChild className="rounded-lg">
+                                            <Link href={route('admin.kopi-times.events.create')}>
+                                                <Plus size={16} /> Buat Event
+                                            </Link>
+                                        </Button>
                                     ) : <span />}
                                     <div className="flex flex-col md:flex-row gap-4 w-full md:w-auto">
                                         <div className="w-full md:w-80">
@@ -119,27 +118,27 @@ function Index({ events, filters, public_url }) {
 
                             <Card>
                                 <div className="overflow-x-auto">
-                                    <table className="table table-zebra w-full">
-                                        <thead>
-                                            <tr className="border-b border-base-200">
-                                                <th className="w-12 text-center">#</th>
-                                                <th>Event</th>
-                                                <th>Jenis</th>
-                                                <th>Periode</th>
-                                                <th className="text-center">Kuota</th>
-                                                <th className="text-center">Status</th>
-                                                <th className="text-right">Aksi</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
+                                    <Table>
+                                        <TableHeader>
+                                            <TableRow className="border-b border-border">
+                                                <TableHead className="w-12 text-center">#</TableHead>
+                                                <TableHead>Event</TableHead>
+                                                <TableHead>Jenis</TableHead>
+                                                <TableHead>Periode</TableHead>
+                                                <TableHead className="text-center">Kuota</TableHead>
+                                                <TableHead className="text-center">Status</TableHead>
+                                                <TableHead className="text-right">Aksi</TableHead>
+                                            </TableRow>
+                                        </TableHeader>
+                                        <TableBody>
                                             {events.data.map((item, index) => {
                                                 const from = events.from ?? 1;
                                                 const used = item.submissions_count ?? 0;
                                                 const remaining = Math.max((item.quota ?? 0) - used, 0);
                                                 return (
-                                                    <tr key={item.id} className="border-b border-base-200 last:border-0 hover:bg-base-200/40 transition-colors">
-                                                        <td className="text-xs text-base-content/50 align-top py-4 text-center">{from + index}</td>
-                                                        <td className="py-4 align-top max-w-xs">
+                                                    <TableRow key={item.id} className="border-b border-border last:border-0 hover:bg-muted/40 transition-colors">
+                                                        <TableCell className="text-xs text-foreground/50 align-top py-4 text-center">{from + index}</TableCell>
+                                                        <TableCell className="py-4 align-top max-w-xs">
                                                             <span className="text-sm font-bold line-clamp-1" title={item.name}>{item.name}</span>
                                                             {item.category === 'public_event' && (
                                                                 <button
@@ -152,54 +151,58 @@ function Index({ events, filters, public_url }) {
                                                                     <span className="truncate">{public_url}/kirim-berita/{item.slug}</span>
                                                                 </button>
                                                             )}
-                                                        </td>
-                                                        <td className="py-4 align-top">{getCategoryBadge(item.category)}</td>
-                                                        <td className="py-4 align-top text-sm">
+                                                        </TableCell>
+                                                        <TableCell className="py-4 align-top">{getCategoryBadge(item.category)}</TableCell>
+                                                        <TableCell className="py-4 align-top text-sm">
                                                             <div className="flex flex-col gap-1">
-                                                                <span><span className="text-xs font-semibold uppercase text-base-content/50 block">Mulai</span>{item.starts_at ? formatDateTime(item.starts_at) : '-'}</span>
-                                                                <span className="mt-1"><span className="text-xs font-semibold uppercase text-base-content/50 block">Selesai</span>{item.ends_at ? formatDateTime(item.ends_at) : '-'}</span>
+                                                                <span><span className="text-xs font-semibold uppercase text-foreground/50 block">Mulai</span>{item.starts_at ? formatDateTime(item.starts_at) : '-'}</span>
+                                                                <span className="mt-1"><span className="text-xs font-semibold uppercase text-foreground/50 block">Selesai</span>{item.ends_at ? formatDateTime(item.ends_at) : '-'}</span>
                                                             </div>
-                                                        </td>
-                                                        <td className="py-4 align-top text-center text-sm">
+                                                        </TableCell>
+                                                        <TableCell className="py-4 align-top text-center text-sm">
                                                             <div className="font-semibold">{used} / {item.quota}</div>
-                                                            <div className="text-xs text-base-content/60">sisa {remaining}</div>
-                                                        </td>
-                                                        <td className="py-4 align-top text-center">
+                                                            <div className="text-xs text-foreground/60">sisa {remaining}</div>
+                                                        </TableCell>
+                                                        <TableCell className="py-4 align-top text-center">
                                                             <Switch
                                                                 checked={!!item.enabled}
                                                                 onCheckedChange={() => toggleEnabled(item)}
                                                                 disabled={!can('edit event kopi-times')}
                                                             />
-                                                        </td>
-                                                        <td className="py-4 align-top text-right whitespace-nowrap">
+                                                        </TableCell>
+                                                        <TableCell className="py-4 align-top text-right whitespace-nowrap">
                                                             {can('view event kopi-times') && item.category === 'public_event' && (
-                                                                <Link href={route('admin.kopi-times.events.submissions', item.id)} className="btn btn-sm btn-ghost gap-1.5" title="Lihat kiriman">
-                                                                    <Inbox className="w-3.5 h-3.5" /> Kiriman
-                                                                </Link>
+                                                                <Button asChild size="sm" variant="ghost" className="gap-1.5" title="Lihat kiriman">
+                                                                    <Link href={route('admin.kopi-times.events.submissions', item.id)}>
+                                                                        <Inbox className="w-3.5 h-3.5" /> Kiriman
+                                                                    </Link>
+                                                                </Button>
                                                             )}
                                                             {can('edit event kopi-times') && (
-                                                                <Link href={route('admin.kopi-times.events.edit', item.id)} className="btn btn-sm btn-ghost gap-1.5">
-                                                                    <Pencil className="w-3.5 h-3.5" /> Edit
-                                                                </Link>
+                                                                <Button asChild size="sm" variant="outline" className="gap-1.5 border-amber-500 text-amber-600 hover:bg-amber-50 hover:text-amber-700 dark:border-amber-500/60 dark:text-amber-400 dark:hover:bg-amber-950/40">
+                                                                    <Link href={route('admin.kopi-times.events.edit', item.id)}>
+                                                                        <Pencil className="w-3.5 h-3.5" /> Edit
+                                                                    </Link>
+                                                                </Button>
                                                             )}
                                                             {can('delete event kopi-times') && (
-                                                                <button onClick={() => destroy(item)} className="btn btn-sm btn-ghost text-error gap-1.5" disabled={item.submissions_count > 0} title={item.submissions_count > 0 ? 'Ada kiriman — non-aktifkan saja' : 'Hapus'}>
+                                                                <Button type="button" size="sm" variant="ghost" onClick={() => destroy(item)} className="gap-1.5 text-destructive hover:text-destructive hover:bg-destructive/10" disabled={item.submissions_count > 0} title={item.submissions_count > 0 ? 'Ada kiriman — non-aktifkan saja' : 'Hapus'}>
                                                                     <Trash2 className="w-3.5 h-3.5" /> Hapus
-                                                                </button>
+                                                                </Button>
                                                             )}
-                                                        </td>
-                                                    </tr>
+                                                        </TableCell>
+                                                    </TableRow>
                                                 );
                                             })}
                                             {events.data.length === 0 && (
-                                                <tr>
-                                                    <td colSpan="7" className="text-center py-8 text-gray-500 bg-base-200/20">
+                                                <TableRow>
+                                                    <TableCell colSpan="7" className="text-center py-8 text-gray-500 bg-muted/20">
                                                         Tidak ada event ditemukan.
-                                                    </td>
-                                                </tr>
+                                                    </TableCell>
+                                                </TableRow>
                                             )}
-                                        </tbody>
-                                    </table>
+                                        </TableBody>
+                                    </Table>
                                 </div>
                             </Card>
 

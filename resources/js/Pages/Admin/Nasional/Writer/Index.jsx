@@ -1,3 +1,6 @@
+import { Table, TableHeader, TableBody, TableHead, TableRow, TableCell } from '@/Components/ui/table'
+import { Button } from '@/Components/ui/button'
+import Breadcrumbs from '@/Components/Breadcrumbs'
 import Card from '@/Components/Card'
 import InputSelect from '@/Components/InputSelect'
 import InputWithPrefix from '@/Components/InputWithPrefix'
@@ -70,7 +73,7 @@ function Index({ writers, filters }) {
             case 1:
                 return <Badge className={"bg-green-300 text-green-700"}>Active</Badge>;
             default:
-                return <Badge variant="neutral">{status}</Badge>;
+                return <Badge variant="secondary">{status}</Badge>;
         }
     }
 
@@ -93,12 +96,7 @@ function Index({ writers, filters }) {
                                 {/* end Header */}
 
                                 {/* start breadcrumbs */}
-                                <div className="breadcrumbs text-sm">
-                                    <ul>
-                                        <li><a>Home</a></li>
-                                        <li>Penulis Nasional</li>
-                                    </ul>
-                                </div>
+                                <Breadcrumbs items={[{ label: 'Home', href: '/' }, { label: 'Penulis Nasional' }]} />
                                 {/* end breadcrumbs */}
 
                             </div>
@@ -108,9 +106,11 @@ function Index({ writers, filters }) {
                                 <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
                                     {/* Button Tambah User */}
                                     {hasPermission('create penulis nasional') && (
-                                        <Link href={route('admin.nasional.writer.create')} className="btn btn-primary rounded-lg">
-                                            <Plus size={16} /> Tambah Penulis
-                                        </Link>
+                                        <Button asChild className="rounded-lg">
+                                            <Link href={route('admin.nasional.writer.create')}>
+                                                <Plus size={16} /> Tambah Penulis
+                                            </Link>
+                                        </Button>
                                     )}
 
                                     {/* Field Search And Filter */}
@@ -145,7 +145,7 @@ function Index({ writers, filters }) {
                                 <div className="md:hidden flex flex-col gap-4">
                                     {/* Contoh data, ganti dengan data.map(...) */}
                                     {writers.data.map((writer) => (
-                                        <div key={writer.id} className="border rounded-xl p-4 bg-base-100 shadow-sm">
+                                        <div key={writer.id} className="border rounded-xl p-4 bg-background shadow-sm">
 
                                             {/* Header (Nama + Status) */}
                                             <div className="flex justify-between items-start mb-3">
@@ -162,7 +162,9 @@ function Index({ writers, filters }) {
                                             {/* Actions */}
                                             <div className="flex gap-2 mt-4">
                                                 {hasPermission('edit penulis nasional') && (
-                                                    <Link href={route('admin.nasional.writer.edit', writer)} className="btn btn-sm btn-warning btn-outline">Edit</Link>
+                                                    <Button asChild size="sm" variant="outline" className="border-amber-500 text-amber-600 hover:bg-amber-50 hover:text-amber-700 dark:border-amber-500/60 dark:text-amber-400 dark:hover:bg-amber-950/40">
+                                                    <Link href={route('admin.nasional.writer.edit', writer)}>Edit</Link>
+                                                </Button>
                                                 )}
                                             </div>
                                         </div>
@@ -171,37 +173,39 @@ function Index({ writers, filters }) {
 
                                 {/* DESKTOP VERSION (Table Mode) */}
                                 <div className="hidden md:block overflow-x-auto">
-                                    <table className="table table-zebra">
+                                    <Table>
 
-                                        <thead>
-                                            <tr>
-                                                <th>#</th>
-                                                <th>Nama</th>
+                                        <TableHeader>
+                                            <TableRow>
+                                                <TableHead>#</TableHead>
+                                                <TableHead>Nama</TableHead>
 
-                                                <th>Status</th>
-                                                <th className="text-right">Action</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
+                                                <TableHead>Status</TableHead>
+                                                <TableHead className="text-right">Action</TableHead>
+                                            </TableRow>
+                                        </TableHeader>
+                                        <TableBody>
                                             {writers.data.map((writer, index) => (
-                                                <tr key={writer.id}>
-                                                    <th>{index + 1}</th>
-                                                    <td>{writer.name}</td>
-                                                    <td>
+                                                <TableRow key={writer.id}>
+                                                    <TableCell>{index + 1}</TableCell>
+                                                    <TableCell>{writer.name}</TableCell>
+                                                    <TableCell>
                                                         {getStatusBadge(writer.status)}
-                                                    </td>
-                                                    <td>
+                                                    </TableCell>
+                                                    <TableCell>
                                                         <div className="flex justify-end gap-2">
                                                             {hasPermission('edit penulis nasional') && (
-                                                                <Link href={route('admin.nasional.writer.edit', writer)} className="btn btn-sm btn-warning btn-outline">Edit</Link>
+                                                                <Button asChild size="sm" variant="outline" className="border-amber-500 text-amber-600 hover:bg-amber-50 hover:text-amber-700 dark:border-amber-500/60 dark:text-amber-400 dark:hover:bg-amber-950/40">
+                                                    <Link href={route('admin.nasional.writer.edit', writer)}>Edit</Link>
+                                                </Button>
                                                             )}
                                                         </div>
-                                                    </td>
-                                                </tr>
+                                                    </TableCell>
+                                                </TableRow>
                                             ))}
-                                        </tbody>
+                                        </TableBody>
 
-                                    </table>
+                                    </Table>
                                 </div>
 
                             </Card>

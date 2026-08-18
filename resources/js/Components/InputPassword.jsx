@@ -19,18 +19,17 @@ export default forwardRef(function InputPassword(
     }, [isFocused]);
 
     return (
-        <div className={"join " +
-            className} >
+        <div className={"flex " + className} >
             <input
                 {...props}
                 type={showPassword ? "text" : "password"}
-                className="input border border-input join-item w-full"
+                className="h-9 w-full rounded-l-md border border-input bg-transparent px-3 text-sm outline-none focus:border-ring"
                 ref={localRef}
             />
             <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="btn join-item rounded-r-lg"
+                className="inline-flex items-center justify-center rounded-r-md border border-l-0 border-input px-3 hover:bg-muted"
             >
                 {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
             </button>

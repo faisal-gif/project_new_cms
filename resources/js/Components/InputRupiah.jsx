@@ -24,8 +24,8 @@ export default function InputRupiah({
     };
 
     return (
-        <div className="form-control w-full">
-            <label className="input input-bordered flex items-center gap-2 w-full">
+        <div className="w-full">
+            <label className="flex items-center gap-2 w-full rounded-md border border-input px-3 py-2 text-sm">
                 <span className="opacity-70">Rp</span>
 
                 <input

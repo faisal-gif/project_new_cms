@@ -1,3 +1,4 @@
+import { Table, TableHeader, TableBody, TableHead, TableRow, TableCell } from '@/Components/ui/table'
 import React from 'react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import Card from '@/Components/Card';
@@ -92,32 +93,32 @@ export default function Show({ ad }) {
                     <Card>
                         <h2 className="text-lg font-semibold text-gray-700 mb-4">Lokasi Tayang & Performa</h2>
                         <div className="overflow-x-auto">
-                            <table className="table">
-                                <thead>
-                                    <tr className="bg-gray-100 text-gray-600 uppercase text-xs border-b border-gray-200">
-                                        <th className="py-2 px-4 text-left">Lokasi</th>
-                                        <th className="py-2 px-4 text-center">Platform</th>
-                                        <th className="py-2 px-4 text-center">Ukuran</th>
-                                        <th className="py-2 px-4 text-right">Views</th>
-                                        <th className="py-2 px-4 text-right">Clicks</th>
-                                    </tr>
-                                </thead>
-                                <tbody className="text-sm text-gray-600">
+                            <Table>
+                                <TableHeader>
+                                    <TableRow className="bg-gray-100 text-gray-600 uppercase text-xs border-b border-gray-200">
+                                        <TableHead className="py-2 px-4 text-left">Lokasi</TableHead>
+                                        <TableHead className="py-2 px-4 text-center">Platform</TableHead>
+                                        <TableHead className="py-2 px-4 text-center">Ukuran</TableHead>
+                                        <TableHead className="py-2 px-4 text-right">Views</TableHead>
+                                        <TableHead className="py-2 px-4 text-right">Clicks</TableHead>
+                                    </TableRow>
+                                </TableHeader>
+                                <TableBody>
                                     {locates.length === 0 ? (
-                                        <tr><td colSpan="5" className="py-6 text-center text-gray-400">Belum ada lokasi tayang.</td></tr>
+                                        <TableRow><TableCell colSpan="5" className="py-6 text-center text-gray-400">Belum ada lokasi tayang.</TableCell></TableRow>
                                     ) : (
                                         locates.map((loc) => (
-                                            <tr key={loc.id} className="border-b border-gray-100">
-                                                <td className="py-2 px-4 text-left font-semibold">{loc.master?.name || `#${loc.locate_id}`}</td>
-                                                <td className="py-2 px-4 text-center">{loc.master?.type === 'm' ? 'Mobile' : loc.master?.type === 'd' ? 'Desktop' : '-'}</td>
-                                                <td className="py-2 px-4 text-center">{loc.master ? `${loc.master.width}x${loc.master.height}` : '-'}</td>
-                                                <td className="py-2 px-4 text-right">{(loc.is_views || 0).toLocaleString('id-ID')}</td>
-                                                <td className="py-2 px-4 text-right">{(loc.is_clicks || 0).toLocaleString('id-ID')}</td>
-                                            </tr>
+                                            <TableRow key={loc.id} className="border-b border-gray-100">
+                                                <TableCell className="py-2 px-4 text-left font-semibold">{loc.master?.name || `#${loc.locate_id}`}</TableCell>
+                                                <TableCell className="py-2 px-4 text-center">{loc.master?.type === 'm' ? 'Mobile' : loc.master?.type === 'd' ? 'Desktop' : '-'}</TableCell>
+                                                <TableCell className="py-2 px-4 text-center">{loc.master ? `${loc.master.width}x${loc.master.height}` : '-'}</TableCell>
+                                                <TableCell className="py-2 px-4 text-right">{(loc.is_views || 0).toLocaleString('id-ID')}</TableCell>
+                                                <TableCell className="py-2 px-4 text-right">{(loc.is_clicks || 0).toLocaleString('id-ID')}</TableCell>
+                                            </TableRow>
                                         ))
                                     )}
-                                </tbody>
-                            </table>
+                                </TableBody>
+                            </Table>
                         </div>
                     </Card>
 

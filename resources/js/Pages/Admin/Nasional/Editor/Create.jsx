@@ -1,4 +1,6 @@
 import Card from '@/Components/Card'
+import Breadcrumbs from '@/Components/Breadcrumbs';
+import { Button } from '@/Components/ui/button';
 import InputError from '@/Components/InputError'
 import InputImage from '@/Components/InputImage'
 import InputLabel from '@/Components/InputLabel'
@@ -42,13 +44,7 @@ function Create() {
                                 {/* end Header */}
 
                                 {/* start breadcrumbs */}
-                                <div className="breadcrumbs text-sm">
-                                    <ul>
-                                        <li><a>Home</a></li>
-                                        <li>Editor Nasional</li>
-                                        <li>Tambah Editor Nasional</li>
-                                    </ul>
-                                </div>
+                                <Breadcrumbs items={[{ label: 'Home', href: '/' }, { label: 'Editor Nasional' }, { label: 'Tambah Editor Nasional' }]} />
                                 {/* end breadcrumbs */}
 
                             </div>
@@ -124,13 +120,12 @@ function Create() {
                                     </div>
 
                                     <div className=' lg:col-span-6 flex flex-row justify-end mt-4'>
-                                        <button
+                                        <Button
                                             type="submit"
-                                            className="btn btn-primary"
                                             disabled={processing}
                                         >
                                             Simpan
-                                        </button>
+                                        </Button>
                                     </div>
 
                                 </form>

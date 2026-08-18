@@ -1,4 +1,6 @@
 import Card from '@/Components/Card'
+import Breadcrumbs from '@/Components/Breadcrumbs';
+import { Button } from '@/Components/ui/button';
 import InputError from '@/Components/InputError'
 import InputImage from '@/Components/InputImage'
 import InputLabel from '@/Components/InputLabel'
@@ -44,13 +46,7 @@ function Edit({ editor }) {
                                 {/* end Header */}
 
                                 {/* start breadcrumbs */}
-                                <div className="breadcrumbs text-sm">
-                                    <ul>
-                                        <li><a>Home</a></li>
-                                        <li>Editor Nasional</li>
-                                        <li>Edit Editor Nasional</li>
-                                    </ul>
-                                </div>
+                                <Breadcrumbs items={[{ label: 'Home', href: '/' }, { label: 'Editor Nasional' }, { label: 'Edit Editor Nasional' }]} />
                                 {/* end breadcrumbs */}
 
                             </div>
@@ -114,7 +110,7 @@ function Edit({ editor }) {
                                     <div className="lg:col-span-6 w-full">
                                         <InputLabel
                                             value="Foto Editor"
-                                            className='mb-2 label-text font-bold'
+                                            className='mb-2 font-bold'
                                         />
 
                                         {/* Tampilkan preview gambar lama jika ada, dan user belum memilih gambar baru */}
@@ -142,13 +138,12 @@ function Edit({ editor }) {
                                     </div>
 
                                     <div className=' lg:col-span-6 flex flex-row justify-end mt-4'>
-                                        <button
+                                        <Button
                                             type="submit"
-                                            className="btn btn-primary"
                                             disabled={processing}
                                         >
                                             Simpan Perubahan
-                                        </button>
+                                        </Button>
                                     </div>
 
                                 </form>

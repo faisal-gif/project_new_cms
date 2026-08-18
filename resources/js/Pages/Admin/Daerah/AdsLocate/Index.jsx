@@ -1,3 +1,6 @@
+import { Table, TableHeader, TableBody, TableHead, TableRow, TableCell } from '@/Components/ui/table'
+import { Button } from '@/Components/ui/button'
+import Breadcrumbs from '@/Components/Breadcrumbs'
 import Card from '@/Components/Card'
 import InputSelect from '@/Components/InputSelect'
 import InputWithPrefix from '@/Components/InputWithPrefix'
@@ -86,7 +89,7 @@ function Index({ ads_locates, filters }) {
         return <Badge className="bg-destructive">Inactive</Badge>;
 
       default:
-        return <Badge className="bg-neutral">{status}</Badge>;
+        return <Badge variant="secondary">{status}</Badge>;
     }
   }
 
@@ -98,14 +101,14 @@ function Index({ ads_locates, filters }) {
 
       case "desktop":
       case "d":
-        return <Badge className="bg-warning">Desktop</Badge>;
+        return <Badge className="bg-amber-500 text-white">Desktop</Badge>;
 
       case "testimonial":
       case "t":
-        return <Badge className="bg-error">Testimonial</Badge>;
+        return <Badge variant="destructive">Testimonial</Badge>;
 
       default:
-        return <Badge className="bg-neutral">{type}</Badge>;
+        return <Badge variant="secondary">{type}</Badge>;
     }
   }
 
@@ -128,12 +131,7 @@ function Index({ ads_locates, filters }) {
                 {/* end Header */}
 
                 {/* start breadcrumbs */}
-                <div className="breadcrumbs text-sm">
-                  <ul>
-                    <li><a>Home</a></li>
-                    <li>Ads Locate</li>
-                  </ul>
-                </div>
+                <Breadcrumbs items={[{ label: 'Home', href: '/' }, { label: 'Ads Locate' }]} />
                 {/* end breadcrumbs */}
 
               </div>
@@ -143,9 +141,11 @@ function Index({ ads_locates, filters }) {
                 <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
                   {/* Button Tambah User */}
                   {hasPermission('create ads daerah location') && (
-                    <Link href={route('admin.daerah.adsLocate.create')} className="btn btn-primary rounded-lg">
-                      <Plus size={16} /> Tambah Ads Locate
-                    </Link>
+                    <Button asChild className="rounded-lg">
+                      <Link href={route('admin.daerah.adsLocate.create')}>
+                        <Plus size={16} /> Tambah Ads Locate
+                      </Link>
+                    </Button>
                   )}
 
 
@@ -192,40 +192,42 @@ function Index({ ads_locates, filters }) {
               <Card>
                 {/* DESKTOP VERSION (Table Mode) */}
                 <div className=" overflow-x-auto">
-                  <table className="table table-zebra">
+                  <Table>
 
-                    <thead>
-                      <tr>
-                        <th>#</th>
-                        <th>Nama</th>
-                        <th>Type</th>
-                        <th>Status</th>
-                        <th className="text-right">Action</th>
-                      </tr>
-                    </thead>
-                    <tbody>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>#</TableHead>
+                        <TableHead>Nama</TableHead>
+                        <TableHead>Type</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead className="text-right">Action</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
                       {ads_locates.data.map((ads_locate, index) => (
-                        <tr key={ads_locate.id}>
-                          <th>{index + 1}</th>
-                          <td>{ads_locate.name}</td>
-                          <td>
+                        <TableRow key={ads_locate.id}>
+                          <TableCell>{index + 1}</TableCell>
+                          <TableCell>{ads_locate.name}</TableCell>
+                          <TableCell>
                             {getTypeBadge(ads_locate.type)}
-                          </td>
-                          <td>
+                          </TableCell>
+                          <TableCell>
                             {getStatusBadge(ads_locate.status)}
-                          </td>
-                          <td>
+                          </TableCell>
+                          <TableCell>
                             <div className="flex justify-end gap-2">
                               {hasPermission('edit ads daerah location') && (
-                                <Link href={route('admin.daerah.adsLocate.edit', ads_locate)} className="btn btn-sm btn-warning btn-outline">Edit</Link>
+                                <Button asChild size="sm" variant="outline" className="border-amber-500 text-amber-600 hover:bg-amber-50 hover:text-amber-700 dark:border-amber-500/60 dark:text-amber-400 dark:hover:bg-amber-950/40">
+                                  <Link href={route('admin.daerah.adsLocate.edit', ads_locate)}>Edit</Link>
+                                </Button>
                               )}
                             </div>
-                          </td>
-                        </tr>
+                          </TableCell>
+                        </TableRow>
                       ))}
-                    </tbody>
+                    </TableBody>
 
-                  </table>
+                  </Table>
                 </div>
 
               </Card>

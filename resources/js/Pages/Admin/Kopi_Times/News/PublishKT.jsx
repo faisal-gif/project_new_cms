@@ -1,3 +1,5 @@
+import Breadcrumbs from '@/Components/Breadcrumbs'
+import { Button } from '@/Components/ui/button';
 import Card from '@/Components/Card'
 import Checkbox from '@/Components/Checkbox'
 import InputEditor from '@/Components/InputEditor'
@@ -53,14 +55,7 @@ function PublishKT({ news, editors, kanal, writerkanal, hasEditor, editor_id }) 
                                 <div>
                                     <h1 className="text-3xl font-bold text-foreground">Publish Berita Kopi Times</h1>
                                 </div>
-                                <div className="breadcrumbs text-sm">
-                                    <ul>
-                                        <li><a>Beranda</a></li>
-                                        <li>Kopi Times</li>
-                                        <li><Link href={route('admin.kopi-times.news.index')}>Berita</Link></li>
-                                        <li>Publish Berita</li>
-                                    </ul>
-                                </div>
+                                <Breadcrumbs items={[{ label: 'Beranda', href: '/' }, { label: 'Kopi Times' }, { label: 'Berita', href: route('admin.kopi-times.news.index') }, { label: 'Publish Berita' }]} />
                             </div>
 
                             <form onSubmit={submit} className='space-y-6'>
@@ -82,7 +77,7 @@ function PublishKT({ news, editors, kanal, writerkanal, hasEditor, editor_id }) 
                                         </div>
 
                                         <div className='lg:col-span-3 w-full'>
-                                            <InputLabel value="Editor" className='mb-2 label-text font-bold' />
+                                            <InputLabel value="Editor" className='mb-2 font-bold' />
                                             <Select
                                                 value={editors.find(e => e.value == data.editor)}
                                                 options={editors}
@@ -93,7 +88,7 @@ function PublishKT({ news, editors, kanal, writerkanal, hasEditor, editor_id }) 
                                             <InputError message={errors.editor} className="mt-2" />
                                         </div>
                                         <div className='lg:col-span-3 w-full'>
-                                            <InputLabel value="Penulis" className='mb-2 label-text font-bold' />
+                                            <InputLabel value="Penulis" className='mb-2 font-bold' />
                                             <TextInput className="block w-full" value={news.writer?.nama ?? (news.narsum ? `${news.narsum} (Public Event)` : '—')} disabled />
                                         </div>
 
@@ -107,7 +102,7 @@ function PublishKT({ news, editors, kanal, writerkanal, hasEditor, editor_id }) 
                                     {/* ... Isi form judul Anda tetap sama seperti sebelumnya ... */}
                                     <div className='grid grid-cols-1 lg:grid-cols-6 gap-4 mt-8'>
                                         <div className='lg:col-span-6'>
-                                            <InputLabel value="Judul" className='mb-2 label-text font-bold' />
+                                            <InputLabel value="Judul" className='mb-2 font-bold' />
                                             <TextInput className="mt-1 block w-full" value={data.title} onChange={(e) => setData('title', e.target.value)} />
                                             <InputError message={errors.title} className="mt-2" />
                                         </div>
@@ -127,7 +122,7 @@ function PublishKT({ news, editors, kanal, writerkanal, hasEditor, editor_id }) 
                                     {/* ... Isi form konten Anda tetap sama seperti sebelumnya ... */}
                                     <div className='grid grid-cols-1 lg:grid-cols-6 gap-4 mt-8'>
                                         <div className='lg:col-span-6'>
-                                            <InputLabel value="Isi Berita" className='mb-2 label-text font-bold' />
+                                            <InputLabel value="Isi Berita" className='mb-2 font-bold' />
                                             <InputEditor value={data.is_content} onChange={(e) => setData('is_content', e)} />
                                             <InputError message={errors.is_content} className="mt-2" />
                                         </div>
@@ -142,7 +137,7 @@ function PublishKT({ news, editors, kanal, writerkanal, hasEditor, editor_id }) 
                                         <div className='lg:col-span-3 flex flex-col gap-4'>
                                             {/* Input untuk memproses/mengganti foto jika jelek */}
                                             <div className="p-4 bg-slate-50 border border-slate-200 rounded-lg">
-                                                <InputLabel value="Ganti Thumbnail (Opsional)" className='mb-2 label-text font-bold text-blue-700' />
+                                                <InputLabel value="Ganti Thumbnail (Opsional)" className='mb-2 font-bold text-blue-700' />
                                                 <p className="text-xs text-slate-500 mb-3">Unggah gambar baru jika preview di atas buram/jelek.</p>
                                                 <InputImage
                                                     existingImage={news.image}
@@ -158,7 +153,7 @@ function PublishKT({ news, editors, kanal, writerkanal, hasEditor, editor_id }) 
                                         {/* Kanan: Foto Penulis & Catatan */}
                                         <div className='lg:col-span-3 flex flex-col gap-4 space-y-4'>
                                             <div>
-                                                <InputLabel value="Foto Penulis" className='mb-2 label-text font-bold' />
+                                                <InputLabel value="Foto Penulis" className='mb-2 font-bold' />
                                                 {/* Fallback ke UI Avatars jika penulis belum punya foto */}
                                                 <img
                                                     src={news.image2 || `https://ui-avatars.com/api/?name=${news.writer?.nama || 'Penulis'}&background=random`}
@@ -178,7 +173,7 @@ function PublishKT({ news, editors, kanal, writerkanal, hasEditor, editor_id }) 
 
                                         {/* Bawah: Caption (Full Width) */}
                                         <div className='lg:col-span-6 mt-4'>
-                                            <InputLabel value="Caption Thumbnail" className='mb-2 label-text font-bold' />
+                                            <InputLabel value="Caption Thumbnail" className='mb-2 font-bold' />
                                             <InputTextarea
                                                 value={data.image_caption}
                                                 onChange={(e) => setData('image_caption', e.target.value)}
@@ -194,12 +189,12 @@ function PublishKT({ news, editors, kanal, writerkanal, hasEditor, editor_id }) 
                                     {/* ... Isi form finalisasi Anda tetap sama seperti sebelumnya ... */}
                                     <div className='grid grid-cols-1 lg:grid-cols-6 gap-4 mt-8'>
                                         <div className='lg:col-span-3'>
-                                            <InputLabel value="Tanggal Publish" className='mb-2 label-text font-bold' />
+                                            <InputLabel value="Tanggal Publish" className='mb-2 font-bold' />
                                             <TextInput type="datetime-local" className="mt-1 block w-full" value={data.datepub} onChange={(e) => setData('datepub', e.target.value)} />
                                             <InputError message={errors.datepub} className="mt-2" />
                                         </div>
                                         <div className='lg:col-span-3'>
-                                            <InputLabel value="Lokus" className='mb-2 label-text font-bold' />
+                                            <InputLabel value="Lokus" className='mb-2 font-bold' />
                                             <TextInput type="text" className="mt-1 block w-full" value={data.locus} onChange={(e) => setData('locus', e.target.value)} />
                                             <InputError message={errors.locus} className="mt-2" />
                                         </div>
@@ -207,7 +202,7 @@ function PublishKT({ news, editors, kanal, writerkanal, hasEditor, editor_id }) 
                                             <InputLabel
                                                 htmlFor="kanal"
                                                 value="Kanal"
-                                                className='mb-2 label-text font-bold'
+                                                className='mb-2 font-bold'
                                             />
                                             <Select
                                                 value={data.kanal ? kanal.find(k => k.value == data.kanal) : null}
@@ -221,9 +216,9 @@ function PublishKT({ news, editors, kanal, writerkanal, hasEditor, editor_id }) 
                                 </Card>
 
                                 <div className='flex flex-row justify-end mt-4'>
-                                    <button type="submit" className="btn btn-success px-8 text-lg" disabled={processing}>
+                                    <Button variant="success" type="submit" className="px-8 text-lg" disabled={processing}>
                                         Terbitkan Berita Sekarang
-                                    </button>
+                                    </Button>
                                 </div>
                             </form>
 

@@ -1,4 +1,5 @@
 import Card from '@/Components/Card'
+import { Button } from '@/Components/ui/button';
 import InputAdsImage from '@/Components/InputAdsImage'
 import InputError from '@/Components/InputError'
 import InputLabel from '@/Components/InputLabel'
@@ -213,13 +214,12 @@ function Create({ desktopLocations = [], mobileLocations = [] }) {
                             </div>
 
                             <div className='flex justify-end mt-4'>
-                                <button
-                                    type="submit"
-                                    className="btn btn-primary bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-md transition-colors"
+                                <Button
+                                    type="submit" className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-md transition-colors"
                                     disabled={processing}
                                 >
                                     {processing ? 'Menyimpan...' : 'Simpan Iklan'}
-                                </button>
+                                </Button>
                             </div>
                         </form>
                     </div>

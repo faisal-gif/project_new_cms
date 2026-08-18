@@ -1,3 +1,6 @@
+import Breadcrumbs from '@/Components/Breadcrumbs'
+import { Table, TableHeader, TableBody, TableHead, TableRow, TableCell } from '@/Components/ui/table'
+import { Button } from '@/Components/ui/button'
 import Card from '@/Components/Card'
 import InputSelect from '@/Components/InputSelect'
 import InputWithPrefix from '@/Components/InputWithPrefix'
@@ -66,7 +69,7 @@ function Index({ writers, filters }) {
             case 1:
                 return <Badge className={"bg-green-300 text-green-700"}>Active</Badge>;
             default:
-                return <Badge variant="neutral">{status}</Badge>;
+                return <Badge variant="secondary">{status}</Badge>;
         }
     }
 
@@ -82,22 +85,18 @@ function Index({ writers, filters }) {
                                 <div>
                                     <h1 className="text-3xl font-bold text-foreground">Daftar Writer AJP</h1>
                                 </div>
-                                <div className="breadcrumbs text-sm">
-                                    <ul>
-                                        <li><a>Home</a></li>
-                                        <li>AJP</li>
-                                        <li>Writer</li>
-                                    </ul>
-                                </div>
+                                <Breadcrumbs items={[{ label: 'Home', href: '/' }, { label: 'AJP' }, { label: 'Writer' }]} />
                             </div>
 
                             {/* Start Head */}
                             <Card>
                                 <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
                                     {hasPermission(['create member ajp']) && (
-                                        <Link href={route('admin.ajp.writer.create')} className="btn btn-primary rounded-lg">
-                                            <Plus size={16} /> Tambah Writers
-                                        </Link>
+                                        <Button asChild className="rounded-lg">
+                                            <Link href={route('admin.ajp.writer.create')}>
+                                                <Plus size={16} /> Tambah Writers
+                                            </Link>
+                                        </Button>
                                     )}
 
                                     <div className="flex flex-col md:flex-row gap-4 w-full md:w-auto">
@@ -130,7 +129,7 @@ function Index({ writers, filters }) {
                                 {/* MOBILE VERSION (Card Mode) */}
                                 <div className="md:hidden flex flex-col gap-4">
                                     {writers.data.map((writer) => (
-                                        <div key={writer.id} className="border rounded-xl p-4 bg-base-100 shadow-sm">
+                                        <div key={writer.id} className="border rounded-xl p-4 bg-background shadow-sm">
 
                                             <div className="flex justify-between items-start mb-3">
                                                 <div>
@@ -159,7 +158,9 @@ function Index({ writers, filters }) {
                                             </div>
                                             {hasPermission(['edit member ajp']) && (
                                                 <div className="flex gap-2 mt-4">
-                                                    <Link href={route('admin.ajp.writer.edit', writer.id)} className="btn btn-sm btn-warning btn-outline w-full">Edit Profil</Link>
+                                                    <Button asChild size="sm" variant="outline" className="w-full border-amber-500 text-amber-600 hover:bg-amber-50 hover:text-amber-700 dark:border-amber-500/60 dark:text-amber-400 dark:hover:bg-amber-950/40">
+                                                        <Link href={route('admin.ajp.writer.edit', writer.id)}>Edit Profil</Link>
+                                                    </Button>
                                                 </div>
                                             )}
                                         </div>
@@ -168,60 +169,62 @@ function Index({ writers, filters }) {
 
                                 {/* DESKTOP VERSION (Table Mode) */}
                                 <div className="hidden md:block overflow-x-auto">
-                                    <table className="table table-zebra">
-                                        <thead>
-                                            <tr>
-                                                <th>#</th>
-                                                <th>Nama / Email</th>
-                                                <th className="text-center">Kuota</th>
-                                                <th>Masa Berlaku</th>
-                                                <th>Tgl Terdaftar</th>
-                                                <th>Status</th>
-                                                <th className="text-right">Action</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
+                                    <Table>
+                                        <TableHeader>
+                                            <TableRow>
+                                                <TableHead>#</TableHead>
+                                                <TableHead>Nama / Email</TableHead>
+                                                <TableHead className="text-center">Kuota</TableHead>
+                                                <TableHead>Masa Berlaku</TableHead>
+                                                <TableHead>Tgl Terdaftar</TableHead>
+                                                <TableHead>Status</TableHead>
+                                                <TableHead className="text-right">Action</TableHead>
+                                            </TableRow>
+                                        </TableHeader>
+                                        <TableBody>
                                             {writers.data.map((writer, index) => (
-                                                <tr key={writer.id}>
+                                                <TableRow key={writer.id}>
                                                     {/* Hitung index yang benar berdasarkan paginasi */}
-                                                    <th>{(writers.current_page - 1) * writers.per_page + index + 1}</th>
-                                                    <td>
+                                                    <TableCell>{(writers.current_page - 1) * writers.per_page + index + 1}</TableCell>
+                                                    <TableCell>
                                                         <div className="font-bold">{writer.nama}</div>
                                                         <div className="text-xs text-gray-500">{writer.email}</div>
-                                                    </td>
-                                                    <td className="text-center">
+                                                    </TableCell>
+                                                    <TableCell className="text-center">
                                                         <Badge variant="outline" className="font-bold text-blue-600 border-blue-200 bg-blue-50">
                                                             {writer.quota_news ?? 0}
                                                         </Badge>
-                                                    </td>
-                                                    <td>
+                                                    </TableCell>
+                                                    <TableCell>
                                                         <span className={!writer.is_active_subscriber ? "text-red-500 font-semibold" : ""}>
                                                             {formatDate(writer.dateexp)}
                                                         </span>
-                                                    </td>
-                                                    <td>{formatDate(writer.created)}</td>
-                                                    <td>
+                                                    </TableCell>
+                                                    <TableCell>{formatDate(writer.created)}</TableCell>
+                                                    <TableCell>
                                                         {getStatusBadge(writer.status)}
-                                                    </td>
-                                                    <td>
+                                                    </TableCell>
+                                                    <TableCell>
                                                         {hasPermission(['edit member ajp']) && (
                                                             <div className="flex justify-end gap-2">
-                                                                <Link href={route('admin.ajp.writer.edit', writer.id)} className="btn btn-sm btn-warning btn-outline">Edit</Link>
+                                                                <Button asChild size="sm" variant="outline" className="border-amber-500 text-amber-600 hover:bg-amber-50 hover:text-amber-700 dark:border-amber-500/60 dark:text-amber-400 dark:hover:bg-amber-950/40">
+                                                                <Link href={route('admin.ajp.writer.edit', writer.id)}>Edit</Link>
+                                                            </Button>
                                                             </div>
                                                         )}
-                                                    </td>
-                                                </tr>
+                                                    </TableCell>
+                                                </TableRow>
                                             ))}
 
                                             {writers.data.length === 0 && (
-                                                <tr>
-                                                    <td colSpan="7" className="text-center py-8 text-gray-500">
+                                                <TableRow>
+                                                    <TableCell colSpan="7" className="text-center py-8 text-gray-500">
                                                         Tidak ada data writer yang ditemukan.
-                                                    </td>
-                                                </tr>
+                                                    </TableCell>
+                                                </TableRow>
                                             )}
-                                        </tbody>
-                                    </table>
+                                        </TableBody>
+                                    </Table>
                                 </div>
                             </Card>
                             {/* End Table */}

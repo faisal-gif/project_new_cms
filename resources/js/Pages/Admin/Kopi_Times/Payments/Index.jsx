@@ -1,3 +1,5 @@
+import { Table, TableHeader, TableBody, TableHead, TableRow, TableCell } from '@/Components/ui/table'
+import { Button } from '@/Components/ui/button'
 import Card from '@/Components/Card'
 import InputSelect from '@/Components/InputSelect'
 import InputWithPrefix from '@/Components/InputWithPrefix'
@@ -81,7 +83,7 @@ export default function Index({ payments, packages, statistics, filters }) {
             case "pending": return <Badge className="bg-yellow-100 text-yellow-700 border-yellow-200">Pending</Badge>;
             case "failed": return <Badge className="bg-red-100 text-red-700 border-red-200">Failed</Badge>;
             case "expired": return <Badge variant="secondary">Expired</Badge>;
-            default: return <Badge variant="neutral">{paymentStatus}</Badge>;
+            default: return <Badge variant="secondary">{paymentStatus}</Badge>;
         }
     }
 
@@ -101,13 +103,17 @@ export default function Index({ payments, packages, statistics, filters }) {
                                         Periode: <span className="font-semibold text-gray-600">{startDate ? formatDate(startDate) : 'Awal'}</span> s/d <span className="font-semibold text-gray-600">{endDate ? formatDate(endDate) : 'Sekarang'}</span>
                                     </p>
                                 </div>
-                                <div className="join bg-base-100 shadow-sm rounded-xl">
-                                    <Link href={route('admin.kopi-times.transaction.index')} className="btn join-item btn-sm btn-primary font-bold">
-                                        <ListFilter size={14} /> Daftar Transaksi
-                                    </Link>
-                                    <Link href={route('admin.kopi-times.transaction.report')} className="btn join-item btn-sm  font-medium">
-                                        <BarChart3 size={14} /> Grafik & Report
-                                    </Link>
+                                <div className="inline-flex bg-background shadow-sm rounded-xl overflow-hidden">
+                                    <Button asChild size="sm" className="rounded-none font-bold">
+                                        <Link href={route('admin.kopi-times.transaction.index')}>
+                                            <ListFilter size={14} /> Daftar Transaksi
+                                        </Link>
+                                    </Button>
+                                    <Button asChild size="sm" variant="ghost" className="rounded-none font-medium">
+                                        <Link href={route('admin.kopi-times.transaction.report')}>
+                                            <BarChart3 size={14} /> Grafik & Report
+                                        </Link>
+                                    </Button>
                                 </div>
                             </div>
 
@@ -190,18 +196,17 @@ export default function Index({ payments, packages, statistics, filters }) {
                                                     onChange={(e) => setSearch(e.target.value)}
                                                 />
                                             </div>
-                                            <button
+                                            <Button
                                                 type="button"
+                                                variant="outline"
+                                                size="icon"
                                                 onClick={handleReset}
                                                 disabled={!isFilterApplied}
-                                                className={`btn btn-square btn-outline rounded-lg ${isFilterApplied
-                                                        ? 'border-gray-300 text-gray-700 hover:bg-gray-100'
-                                                        : 'opacity-40 cursor-not-allowed text-gray-300'
-                                                    }`}
+                                                className="rounded-lg"
                                                 title="Reset Semua Filter"
                                             >
                                                 <RotateCcw size={16} />
-                                            </button>
+                                            </Button>
                                         </div>
                                     </div>
 
@@ -236,7 +241,7 @@ export default function Index({ payments, packages, statistics, filters }) {
                                 {/* MOBILE VERSION */}
                                 <div className="md:hidden flex flex-col gap-4">
                                     {payments.data.map((payment) => (
-                                        <div key={payment.id} className="border rounded-xl p-4 bg-base-100 shadow-sm">
+                                        <div key={payment.id} className="border rounded-xl p-4 bg-background shadow-sm">
                                             <div className="flex justify-between items-start mb-3">
                                                 <div>
                                                     <p className="font-semibold text-base">{payment.user?.nama || 'Unknown User'}</p>
@@ -276,54 +281,54 @@ export default function Index({ payments, packages, statistics, filters }) {
 
                                 {/* DESKTOP VERSION */}
                                 <div className="hidden md:block overflow-x-auto">
-                                    <table className="table table-zebra">
-                                        <thead>
-                                            <tr>
-                                                <th>#</th>
-                                                <th>Referensi / User</th>
-                                                <th>Paket</th>
-                                                <th>Metode</th>
-                                                <th className="text-right">Total Nominal</th>
-                                                <th>Waktu Transaksi</th>
-                                                <th>Status</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
+                                    <Table>
+                                        <TableHeader>
+                                            <TableRow>
+                                                <TableHead>#</TableHead>
+                                                <TableHead>Referensi / User</TableHead>
+                                                <TableHead>Paket</TableHead>
+                                                <TableHead>Metode</TableHead>
+                                                <TableHead className="text-right">Total Nominal</TableHead>
+                                                <TableHead>Waktu Transaksi</TableHead>
+                                                <TableHead>Status</TableHead>
+                                            </TableRow>
+                                        </TableHeader>
+                                        <TableBody>
                                             {payments.data.map((payment, index) => (
-                                                <tr key={payment.id}>
-                                                    <th>{(payments.current_page - 1) * payments.per_page + index + 1}</th>
-                                                    <td>
+                                                <TableRow key={payment.id}>
+                                                    <TableCell>{(payments.current_page - 1) * payments.per_page + index + 1}</TableCell>
+                                                    <TableCell>
                                                         <div className="font-bold font-mono text-sm">{payment.reference || '-'}</div>
                                                         <div className="text-xs text-gray-500">{payment.user?.nama || 'Unknown User'}</div>
-                                                    </td>
-                                                    <td className="font-semibold">{payment.package?.name || '-'}</td>
-                                                    <td>{payment.method || '-'}</td>
-                                                    <td className="text-right font-medium text-blue-600">
+                                                    </TableCell>
+                                                    <TableCell className="font-semibold">{payment.package?.name || '-'}</TableCell>
+                                                    <TableCell>{payment.method || '-'}</TableCell>
+                                                    <TableCell className="text-right font-medium text-blue-600">
                                                         {formatCurrency(payment.amount)}
-                                                    </td>
-                                                    <td>
+                                                    </TableCell>
+                                                    <TableCell>
                                                         <div className="text-sm text-gray-900">{formatDate(payment.created_at)}</div>
                                                         {payment.status === 'paid' && payment.paid_at && (
                                                             <div className="text-xs text-green-600 font-medium mt-0.5">
                                                                 Paid: {formatDate(payment.paid_at)}
                                                             </div>
                                                         )}
-                                                    </td>
-                                                    <td>
+                                                    </TableCell>
+                                                    <TableCell>
                                                         {getStatusBadge(payment.status)}
-                                                    </td>
-                                                </tr>
+                                                    </TableCell>
+                                                </TableRow>
                                             ))}
 
                                             {payments.data.length === 0 && (
-                                                <tr>
-                                                    <td colSpan="7" className="text-center py-8 text-gray-500">
+                                                <TableRow>
+                                                    <TableCell colSpan="7" className="text-center py-8 text-gray-500">
                                                         Tidak ada data pembayaran yang ditemukan.
-                                                    </td>
-                                                </tr>
+                                                    </TableCell>
+                                                </TableRow>
                                             )}
-                                        </tbody>
-                                    </table>
+                                        </TableBody>
+                                    </Table>
                                 </div>
                             </Card>
 

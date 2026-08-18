@@ -1,4 +1,6 @@
 import Card from '@/Components/Card'
+import Breadcrumbs from '@/Components/Breadcrumbs';
+import { Button } from '@/Components/ui/button';
 import InputError from '@/Components/InputError'
 import InputLabel from '@/Components/InputLabel'
 import InputPassword from '@/Components/InputPassword'
@@ -42,13 +44,7 @@ function Edit({ editor }) {
                                 {/* end Header */}
 
                                 {/* start breadcrumbs */}
-                                <div className="breadcrumbs text-sm">
-                                    <ul>
-                                        <li><a>Home</a></li>
-                                        <li>Editor</li>
-                                        <li>Edit Editor</li>
-                                    </ul>
-                                </div>
+                                <Breadcrumbs items={[{ label: 'Home', href: '/' }, { label: 'Editor' }, { label: 'Edit Editor' }]} />
                                 {/* end breadcrumbs */}
 
                             </div>
@@ -72,7 +68,7 @@ function Edit({ editor }) {
                                         <InputLabel
                                             htmlFor="id_ti"
                                             value="ID Pusat"
-                                            className='mb-2 label-text font-bold'
+                                            className='mb-2 font-bold'
                                         />
                                         <TextInput
                                             id="id_ti"
@@ -110,7 +106,7 @@ function Edit({ editor }) {
                                         <InputLabel
                                             htmlFor="no_whatsapp"
                                             value="No Whatsapp"
-                                            className='mb-2 label-text font-bold'
+                                            className='mb-2 font-bold'
                                         />
                                         <InputPhoneNumber
                                             id="no_whatsapp"
@@ -126,13 +122,12 @@ function Edit({ editor }) {
 
                                    
                                     <div className=' lg:col-span-6 flex flex-row justify-end mt-4'>
-                                        <button
+                                        <Button
                                             type="submit"
-                                            className="btn btn-primary"
                                             disabled={processing}
                                         >
                                             Simpan
-                                        </button>
+                                        </Button>
                                     </div>
 
                                 </form>

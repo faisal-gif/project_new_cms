@@ -1,3 +1,6 @@
+import Breadcrumbs from '@/Components/Breadcrumbs'
+import { Table, TableHeader, TableBody, TableHead, TableRow, TableCell } from '@/Components/ui/table'
+import { Button } from '@/Components/ui/button'
 import Card from '@/Components/Card'
 import InputSelect from '@/Components/InputSelect'
 import PaginationDaisy from '@/Components/PaginationDaisy'
@@ -46,13 +49,7 @@ export default function Index({ requests, filters }) {
                     {/* Header */}
                     <div className='flex flex-col md:flex-row md:justify-between md:items-center gap-4'>
                         <h1 className="text-3xl font-bold text-foreground">Antrean Feed & Ekoran</h1>
-                        <div className="breadcrumbs text-sm">
-                            <ul>
-                                <li><a>Home</a></li>
-                                <li>AJP</li>
-                                <li>Add-ons Berita</li>
-                            </ul>
-                        </div>
+                        <Breadcrumbs items={[{ label: 'Home', href: '/' }, { label: 'AJP' }, { label: 'Add-ons Berita' }]} />
                     </div>
 
                     {/* Toolbar / Filters */}
@@ -86,32 +83,32 @@ export default function Index({ requests, filters }) {
 
                         {/* --- VERSI DESKTOP (Tabel) --- */}
                         <div className="hidden md:block overflow-x-auto">
-                            <table className="table table-zebra w-full">
-                                <thead>
-                                    <tr>
-                                        <th className="w-12 text-center">#</th>
-                                        <th>Waktu Request</th>
-                                        <th>Wartawan</th>
-                                        <th>Judul Berita</th>
-                                        <th>Jenis Request</th>
-                                        <th className="text-center">Status</th>
-                                        <th className="text-right">Action</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
+                            <Table>
+                                <TableHeader>
+                                    <TableRow>
+                                        <TableHead className="w-12 text-center">#</TableHead>
+                                        <TableHead>Waktu Request</TableHead>
+                                        <TableHead>Wartawan</TableHead>
+                                        <TableHead>Judul Berita</TableHead>
+                                        <TableHead>Jenis Request</TableHead>
+                                        <TableHead className="text-center">Status</TableHead>
+                                        <TableHead className="text-right">Action</TableHead>
+                                    </TableRow>
+                                </TableHeader>
+                                <TableBody>
                                     {requests.data.map((req, index) => (
-                                        <tr key={req.id}>
-                                            <th className="text-center">
+                                        <TableRow key={req.id}>
+                                            <TableCell className="text-center">
                                                 {(requests.current_page - 1) * requests.per_page + index + 1}
-                                            </th>
-                                            <td>{formatDateLong(req.created_at)}</td>
-                                            <td className="font-semibold text-gray-700">{req.wartawan?.nama || 'Unknown'}</td>
-                                            <td>
+                                            </TableCell>
+                                            <TableCell>{formatDateLong(req.created_at)}</TableCell>
+                                            <TableCell className="font-semibold text-gray-700">{req.wartawan?.nama || 'Unknown'}</TableCell>
+                                            <TableCell>
                                                 <div className="font-bold text-gray-900 max-w-xs truncate" title={req.news?.title}>
                                                     {req.news?.title || 'Berita Dihapus'}
                                                 </div>
-                                            </td>
-                                            <td>
+                                            </TableCell>
+                                            <TableCell>
                                                 <div className="flex items-center gap-2 font-medium">
                                                     {
                                                         {
@@ -121,35 +118,34 @@ export default function Index({ requests, filters }) {
                                                         }[req.jenis_request]
                                                     }
                                                 </div>
-                                            </td>
-                                            <td className="text-center">{getStatusBadge(req.status)}</td>
-                                            <td>
+                                            </TableCell>
+                                            <TableCell className="text-center">{getStatusBadge(req.status)}</TableCell>
+                                            <TableCell>
                                                 <div className="flex justify-end gap-2">
-                                                    <Link
-                                                        href={route('admin.ajp.addon-requests.show', req.id)}
-                                                        className="btn btn-sm btn-primary btn-outline"
-                                                    >
-                                                        <Settings2 size={14} /> Proses
-                                                    </Link>
+                                                    <Button asChild size="sm" variant="outline" className="border-primary text-primary hover:bg-primary/10">
+                                                        <Link href={route('admin.ajp.addon-requests.show', req.id)}>
+                                                            <Settings2 size={14} /> Proses
+                                                        </Link>
+                                                    </Button>
                                                 </div>
-                                            </td>
-                                        </tr>
+                                            </TableCell>
+                                        </TableRow>
                                     ))}
                                     {requests.data.length === 0 && (
-                                        <tr>
-                                            <td colSpan="7" className="text-center py-8 text-gray-500 bg-gray-50/50">
+                                        <TableRow>
+                                            <TableCell colSpan="7" className="text-center py-8 text-gray-500 bg-gray-50/50">
                                                 Tidak ada antrean request ditemukan.
-                                            </td>
-                                        </tr>
+                                            </TableCell>
+                                        </TableRow>
                                     )}
-                                </tbody>
-                            </table>
+                                </TableBody>
+                            </Table>
                         </div>
 
                         {/* --- VERSI MOBILE (Cards) --- */}
                         <div className="md:hidden flex flex-col p-4 gap-4">
                             {requests.data.map((req) => (
-                                <div key={req.id} className="border rounded-xl p-4 bg-base-100 shadow-sm flex flex-col gap-3">
+                                <div key={req.id} className="border rounded-xl p-4 bg-background shadow-sm flex flex-col gap-3">
 
                                     {/* Card Header: Judul & Status */}
                                     <div className="flex justify-between items-start gap-3">
@@ -184,13 +180,12 @@ export default function Index({ requests, filters }) {
                                     </div>
 
                                     {/* Card Footer: Action */}
-                                    <div className="mt-2 pt-3 border-t border-base-200">
-                                        <Link
-                                            href={route('admin.ajp.addon-requests.show', req.id)}
-                                            className="btn btn-sm btn-primary w-full"
-                                        >
-                                            <Settings2 size={16} className="mr-1" /> Proses Request
-                                        </Link>
+                                    <div className="mt-2 pt-3 border-t border-border">
+                                        <Button asChild size="sm" className="w-full">
+                                            <Link href={route('admin.ajp.addon-requests.show', req.id)}>
+                                                <Settings2 size={16} className="mr-1" /> Proses Request
+                                            </Link>
+                                        </Button>
                                     </div>
 
                                 </div>

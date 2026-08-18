@@ -1,3 +1,5 @@
+import Breadcrumbs from '@/Components/Breadcrumbs'
+import { Button } from '@/Components/ui/button';
 import Card from '@/Components/Card'
 import InputError from '@/Components/InputError'
 import InputLabel from '@/Components/InputLabel'
@@ -39,16 +41,7 @@ function Create() {
                                 </div>
                                 {/* end Header */}
 
-                                {/* start breadcrumbs */}
-                                <div className="breadcrumbs text-sm">
-                                    <ul>
-                                        <li><a>Home</a></li>
-                                        <li>AJP</li>
-                                        <li>Pengumuman</li>
-                                        <li>Tambah Pengumuman</li>
-                                    </ul>
-                                </div>
-                                {/* end breadcrumbs */}
+                                <Breadcrumbs items={[{ label: 'Home', href: '/' }, { label: 'AJP' }, { label: 'Pengumuman' }, { label: 'Tambah Pengumuman' }]} />
                             </div>
 
                             {/* START: Main Form */}
@@ -88,7 +81,7 @@ function Create() {
                                             rows="4"
                                             value={data.content}
                                             onChange={(e) => setData('content', e.target.value)}
-                                            className="textarea textarea-bordered mt-1 block w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm"
+                                            className="mt-1 block w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm"
                                             placeholder="Tulis detail pengumuman di sini..."
                                         />
                                         <InputError message={errors.content} className="mt-2" />
@@ -113,7 +106,7 @@ function Create() {
                                         <InputLabel
                                             htmlFor="start_date"
                                             value="Waktu Mulai Tayang (Opsional)"
-                                            className='mb-2 label-text font-bold'
+                                            className='mb-2 font-bold'
                                         />
                                         <TextInput
                                             id="start_date"
@@ -131,7 +124,7 @@ function Create() {
                                         <InputLabel
                                             htmlFor="end_date"
                                             value="Waktu Berhenti Tayang (Opsional)"
-                                            className='mb-2 label-text font-bold'
+                                            className='mb-2 font-bold'
                                         />
                                         <TextInput
                                             id="end_date"
@@ -150,7 +143,7 @@ function Create() {
                                         <label className="flex items-center gap-3 cursor-pointer">
                                             <input
                                                 type="checkbox"
-                                                className="checkbox checkbox-primary"
+                                                className="h-4 w-4 rounded border-input accent-primary"
                                                 checked={data.is_active}
                                                 onChange={(e) => setData('is_active', e.target.checked)}
                                             />
@@ -164,13 +157,12 @@ function Create() {
 
                                     {/* Submit Button */}
                                     <div className='lg:col-span-6 flex flex-row justify-end mt-4 pt-4 border-t border-gray-100'>
-                                        <button
+                                        <Button
                                             type="submit"
-                                            className="btn btn-primary"
                                             disabled={processing}
                                         >
                                             {processing ? 'Menyimpan...' : 'Simpan Pengumuman'}
-                                        </button>
+                                        </Button>
                                     </div>
                                 </form>
                             </Card>

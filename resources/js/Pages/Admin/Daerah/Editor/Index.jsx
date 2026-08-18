@@ -1,3 +1,6 @@
+import { Table, TableHeader, TableBody, TableHead, TableRow, TableCell } from '@/Components/ui/table'
+import { Button } from '@/Components/ui/button'
+import Breadcrumbs from '@/Components/Breadcrumbs'
 import Card from '@/Components/Card'
 import InputSelect from '@/Components/InputSelect'
 import InputWithPrefix from '@/Components/InputWithPrefix'
@@ -69,7 +72,7 @@ function Index({ editors, filters }) {
       case 1:
         return <Badge className={"bg-green-300 text-green-700"}>Active</Badge>;
       default:
-        return <Badge variant="neutral">{status}</Badge>;
+        return <Badge variant="secondary">{status}</Badge>;
     }
   }
 
@@ -92,12 +95,7 @@ function Index({ editors, filters }) {
                 {/* end Header */}
 
                 {/* start breadcrumbs */}
-                <div className="breadcrumbs text-sm">
-                  <ul>
-                    <li><a>Home</a></li>
-                    <li>Editor</li>
-                  </ul>
-                </div>
+                <Breadcrumbs items={[{ label: 'Home', href: '/' }, { label: 'Editor' }]} />
                 {/* end breadcrumbs */}
 
               </div>
@@ -137,36 +135,38 @@ function Index({ editors, filters }) {
               <Card>
                 {/* DESKTOP VERSION (Table Mode) */}
                 <div className=" overflow-x-auto">
-                  <table className="table table-zebra">
+                  <Table>
 
-                    <thead>
-                      <tr>
-                        <th>#</th>
-                        <th>Nama</th>
-                        <th>Status</th>
-                        <th className="text-right">Action</th>
-                      </tr>
-                    </thead>
-                    <tbody>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>#</TableHead>
+                        <TableHead>Nama</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead className="text-right">Action</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
                       {editors.data.map((editor, index) => (
-                        <tr key={editor.id}>
-                          <th>{index + 1}</th>
-                          <td>{editor.name}</td>
-                          <td>
+                        <TableRow key={editor.id}>
+                          <TableCell>{index + 1}</TableCell>
+                          <TableCell>{editor.name}</TableCell>
+                          <TableCell>
                             {getStatusBadge(editor.status)}
-                          </td>
-                          <td>
+                          </TableCell>
+                          <TableCell>
                             <div className="flex justify-end gap-2">
                               {hasPermission('edit editor daerah') && (
-                                <Link href={route('admin.daerah.editor.edit', editor)} className="btn btn-sm btn-warning btn-outline">Edit</Link>
+                                <Button asChild size="sm" variant="outline" className="border-amber-500 text-amber-600 hover:bg-amber-50 hover:text-amber-700 dark:border-amber-500/60 dark:text-amber-400 dark:hover:bg-amber-950/40">
+                                  <Link href={route('admin.daerah.editor.edit', editor)}>Edit</Link>
+                                </Button>
                               )}
                             </div>
-                          </td>
-                        </tr>
+                          </TableCell>
+                        </TableRow>
                       ))}
-                    </tbody>
+                    </TableBody>
 
-                  </table>
+                  </Table>
                 </div>
 
               </Card>

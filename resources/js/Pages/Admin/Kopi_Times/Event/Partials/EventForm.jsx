@@ -1,4 +1,5 @@
 import InputError from '@/Components/InputError'
+import { Button } from '@/Components/ui/button';
 import InputLabel from '@/Components/InputLabel'
 import InputSelect from '@/Components/InputSelect'
 import TextInput from '@/Components/TextInput'
@@ -49,7 +50,7 @@ function EventForm({ form, submit, public_url, submitLabel, lockedSlug = null })
                     rows="4"
                     value={data.description || ''}
                     onChange={(e) => setData('description', e.target.value)}
-                    className="textarea textarea-bordered mt-1 block w-full rounded-md shadow-sm"
+                    className="mt-1 block w-full rounded-md shadow-sm"
                     placeholder="Keterangan / aturan event. Untuk public_event ini tampil ke pengirim berita."
                 />
                 <InputError message={errors.description} className="mt-2" />
@@ -109,7 +110,7 @@ function EventForm({ form, submit, public_url, submitLabel, lockedSlug = null })
                 <label className="flex items-center gap-3 cursor-pointer">
                     <input
                         type="checkbox"
-                        className="checkbox checkbox-primary"
+                        className="h-4 w-4 rounded border-input accent-primary"
                         checked={!!data.enabled}
                         onChange={(e) => setData('enabled', e.target.checked)}
                     />
@@ -122,9 +123,9 @@ function EventForm({ form, submit, public_url, submitLabel, lockedSlug = null })
             </div>
 
             <div className="lg:col-span-6 flex flex-row justify-end mt-4 pt-4 border-t border-gray-100">
-                <button type="submit" className="btn btn-primary" disabled={processing}>
+                <Button type="submit" disabled={processing}>
                     {processing ? 'Menyimpan...' : submitLabel}
-                </button>
+                </Button>
             </div>
         </form>
     )

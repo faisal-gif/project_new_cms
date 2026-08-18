@@ -1,3 +1,6 @@
+import { Table, TableHeader, TableBody, TableHead, TableRow, TableCell } from '@/Components/ui/table'
+import { Button } from '@/Components/ui/button'
+import Breadcrumbs from '@/Components/Breadcrumbs'
 import Card from '@/Components/Card'
 import InputSelect from '@/Components/InputSelect'
 import InputWithPrefix from '@/Components/InputWithPrefix'
@@ -110,7 +113,7 @@ function Index({ galleries, writers, categories, filters }) {
       case 1:
         return <Badge className={"bg-green-300 text-green-700"}>Publish</Badge>;
       default:
-        return <Badge variant="neutral">{status}</Badge>;
+        return <Badge variant="secondary">{status}</Badge>;
     }
   }
 
@@ -118,13 +121,13 @@ function Index({ galleries, writers, categories, filters }) {
     switch (status) {
       case '1':
       case 1:
-        return <Badge className="badge badge-primary badge-soft">ON</Badge>;
+        return <Badge>ON</Badge>;
       case '0':
       case 0:
       case null:
         return <Badge variant="secondary">OFF</Badge>;
       default:
-        return <Badge variant="neutral">{status}</Badge>;
+        return <Badge variant="secondary">{status}</Badge>;
     }
   }
 
@@ -145,12 +148,7 @@ function Index({ galleries, writers, categories, filters }) {
                 {/* end Header */}
 
                 {/* start breadcrumbs */}
-                <div className="breadcrumbs text-sm">
-                  <ul>
-                    <li><a>Beranda</a></li>
-                    <li>Fotografi Jurnalistik</li>
-                  </ul>
-                </div>
+                <Breadcrumbs items={[{ label: 'Beranda', href: '/' }, { label: 'Fotografi Jurnalistik' }]} />
                 {/* end breadcrumbs */}
               </div>
 
@@ -158,15 +156,19 @@ function Index({ galleries, writers, categories, filters }) {
               <div className="flex flex-col md:flex-row items-start md:items-center gap-4">
                 {/* Button Tambah Galeri */}
                 {hasPermission('create gallery nasional') && (
-                  <Link href={route('admin.nasional.fotografi.create')} className="btn btn-primary rounded-lg">
-                    <Plus size={16} /> Tambah Galeri
-                  </Link>
+                  <Button asChild className="rounded-lg">
+                    <Link href={route('admin.nasional.fotografi.create')}>
+                      <Plus size={16} /> Tambah Galeri
+                    </Link>
+                  </Button>
                 )}
 
                 {hasPermission('view report gallery nasional') && (
-                  <Link href={route('admin.nasional.fotografi.report.index')} className="btn btn-success rounded-lg">
-                    Report Galeri
-                  </Link>
+                  <Button asChild variant="success" className="rounded-lg">
+                    <Link href={route('admin.nasional.fotografi.report.index')}>
+                      Report Galeri
+                    </Link>
+                  </Button>
                 )}
               </div>
               {/* End Head */}
@@ -221,13 +223,14 @@ function Index({ galleries, writers, categories, filters }) {
                   </div>
 
                   {/* RESET BUTTON */}
-                  <button
+                  <Button
                     type="button"
-                    className="btn btn-neutral md:ml-2"
+                    variant="secondary"
+                    className="md:ml-2"
                     onClick={handleReset}
                   >
                     Reset
-                  </button>
+                  </Button>
                 </div>
               </Card>
               {/* End Filter */}
@@ -238,16 +241,16 @@ function Index({ galleries, writers, categories, filters }) {
                 <div className="md:hidden flex flex-col gap-4 p-4">
                   {galleries.data.length > 0 ? (
                     galleries.data.map((g) => (
-                      <div key={g.gal_id} className="border rounded-xl p-4 bg-base-100 shadow-sm flex flex-col gap-3">
+                      <div key={g.gal_id} className="border rounded-xl p-4 bg-background shadow-sm flex flex-col gap-3">
 
                         {/* Header Mobile Card */}
                         <div className="flex gap-3">
                           <div className="flex-shrink-0">
                             {g.cover_image ? (
-                              <img src={g.cover_image.gi_image} alt="cover" className="h-16 w-16 rounded-lg object-cover bg-base-200" />
+                              <img src={g.cover_image.gi_image} alt="cover" className="h-16 w-16 rounded-lg object-cover bg-muted" />
                             ) : (
-                              <div className="h-16 w-16 rounded-lg bg-base-200 flex items-center justify-center">
-                                <Camera className="h-6 w-6 text-base-content/40" />
+                              <div className="h-16 w-16 rounded-lg bg-muted flex items-center justify-center">
+                                <Camera className="h-6 w-6 text-foreground/40" />
                               </div>
                             )}
                           </div>
@@ -273,85 +276,89 @@ function Index({ galleries, writers, categories, filters }) {
 
                         {/* Actions Mobile Card */}
                         <div className="flex gap-2 mt-2 pt-2 border-t">
-                          <a href={galleryUrl(g)} target="_blank" rel="noreferrer" className="btn btn-sm btn-ghost btn-outline flex-1">
-                            <ExternalLink size={14} /> Lihat
-                          </a>
+                          <Button asChild variant="ghost" size="sm" className="flex-1">
+                            <a href={galleryUrl(g)} target="_blank" rel="noreferrer">
+                              <ExternalLink size={14} /> Lihat
+                            </a>
+                          </Button>
                           {hasPermission('edit gallery nasional') && (
-                            <Link href={route('admin.nasional.fotografi.edit', g.gal_id)} className="btn btn-sm btn-warning btn-outline flex-1">
-                              Edit
-                            </Link>
+                            <Button asChild size="sm" variant="outline" className="flex-1 border-amber-500 text-amber-600 hover:bg-amber-50 hover:text-amber-700 dark:border-amber-500/60 dark:text-amber-400 dark:hover:bg-amber-950/40">
+                              <Link href={route('admin.nasional.fotografi.edit', g.gal_id)}>Edit</Link>
+                            </Button>
                           )}
                         </div>
                       </div>
                     ))
                   ) : (
-                    <div className="text-center py-8 text-base-content/50">Tidak ada galeri ditemukan.</div>
+                    <div className="text-center py-8 text-foreground/50">Tidak ada galeri ditemukan.</div>
                   )}
                 </div>
 
                 {/* DESKTOP VERSION (Table Mode) */}
                 <div className="hidden md:block overflow-x-auto">
-                  <table className="table table-zebra w-full">
-                    <thead>
-                      <tr className="bg-base-200">
-                        <th className="w-[60px]">Cover</th>
-                        <th>#ID</th>
-                        <th>Pewarta</th>
-                        <th>Judul</th>
-                        <th>Kategori</th>
-                        <th>Tanggal Publish</th>
-                        <th>HL</th>
-                        <th>Status</th>
-                        <th className="text-right">Action</th>
-                      </tr>
-                    </thead>
-                    <tbody>
+                  <Table>
+                    <TableHeader>
+                      <TableRow className="bg-muted">
+                        <TableHead className="w-[60px]">Cover</TableHead>
+                        <TableHead>#ID</TableHead>
+                        <TableHead>Pewarta</TableHead>
+                        <TableHead>Judul</TableHead>
+                        <TableHead>Kategori</TableHead>
+                        <TableHead>Tanggal Publish</TableHead>
+                        <TableHead>HL</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead className="text-right">Action</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
                       {galleries.data.length > 0 ? (
                         galleries.data.map((g) => (
-                          <tr key={g.gal_id}>
-                            <td>
+                          <TableRow key={g.gal_id}>
+                            <TableCell>
                               {g.cover_image ? (
-                                <img src={g.cover_image.gi_image} alt="cover" className="h-10 w-12 rounded object-cover bg-base-200" />
+                                <img src={g.cover_image.gi_image} alt="cover" className="h-10 w-12 rounded object-cover bg-muted" />
                               ) : (
-                                <div className="h-10 w-12 rounded bg-base-200 flex items-center justify-center">
-                                  <Camera className="h-4 w-4 text-base-content/40" />
+                                <div className="h-10 w-12 rounded bg-muted flex items-center justify-center">
+                                  <Camera className="h-4 w-4 text-foreground/40" />
                                 </div>
                               )}
-                            </td>
-                            <th>{g.gal_id}</th>
-                            <td>{g.gal_pewarta || '-'}</td>
-                            <td className="max-w-[200px] truncate" title={g.gal_title}>{g.gal_title}</td>
-                            <td>{g.kanal?.title || '-'}</td>
-                            <td>{g.gal_datepub ? formatDateTime(g.gal_datepub) : '-'}</td>
-                            <td>
+                            </TableCell>
+                            <TableCell>{g.gal_id}</TableCell>
+                            <TableCell>{g.gal_pewarta || '-'}</TableCell>
+                            <TableCell className="max-w-[200px] truncate" title={g.gal_title}>{g.gal_title}</TableCell>
+                            <TableCell>{g.kanal?.title || '-'}</TableCell>
+                            <TableCell>{g.gal_datepub ? formatDateTime(g.gal_datepub) : '-'}</TableCell>
+                            <TableCell>
                               {getHeadlineBadge(g.gal_headline)}
-                            </td>
-                            <td>
+                            </TableCell>
+                            <TableCell>
                               {getStatusBadge(g.gal_status)}
-                            </td>
-                            <td>
+                            </TableCell>
+                            <TableCell>
                               <div className="flex justify-end gap-2">
-                                <a href={galleryUrl(g)} target="_blank" rel="noreferrer" className="btn btn-sm btn-ghost btn-outline" title="Lihat di situs">
-                                  <ExternalLink size={14} /> Lihat
-                                </a>
+                                <Button asChild variant="ghost" size="sm">
+                                  <a href={galleryUrl(g)} target="_blank" rel="noreferrer" title="Lihat di situs">
+                                    <ExternalLink size={14} /> Lihat
+                                  </a>
+                                </Button>
                                 {hasPermission('edit gallery nasional') && (
-                                  <Link href={route('admin.nasional.fotografi.edit', g.gal_id)} className="btn btn-sm btn-warning btn-outline">
-                                    Edit
-                                  </Link>
+                                  <Button asChild size="sm" variant="outline" className="border-amber-500 text-amber-600 hover:bg-amber-50 hover:text-amber-700 dark:border-amber-500/60 dark:text-amber-400 dark:hover:bg-amber-950/40">
+                                    <Link href={route('admin.nasional.fotografi.edit', g.gal_id)}>Edit</Link>
+                                  </Button>
                                 )}
                               </div>
-                            </td>
-                          </tr>
+                            </TableCell>
+                          </TableRow>
                         ))
                       ) : (
-                        <tr>
-                          <td colSpan={9} className="text-center py-8 text-base-content/50">
+                        <TableRow>
+                          <TableCell colSpan={9} className="text-center py-8 text-foreground/50">
                             Tidak ada galeri ditemukan.
-                          </td>
-                        </tr>
+                          </TableCell>
+                        </TableRow>
                       )}
-                    </tbody>
-                  </table>
+                    </TableBody>
+                  </Table>
                 </div>
               </Card>
               {/* End Table */}

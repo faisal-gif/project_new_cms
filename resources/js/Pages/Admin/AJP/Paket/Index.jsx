@@ -1,3 +1,6 @@
+import Breadcrumbs from '@/Components/Breadcrumbs'
+import { Table, TableHeader, TableBody, TableHead, TableRow, TableCell } from '@/Components/ui/table'
+import { Button } from '@/Components/ui/button'
 import Card from '@/Components/Card'
 import InputSelect from '@/Components/InputSelect'
 import InputWithPrefix from '@/Components/InputWithPrefix'
@@ -88,7 +91,7 @@ function Index({ pakets, filters }) {
             case "4":
                 return <Badge variant="destructive">Kopi Times</Badge>;
             default:
-                return <Badge variant="neutral">{status}</Badge>;
+                return <Badge variant="secondary">{status}</Badge>;
         }
     };
 
@@ -105,22 +108,18 @@ function Index({ pakets, filters }) {
                                 <div>
                                     <h1 className="text-3xl font-bold text-foreground">Daftar Paket Berita</h1>
                                 </div>
-                                <div className="breadcrumbs text-sm">
-                                    <ul>
-                                        <li><a>Home</a></li>
-                                        <li>AJP</li>
-                                        <li>Paket Berita</li>
-                                    </ul>
-                                </div>
+                                <Breadcrumbs items={[{ label: 'Home', href: '/' }, { label: 'AJP' }, { label: 'Paket Berita' }]} />
                             </div>
 
                             {/* Start Head */}
                             <Card>
                                 <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
                                     {hasPermission(['create paket ajp']) && (
-                                        <Link href={route('admin.ajp.paket.create')} className="btn btn-primary rounded-lg">
-                                            <Plus size={16} /> Tambah Paket
-                                        </Link>
+                                        <Button asChild className="rounded-lg">
+                                            <Link href={route('admin.ajp.paket.create')}>
+                                                <Plus size={16} /> Tambah Paket
+                                            </Link>
+                                        </Button>
                                     )}
                                     <div className="flex flex-col md:flex-row gap-4 w-full md:w-auto">
                                         <div className="w-full md:w-80">
@@ -153,7 +152,7 @@ function Index({ pakets, filters }) {
                                 {/* MOBILE VERSION (Card Mode) */}
                                 <div className="md:hidden flex flex-col gap-4">
                                     {pakets.data.map((paket) => (
-                                        <div key={paket.id} className="border rounded-xl p-4 bg-base-100 shadow-sm">
+                                        <div key={paket.id} className="border rounded-xl p-4 bg-background shadow-sm">
 
                                             <div className="flex justify-between items-start mb-3">
                                                 <div>
@@ -194,7 +193,9 @@ function Index({ pakets, filters }) {
                                             </div>
                                             {hasPermission(['edit paket ajp']) && (
                                                 <div className="flex gap-2 mt-4">
-                                                    <Link href={route('admin.ajp.paket.edit', paket.id)} className="btn btn-sm btn-warning btn-outline w-full">Edit Paket</Link>
+                                                    <Button asChild size="sm" variant="outline" className="w-full border-amber-500 text-amber-600 hover:bg-amber-50 hover:text-amber-700 dark:border-amber-500/60 dark:text-amber-400 dark:hover:bg-amber-950/40">
+                                                        <Link href={route('admin.ajp.paket.edit', paket.id)}>Edit Paket</Link>
+                                                    </Button>
                                                 </div>
                                             )}
                                         </div>
@@ -203,75 +204,77 @@ function Index({ pakets, filters }) {
 
                                 {/* DESKTOP VERSION (Table Mode) */}
                                 <div className="hidden md:block overflow-x-auto">
-                                    <table className="table table-zebra">
-                                        <thead>
-                                            <tr>
-                                                <th>#</th>
-                                                <th>Nama Paket</th>
-                                                <th className="text-center">Kuota</th>
-                                                <th>Harga</th>
-                                                <th>Masa Aktif</th>
-                                                <th className="text-center">Item Lainnya</th>
-                                                <th>Label</th>
-                                                <th>Status</th>
-                                                <th className="text-right">Action</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
+                                    <Table>
+                                        <TableHeader>
+                                            <TableRow>
+                                                <TableHead>#</TableHead>
+                                                <TableHead>Nama Paket</TableHead>
+                                                <TableHead className="text-center">Kuota</TableHead>
+                                                <TableHead>Harga</TableHead>
+                                                <TableHead>Masa Aktif</TableHead>
+                                                <TableHead className="text-center">Item Lainnya</TableHead>
+                                                <TableHead>Label</TableHead>
+                                                <TableHead>Status</TableHead>
+                                                <TableHead className="text-right">Action</TableHead>
+                                            </TableRow>
+                                        </TableHeader>
+                                        <TableBody>
                                             {pakets.data.map((paket, index) => (
-                                                <tr key={paket.id}>
-                                                    <th>{(pakets.current_page - 1) * pakets.per_page + index + 1}</th>
-                                                    <td>
+                                                <TableRow key={paket.id}>
+                                                    <TableCell>{(pakets.current_page - 1) * pakets.per_page + index + 1}</TableCell>
+                                                    <TableCell>
                                                         <div className="font-bold">{paket.name}</div>
                                                         <div className="text-xs text-gray-500 capitalize">
                                                             {getTypeBadge(paket.type)}
                                                             {paket.kategori_produk && ` • ${paket.kategori_produk}`}
                                                         </div>
-                                                    </td>
-                                                    <td className="text-center">
+                                                    </TableCell>
+                                                    <TableCell className="text-center">
                                                         {getQuotaBadge(paket.quota)}
-                                                    </td>
-                                                    <td className="font-semibold text-green-600">
+                                                    </TableCell>
+                                                    <TableCell className="font-semibold text-green-600">
                                                         {formatRupiah(paket.price)}
-                                                    </td>
-                                                    <td>
+                                                    </TableCell>
+                                                    <TableCell>
                                                         {paket.period
                                                             ? <span>{paket.period} <span className="text-xs text-gray-500 capitalize">{paket.jenis_periode}</span></span>
                                                             : <span className="text-gray-400">-</span>}
-                                                    </td>
-                                                    <td className="text-center">
+                                                    </TableCell>
+                                                    <TableCell className="text-center">
                                                         <Badge variant="outline" className="font-bold">
                                                             {paket.items_lainnya?.length ?? 0}
                                                         </Badge>
-                                                    </td>
-                                                    <td>
+                                                    </TableCell>
+                                                    <TableCell>
                                                         <div className="flex flex-wrap gap-1">
                                                             {paket.popular && <Badge className="bg-purple-100 text-purple-700">Populer</Badge>}
                                                             {paket.promo && <Badge className="bg-pink-100 text-pink-700">Promo</Badge>}
                                                             {paket.flash_sale && <Badge className="bg-red-100 text-red-700">Flash</Badge>}
                                                             {!paket.popular && !paket.promo && !paket.flash_sale && <span className="text-gray-400 text-xs">-</span>}
                                                         </div>
-                                                    </td>
-                                                    <td>{getStatusBadge(paket.status)}</td>
-                                                    <td>
+                                                    </TableCell>
+                                                    <TableCell>{getStatusBadge(paket.status)}</TableCell>
+                                                    <TableCell>
                                                         {hasPermission(['edit paket ajp']) && (
                                                             <div className="flex justify-end gap-2">
-                                                                <Link href={route('admin.ajp.paket.edit', paket.id)} className="btn btn-sm btn-warning btn-outline">Edit</Link>
+                                                                <Button asChild size="sm" variant="outline" className="border-amber-500 text-amber-600 hover:bg-amber-50 hover:text-amber-700 dark:border-amber-500/60 dark:text-amber-400 dark:hover:bg-amber-950/40">
+                                                                <Link href={route('admin.ajp.paket.edit', paket.id)}>Edit</Link>
+                                                            </Button>
                                                             </div>
                                                         )}
-                                                    </td>
-                                                </tr>
+                                                    </TableCell>
+                                                </TableRow>
                                             ))}
 
                                             {pakets.data.length === 0 && (
-                                                <tr>
-                                                    <td colSpan="9" className="text-center py-8 text-gray-500">
+                                                <TableRow>
+                                                    <TableCell colSpan="9" className="text-center py-8 text-gray-500">
                                                         Tidak ada data paket yang ditemukan.
-                                                    </td>
-                                                </tr>
+                                                    </TableCell>
+                                                </TableRow>
                                             )}
-                                        </tbody>
-                                    </table>
+                                        </TableBody>
+                                    </Table>
                                 </div>
                             </Card>
                             {/* End Table */}

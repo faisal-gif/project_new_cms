@@ -1,4 +1,6 @@
 import Card from '@/Components/Card'
+import Breadcrumbs from '@/Components/Breadcrumbs';
+import { Button } from '@/Components/ui/button';
 import InputError from '@/Components/InputError'
 import InputLabel from '@/Components/InputLabel'
 import InputPassword from '@/Components/InputPassword'
@@ -71,13 +73,7 @@ function Edit({ user, fotografer, writers, editors, roles, userRoles, editor }) 
                                 {/* end Header */}
 
                                 {/* start breadcrumbs */}
-                                <div className="breadcrumbs text-sm">
-                                    <ul>
-                                        <li><Link href={route('dashboard')}>Home</Link></li>
-                                        <li><Link href={route('admin.users.index')}>User</Link></li>
-                                        <li>Edit User</li>
-                                    </ul>
-                                </div>
+                                <Breadcrumbs items={[{ label: 'Home', href: '/' }, { label: 'User' }, { label: 'Edit User' }]} />
                                 {/* end breadcrumbs */}
                             </div>
 
@@ -215,7 +211,7 @@ function Edit({ user, fotografer, writers, editors, roles, userRoles, editor }) 
                                         
                                         <div className="flex flex-wrap gap-4">
                                             {roles && roles.map((roleName, index) => (
-                                                <label key={index} className="cursor-pointer flex items-center gap-2 p-3 border rounded-lg hover:bg-base-200 transition">
+                                                <label key={index} className="cursor-pointer flex items-center gap-2 p-3 border rounded-lg hover:bg-muted transition">
                                                     <Checkbox
                                                         value={roleName}
                                                         checked={data.roles.includes(roleName)}
@@ -237,13 +233,12 @@ function Edit({ user, fotografer, writers, editors, roles, userRoles, editor }) 
 
                                     {/* --- SUBMIT BUTTON --- */}
                                     <div className='lg:col-span-6 flex flex-row justify-end mt-4 pt-4 border-t'>
-                                        <button
-                                            type="submit"
-                                            className="btn btn-primary px-8"
+                                        <Button
+                                            type="submit" className="px-8"
                                             disabled={processing}
                                         >
                                             {processing ? 'Menyimpan...' : 'Simpan Perubahan'}
-                                        </button>
+                                        </Button>
                                     </div>
 
                                 </form>

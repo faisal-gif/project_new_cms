@@ -1,4 +1,6 @@
 import React from "react";
+import { Button } from '@/Components/ui/button';
+import { Spinner } from '@/Components/ui/spinner';
 import { useForm, router } from "@inertiajs/react";
 import {
     ArrowLeft,
@@ -61,25 +63,32 @@ export default function Create({ editors, writers, categories, isFotografer, use
             <div className="space-y-6 max-w-7xl mx-auto pb-12">
 
                 {/* --- HEADER --- */}
-                <div className="flex items-center gap-4 bg-base-100 p-6 rounded-2xl shadow-sm border border-base-200">
-                    <button className="btn btn-ghost btn-circle" onClick={() => router.visit(route("admin.nasional.fotografi.index"))}>
+                <div className="flex items-center gap-4 bg-background p-6 rounded-2xl shadow-sm border border-border">
+                    <Button variant="ghost" size="icon" onClick={() => router.visit(route("admin.nasional.fotografi.index"))}>
                         <ArrowLeft className="h-5 w-5" />
-                    </button>
+                    </Button>
                     <div>
-                        <h1 className="text-2xl md:text-3xl font-bold text-base-content">Tambah Galeri Foto</h1>
-                        <p className="text-base-content/60 mt-1 text-sm md:text-base">
+                        <h1 className="text-2xl md:text-3xl font-bold text-foreground">Tambah Galeri Foto</h1>
+                        <p className="text-foreground/60 mt-1 text-sm md:text-base">
                             Isi informasi galeri terlebih dahulu. Setelah disimpan, Anda akan diarahkan untuk menambahkan foto satu per satu.
                         </p>
                     </div>
                 </div>
 
                 {/* --- STEP INDICATOR (orientasi alur 2 langkah) --- */}
-                <div className="bg-base-100 p-5 rounded-2xl shadow-sm border border-base-200">
-                    <ul className="steps steps-horizontal w-full text-sm">
-                        <li className="step step-primary font-semibold" data-content="1">Isi Info Galeri</li>
-                        <li className="step" data-content="2">Tambah Foto</li>
+                <div className="bg-background p-5 rounded-2xl shadow-sm border border-border">
+                    <ul className="flex items-center gap-2 w-full text-sm">
+                        <li className="flex items-center gap-2 text-primary font-semibold">
+                            <span className="flex items-center justify-center w-6 h-6 rounded-full bg-primary text-primary-foreground text-xs shrink-0">1</span>
+                            Isi Info Galeri
+                        </li>
+                        <span className="flex-1 h-px bg-border" />
+                        <li className="flex items-center gap-2 text-muted-foreground">
+                            <span className="flex items-center justify-center w-6 h-6 rounded-full bg-muted text-muted-foreground text-xs shrink-0">2</span>
+                            Tambah Foto
+                        </li>
                     </ul>
-                    <p className="text-center text-xs text-base-content/60 mt-3">
+                    <p className="text-center text-xs text-foreground/60 mt-3">
                         Langkah 1 dari 2 — setelah galeri disimpan, Anda akan diarahkan untuk menambahkan foto.
                     </p>
                 </div>
@@ -91,7 +100,7 @@ export default function Create({ editors, writers, categories, isFotografer, use
                     <div className="lg:col-span-2 space-y-6">
 
                         {/* SECTION 1: Informasi Utama */}
-                        <Card padding="p-6 md:p-8" className="border border-base-200">
+                        <Card padding="p-6 md:p-8" className="border border-border">
                             <h2 className="text-xl font-bold mb-6 flex items-center gap-2 border-b pb-3">
                                 <FileText className="h-5 w-5 text-primary" /> 1. Informasi Utama
                             </h2>
@@ -102,7 +111,7 @@ export default function Create({ editors, writers, categories, isFotografer, use
                                         placeholder="Contoh: Evakuasi Warga Terdampak Banjir Demak..."
                                         value={data.title}
                                         onChange={(e) => setData("title", e.target.value)}
-                                        className="w-full input-lg bg-base-200 focus:bg-base-100"
+                                        className="w-full input-lg bg-muted focus:bg-background"
                                     />
                                     <InputError message={errors.title} className="mt-1" />
                                 </div>
@@ -113,7 +122,7 @@ export default function Create({ editors, writers, categories, isFotografer, use
                                         placeholder="Tambahan keterangan judul..."
                                         value={data.subtitle}
                                         onChange={(e) => setData("subtitle", e.target.value)}
-                                        className="w-full bg-base-200 focus:bg-base-100"
+                                        className="w-full bg-muted focus:bg-background"
                                     />
                                 </div>
 
@@ -124,12 +133,12 @@ export default function Create({ editors, writers, categories, isFotografer, use
                                     onChange={(e) => setData("description", e.target.value)}
                                     maxLength={150}
                                     rows={3}
-                                    className="bg-base-200 focus:bg-base-100"
+                                    className="bg-muted focus:bg-background"
                                 />
 
                                 <div className="w-full">
                                     <InputLabel value="Narasi / Konten Lengkap" className="font-bold mb-2" />
-                                    <div className="rounded-xl overflow-hidden border border-base-300">
+                                    <div className="rounded-xl overflow-hidden border border-border">
                                         <InputEditor
                                             value={data.content}
                                             height={500}
@@ -142,7 +151,7 @@ export default function Create({ editors, writers, categories, isFotografer, use
                         </Card>
 
                         {/* SECTION 2: Detail Tim & Lokasi */}
-                        <Card padding="p-6 md:p-8" className="border border-base-200">
+                        <Card padding="p-6 md:p-8" className="border border-border">
                             <h2 className="text-xl font-bold mb-6 flex items-center gap-2 border-b pb-3">
                                 <MapPin className="h-5 w-5 text-primary" /> 2. Detail Tim & Lokasi
                             </h2>
@@ -187,7 +196,7 @@ export default function Create({ editors, writers, categories, isFotografer, use
                                         placeholder="Contoh: Jakarta Pusat"
                                         value={data.city}
                                         onChange={(e) => setData("city", e.target.value)}
-                                        className="w-full bg-base-200 focus:bg-base-100"
+                                        className="w-full bg-muted focus:bg-background"
                                     />
                                 </div>
                             </div>
@@ -197,7 +206,7 @@ export default function Create({ editors, writers, categories, isFotografer, use
                     {/* KOLOM KANAN (Lebar 1/3) - Pengaturan Publikasi yang Sticky */}
                     <div className="lg:col-span-1 space-y-6 lg:sticky lg:top-6">
 
-                        <Card title="Pengaturan Publikasi" padding="p-6" className="border border-base-200 shadow-md bg-primary/5">
+                        <Card title="Pengaturan Publikasi" padding="p-6" className="border border-border shadow-md bg-primary/5">
                             <div className="space-y-5">
                                 <div>
                                     <InputLabel value="Kategori Berita *" className="font-bold mb-2" />
@@ -205,7 +214,7 @@ export default function Create({ editors, writers, categories, isFotografer, use
                                         options={categories.map(c => ({ value: c.value, label: c.label }))}
                                         value={data.categoryId}
                                         onChange={(e) => setData("categoryId", e.target.value)}
-                                        className="bg-base-100"
+                                        className="bg-background"
                                     />
                                     <InputError message={errors.categoryId} className="mt-1" />
                                 </div>
@@ -217,7 +226,7 @@ export default function Create({ editors, writers, categories, isFotografer, use
                                         type="datetime-local"
                                         value={data.datepub}
                                         onChange={(e) => setData("datepub", e.target.value)}
-                                        className="w-full bg-base-100"
+                                        className="w-full bg-background"
                                     />
                                     <InputError message={errors.datepub} className="mt-1" />
                                 </div>
@@ -235,7 +244,7 @@ export default function Create({ editors, writers, categories, isFotografer, use
                                             ]}
                                             value={data.status}
                                             onChange={(e) => setData("status", e.target.value)}
-                                            className="bg-base-100 font-medium"
+                                            className="bg-background font-medium"
                                         />
                                     </div>
                                 )}
@@ -244,27 +253,27 @@ export default function Create({ editors, writers, categories, isFotografer, use
                         </Card>
 
                         {/* Action Buttons Panel */}
-                        <div className="bg-base-100 p-4 rounded-2xl shadow-md border border-base-200 space-y-3">
-                            <button
-                                className="btn btn-primary w-full text-base"
+                        <div className="bg-background p-4 rounded-2xl shadow-md border border-border space-y-3">
+                            <Button
+                                className="w-full text-base"
                                 onClick={handleSubmit}
                                 disabled={processing}
                             >
                                 {processing ? (
-                                    <span className="loading loading-spinner"></span>
+                                    <Spinner />
                                 ) : (
                                     <>Lanjut: Tambah Foto <ArrowRight className="h-5 w-5 ml-2" /></>
                                 )}
-                            </button>
+                            </Button>
 
-                            <div className="divider my-1"></div>
+                            <div className="my-2 border-t border-border"></div>
 
-                            <button
-                                className="btn btn-ghost btn-block text-base-content/60"
+                            <Button
+                                variant="ghost" className="w-full text-foreground/60"
                                 onClick={() => router.visit(route("admin.nasional.fotografi.index"))}
                             >
                                 Batal & Kembali
-                            </button>
+                            </Button>
                         </div>
                     </div>
                 </div>

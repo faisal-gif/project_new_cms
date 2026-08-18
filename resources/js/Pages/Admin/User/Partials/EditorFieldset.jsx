@@ -19,7 +19,7 @@ export default function EditorFieldset({ data, setData, errors, editor = null })
                 <label className="flex items-center gap-2">
                     <input
                         type="checkbox"
-                        className="checkbox"
+                        className="h-4 w-4 rounded border-input accent-primary"
                         checked={data.manage_editor}
                         onChange={(e) => setData('manage_editor', e.target.checked)}
                     />
@@ -27,7 +27,7 @@ export default function EditorFieldset({ data, setData, errors, editor = null })
                 </label>
 
                 {data.manage_editor && (
-                    <div className="space-y-4 border rounded-lg p-4 bg-base-200/40">
+                    <div className="space-y-4 border rounded-lg p-4 bg-muted/40">
                         <div>
                             <InputLabel htmlFor="editor_name" value="Nama Editor" className="mb-2 font-bold" />
                             <TextInput
@@ -49,7 +49,7 @@ export default function EditorFieldset({ data, setData, errors, editor = null })
                                 <label className="flex items-center gap-2 mb-3">
                                     <input
                                         type="checkbox"
-                                        className="checkbox"
+                                        className="h-4 w-4 rounded border-input accent-primary"
                                         checked={data.create_nasional}
                                         onChange={(e) => setData('create_nasional', e.target.checked)}
                                     />
@@ -89,7 +89,7 @@ export default function EditorFieldset({ data, setData, errors, editor = null })
                                 <label className="flex items-center gap-2 mb-3">
                                     <input
                                         type="checkbox"
-                                        className="checkbox"
+                                        className="h-4 w-4 rounded border-input accent-primary"
                                         checked={data.create_daerah}
                                         onChange={(e) => setData('create_daerah', e.target.checked)}
                                     />

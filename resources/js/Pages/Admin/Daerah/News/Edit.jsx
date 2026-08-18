@@ -17,6 +17,8 @@ import Select from "react-select";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import CustomTimeInput from '@/Components/CustomTimeInput'
+import { Button } from '@/Components/ui/button'
+import Breadcrumbs from '@/Components/Breadcrumbs'
 
 function Edit({ news, writers, editors, networks, kanal, fokus, hasEditor, editor_id, canSelectAllNetwork = false }) {
 
@@ -65,13 +67,11 @@ function Edit({ news, writers, editors, networks, kanal, fokus, hasEditor, edito
                                 <div>
                                     <h1 className="text-3xl font-bold text-foreground">Edit News</h1>
                                 </div>
-                                <div className="breadcrumbs text-sm">
-                                    <ul>
-                                        <li><a>Home</a></li>
-                                        <li>News</li>
-                                        <li>Edit News</li>
-                                    </ul>
-                                </div>
+                                <Breadcrumbs items={[
+                                    { label: 'Home', href: '/' },
+                                    { label: 'News', href: route('admin.daerah.news.index') },
+                                    { label: 'Edit News' },
+                                ]} />
                             </div>
 
                             <form onSubmit={submit} className='space-y-6'>
@@ -93,7 +93,7 @@ function Edit({ news, writers, editors, networks, kanal, fokus, hasEditor, edito
                                         </div>
 
                                         <div className='lg:col-span-3 w-full'>
-                                            <InputLabel value="Editor" className='mb-2 label-text font-bold' />
+                                            <InputLabel value="Editor" className='mb-2 font-bold' />
                                             <Select
                                                 value={editors.find(e => e.value === data.editor)}
                                                 options={editors}
@@ -104,7 +104,7 @@ function Edit({ news, writers, editors, networks, kanal, fokus, hasEditor, edito
                                         </div>
 
                                         <div className='lg:col-span-3 w-full'>
-                                            <InputLabel value="Penulis" className='mb-2 label-text font-bold' />
+                                            <InputLabel value="Penulis" className='mb-2 font-bold' />
                                             <Select
                                                 value={writers.find(w => w.value === data.writer)}
                                                 options={writers}
@@ -120,7 +120,7 @@ function Edit({ news, writers, editors, networks, kanal, fokus, hasEditor, edito
                                 <Card title={<span className="flex gap-2 items-center text-2xl font-semibold"><CaptionsIcon className='w-6 h-6' /> Judul & Deskripsi</span>}>
                                     <div className='grid grid-cols-1 lg:grid-cols-6 gap-4 mt-8'>
                                         <div className='lg:col-span-6'>
-                                            <InputLabel value="Judul" className='mb-2 label-text font-bold' />
+                                            <InputLabel value="Judul" className='mb-2 font-bold' />
                                             <TextInput
                                                 className="mt-1 block w-full"
                                                 value={data.title}
@@ -152,7 +152,7 @@ function Edit({ news, writers, editors, networks, kanal, fokus, hasEditor, edito
                                 <Card title={<span className="flex gap-2 items-center text-2xl font-semibold"><NotebookPenIcon className='w-6 h-6' /> Konten Berita</span>}>
                                     <div className='grid grid-cols-1 lg:grid-cols-6 gap-4 mt-8'>
                                         <div className='lg:col-span-6'>
-                                            <InputLabel value="Isi Berita" className='mb-2 label-text font-bold' />
+                                            <InputLabel value="Isi Berita" className='mb-2 font-bold' />
                                             <InputEditor
                                                 value={data.is_content}
                                                 onChange={(e) => setData('is_content', e)}
@@ -176,7 +176,7 @@ function Edit({ news, writers, editors, networks, kanal, fokus, hasEditor, edito
                                                 <InputLabel
                                                     htmlFor="image_thumbnail"
                                                     value="Upload Thumbnail Baru (Opsional)"
-                                                    className='mb-2 label-text font-bold'
+                                                    className='mb-2 font-bold'
                                                 />
                                                 <div className='flex items-center justify-center gap-0.5 mt-1'>
                                                     <InputImage
@@ -192,7 +192,7 @@ function Edit({ news, writers, editors, networks, kanal, fokus, hasEditor, edito
                                                 {/* Nama file hanya relevan saat upload gambar baru; kosongkan bila memilih dari galeri. */}
                                                 {!data.image_thumbnail_url && (
                                                     <div className="mt-3">
-                                                        <InputLabel htmlFor="image_name" value="Nama File Foto (untuk pencarian di galeri)" className='mb-2 label-text font-bold' />
+                                                        <InputLabel htmlFor="image_name" value="Nama File Foto (untuk pencarian di galeri)" className='mb-2 font-bold' />
                                                         <TextInput
                                                             id="image_name"
                                                             type="text"
@@ -227,7 +227,7 @@ function Edit({ news, writers, editors, networks, kanal, fokus, hasEditor, edito
                                 <Card title={<span className="flex gap-2 items-center text-2xl font-semibold"><GlobeIcon className='w-6 h-6' /> Publish</span>}>
                                     <div className='grid grid-cols-1 lg:grid-cols-6 gap-4 mt-8'>
                                         <div className='lg:col-span-3 flex flex-col'>
-                                            <InputLabel value="Tanggal Publish" className='mb-2 label-text font-bold' />
+                                            <InputLabel value="Tanggal Publish" className='mb-2 font-bold' />
                                             <DatePicker
                                                 // Pastikan data.datepub diubah menjadi object Date agar terbaca oleh kalender
                                                 selected={data.datepub ? new Date(data.datepub) : null}
@@ -246,14 +246,14 @@ function Edit({ news, writers, editors, networks, kanal, fokus, hasEditor, edito
                                                 timeInputLabel="Jam (24j):"
                                                 timeFormat="HH:mm"
                                                 dateFormat="yyyy-MM-dd HH:mm"  // Tampilan akhir di dalam kotak teks (Format 24 Jam)
-                                                className="input border border-input mt-1 block w-full"
+                                                className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm mt-1 focus:outline-none focus:ring-1 focus:ring-ring"
                                                 placeholderText="Pilih Tanggal dan Waktu..."
                                                
                                             />
                                             <InputError message={errors.datepub} className="mt-2" />
                                         </div>
                                         <div className='lg:col-span-3'>
-                                            <InputLabel value="Lokus" className='mb-2 label-text font-bold' />
+                                            <InputLabel value="Lokus" className='mb-2 font-bold' />
                                             <TextInput
                                                 type="text"
                                                 className="mt-1 block w-full"
@@ -263,7 +263,7 @@ function Edit({ news, writers, editors, networks, kanal, fokus, hasEditor, edito
                                             <InputError message={errors.locus} className="mt-2" />
                                         </div>
                                         <div className='lg:col-span-3'>
-                                            <InputLabel value="Kanal" className='mb-2 label-text font-bold' />
+                                            <InputLabel value="Kanal" className='mb-2 font-bold' />
                                             <Select
                                                 value={kanal.find(k => k.value === data.kanal)}
                                                 options={kanal}
@@ -272,7 +272,7 @@ function Edit({ news, writers, editors, networks, kanal, fokus, hasEditor, edito
                                             <InputError message={errors.kanal} className="mt-2" />
                                         </div>
                                         <div className='lg:col-span-3'>
-                                            <InputLabel value="Fokus" className='mb-2 label-text font-bold' />
+                                            <InputLabel value="Fokus" className='mb-2 font-bold' />
                                             <Select
                                                 value={fokus.find(f => f.value === data.focus)}
                                                 options={fokus}
@@ -281,7 +281,7 @@ function Edit({ news, writers, editors, networks, kanal, fokus, hasEditor, edito
                                             <InputError message={errors.focus} className="mt-2" />
                                         </div>
                                         <div className='lg:col-span-6'>
-                                            <InputLabel value="Network" className='mb-2 label-text font-bold' />
+                                            <InputLabel value="Network" className='mb-2 font-bold' />
                                             <Select
                                                 value={networks.filter(n => data.network?.includes(n.value))}
                                                 options={networks}
@@ -294,9 +294,9 @@ function Edit({ news, writers, editors, networks, kanal, fokus, hasEditor, edito
                                 </Card>
 
                                 <div className='flex flex-row justify-end mt-4'>
-                                    <button type="submit" className="btn btn-primary" disabled={processing}>
+                                    <Button type="submit" disabled={processing}>
                                         Update Data
-                                    </button>
+                                    </Button>
                                 </div>
                             </form>
                         </div>

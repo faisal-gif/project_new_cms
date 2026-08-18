@@ -8,6 +8,8 @@ import ReactCrop, { centerCrop, makeAspectCrop } from "react-image-crop";
 import "react-image-crop/dist/ReactCrop.css";
 import imageCompression from "browser-image-compression";
 import CdnImagePicker from "./CdnImagePicker";
+import { Button } from "@/Components/ui/button";
+import { Spinner } from "@/Components/ui/spinner";
 
 // --- Helper: Ekstrak area crop ---
 const getCroppedImg = async (image, crop, fileName, targetWidth, targetHeight) => {
@@ -173,31 +175,32 @@ export default function InputImage({
       {label && <div className="mb-3"><span className="text-base font-medium">{label}</span></div>}
 
       {preview ? (
-        <div className="relative w-full rounded-xl overflow-hidden border border-base-200 shadow-sm group">
+        <div className="relative w-full rounded-xl overflow-hidden border border-border shadow-sm group">
           <img
             src={preview}
             alt="preview"
             style={{ aspectRatio: `${targetWidth} / ${targetHeight}` }}
-            className="w-full h-auto object-cover cursor-pointer bg-base-300"
+            className="w-full h-auto object-cover cursor-pointer bg-muted"
             onClick={() => inputRef.current?.click()}
           />
           <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center cursor-pointer pointer-events-none">
             <span className="text-white font-medium drop-shadow-md">Klik untuk ganti gambar</span>
           </div>
-          <button
+          <Button
             type="button"
+            size="icon-sm"
             onClick={(e) => {
               e.stopPropagation();
               removeImage();
             }}
-            className="btn btn-error btn-sm btn-circle absolute top-3 right-3 shadow-lg"
+            className="rounded-full bg-destructive text-white hover:bg-destructive/90 absolute top-3 right-3 shadow-lg"
           >
             <XIcon className="w-4 h-4" />
-          </button>
+          </Button>
         </div>
       ) : (
         <div
-          className="w-full border-2 border-dashed border-gray-400/70 rounded-xl flex flex-col items-center justify-center cursor-pointer hover:bg-base-200 hover:border-gray-500 transition-all"
+          className="w-full border-2 border-dashed border-gray-400/70 rounded-xl flex flex-col items-center justify-center cursor-pointer hover:bg-muted hover:border-gray-500 transition-all"
           style={{ aspectRatio: `${targetWidth} / ${targetHeight}` }}
           onClick={() => inputRef.current?.click()}
         >
@@ -209,13 +212,15 @@ export default function InputImage({
       <input ref={inputRef} type="file" accept="image/*" className="hidden" onChange={handleSelect} />
 
       {onPickCdn && (
-        <button
+        <Button
           type="button"
+          variant="outline"
+          size="sm"
           onClick={() => setShowPicker(true)}
-          className="btn btn-outline btn-sm w-full mt-3 gap-2"
+          className="w-full mt-3 gap-2"
         >
           <LibraryIcon className="w-4 h-4" /> Pilih dari Galeri CDN
-        </button>
+        </Button>
       )}
 
       {onPickCdn && (
@@ -228,53 +233,56 @@ export default function InputImage({
 
       {/* Modal Crop */}
       {cropData.src && (
-        <div className="modal modal-open z-[9999] bg-black/60">
-          <div className="modal-box max-w-3xl bg-base-100">
+        <div className="fixed inset-0 z-[9999] bg-black/60 flex items-center justify-center p-4">
+          <div className="w-full max-w-3xl bg-background rounded-xl p-6 shadow-xl max-h-[90vh] overflow-auto">
             <h3 className="font-bold text-lg mb-4">Sesuaikan Gambar</h3>
 
             {allowPortrait && (
               <div className="flex justify-center gap-2 mb-4">
-                <button
+                <Button
                   type="button"
-                  className={`btn btn-sm ${!isPortrait ? "btn-primary" : "btn-ghost border-base-300"}`}
+                  size="sm"
+                  variant={!isPortrait ? "default" : "outline"}
                   onClick={() => setOrientation("landscape")}
                 >
                   Landscape
-                </button>
-                <button
+                </Button>
+                <Button
                   type="button"
-                  className={`btn btn-sm ${isPortrait ? "btn-primary" : "btn-ghost border-base-300"}`}
+                  size="sm"
+                  variant={isPortrait ? "default" : "outline"}
                   onClick={() => setOrientation("portrait")}
                 >
                   Portrait
-                </button>
+                </Button>
               </div>
             )}
 
-            <div className="flex justify-center items-center bg-base-200 overflow-auto max-h-[60vh] rounded-lg">
+            <div className="flex justify-center items-center bg-muted overflow-auto max-h-[60vh] rounded-lg">
               <ReactCrop crop={crop} onChange={(_, p) => setCrop(p)} onComplete={(c) => setCompletedCrop(c)} aspect={ASPECT_RATIO}>
                 <img src={cropData.src} alt="Crop" onLoad={onImageLoad} className="max-h-[60vh] object-contain" />
               </ReactCrop>
             </div>
 
             {/* Layout tombol yang sudah disesuaikan ke kanan */}
-            <div className="modal-action flex w-full justify-end gap-2 mt-6">
-              <button
+            <div className="flex w-full justify-end gap-2 mt-6">
+              <Button
                 type="button"
-                className="btn btn-ghost flex-1 sm:flex-none"
+                variant="ghost"
+                className="flex-1 sm:flex-none"
                 onClick={() => setCropData({ src: null, fileName: "", originalFile: null })}
                 disabled={isProcessing}
               >
                 Batal
-              </button>
-              <button
+              </Button>
+              <Button
                 type="button"
-                className="btn btn-primary flex-1 sm:flex-none"
+                className="flex-1 sm:flex-none"
                 onClick={handleSaveCrop}
                 disabled={isProcessing || !completedCrop?.width}
               >
-                {isProcessing ? <span className="loading loading-spinner loading-sm"></span> : `Crop & Kompres`}
-              </button>
+                {isProcessing ? <Spinner /> : `Crop & Kompres`}
+              </Button>
             </div>
           </div>
         </div>

@@ -1,4 +1,6 @@
+import Breadcrumbs from '@/Components/Breadcrumbs'
 import Card from '@/Components/Card'
+import { Button } from '@/Components/ui/button'
 import { Badge } from '@/Components/ui/badge'
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout'
 import { formatDate } from '@/Utils/formatter'
@@ -44,22 +46,17 @@ export default function Show({ news }) {
                     {/* Header & Breadcrumbs */}
                     <div className='flex flex-col md:flex-row justify-between md:items-center gap-4'>
                         <h1 className="text-3xl font-bold text-foreground">Detail Berita</h1>
-                        <div className="breadcrumbs text-sm">
-                            <ul>
-                                <li><Link href={route('dashboard')}>Home</Link></li>
-                                <li>Kopi Times</li>
-                                <li><Link href={route('admin.kopi-times.news.index')}>Berita</Link></li>
-                                <li>Detail</li>
-                            </ul>
-                        </div>
+                        <Breadcrumbs items={[{ label: 'Home', href: route('dashboard') }, { label: 'Kopi Times' }, { label: 'Berita', href: route('admin.kopi-times.news.index') }, { label: 'Detail' }]} />
                     </div>
 
                     <Card>
                         {/* Top Action Bar */}
                         <div className="flex flex-col sm:flex-row justify-between items-center border-b pb-4 mb-6 gap-4">
-                            <Link href={route('admin.kopi-times.news.index')} className="btn btn-ghost btn-sm">
-                                <ArrowLeft size={16} /> Kembali ke Daftar
-                            </Link>
+                            <Button asChild variant="ghost" size="sm">
+                                <Link href={route('admin.kopi-times.news.index')}>
+                                    <ArrowLeft size={16} /> Kembali ke Daftar
+                                </Link>
+                            </Button>
 
                             {news.news_nasional === null ? (
 
@@ -67,16 +64,20 @@ export default function Show({ news }) {
                                 <>
                                     {/* Tombol Edit: Hanya muncul jika belum di-publish dan user punya permission */}
                                     {hasPermission(['edit news kopi-times']) && (
-                                        <Link href={route('admin.kopi-times.news.edit', news.id)} className="btn btn-warning">
-                                            <EditIcon size={16} /> Edit Berita
-                                        </Link>
+                                        <Button asChild variant="warning">
+                                            <Link href={route('admin.kopi-times.news.edit', news.id)}>
+                                                <EditIcon size={16} /> Edit Berita
+                                            </Link>
+                                        </Button>
                                     )}
 
                                     {/* Tombol Publish: Hanya muncul jika belum di-publish dan user punya permission */}
                                     {hasPermission(['publish news kopi-times']) && (
-                                        <Link href={route('admin.kopi-times.news.publish', news.id)} className="btn btn-success">
-                                            <UploadCloudIcon size={16} /> Publish Berita
-                                        </Link>
+                                        <Button asChild variant="success">
+                                            <Link href={route('admin.kopi-times.news.publish', news.id)}>
+                                                <UploadCloudIcon size={16} /> Publish Berita
+                                            </Link>
+                                        </Button>
                                     )}
                                 </>
 
@@ -85,15 +86,19 @@ export default function Show({ news }) {
                                 /* --- JIKA SUDAH DI-PUBLISH (NASIONAL) --- */
                                 <>
                                     {/* Tombol Detail Nasional: Muncul jika sudah berhasil ter-publish */}
-                                    <Link href={route('admin.nasional.news.show', news.news_nasional.news_id)} className="btn btn-info">
-                                        <InfoIcon size={16} /> Lihat di Nasional
-                                    </Link>
+                                    <Button asChild className="bg-sky-600 hover:bg-sky-700 text-white">
+                                        <Link href={route('admin.nasional.news.show', news.news_nasional.news_id)}>
+                                            <InfoIcon size={16} /> Lihat di Nasional
+                                        </Link>
+                                    </Button>
 
                                     {/* Tombol Website: link berita publik yang tersimpan saat publish */}
                                     {news.url && (
-                                        <a href={news.url} target="_blank" rel="noopener noreferrer" className="btn btn-success btn-outline">
-                                            <ExternalLinkIcon size={16} /> Lihat di Website
-                                        </a>
+                                        <Button asChild variant="outline" className="border-green-600 text-green-700 hover:bg-green-50">
+                                            <a href={news.url} target="_blank" rel="noopener noreferrer">
+                                                <ExternalLinkIcon size={16} /> Lihat di Website
+                                            </a>
+                                        </Button>
                                     )}
                                 </>
 

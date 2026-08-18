@@ -1,3 +1,5 @@
+import { Table, TableHeader, TableBody, TableHead, TableRow, TableCell } from '@/Components/ui/table'
+import { Button } from '@/Components/ui/button'
 import Card from '@/Components/Card'
 import PaginationDaisy from '@/Components/PaginationDaisy'
 import { Badge } from '@/Components/ui/badge'
@@ -26,57 +28,61 @@ function Submissions({ event, submissions }) {
                             <div className="flex flex-col md:flex-row justify-between md:items-center gap-2">
                                 <div>
                                     <h1 className="text-3xl font-bold text-foreground">Kiriman Event</h1>
-                                    <p className="text-sm text-base-content/60 mt-1">{event.name}</p>
+                                    <p className="text-sm text-foreground/60 mt-1">{event.name}</p>
                                 </div>
-                                <Link href={route('admin.kopi-times.events.index')} className="btn btn-ghost btn-sm gap-1.5">
-                                    <ArrowLeft className="w-4 h-4" /> Kembali
-                                </Link>
+                                <Button asChild variant="ghost" size="sm" className="gap-1.5">
+                                    <Link href={route('admin.kopi-times.events.index')}>
+                                        <ArrowLeft className="w-4 h-4" /> Kembali
+                                    </Link>
+                                </Button>
                             </div>
 
                             <Card>
                                 <div className="overflow-x-auto">
-                                    <table className="table table-zebra w-full">
-                                        <thead>
-                                            <tr className="border-b border-base-200">
-                                                <th className="w-12 text-center">#</th>
-                                                <th>Judul</th>
-                                                <th>Narasumber</th>
-                                                <th>Kota</th>
-                                                <th>Kontak</th>
-                                                <th className="text-center">Status</th>
-                                                <th>Tanggal</th>
-                                                <th className="text-right">Aksi</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
+                                    <Table>
+                                        <TableHeader>
+                                            <TableRow className="border-b border-border">
+                                                <TableHead className="w-12 text-center">#</TableHead>
+                                                <TableHead>Judul</TableHead>
+                                                <TableHead>Narasumber</TableHead>
+                                                <TableHead>Kota</TableHead>
+                                                <TableHead>Kontak</TableHead>
+                                                <TableHead className="text-center">Status</TableHead>
+                                                <TableHead>Tanggal</TableHead>
+                                                <TableHead className="text-right">Aksi</TableHead>
+                                            </TableRow>
+                                        </TableHeader>
+                                        <TableBody>
                                             {submissions.data.map((item, index) => {
                                                 const from = submissions.from ?? 1;
                                                 return (
-                                                    <tr key={item.id} className="border-b border-base-200 last:border-0 hover:bg-base-200/40 transition-colors">
-                                                        <td className="text-xs text-base-content/50 py-4 text-center">{from + index}</td>
-                                                        <td className="py-4 max-w-xs"><span className="text-sm font-semibold line-clamp-2" title={item.title}>{item.title}</span></td>
-                                                        <td className="py-4 text-sm">{item.narsum || '-'}</td>
-                                                        <td className="py-4 text-sm">{item.city || '-'}</td>
-                                                        <td className="py-4 text-sm">{item.contact || '-'}</td>
-                                                        <td className="py-4 text-center">{statusBadge(item.status)}</td>
-                                                        <td className="py-4 text-sm">{item.created ? formatDateTime(item.created) : '-'}</td>
-                                                        <td className="py-4 text-right">
-                                                            <Link href={route('admin.kopi-times.news.publish', item.id)} className="btn btn-sm btn-ghost gap-1.5">
-                                                                <ClipboardCheck className="w-3.5 h-3.5" /> Review
-                                                            </Link>
-                                                        </td>
-                                                    </tr>
+                                                    <TableRow key={item.id} className="border-b border-border last:border-0 hover:bg-muted/40 transition-colors">
+                                                        <TableCell className="text-xs text-foreground/50 py-4 text-center">{from + index}</TableCell>
+                                                        <TableCell className="py-4 max-w-xs"><span className="text-sm font-semibold line-clamp-2" title={item.title}>{item.title}</span></TableCell>
+                                                        <TableCell className="py-4 text-sm">{item.narsum || '-'}</TableCell>
+                                                        <TableCell className="py-4 text-sm">{item.city || '-'}</TableCell>
+                                                        <TableCell className="py-4 text-sm">{item.contact || '-'}</TableCell>
+                                                        <TableCell className="py-4 text-center">{statusBadge(item.status)}</TableCell>
+                                                        <TableCell className="py-4 text-sm">{item.created ? formatDateTime(item.created) : '-'}</TableCell>
+                                                        <TableCell className="py-4 text-right">
+                                                            <Button asChild size="sm" variant="ghost" className="gap-1.5">
+                                                                <Link href={route('admin.kopi-times.news.publish', item.id)}>
+                                                                    <ClipboardCheck className="w-3.5 h-3.5" /> Review
+                                                                </Link>
+                                                            </Button>
+                                                        </TableCell>
+                                                    </TableRow>
                                                 );
                                             })}
                                             {submissions.data.length === 0 && (
-                                                <tr>
-                                                    <td colSpan="8" className="text-center py-8 text-gray-500 bg-base-200/20">
+                                                <TableRow>
+                                                    <TableCell colSpan="8" className="text-center py-8 text-gray-500 bg-muted/20">
                                                         Belum ada kiriman untuk event ini.
-                                                    </td>
-                                                </tr>
+                                                    </TableCell>
+                                                </TableRow>
                                             )}
-                                        </tbody>
-                                    </table>
+                                        </TableBody>
+                                    </Table>
                                 </div>
                             </Card>
 

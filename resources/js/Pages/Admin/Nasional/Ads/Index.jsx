@@ -1,3 +1,7 @@
+import { Table, TableHeader, TableBody, TableHead, TableRow, TableCell } from '@/Components/ui/table'
+import { Button } from '@/Components/ui/button'
+import { Input } from '@/Components/ui/input'
+import Breadcrumbs from '@/Components/Breadcrumbs'
 import React, { useState, useEffect, useRef } from 'react';
 
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
@@ -40,80 +44,74 @@ export default function Index({ ads, filters = {} }) {
                     {/* --- HEADER & ACTION --- */}
                     <div className="flex flex-col md:flex-row justify-between items-center gap-4">
                         <h1 className="text-3xl font-bold text-gray-800">Manajemen Iklan</h1>
-                        <div className="breadcrumbs text-sm text-gray-500">
-                            <ul>
-                                <li>Home</li>
-                                <li>Daftar Iklan</li>
-                            </ul>
-                        </div>
+                        <Breadcrumbs items={[{ label: 'Home', href: '/' }, { label: 'Daftar Iklan' }]} />
                     </div>
 
                     <Card>
                         <div className="flex flex-col md:flex-row justify-between md:items-center gap-4 mb-6">
                             <h2 className="text-lg font-semibold text-gray-700">Daftar Campaign Iklan</h2>
                             <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full md:w-auto">
-                                <input
+                                <Input
                                     type="text"
                                     value={search}
                                     onChange={(e) => setSearch(e.target.value)}
                                     placeholder="Cari judul / ID iklan..."
-                                    className="input input-bordered w-full sm:w-64"
+                                    className="w-full sm:w-64"
                                 />
-                                <Link
-                                    href={route('admin.nasional.ads.create')}
-                                    className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-md font-semibold transition duration-150 ease-in-out text-center whitespace-nowrap"
-                                >
-                                    + Tambah Iklan
-                                </Link>
+                                <Button asChild className="rounded-lg whitespace-nowrap">
+                                    <Link href={route('admin.nasional.ads.create')}>
+                                        + Tambah Iklan
+                                    </Link>
+                                </Button>
                             </div>
                         </div>
 
                         {/* --- TABEL DATA (Desktop) --- */}
                         <div className="overflow-x-auto hidden md:block">
-                            <table className="table">
-                                <thead>
-                                    <tr className="bg-gray-100 text-gray-600 uppercase text-sm leading-normal border-b border-gray-200">
-                                        <th className="py-3 px-6 text-left">Info Campaign</th>
-                                        <th className="py-3 px-6 text-center">Periode</th>
-                                        <th className="py-3 px-6 text-right">Anggaran (Cost)</th>
-                                        <th className="py-3 px-6 text-center">Status</th>
-                                        <th className="py-3 px-6 text-center">Aksi</th>
-                                    </tr>
-                                </thead>
-                                <tbody className="text-gray-600 text-sm font-light">
+                            <Table>
+                                <TableHeader>
+                                    <TableRow className="bg-gray-100 text-gray-600 uppercase text-sm leading-normal border-b border-gray-200">
+                                        <TableHead className="py-3 px-6 text-left">Info Campaign</TableHead>
+                                        <TableHead className="py-3 px-6 text-center">Periode</TableHead>
+                                        <TableHead className="py-3 px-6 text-right">Anggaran (Cost)</TableHead>
+                                        <TableHead className="py-3 px-6 text-center">Status</TableHead>
+                                        <TableHead className="py-3 px-6 text-center">Aksi</TableHead>
+                                    </TableRow>
+                                </TableHeader>
+                                <TableBody>
                                     {ads.data.length === 0 ? (
-                                        <tr>
-                                            <td colSpan="5" className="py-8 text-center text-gray-500">
+                                        <TableRow>
+                                            <TableCell colSpan="5" className="py-8 text-center text-gray-500">
                                                 Belum ada data iklan. Silakan tambahkan kampanye baru.
-                                            </td>
-                                        </tr>
+                                            </TableCell>
+                                        </TableRow>
                                     ) : (
                                         ads.data.map((ad) => (
-                                            <tr key={ad.id} className="border-b border-gray-200 hover:bg-gray-50 transition duration-150">
-                                                <td className="py-4 px-6 text-left">
+                                            <TableRow key={ad.id} className="border-b border-gray-200 hover:bg-gray-50 transition duration-150">
+                                                <TableCell className="py-4 px-6 text-left">
                                                     <div className="font-bold text-gray-800">{ad.title}</div>
                                                     <a href={ad.url} target="_blank" rel="noreferrer" className="text-xs text-blue-500 hover:underline">
                                                         {ad.url}
                                                     </a>
                                                     <div className="text-xs text-gray-400 mt-1">ID: {ad.unique_id}</div>
-                                                </td>
-                                                <td className="py-4 px-6 text-center">
+                                                </TableCell>
+                                                <TableCell className="py-4 px-6 text-center">
                                                     <div className="font-semibold">{ad.datestart}</div>
                                                     <div className="text-xs text-gray-500">s/d</div>
                                                     <div className="font-semibold">{ad.dateend}</div>
-                                                </td>
-                                                <td className="py-4 px-6 text-right">
+                                                </TableCell>
+                                                <TableCell className="py-4 px-6 text-right">
                                                     <div className="font-bold text-gray-800">{formatRupiah(ad.cost)}</div>
                                                     <div className="text-xs text-gray-500">CPC: {formatRupiah(ad.cpc)}</div>
-                                                </td>
-                                                <td className="py-4 px-6 text-center">
+                                                </TableCell>
+                                                <TableCell className="py-4 px-6 text-center">
                                                     {ad.is_status == 1 ? (
                                                         <span className="bg-green-100 text-green-700 py-1 px-3 rounded-full text-xs font-bold">Aktif</span>
                                                     ) : (
                                                         <span className="bg-red-100 text-red-700 py-1 px-3 rounded-full text-xs font-bold">Tidak Aktif</span>
                                                     )}
-                                                </td>
-                                                <td className="py-4 px-6 text-center">
+                                                </TableCell>
+                                                <TableCell className="py-4 px-6 text-center">
                                                     <div className="flex item-center justify-center gap-3">
                                                         <Link
                                                             href={route('admin.nasional.ads.show', ad.id)}
@@ -134,12 +132,12 @@ export default function Index({ ads, filters = {} }) {
                                                             Edit
                                                         </Link>
                                                     </div>
-                                                </td>
-                                            </tr>
+                                                </TableCell>
+                                            </TableRow>
                                         ))
                                     )}
-                                </tbody>
-                            </table>
+                                </TableBody>
+                            </Table>
                         </div>
 
                         {/* --- KARTU DATA (Mobile) --- */}
@@ -192,14 +190,14 @@ export default function Index({ ads, filters = {} }) {
                         {/* --- PAGINATION --- */}
                         {ads.links && ads.links.length > 3 && (
                             <div className="mt-6 flex justify-end">
-                                <div className="join shadow-sm">
+                                <div className="inline-flex shadow-sm">
                                     {ads.links.map((link, index) => {
                                         // Jika URL null (tombol Prev/Next di ujung halaman), render sebagai elemen statis (disabled)
                                         if (link.url === null) {
                                             return (
                                                 <div
                                                     key={index}
-                                                    className="join-item btn btn-sm bg-gray-100 text-gray-400 cursor-not-allowed border-gray-200"
+                                                    className="px-3 py-1.5 text-sm border border-border bg-muted text-muted-foreground cursor-not-allowed -ml-px first:ml-0 first:rounded-l-md last:rounded-r-md"
                                                     dangerouslySetInnerHTML={{ __html: link.label }}
                                                 />
                                             );
@@ -210,9 +208,9 @@ export default function Index({ ads, filters = {} }) {
                                             <Link
                                                 key={index}
                                                 href={link.url}
-                                                className={`join-item btn btn-sm border-gray-200 ${link.active
-                                                    ? 'btn-active bg-indigo-600 text-white border-indigo-600 hover:bg-indigo-700'
-                                                    : 'bg-white text-gray-700 hover:bg-gray-50'
+                                                className={`px-3 py-1.5 text-sm border border-border -ml-px first:ml-0 first:rounded-l-md last:rounded-r-md ${link.active
+                                                    ? 'bg-primary text-primary-foreground border-primary'
+                                                    : 'bg-background text-foreground hover:bg-muted'
                                                     }`}
                                                 dangerouslySetInnerHTML={{ __html: link.label }}
                                             />

@@ -1,20 +1,10 @@
-export default function PrimaryButton({
-    className = '',
-    disabled,
-    children,
-    ...props
-}) {
+import { Button } from '@/Components/ui/button';
+
+// Wrapper legacy: teruskan ke shadcn Button (default variant = primary).
+export default function PrimaryButton({ className = '', disabled, children, ...props }) {
     return (
-        <button
-            {...props}
-            className={
-                `btn btn-primary ${
-                    disabled && 'btn-disabled'
-                } ` + className
-            }
-            disabled={disabled}
-        >
+        <Button {...props} className={className} disabled={disabled}>
             {children}
-        </button>
+        </Button>
     );
 }

@@ -1,4 +1,5 @@
 import Card from '@/Components/Card'
+import { Button } from '@/Components/ui/button';
 import InputError from '@/Components/InputError'
 import InputImage from '@/Components/InputImage'
 import InputLabel from '@/Components/InputLabel'
@@ -111,7 +112,7 @@ export default function WriterForm({ writer = null, networks = [], nasionals = [
                                 <InputError message={errors.nasional_id} className="mt-2" />
                             </div>
                             <label className="flex items-center gap-2">
-                                <input type="checkbox" className="checkbox" checked={data.create_nasional} disabled={!!data.nasional_id} onChange={(e) => setData('create_nasional', e.target.checked)} />
+                                <input type="checkbox" className="h-4 w-4 rounded border-input accent-primary" checked={data.create_nasional} disabled={!!data.nasional_id} onChange={(e) => setData('create_nasional', e.target.checked)} />
                                 atau buat data penulis nasional baru
                             </label>
                         </div>
@@ -158,7 +159,7 @@ export default function WriterForm({ writer = null, networks = [], nasionals = [
                                 <InputError message={errors.daerah_id} className="mt-2" />
                             </div>
                             <label className="flex items-center gap-2">
-                                <input type="checkbox" className="checkbox" checked={data.create_daerah} disabled={!!data.daerah_id} onChange={(e) => setData('create_daerah', e.target.checked)} />
+                                <input type="checkbox" className="h-4 w-4 rounded border-input accent-primary" checked={data.create_daerah} disabled={!!data.daerah_id} onChange={(e) => setData('create_daerah', e.target.checked)} />
                                 atau buat data penulis daerah baru (menyalin email, no. WhatsApp, network dari master)
                             </label>
                         </>
@@ -167,9 +168,9 @@ export default function WriterForm({ writer = null, networks = [], nasionals = [
             </Card>
 
             <div className="flex justify-end">
-                <button type="submit" className="btn btn-primary" disabled={processing}>
+                <Button type="submit" disabled={processing}>
                     {isEdit ? 'Simpan Perubahan' : 'Simpan'}
-                </button>
+                </Button>
             </div>
         </form>
     )

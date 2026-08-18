@@ -1,56 +1,48 @@
-"use client";
 import { useState } from "react";
+import { cn } from "@/lib/utils";
 
-export default function Tabs({
-  tabs = [],
-  defaultValue,
-  value,
-  onChange,
-  variant = "boxed", // boxed | bordered | lifted
-  size = "md", // xs sm md lg
-  full = false,
-}) {
-  const [internal, setInternal] = useState(defaultValue || tabs?.[0]?.value);
+// Segmented tabs (pengganti daisyUI `tabs`). Props tetap kompatibel:
+// tabs=[{label,value,icon?,disabled?}], value/defaultValue (controlled/uncontrolled),
+// onChange, full. `variant`/`size` diterima tapi tak dipakai (styling seragam).
+export default function Tabs({ tabs = [], defaultValue, value, onChange, full = false, className }) {
+    const [internal, setInternal] = useState(defaultValue ?? tabs?.[0]?.value);
+    const active = value ?? internal;
 
-  const active = value ?? internal;
+    const setActive = (v) => {
+        if (value === undefined) setInternal(v);
+        onChange?.(v);
+    };
 
-  const setActive = (val) => {
-    if (!value) setInternal(val);
-    onChange?.(val);
-  };
-
-  const variantClass =
-    variant === "bordered"
-      ? "tabs-bordered"
-      : variant === "lifted"
-      ? "tabs-lifted"
-      : "tabs-boxed";
-
-  const sizeClass =
-    size === "xs"
-      ? "tabs-xs"
-      : size === "sm"
-      ? "tabs-sm"
-      : size === "lg"
-      ? "tabs-lg"
-      : "";
-
-  return (
-    <div className={`tabs ${variantClass} ${sizeClass} ${full ? "w-full" : ""}`}>
-      {tabs.map((tab) => (
-        <button
-          key={tab.value}
-          type="button"
-          disabled={tab.disabled}
-          onClick={() => !tab.disabled && setActive(tab.value)}
-          className={`tab gap-2 ${
-            active === tab.value ? "tab-active" : ""
-          } ${tab.disabled ? "opacity-40 cursor-not-allowed" : ""}`}
+    return (
+        <div
+            className={cn(
+                "inline-flex items-center gap-1 rounded-lg bg-muted p-1",
+                full && "flex w-full",
+                className
+            )}
         >
-          {tab.icon && <span>{tab.icon}</span>}
-          {tab.label}
-        </button>
-      ))}
-    </div>
-  );
+            {tabs.map((tab) => {
+                const isActive = active === tab.value;
+                return (
+                    <button
+                        key={tab.value}
+                        type="button"
+                        disabled={tab.disabled}
+                        onClick={() => !tab.disabled && setActive(tab.value)}
+                        className={cn(
+                            "inline-flex items-center justify-center gap-2 rounded-md px-3 py-1.5 text-sm font-medium transition-colors",
+                            full && "flex-1",
+                            isActive
+                                ? "bg-background text-foreground shadow-sm"
+                                : "text-muted-foreground hover:text-foreground",
+                            tab.disabled && "opacity-40 cursor-not-allowed"
+                        )}
+                    >
+                        {tab.icon && <span>{tab.icon}</span>}
+                        {tab.label}
+                    </button>
+                );
+            })}
+        </div>
+    );
 }

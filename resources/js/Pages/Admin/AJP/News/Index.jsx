@@ -1,3 +1,6 @@
+import Breadcrumbs from '@/Components/Breadcrumbs'
+import { Table, TableHeader, TableBody, TableHead, TableRow, TableCell } from '@/Components/ui/table'
+import { Button } from '@/Components/ui/button'
 import Card from '@/Components/Card'
 import InputSelect from '@/Components/InputSelect'
 import InputWithPrefix from '@/Components/InputWithPrefix'
@@ -65,22 +68,18 @@ export default function Index({ news, members = [], filters }) {
                     {/* Header */}
                     <div className='flex justify-between items-center'>
                         <h1 className="text-3xl font-bold text-foreground">Daftar Berita AJP</h1>
-                        <div className="breadcrumbs text-sm">
-                            <ul>
-                                <li><a>Home</a></li>
-                                <li>AJP</li>
-                                <li>Berita</li>
-                            </ul>
-                        </div>
+                        <Breadcrumbs items={[{ label: 'Home', href: '/' }, { label: 'AJP' }, { label: 'Berita' }]} />
                     </div>
 
                     {/* Toolbar / Filters */}
                     <Card>
                         <div className="flex flex-col md:flex-row justify-between gap-4">
                             {hasPermission(['create news ajp']) && (
-                                <Link href={route('admin.ajp.news.create')} className="btn btn-primary">
-                                    <Plus size={16} /> Tulis Berita
-                                </Link>
+                                <Button asChild>
+                                    <Link href={route('admin.ajp.news.create')}>
+                                        <Plus size={16} /> Tulis Berita
+                                    </Link>
+                                </Button>
                             )}
 
                             <div className="flex flex-col md:flex-row gap-4 w-full md:w-auto">
@@ -121,77 +120,71 @@ export default function Index({ news, members = [], filters }) {
                     {/* Table Data */}
                     <Card>
                         <div className="overflow-x-auto">
-                            <table className="table table-zebra w-full">
-                                <thead>
-                                    <tr>
-                                        <th className="w-12 text-center">#</th>
-                                        <th>Judul Berita</th>
-                                        <th>Pewarta</th>
-                                        <th>Tanggal</th>
-                                        <th className="text-center">Status</th>
-                                        <th className="text-right">Action</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
+                            <Table>
+                                <TableHeader>
+                                    <TableRow>
+                                        <TableHead className="w-12 text-center">#</TableHead>
+                                        <TableHead>Judul Berita</TableHead>
+                                        <TableHead>Pewarta</TableHead>
+                                        <TableHead>Tanggal</TableHead>
+                                        <TableHead className="text-center">Status</TableHead>
+                                        <TableHead className="text-right">Action</TableHead>
+                                    </TableRow>
+                                </TableHeader>
+                                <TableBody>
                                     {news.data.map((item, index) => (
-                                        <tr key={item.id}>
-                                            <th className="text-center">
+                                        <TableRow key={item.id}>
+                                            <TableCell className="text-center">
                                                 {(news.current_page - 1) * news.per_page + index + 1}
-                                            </th>
-                                            <td>
+                                            </TableCell>
+                                            <TableCell>
                                                 <div className="font-bold text-gray-900 max-w-md truncate" title={item.title}>
                                                     {item.headline ? <span className="text-red-500 mr-1">[HL]</span> : ''}
                                                     {item.title}
                                                 </div>
                                                 <div className="text-xs text-blue-600 font-mono mt-1">{item.is_code}</div>
-                                            </td>
-                                            <td>
+                                            </TableCell>
+                                            <TableCell>
                                                 {/* Memanggil relasi writer dengan aman */}
                                                 <span className="font-medium text-gray-700">
                                                     {item.writer?.nama || 'Unknown Pewarta'}
                                                 </span>
-                                            </td>
-                                            <td>{formatDateTimeLong(item.datetime)}</td>
-                                            <td className="text-center">{getStatusBadge(item.status)}</td>
-                                            <td>
+                                            </TableCell>
+                                            <TableCell>{formatDateTimeLong(item.datetime)}</TableCell>
+                                            <TableCell className="text-center">{getStatusBadge(item.status)}</TableCell>
+                                            <TableCell>
                                                 <div className="flex justify-end gap-2">
                                                     {/* Ubah warna menjadi info (biru) dan arahkan ke route show */}
-                                                    <Link href={route('admin.ajp.news.show', item.id)} className="btn btn-sm btn-info btn-outline">
-                                                        Detail
-                                                    </Link>
+                                                    <Button asChild size="sm" variant="outline" className="border-primary text-primary hover:bg-primary/10">
+                                                        <Link href={route('admin.ajp.news.show', item.id)}>Detail</Link>
+                                                    </Button>
 
                                                     {hasPermission(['publish news ajp']) && (
                                                         item.news_nasional != null ? (
                                                             // TAMPILAN JIKA STATUS = 1 (SUDAH PUBLISH)
-                                                            <Link
-                                                                href={route('admin.nasional.news.show', item.news_nasional.news_id)}
-                                                                className="btn btn-sm btn-warning btn-outline"
-                                                            >
-                                                                Nasional
-                                                            </Link>
+                                                            <Button asChild size="sm" variant="outline" className="border-amber-500 text-amber-600 hover:bg-amber-50 hover:text-amber-700 dark:border-amber-500/60 dark:text-amber-400 dark:hover:bg-amber-950/40">
+                                                                <Link href={route('admin.nasional.news.show', item.news_nasional.news_id)}>Nasional</Link>
+                                                            </Button>
                                                         ) : (
                                                             // TAMPILAN JIKA STATUS != 1 (BELUM PUBLISH / DRAFT)
-                                                            <Link
-                                                                href={route('admin.ajp.news.publish', item.id)}
-                                                                className="btn btn-sm btn-success btn-outline"
-                                                            >
-                                                                Publish
-                                                            </Link>
+                                                            <Button asChild size="sm" variant="outline" className="border-green-600 text-green-700 hover:bg-green-50 hover:text-green-800 dark:border-green-500/60 dark:text-green-400 dark:hover:bg-green-950/40">
+                                                                <Link href={route('admin.ajp.news.publish', item.id)}>Publish</Link>
+                                                            </Button>
                                                         )
                                                     )}
                                                 </div>
-                                            </td>
-                                        </tr>
+                                            </TableCell>
+                                        </TableRow>
                                     ))}
                                     {news.data.length === 0 && (
-                                        <tr>
-                                            <td colSpan="6" className="text-center py-8 text-gray-500 bg-gray-50/50">
+                                        <TableRow>
+                                            <TableCell colSpan="6" className="text-center py-8 text-gray-500 bg-gray-50/50">
                                                 Tidak ada berita yang ditemukan.
-                                            </td>
-                                        </tr>
+                                            </TableCell>
+                                        </TableRow>
                                     )}
-                                </tbody>
-                            </table>
+                                </TableBody>
+                            </Table>
                         </div>
                     </Card>
 

@@ -1,3 +1,5 @@
+import Breadcrumbs from '@/Components/Breadcrumbs'
+import { Button } from '@/Components/ui/button';
 import Card from '@/Components/Card'
 import InputError from '@/Components/InputError'
 import InputImage from '@/Components/InputImage'
@@ -38,14 +40,7 @@ function Create() {
                                 </div>
                                 {/* end Header */}
 
-                                {/* start breadcrumbs */}
-                                <div className="breadcrumbs text-sm">
-                                    <ul>
-                                        <li><a>Home</a></li>
-                                        <li>AJP Export</li>
-                                    </ul>
-                                </div>
-                                {/* end breadcrumbs */}
+                                <Breadcrumbs items={[{ label: 'Home', href: '/' }, { label: 'AJP Export' }]} />
 
                             </div>
 
@@ -95,13 +90,12 @@ function Create() {
 
 
                                     <div className=' lg:col-span-6 flex flex-row justify-end mt-4'>
-                                        <button
+                                        <Button
                                             type="submit"
-                                            className="btn btn-primary"
                                             disabled={processing}
                                         >
                                             Export
-                                        </button>
+                                        </Button>
                                     </div>
 
                                 </form>

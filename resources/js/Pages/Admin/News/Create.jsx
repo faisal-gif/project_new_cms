@@ -1,4 +1,6 @@
 import Card from '@/Components/Card'
+import Breadcrumbs from '@/Components/Breadcrumbs';
+import { Button } from '@/Components/ui/button';
 import Checkbox from '@/Components/Checkbox'
 import InputEditor from '@/Components/InputEditor'
 import InputError from '@/Components/InputError'
@@ -53,13 +55,7 @@ function Create({ writers }) {
                                 {/* end Header */}
 
                                 {/* start breadcrumbs */}
-                                <div className="breadcrumbs text-sm">
-                                    <ul>
-                                        <li><a>Home</a></li>
-                                        <li>News</li>
-                                        <li>Tambah News</li>
-                                    </ul>
-                                </div>
+                                <Breadcrumbs items={[{ label: 'Home', href: '/' }, { label: 'News' }, { label: 'Tambah News' }]} />
                                 {/* end breadcrumbs */}
 
                             </div>
@@ -81,7 +77,7 @@ function Create({ writers }) {
                                             <InputLabel
                                                 htmlFor="writer"
                                                 value="Penulis"
-                                                className='mb-2 label-text font-bold'
+                                                className='mb-2 font-bold'
                                             />
 
                                             <Select
@@ -109,7 +105,7 @@ function Create({ writers }) {
                                             <InputLabel
                                                 htmlFor="judul"
                                                 value="Judul"
-                                                className='mb-2 label-text font-bold'
+                                                className='mb-2 font-bold'
                                             />
                                             <TextInput
                                                 id="judul"
@@ -159,7 +155,7 @@ function Create({ writers }) {
                                             <InputLabel
                                                 htmlFor="content"
                                                 value="Isi Berita"
-                                                className='mb-2 label-text font-bold'
+                                                className='mb-2 font-bold'
                                             />
                                             <InputEditor
                                                 value={data.content}
@@ -190,7 +186,7 @@ function Create({ writers }) {
                                                         <InputLabel
                                                             htmlFor="image_thumbnail"
                                                             value="Thumbnail"
-                                                            className='mb-2 label-text font-bold'
+                                                            className='mb-2 font-bold'
                                                         />
                                                         <div className='flex items-center justify-center gap-0.5 mt-1'>
                                                             <InputImage
@@ -206,7 +202,7 @@ function Create({ writers }) {
                                                         {/* Nama file wajib saat upload agar mudah dicari di galeri CDN. */}
                                                         {!data.image_thumbnail_url && (
                                                             <div className="mt-3">
-                                                                <InputLabel htmlFor="image_name" value="Nama File Foto (untuk pencarian di galeri)" className='mb-2 label-text font-bold' />
+                                                                <InputLabel htmlFor="image_name" value="Nama File Foto (untuk pencarian di galeri)" className='mb-2 font-bold' />
                                                                 <TextInput
                                                                     id="image_name"
                                                                     type="text"
@@ -254,13 +250,12 @@ function Create({ writers }) {
 
 
                                 <div className='flex flex-row justify-end mt-4'>
-                                    <button
+                                    <Button
                                         type="submit"
-                                        className="btn btn-primary"
                                         disabled={processing}
                                     >
                                         Simpan
-                                    </button>
+                                    </Button>
                                 </div>
 
                             </form>

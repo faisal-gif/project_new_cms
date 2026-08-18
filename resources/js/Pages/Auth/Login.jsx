@@ -70,7 +70,7 @@ export default function Login({ status, canResetPassword }) {
                         <Checkbox
                             name="remember"
                             checked={data.remember}
-                            className='checkbox-sm'
+                            className='h-3.5 w-3.5 rounded border-input accent-primary'
                             onChange={(e) =>
                                 setData('remember', e.target.checked)
                             }

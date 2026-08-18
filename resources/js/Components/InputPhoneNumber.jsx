@@ -23,7 +23,7 @@ export default function InputPhoneNumber({
     };
 
     return (
-        <div className="form-control w-full">
+        <div className="w-full">
             <label className="input border border-input flex items-center gap-2 w-full" >
                 <span className="opacity-70">{prefix}</span>
 

@@ -31,10 +31,10 @@ export default function InputMultiImage({
             badge: "bg-primary text-white",
         },
         warning: {
-            border: "border-warning/40 hover:border-warning",
-            bg: "bg-warning/5 hover:bg-warning/10",
-            text: "text-warning",
-            badge: "bg-warning text-warning-content",
+            border: "border-amber-500/40 hover:border-amber-500",
+            bg: "bg-amber-500/5 hover:bg-amber-500/10",
+            text: "text-amber-600",
+            badge: "bg-amber-500 text-amber-600-content",
         },
     };
 
@@ -145,15 +145,15 @@ export default function InputMultiImage({
                 onClick={() => !isCompressing && inputRef.current?.click()}
             >
                 {isCompressing ? (
-                    <div className="flex flex-col items-center justify-center text-base-content/60 py-4">
+                    <div className="flex flex-col items-center justify-center text-foreground/60 py-4">
                         <Loader2 className="h-8 w-8 animate-spin mb-2 text-primary" />
                         <span className="text-sm font-medium">Memproses & mengkompresi gambar...</span>
                     </div>
                 ) : (
                     <>
                         <Icon className={`mb-2 h-8 w-8 ${currentTheme.text} opacity-70`} />
-                        <span className="text-sm font-medium text-base-content/80">{label}</span>
-                        <span className="text-xs text-base-content/50 mt-1">{subLabel}</span>
+                        <span className="text-sm font-medium text-foreground/80">{label}</span>
+                        <span className="text-xs text-foreground/50 mt-1">{subLabel}</span>
                     </>
                 )}
 
@@ -179,7 +179,7 @@ export default function InputMultiImage({
                             onDragEnter={(e) => handleDragEnter(e, idx)}
                             onDragEnd={handleDragEnd}
                             onDragOver={(e) => e.preventDefault()} // Wajib agar onDrop bisa berjalan
-                            className="group relative overflow-hidden rounded-xl border border-base-200 bg-base-100 shadow-sm transition-transform cursor-grab active:cursor-grabbing hover:ring-2 hover:ring-primary/30"
+                            className="group relative overflow-hidden rounded-xl border border-border bg-background shadow-sm transition-transform cursor-grab active:cursor-grabbing hover:ring-2 hover:ring-primary/30"
                         >
 
                             {/* Nomor Urut & Icon Drag */}
@@ -195,7 +195,7 @@ export default function InputMultiImage({
                                     e.stopPropagation();
                                     removeFile(page.id);
                                 }}
-                                className="absolute right-2 top-2 z-10 flex h-6 w-6 items-center justify-center rounded-full bg-error text-white opacity-0 transition-opacity group-hover:opacity-100 shadow hover:bg-red-600"
+                                className="absolute right-2 top-2 z-10 flex h-6 w-6 items-center justify-center rounded-full bg-destructive text-white opacity-0 transition-opacity group-hover:opacity-100 shadow hover:bg-red-600"
                                 title="Hapus Halaman"
                             >
                                 <X className="h-3 w-3" />
@@ -205,22 +205,22 @@ export default function InputMultiImage({
                             <img
                                 src={page.previewUrl}
                                 alt={`Halaman ${idx + 1}`}
-                                className="aspect-[3/4] w-full object-cover bg-base-300 pointer-events-none"
+                                className="aspect-[3/4] w-full object-cover bg-muted pointer-events-none"
                             />
 
                             {/* Footer Navigasi (Geser Kiri/Kanan) */}
-                            <div className="flex items-center justify-between p-1 border-t border-base-200 bg-base-100">
+                            <div className="flex items-center justify-between p-1 border-t border-border bg-background">
                                 <button
                                     type="button"
                                     onClick={() => moveFile(idx, -1)}
                                     disabled={idx === 0}
-                                    className="btn btn-xs btn-ghost px-1 disabled:opacity-20"
+                                    className="inline-flex items-center justify-center h-6 px-1 rounded hover:bg-muted disabled:opacity-20"
                                     title="Geser ke Kiri"
                                 >
                                     <ChevronLeft className="h-4 w-4" />
                                 </button>
 
-                                <p className="truncate text-[10px] text-base-content/60 px-1 max-w-[60%]" title={page.fileName}>
+                                <p className="truncate text-[10px] text-foreground/60 px-1 max-w-[60%]" title={page.fileName}>
                                     {page.fileName}
                                 </p>
 
@@ -228,7 +228,7 @@ export default function InputMultiImage({
                                     type="button"
                                     onClick={() => moveFile(idx, 1)}
                                     disabled={idx === value.length - 1}
-                                    className="btn btn-xs btn-ghost px-1 disabled:opacity-20"
+                                    className="inline-flex items-center justify-center h-6 px-1 rounded hover:bg-muted disabled:opacity-20"
                                     title="Geser ke Kanan"
                                 >
                                     <ChevronRight className="h-4 w-4" />

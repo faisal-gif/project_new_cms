@@ -1,3 +1,6 @@
+import Breadcrumbs from '@/Components/Breadcrumbs'
+import { Table, TableHeader, TableBody, TableHead, TableRow, TableCell } from '@/Components/ui/table'
+import { Button } from '@/Components/ui/button'
 import React, { useEffect, useRef, useState } from 'react';
 import { Head, Link, router, usePage } from '@inertiajs/react';
 import Select from "react-select";
@@ -31,16 +34,16 @@ const getStatusBadge = (status) => {
         case "1":
             return <Badge className="bg-green-300 text-green-700 hover:bg-green-400">Publish</Badge>;
         default:
-            return <Badge variant="neutral">{status}</Badge>;
+            return <Badge variant="secondary">{status}</Badge>;
     }
 };
 
 const getDistributionBadge = (status) => {
     switch (Number(status)) {
         case 2:
-            return <Badge className="badge bg-success text-white border-none">Sudah di Semua Jaringan</Badge>;
+            return <Badge className="badge bg-emerald-500 text-white border-none">Sudah di Semua Jaringan</Badge>;
         case 1:
-            return <Badge className="badge bg-info text-white border-none">Tayang Parsial</Badge>;
+            return <Badge className="badge bg-sky-500 text-white border-none">Tayang Parsial</Badge>;
         case 0:
         default:
             return <Badge className="badge bg-secondary text-gray-500 border-none">Draft / Belum Tayang</Badge>;
@@ -53,8 +56,8 @@ const getDistributionBadge = (status) => {
 
 // --- 1. Mobile Card View ---
 const NewsMobileCard = ({ item, hasPermission }) => (
-    <div className="card bg-base-100 border border-base-200 shadow-sm overflow-hidden">
-        <div className="card-body p-4 sm:p-5 gap-0">
+    <div className="card bg-background border border-border shadow-sm overflow-hidden">
+        <div className="flex flex-col p-4 sm:p-5 gap-0">
             {/* Header: Title */}
             <div className="flex justify-between items-start gap-3 mb-2">
                 <h3 className="text-xs font-medium leading-snug whitespace-normal break-words">
@@ -63,86 +66,86 @@ const NewsMobileCard = ({ item, hasPermission }) => (
             </div>
 
             {/* Meta Info */}
-            <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-base-content/70 mb-4">
+            <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-foreground/70 mb-4">
                 <span className="font-semibold text-primary">{item.writer?.name || 'Unknown'}</span>
                 <span>•</span>
                 <span>{formatDateTimeLong(item.created_at)}</span>
             </div>
 
             {/* Integration Status */}
-            <div className="bg-base-200/50 rounded-lg p-3 flex flex-col gap-4 mb-4">
+            <div className="bg-muted/50 rounded-lg p-3 flex flex-col gap-4 mb-4">
 
                 {/* Nasional */}
                 {hasPermission('import nasional news master') && (
                     <div className="flex flex-col gap-2">
-                        <span className="text-xs font-semibold text-base-content/80">Distribusi Nasional</span>
+                        <span className="text-xs font-semibold text-foreground/80">Distribusi Nasional</span>
                         {item.news_nasional ? (
-                            <div className="flex justify-between items-center bg-base-100 p-2 rounded border border-base-200">
+                            <div className="flex justify-between items-center bg-background p-2 rounded border border-border">
                                 <div className="flex flex-col">
-                                    <span className="text-[11px] font-bold text-success flex items-center gap-1">
-                                        <span className="w-1.5 h-1.5 rounded-full bg-success"></span> Terindeks
+                                    <span className="text-[11px] font-bold text-emerald-600 flex items-center gap-1">
+                                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Terindeks
                                     </span>
-                                    <span className="text-[11px] text-base-content/70 truncate max-w-[150px]">
+                                    <span className="text-[11px] text-foreground/70 truncate max-w-[150px]">
                                         {item.news_nasional.kanal?.catnews_title || 'Nasional'}
                                     </span>
-                                    <span className="text-[10px] text-base-content/70">
+                                    <span className="text-[10px] text-foreground/70">
                                         {formatDateTimeLong(item.news_nasional.news_datepub)}
                                     </span>
                                 </div>
-                                <Link href={route('admin.nasional.news.edit', item.news_nasional.news_id)} className="btn btn-xs btn-warning btn-outline">
-                                    Edit
-                                </Link>
+                                <Button asChild size="xs" variant="outline" className="border-amber-500 text-amber-600 hover:bg-amber-50 hover:text-amber-700 dark:border-amber-500/60 dark:text-amber-400 dark:hover:bg-amber-950/40">
+                                    <Link href={route('admin.nasional.news.edit', item.news_nasional.news_id)}>Edit</Link>
+                                </Button>
                             </div>
                         ) : (
-                            <Link href={route('admin.news.import.nasional', item.is_code)} className="btn btn-xs btn-info btn-outline self-start">
-                                + Nasional
-                            </Link>
+                            <Button asChild size="xs" variant="outline" className="self-start border-primary text-primary hover:bg-primary/10">
+                                <Link href={route('admin.news.import.nasional', item.is_code)}>+ Nasional</Link>
+                            </Button>
                         )}
                     </div>
                 )}
 
-                <div className="border-t border-base-300"></div>
+                <div className="border-t border-border"></div>
 
                 {/* Daerah */}
                 {hasPermission('import daerah news master') && (
                     <div className="flex flex-col gap-2">
-                        <span className="text-xs font-semibold text-base-content/80">Distribusi Daerah</span>
+                        <span className="text-xs font-semibold text-foreground/80">Distribusi Daerah</span>
                         {item.news_daerah ? (
-                            <div className="flex justify-between items-center bg-base-100 p-2 rounded border border-base-200">
+                            <div className="flex justify-between items-center bg-background p-2 rounded border border-border">
                                 <div className="flex flex-col">
-                                    <span className="text-[11px] font-bold text-success flex items-center gap-1">
-                                        <span className="w-1.5 h-1.5 rounded-full bg-success"></span> Terindeks
+                                    <span className="text-[11px] font-bold text-emerald-600 flex items-center gap-1">
+                                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Terindeks
                                     </span>
-                                    <span className="text-[11px] text-base-content/70 truncate max-w-[150px]">
+                                    <span className="text-[11px] text-foreground/70 truncate max-w-[150px]">
                                         {item.news_daerah.kanal?.name || 'Daerah'}
                                     </span>
-                                    <span className="text-[10px] text-base-content/70">
+                                    <span className="text-[10px] text-foreground/70">
                                         {formatDateTimeLong(item.news_daerah.datepub)}
                                     </span>
                                 </div>
-                                <Link href={route('admin.daerah.news.edit', item.news_daerah.id)} className="btn btn-xs btn-warning btn-outline">
-                                    Edit
-                                </Link>
+                                <Button asChild size="xs" variant="outline" className="border-amber-500 text-amber-600 hover:bg-amber-50 hover:text-amber-700 dark:border-amber-500/60 dark:text-amber-400 dark:hover:bg-amber-950/40">
+                                    <Link href={route('admin.daerah.news.edit', item.news_daerah.id)}>Edit</Link>
+                                </Button>
                             </div>
                         ) : (
-                            <Link href={route('admin.news.import.daerah', item.is_code)} className="btn btn-xs btn-info btn-outline self-start">
-                                + Daerah
-                            </Link>
+                            <Button asChild size="xs" variant="outline" className="self-start border-primary text-primary hover:bg-primary/10">
+                                <Link href={route('admin.news.import.daerah', item.is_code)}>+ Daerah</Link>
+                            </Button>
                         )}
                     </div>
                 )}
 
             </div>
 
-            <div className="flex items-center justify-center gap-2 text-xs text-base-content/70 mb-2">
+            <div className="flex items-center justify-center gap-2 text-xs text-foreground/70 mb-2">
                 {getDistributionBadge(item.distribution_status)}
             </div>
 
             {/* Actions */}
-            <div className="card-actions justify-end mt-2">
-                <Link href={route('admin.news.show', item.id)} className="btn btn-sm btn-primary w-full sm:w-auto">
-                    Detail Berita
-                </Link>
+            <div className="flex justify-end mt-2">
+                <Button asChild size="sm" className="w-full sm:w-auto">
+                    <Link href={route('admin.news.show', item.id)}>Detail Berita</Link>
+                </Button>
             </div>
         </div>
     </div>
@@ -150,88 +153,90 @@ const NewsMobileCard = ({ item, hasPermission }) => (
 
 // --- 2. Desktop Table Row View ---
 const NewsDesktopRow = ({ item, hasPermission }) => (
-    <tr>
-        <th>{item.id}</th>
-        <td>{item.writer?.name || 'Unknown'}</td>
-        <td>
+    <TableRow>
+        <TableCell>{item.id}</TableCell>
+        <TableCell>{item.writer?.name || 'Unknown'}</TableCell>
+        <TableCell>
             <p className="text-xs font-medium leading-snug whitespace-normal break-words" title={item.title}>{item.title}</p>
-            <p className="text-xs text-base-content/70">
+            <p className="text-xs text-foreground/70">
                 {formatDateTimeLong(item.created_at)}
             </p>
-        </td>
+        </TableCell>
 
         {/* Kolom Nasional */}
         {hasPermission('import nasional news master') && (
-            <td>
+            <TableCell>
                 {item.news_nasional ? (
                     <div className="flex flex-col gap-1.5">
                         <div className="flex items-center justify-between gap-2">
-                            <span className="text-[11px] font-bold text-success">Terindeks</span>
-                            <Link href={route('admin.nasional.news.edit', item.news_nasional.news_id)} className="btn btn-xs btn-warning btn-outline h-6 min-h-0">
-                                Edit
-                            </Link>
+                            <span className="text-[11px] font-bold text-emerald-600">Terindeks</span>
+                            <Button asChild size="xs" variant="outline" className="border-amber-500 text-amber-600 hover:bg-amber-50 hover:text-amber-700 dark:border-amber-500/60 dark:text-amber-400 dark:hover:bg-amber-950/40">
+                                <Link href={route('admin.nasional.news.edit', item.news_nasional.news_id)}>Edit</Link>
+                            </Button>
                         </div>
-                        <span className="text-[11px] leading-tight text-base-content/80 truncate max-w-[150px]">
+                        <span className="text-[11px] leading-tight text-foreground/80 truncate max-w-[150px]">
                             {item.news_nasional.news_title || '-'}
                         </span>
-                        <span className="text-[10px] text-base-content/70">
+                        <span className="text-[10px] text-foreground/70">
                             {formatDateTimeLong(item.news_nasional.news_datepub)} {/* Tanggal publish nasional */}
                         </span>
                         <div className="flex items-center gap-1">
-                            <span className="badge badge-xs badge-ghost italic">{item.news_nasional.kanal?.catnews_title || 'Nasional'}</span>
+                            <span className="inline-flex items-center rounded border border-border px-1.5 py-0.5 text-[10px] italic text-muted-foreground">{item.news_nasional.kanal?.catnews_title || 'Nasional'}</span>
                             {getStatusBadge(item.news_nasional.news_status)}
                         </div>
                     </div>
                 ) : (
-                    <Link href={route('admin.news.import.nasional', item.is_code)} className="btn btn-xs btn-info btn-outline">
-                        + Nasional
-                    </Link>
+                    <Button asChild size="xs" variant="outline" className="border-primary text-primary hover:bg-primary/10">
+                        <Link href={route('admin.news.import.nasional', item.is_code)}>+ Nasional</Link>
+                    </Button>
                 )}
-            </td>
+            </TableCell>
         )}
 
         {/* Kolom Daerah */}
         {hasPermission('import daerah news master') && (
-            <td>
+            <TableCell>
                 {item.news_daerah ? (
                     <div className="flex flex-col gap-1.5">
                         <div className="flex items-center justify-between gap-2">
-                            <span className="text-[11px] font-bold text-success">Terindeks</span>
-                            <Link href={route('admin.daerah.news.edit', item.news_daerah.id)} className="btn btn-xs btn-warning btn-outline h-6 min-h-0">
-                                Edit
-                            </Link>
+                            <span className="text-[11px] font-bold text-emerald-600">Terindeks</span>
+                            <Button asChild size="xs" variant="outline" className="border-amber-500 text-amber-600 hover:bg-amber-50 hover:text-amber-700 dark:border-amber-500/60 dark:text-amber-400 dark:hover:bg-amber-950/40">
+                                <Link href={route('admin.daerah.news.edit', item.news_daerah.id)}>Edit</Link>
+                            </Button>
                         </div>
-                        <span className="text-[11px] leading-tight text-base-content/80 truncate max-w-[150px]" title={item.news_daerah.title}>
+                        <span className="text-[11px] leading-tight text-foreground/80 truncate max-w-[150px]" title={item.news_daerah.title}>
                             {item.news_daerah.title}
                         </span>
-                        <span className="text-[10px] text-base-content/70">
+                        <span className="text-[10px] text-foreground/70">
                             {formatDateTimeLong(item.news_daerah.datepub)} {/* Tanggal publish daerah */}
                         </span>
                         <div className="flex items-center gap-1">
-                            <span className="badge badge-xs badge-ghost italic">{item.news_daerah.kanal?.name}</span>
+                            <span className="inline-flex items-center rounded border border-border px-1.5 py-0.5 text-[10px] italic text-muted-foreground">{item.news_daerah.kanal?.name}</span>
                             {getStatusBadge(item.news_daerah.status)}
                         </div>
                     </div>
                 ) : (
-                    <Link href={route('admin.news.import.daerah', item.is_code)} className="btn btn-xs btn-info btn-outline">
-                        + Daerah
-                    </Link>
+                    <Button asChild size="xs" variant="outline" className="border-primary text-primary hover:bg-primary/10">
+                        <Link href={route('admin.news.import.daerah', item.is_code)}>+ Daerah</Link>
+                    </Button>
                 )}
-            </td>
+            </TableCell>
         )}
 
-        <td className="text-center">
+        <TableCell className="text-center">
             {getDistributionBadge(item.distribution_status)}
-        </td>
+        </TableCell>
 
         {hasPermission('edit news master') && (
-            <td>
+            <TableCell>
                 <div className="flex justify-end gap-2">
-                    <Link href={route('admin.news.show', item.id)} className="btn btn-sm btn-primary btn-outline">Detail</Link>
+                    <Button asChild size="sm" variant="outline" className="border-primary text-primary hover:bg-primary/10">
+                        <Link href={route('admin.news.show', item.id)}>Detail</Link>
+                    </Button>
                 </div>
-            </td>
+            </TableCell>
         )}
-    </tr>
+    </TableRow>
 );
 
 
@@ -294,20 +299,17 @@ export default function Index({ news, writers, kanals, filters }) {
                     {/* Header & Breadcrumbs */}
                     <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
                         <h1 className="text-3xl font-bold text-foreground">Daftar News</h1>
-                        <div className="breadcrumbs text-sm">
-                            <ul>
-                                <li><Link href="#">Home</Link></li>
-                                <li>News</li>
-                            </ul>
-                        </div>
+                        <Breadcrumbs items={[{ label: 'Home', href: '/' }, { label: 'News' }]} />
                     </div>
 
                     {/* Tombol Aksi Utama */}
                     {hasPermission('create news master') && (
                         <div className="flex justify-end md:justify-start">
-                            <Link href={route('admin.news.create')} className="btn btn-primary rounded-lg">
-                                <Plus size={16} /> Tambah News
-                            </Link>
+                            <Button asChild className="rounded-lg">
+                                <Link href={route('admin.news.create')}>
+                                    <Plus size={16} /> Tambah News
+                                </Link>
+                            </Button>
                         </div>
                     )}
 
@@ -349,9 +351,9 @@ export default function Index({ news, writers, kanals, filters }) {
                             </div>
 
 
-                            <button type="button" className="btn btn-neutral w-full md:w-auto md:ml-2" onClick={handleReset}>
+                            <Button type="button" variant="secondary" className="w-full md:w-auto md:ml-2" onClick={handleReset}>
                                 Reset
-                            </button>
+                            </Button>
                         </div>
                     </Card>
 
@@ -364,38 +366,38 @@ export default function Index({ news, writers, kanals, filters }) {
                                     <NewsMobileCard key={n.id} item={n} hasPermission={hasPermission} />
                                 ))
                             ) : (
-                                <div className="text-center py-8 text-base-content/50">Data tidak ditemukan.</div>
+                                <div className="text-center py-8 text-foreground/50">Data tidak ditemukan.</div>
                             )}
                         </div>
 
                         {/* Desktop View */}
                         <div className="hidden md:block overflow-x-auto min-h-[400px]">
-                            <table className="table table-zebra w-full">
-                                <thead>
-                                    <tr>
-                                        <th>#</th>
-                                        <th>Penulis</th>
-                                        <th className="w-1/3">Judul & Tanggal Masuk</th>
-                                        {hasPermission('import nasional news master') && <th>Nasional</th>}
-                                        {hasPermission('import daerah news master') && <th>Daerah</th>}
-                                        <th className="text-center">Status Distribusi</th>
-                                        {hasPermission('edit news master') && <th className="text-right">Action</th>}
-                                    </tr>
-                                </thead>
-                                <tbody>
+                            <Table>
+                                <TableHeader>
+                                    <TableRow>
+                                        <TableHead>#</TableHead>
+                                        <TableHead>Penulis</TableHead>
+                                        <TableHead className="w-1/3">Judul & Tanggal Masuk</TableHead>
+                                        {hasPermission('import nasional news master') && <TableHead>Nasional</TableHead>}
+                                        {hasPermission('import daerah news master') && <TableHead>Daerah</TableHead>}
+                                        <TableHead className="text-center">Status Distribusi</TableHead>
+                                        {hasPermission('edit news master') && <TableHead className="text-right">Action</TableHead>}
+                                    </TableRow>
+                                </TableHeader>
+                                <TableBody>
                                     {news.data.length > 0 ? (
                                         news.data.map((n) => (
                                             <NewsDesktopRow key={n.id} item={n} hasPermission={hasPermission} />
                                         ))
                                     ) : (
-                                        <tr>
-                                            <td colSpan={7} className="text-center py-8 text-base-content/50">
+                                        <TableRow>
+                                            <TableCell colSpan={7} className="text-center py-8 text-foreground/50">
                                                 Data tidak ditemukan.
-                                            </td>
-                                        </tr>
+                                            </TableCell>
+                                        </TableRow>
                                     )}
-                                </tbody>
-                            </table>
+                                </TableBody>
+                            </Table>
                         </div>
                     </Card>
 

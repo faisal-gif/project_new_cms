@@ -1,4 +1,7 @@
 import Card from '@/Components/Card'
+import Breadcrumbs from '@/Components/Breadcrumbs';
+import { Button } from '@/Components/ui/button';
+import { Spinner } from '@/Components/ui/spinner';
 import InputError from '@/Components/InputError'
 import InputLabel from '@/Components/InputLabel'
 import InputRadioGroup from '@/Components/InputRadioGroup'
@@ -39,14 +42,7 @@ function Create() {
                                 <div>
                                     <h1 className="text-3xl font-bold text-foreground">Tambah Fokus Nasional</h1>
                                 </div>
-                                <div className="breadcrumbs text-sm">
-                                    <ul>
-                                        <li><a>Home</a></li>
-                                        <li>Nasional</li>
-                                        <li>Fokus</li>
-                                        <li>Tambah Fokus</li>
-                                    </ul>
-                                </div>
+                                <Breadcrumbs items={[{ label: 'Home', href: '/' }, { label: 'Nasional' }, { label: 'Fokus' }, { label: 'Tambah Fokus' }]} />
                             </div>
                             {/* end Header & Breadcrumbs */}
 
@@ -73,7 +69,7 @@ function Create() {
                                             </div>
 
                                             <div className='lg:col-span-6 w-full'>
-                                                <InputLabel htmlFor="name" value="Nama" className='mb-2 label-text font-bold' />
+                                                <InputLabel htmlFor="name" value="Nama" className='mb-2 font-bold' />
                                                 <TextInput
                                                     id="name"
                                                     name="name"
@@ -162,13 +158,12 @@ function Create() {
 
                                 {/* --- SUBMIT BUTTON --- */}
                                 <div className='flex flex-row justify-end mt-2'>
-                                    <button
+                                    <Button
                                         type="submit"
-                                        className="btn btn-primary"
                                         disabled={processing}
                                     >
-                                        {processing ? <span className="loading loading-spinner"></span> : "Simpan"}
-                                    </button>
+                                        {processing ? <Spinner /> : "Simpan"}
+                                    </Button>
                                 </div>
 
                             </form>

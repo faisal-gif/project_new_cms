@@ -1,3 +1,5 @@
+import Breadcrumbs from '@/Components/Breadcrumbs'
+import { Button } from '@/Components/ui/button';
 import Card from '@/Components/Card'
 import Checkbox from '@/Components/Checkbox'
 import InputEditor from '@/Components/InputEditor'
@@ -51,14 +53,7 @@ export default function Create({ writers }) {
                                 <div>
                                     <h1 className="text-3xl font-bold text-foreground">Tambah Berita AJP</h1>
                                 </div>
-                                <div className="breadcrumbs text-sm">
-                                    <ul>
-                                        <li><a>Beranda</a></li>
-                                        <li>Kopi Times</li>
-                                        <li>Berita</li>
-                                        <li>Tambah Berita</li>
-                                    </ul>
-                                </div>
+                                <Breadcrumbs items={[{ label: 'Beranda', href: '/' }, { label: 'Kopi Times' }, { label: 'Berita' }, { label: 'Tambah Berita' }]} />
                             </div>
 
                             <form onSubmit={submit} className='space-y-6'>
@@ -76,7 +71,7 @@ export default function Create({ writers }) {
                                             <InputLabel
                                                 htmlFor="pewarta_id"
                                                 value="Penulis (Pewarta)"
-                                                className='mb-2 label-text font-bold text-blue-600'
+                                                className='mb-2 font-bold text-blue-600'
                                             />
                                             <Select
                                                 id="pewarta_id"
@@ -103,7 +98,7 @@ export default function Create({ writers }) {
 
                                         {/* NAMA NARASUMBER */}
                                         <div className='lg:col-span-3'>
-                                            <InputLabel htmlFor="narsum" value="Nama Narasumber" className='mb-2 label-text font-bold' />
+                                            <InputLabel htmlFor="narsum" value="Nama Narasumber" className='mb-2 font-bold' />
                                             <TextInput
                                                 id="narsum"
                                                 type="text"
@@ -117,7 +112,7 @@ export default function Create({ writers }) {
 
                                         {/* PROFESI NARASUMBER */}
                                         <div className='lg:col-span-3'>
-                                            <InputLabel htmlFor="profesi" value="Profesi Narasumber" className='mb-2 label-text font-bold' />
+                                            <InputLabel htmlFor="profesi" value="Profesi Narasumber" className='mb-2 font-bold' />
                                             <TextInput
                                                 id="profesi"
                                                 type="text"
@@ -131,7 +126,7 @@ export default function Create({ writers }) {
 
                                         {/* NO TLP / HP NARASUMBER */}
                                         <div className='lg:col-span-3'>
-                                            <InputLabel htmlFor="contact" value="No Tlp/Hp Narasumber" className='mb-2 label-text font-bold' />
+                                            <InputLabel htmlFor="contact" value="No Tlp/Hp Narasumber" className='mb-2 font-bold' />
                                             <InputPhoneNumber
                                                 id="contact"
                                                 value={data.contact}
@@ -144,7 +139,7 @@ export default function Create({ writers }) {
 
                                         {/* KOTA / LOKUS KEJADIAN */}
                                         <div className='lg:col-span-3'>
-                                            <InputLabel htmlFor="city" value="Kota (Lokus Kejadian)" className='mb-2 label-text font-bold' />
+                                            <InputLabel htmlFor="city" value="Kota (Lokus Kejadian)" className='mb-2 font-bold' />
                                             <TextInput
                                                 id="city"
                                                 type="text"
@@ -169,7 +164,7 @@ export default function Create({ writers }) {
                                 >
                                     <div className='grid grid-cols-1 lg:grid-cols-6 gap-4 mt-4'>
                                         <div className='lg:col-span-6'>
-                                            <InputLabel htmlFor="title" value="Judul Berita" className='mb-2 label-text font-bold' />
+                                            <InputLabel htmlFor="title" value="Judul Berita" className='mb-2 font-bold' />
                                             <TextInput
                                                 id="title"
                                                 type="text"
@@ -182,7 +177,7 @@ export default function Create({ writers }) {
                                         </div>
 
                                         <div className='lg:col-span-6 mt-2'>
-                                            <InputLabel htmlFor="content" value="Isi Berita" className='mb-2 label-text font-bold' />
+                                            <InputLabel htmlFor="content" value="Isi Berita" className='mb-2 font-bold' />
                                             <InputEditor
                                                 value={data.content}
                                                 onChange={(val) => setData('content', val)}
@@ -204,7 +199,7 @@ export default function Create({ writers }) {
                                         <div className='lg:col-span-3'>
                                             <div className='flex flex-col gap-2'>
                                                 <div>
-                                                    <InputLabel htmlFor="image" value="Upload Thumbnail" className='mb-2 label-text font-bold' />
+                                                    <InputLabel htmlFor="image" value="Upload Thumbnail" className='mb-2 font-bold' />
                                                     <div className='flex items-center justify-center gap-0.5 mt-1'>
                                                         <InputImage
                                                             value={data.image}
@@ -248,13 +243,12 @@ export default function Create({ writers }) {
                                 )}
 
                                 <div className='flex flex-row justify-end mt-4 pb-12'>
-                                    <button
-                                        type="submit"
-                                        className="btn btn-primary px-8 shadow-lg text-lg"
+                                    <Button
+                                        type="submit" className="px-8 shadow-lg text-lg"
                                         disabled={processing}
                                     >
                                         {processing ? 'Menyimpan Data...' : 'Simpan Berita AJP'}
-                                    </button>
+                                    </Button>
                                 </div>
                             </form>
 

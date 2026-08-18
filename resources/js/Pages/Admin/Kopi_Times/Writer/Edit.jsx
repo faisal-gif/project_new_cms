@@ -1,4 +1,5 @@
 import Card from '@/Components/Card'
+import { Button } from '@/Components/ui/button';
 import InputError from '@/Components/InputError'
 import InputLabel from '@/Components/InputLabel'
 import InputPassword from '@/Components/InputPassword'
@@ -372,9 +373,9 @@ export default function Edit({ paket, writer }) {
                                 </Card>
 
                                 <div className='flex flex-row justify-end mt-8 pt-4'>
-                                    <button type="submit" className="btn btn-primary px-8 shadow-lg" disabled={processing}>
+                                    <Button type="submit" className="px-8 shadow-lg" disabled={processing}>
                                         {processing ? 'Menyimpan...' : 'Perbarui Data Penulis'}
-                                    </button>
+                                    </Button>
                                 </div>
                             </form>
                         </div>

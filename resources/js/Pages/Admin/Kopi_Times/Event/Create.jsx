@@ -1,3 +1,4 @@
+import Breadcrumbs from '@/Components/Breadcrumbs'
 import Card from '@/Components/Card'
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout'
 import { Head, useForm } from '@inertiajs/react'
@@ -29,14 +30,7 @@ function Create({ public_url }) {
                         <div className="space-y-6">
                             <div className="flex flex-col md:flex-row justify-between md:items-center gap-2">
                                 <h1 className="text-3xl font-bold text-foreground">Tambah Event</h1>
-                                <div className="breadcrumbs text-sm">
-                                    <ul>
-                                        <li><a>Home</a></li>
-                                        <li>Kopi Times</li>
-                                        <li>Event</li>
-                                        <li>Tambah</li>
-                                    </ul>
-                                </div>
+                                <Breadcrumbs items={[{ label: 'Home', href: '/' }, { label: 'Kopi Times' }, { label: 'Event' }, { label: 'Tambah' }]} />
                             </div>
 
                             <Card>

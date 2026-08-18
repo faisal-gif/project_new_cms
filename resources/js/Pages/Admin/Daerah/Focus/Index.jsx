@@ -1,3 +1,6 @@
+import { Table, TableHeader, TableBody, TableHead, TableRow, TableCell } from '@/Components/ui/table'
+import { Button } from '@/Components/ui/button'
+import Breadcrumbs from '@/Components/Breadcrumbs'
 import Card from '@/Components/Card'
 import InputSelect from '@/Components/InputSelect'
 import InputWithPrefix from '@/Components/InputWithPrefix'
@@ -56,7 +59,7 @@ function Index({ focus, filters }) {
       case 1:
         return <Badge className={"bg-green-300 text-green-700"}>Active</Badge>;
       default:
-        return <Badge variant="neutral">{status}</Badge>;
+        return <Badge variant="secondary">{status}</Badge>;
     }
   }
 
@@ -78,13 +81,7 @@ function Index({ focus, filters }) {
                 {/* end Header */}
 
                 {/* start breadcrumbs */}
-                <div className="breadcrumbs text-sm">
-                  <ul>
-                    <li><a>Home</a></li>
-                    <li>Daerah</li>
-                    <li>Fokus</li>
-                  </ul>
-                </div>
+                <Breadcrumbs items={[{ label: 'Home', href: '/' }, { label: 'Daerah' }, { label: 'Fokus' }]} />
                 {/* end breadcrumbs */}
 
               </div>
@@ -94,9 +91,11 @@ function Index({ focus, filters }) {
                 <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
                   {/* Button Tambah User */}
                   {hasPermission('create fokus daerah') && (
-                    <Link href={route('admin.daerah.fokus.create')} className="btn btn-primary rounded-lg">
-                      <Plus size={16} /> Tambah Fokus
-                    </Link>
+                    <Button asChild className="rounded-lg">
+                      <Link href={route('admin.daerah.fokus.create')}>
+                        <Plus size={16} /> Tambah Fokus
+                      </Link>
+                    </Button>
                   )}
 
                   {/* Field Search And Filter */}
@@ -131,7 +130,7 @@ function Index({ focus, filters }) {
                 <div className="md:hidden flex flex-col gap-4">
                   {/* Contoh data, ganti dengan data.map(...) */}
                   {focus.data.map((fokus) => (
-                    <div key={fokus.id} className="border rounded-xl p-4 bg-base-100 shadow-sm">
+                    <div key={fokus.id} className="border rounded-xl p-4 bg-background shadow-sm">
 
                       {/* Header (Nama + Status) */}
                       <div className="flex justify-between items-start mb-3">
@@ -148,7 +147,9 @@ function Index({ focus, filters }) {
                       {/* Actions */}
                       <div className="flex gap-2 mt-4">
                         {hasPermission('edit fokus daerah') && (
-                          <Link href={route('admin.daerah.fokus.edit', fokus)} className="btn btn-sm btn-warning btn-outline">Edit</Link>
+                          <Button asChild size="sm" variant="outline" className="border-amber-500 text-amber-600 hover:bg-amber-50 hover:text-amber-700 dark:border-amber-500/60 dark:text-amber-400 dark:hover:bg-amber-950/40">
+                            <Link href={route('admin.daerah.fokus.edit', fokus)}>Edit</Link>
+                          </Button>
                         )}
                       </div>
                     </div>
@@ -157,38 +158,40 @@ function Index({ focus, filters }) {
 
                 {/* DESKTOP VERSION (Table Mode) */}
                 <div className="hidden md:block overflow-x-auto">
-                  <table className="table table-zebra">
+                  <Table>
 
-                    <thead>
-                      <tr>
-                        <th>#</th>
-                        <th>Nama</th>
-                        <th>Tanggal</th>
-                        <th>Status</th>
-                        <th className="text-right">Action</th>
-                      </tr>
-                    </thead>
-                    <tbody>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>#</TableHead>
+                        <TableHead>Nama</TableHead>
+                        <TableHead>Tanggal</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead className="text-right">Action</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
                       {focus.data.map((fokus, index) => (
-                        <tr key={fokus.id}>
-                          <th>{index + 1}</th>
-                          <td>{fokus.name}</td>
-                          <td>{formatDate(fokus.created_at)}</td>
-                          <td>
+                        <TableRow key={fokus.id}>
+                          <TableCell>{index + 1}</TableCell>
+                          <TableCell>{fokus.name}</TableCell>
+                          <TableCell>{formatDate(fokus.created_at)}</TableCell>
+                          <TableCell>
                             {getStatusBadge(fokus.status)}
-                          </td>
-                          <td>
+                          </TableCell>
+                          <TableCell>
                             <div className="flex justify-end gap-2">
                               {hasPermission('edit fokus daerah') && (
-                                <Link href={route('admin.daerah.fokus.edit', fokus)} className="btn btn-sm btn-warning btn-outline">Edit</Link>
+                                <Button asChild size="sm" variant="outline" className="border-amber-500 text-amber-600 hover:bg-amber-50 hover:text-amber-700 dark:border-amber-500/60 dark:text-amber-400 dark:hover:bg-amber-950/40">
+                            <Link href={route('admin.daerah.fokus.edit', fokus)}>Edit</Link>
+                          </Button>
                               )}
                             </div>
-                          </td>
-                        </tr>
+                          </TableCell>
+                        </TableRow>
                       ))}
-                    </tbody>
+                    </TableBody>
 
-                  </table>
+                  </Table>
                 </div>
 
               </Card>

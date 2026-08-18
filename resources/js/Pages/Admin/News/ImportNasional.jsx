@@ -1,4 +1,6 @@
 import Card from '@/Components/Card'
+import { Button } from '@/Components/ui/button';
+import Breadcrumbs from '@/Components/Breadcrumbs';
 import InputEditor from '@/Components/InputEditor'
 import InputError from '@/Components/InputError'
 import InputLabel from '@/Components/InputLabel'
@@ -66,13 +68,7 @@ function ImportNasional({ writers, editors, networks, kanal, fokus, initialData,
                                 {/* end Header */}
 
                                 {/* start breadcrumbs */}
-                                <div className="breadcrumbs text-sm">
-                                    <ul>
-                                        <li><a>Home</a></li>
-                                        <li>News</li>
-                                        <li>Import Nasional</li>
-                                    </ul>
-                                </div>
+                                <Breadcrumbs items={[{ label: 'Home', href: '/' }, { label: 'News' }, { label: 'Import Nasional' }]} />
                                 {/* end breadcrumbs */}
                             </div>
 
@@ -106,7 +102,7 @@ function ImportNasional({ writers, editors, networks, kanal, fokus, initialData,
                                             <InputLabel
                                                 htmlFor="editor"
                                                 value="Editor"
-                                                className='mb-2 label-text font-bold'
+                                                className='mb-2 font-bold'
                                             />
                                             <Select
                                                 value={editors.find(e => e.value === data.editor)}
@@ -123,7 +119,7 @@ function ImportNasional({ writers, editors, networks, kanal, fokus, initialData,
                                             <InputLabel
                                                 htmlFor="writer"
                                                 value="Penulis"
-                                                className='mb-2 label-text font-bold'
+                                                className='mb-2 font-bold'
                                             />
                                             <Select
                                                 value={writers.find(w => w.value === data.writer_id)}
@@ -150,7 +146,7 @@ function ImportNasional({ writers, editors, networks, kanal, fokus, initialData,
                                             <InputLabel
                                                 htmlFor="judul"
                                                 value="Judul"
-                                                className='mb-2 label-text font-bold'
+                                                className='mb-2 font-bold'
                                             />
                                             <TextInput
                                                 id="judul"
@@ -200,7 +196,7 @@ function ImportNasional({ writers, editors, networks, kanal, fokus, initialData,
                                             <InputLabel
                                                 htmlFor="is_content"
                                                 value="Isi Berita"
-                                                className='mb-2 label-text font-bold'
+                                                className='mb-2 font-bold'
                                             />
                                             <InputEditor
                                                 value={data.is_content}
@@ -247,7 +243,7 @@ function ImportNasional({ writers, editors, networks, kanal, fokus, initialData,
                                                         <InputLabel
                                                             htmlFor="image_thumbnail"
                                                             value="Image Thumbnail"
-                                                            className='mb-2 label-text font-bold'
+                                                            className='mb-2 font-bold'
                                                         />
                                                         <img
                                                             src={data.image_thumbnail || initialData?.image_thumbnail || 'https://via.placeholder.com/150'}
@@ -260,21 +256,21 @@ function ImportNasional({ writers, editors, networks, kanal, fokus, initialData,
                                                                 name="Image 1"
                                                                 type="text"
                                                                 readOnly
-                                                                className=" block w-full bg-base-300"
+                                                                className=" block w-full bg-muted"
                                                                 value={data.image_thumbnail}
                                                                 onChange={(e) => setData('image_thumbnail', e.target.value)}
                                                                 autoComplete="image_thumbnail"
                                                             />
-                                                            <button type='button' className='btn btn-secondary btn-soft'>
+                                                            <Button type="button" variant="secondary" size="icon">
                                                                 <CopyIcon className='w-5 h-5' />
-                                                            </button>
-                                                            <button type='button' className='btn btn-secondary btn-soft'>
+                                                            </Button>
+                                                            <Button type="button" variant="secondary" size="icon">
                                                                 <EyeIcon className='w-5 h-5' />
-                                                            </button>
+                                                            </Button>
                                                         </div>
-                                                        <button type='button' onClick={() => setShowPicker(true)} className='btn btn-outline btn-sm w-full mt-2 gap-2'>
+                                                        <Button type="button" onClick={() => setShowPicker(true)} variant="outline" size="sm" className="w-full mt-2 gap-2">
                                                             <LibraryIcon className='w-4 h-4' /> Pilih dari Galeri CDN
-                                                        </button>
+                                                        </Button>
                                                     </div>
                                                 </div>
 
@@ -308,7 +304,7 @@ function ImportNasional({ writers, editors, networks, kanal, fokus, initialData,
                                             <InputLabel
                                                 htmlFor="datepub"
                                                 value="Tanggal Publish"
-                                                className='mb-2 label-text font-bold'
+                                                className='mb-2 font-bold'
                                             />
                                             <DatePicker
                                                 // Pastikan data.datepub diubah menjadi object Date agar terbaca oleh kalender
@@ -339,7 +335,7 @@ function ImportNasional({ writers, editors, networks, kanal, fokus, initialData,
                                             <InputLabel
                                                 htmlFor="lokus"
                                                 value="Lokus"
-                                                className='mb-2 label-text font-bold'
+                                                className='mb-2 font-bold'
                                             />
                                             <TextInput
                                                 id="lokus"
@@ -357,7 +353,7 @@ function ImportNasional({ writers, editors, networks, kanal, fokus, initialData,
                                             <InputLabel
                                                 htmlFor="kanal"
                                                 value="Kanal"
-                                                className='mb-2 label-text font-bold'
+                                                className='mb-2 font-bold'
                                             />
                                             <Select
                                                 value={kanal.find(k => k.value === data.kanal)}
@@ -373,7 +369,7 @@ function ImportNasional({ writers, editors, networks, kanal, fokus, initialData,
                                                 <InputLabel
                                                     htmlFor="affiliate_link"
                                                     value="Link Affiliate (opsional)"
-                                                    className='mb-2 label-text font-bold'
+                                                    className='mb-2 font-bold'
                                                 />
                                                 <TextInput
                                                     id="affiliate_link"
@@ -392,7 +388,7 @@ function ImportNasional({ writers, editors, networks, kanal, fokus, initialData,
                                             <InputLabel
                                                 htmlFor="fokus"
                                                 value="Fokus"
-                                                className='mb-2 label-text font-bold'
+                                                className='mb-2 font-bold'
                                             />
                                             <Select
                                                 value={fokus.find(f => f.value === data.focus)}
@@ -408,23 +404,23 @@ function ImportNasional({ writers, editors, networks, kanal, fokus, initialData,
                                                 <InputLabel
                                                     htmlFor="network"
                                                     value="Network"
-                                                    className='mb-2 label-text font-bold'
+                                                    className='mb-2 font-bold'
                                                 />
                                                 <div className="flex gap-2 mb-2">
-                                                    <button
+                                                    <Button
                                                         type="button"
-                                                        className="btn btn-xs btn-outline"
+                                                        variant="outline" size="xs"
                                                         onClick={() => setData('network', networks.map(n => n.value))}
                                                     >
                                                         Select All
-                                                    </button>
-                                                    <button
+                                                    </Button>
+                                                    <Button
                                                         type="button"
-                                                        className="btn btn-xs btn-outline"
+                                                        variant="outline" size="xs"
                                                         onClick={() => setData('network', [])}
                                                     >
                                                         Clear
-                                                    </button>
+                                                    </Button>
                                                 </div>
                                                 <Select
                                                     value={networks.filter(n => data.network?.includes(n.value))}
@@ -440,13 +436,13 @@ function ImportNasional({ writers, editors, networks, kanal, fokus, initialData,
                                 </Card>
 
                                 <div className='flex flex-row justify-end mt-4'>
-                                    <button
+                                    <Button
                                         type="submit"
-                                        className="btn btn-primary"
+                                        
                                         disabled={processing}
                                     >
                                         Simpan Ke Nasional
-                                    </button>
+                                    </Button>
                                 </div>
                             </form>
                         </div>

@@ -1,3 +1,6 @@
+import { Table, TableHeader, TableBody, TableHead, TableRow, TableCell } from '@/Components/ui/table'
+import { Button } from '@/Components/ui/button'
+import Breadcrumbs from '@/Components/Breadcrumbs'
 import Card from '@/Components/Card'
 import InputSelect from '@/Components/InputSelect'
 import InputWithPrefix from '@/Components/InputWithPrefix'
@@ -76,12 +79,7 @@ function Index({ pageStatics, filters }) {
                                 {/* end Header */}
 
                                 {/* start breadcrumbs */}
-                                <div className="breadcrumbs text-sm">
-                                    <ul>
-                                        <li><a>Home</a></li>
-                                        <li>Page Static</li>
-                                    </ul>
-                                </div>
+                                <Breadcrumbs items={[{ label: 'Home', href: '/' }, { label: 'Page Static' }]} />
                                 {/* end breadcrumbs */}
 
                             </div>
@@ -91,9 +89,11 @@ function Index({ pageStatics, filters }) {
                                 <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
                                     {/* Button Tambah User */}
                                     {hasPermission('create page static nasional') && (
-                                        <Link href={route('admin.nasional.page-static.create')} className="btn btn-primary rounded-lg">
-                                            <Plus size={16} /> Tambah Page Static
-                                        </Link>
+                                        <Button asChild className="rounded-lg">
+                                            <Link href={route('admin.nasional.page-static.create')}>
+                                                <Plus size={16} /> Tambah Page Static
+                                            </Link>
+                                        </Button>
                                     )}
 
                                     {/* Field Search And Filter */}
@@ -119,7 +119,7 @@ function Index({ pageStatics, filters }) {
                                 <div className="md:hidden flex flex-col gap-4">
                                     {/* Contoh data, ganti dengan data.map(...) */}
                                     {pageStatics.data.map((pageStatic) => (
-                                        <div key={pageStatic.page_id} className="border rounded-xl p-4 bg-base-100 shadow-sm">
+                                        <div key={pageStatic.page_id} className="border rounded-xl p-4 bg-background shadow-sm">
 
                                             {/* Header (Nama + Status) */}
                                             <div className="flex justify-between items-start mb-3">
@@ -135,7 +135,9 @@ function Index({ pageStatics, filters }) {
                                             {/* Actions */}
                                             <div className="flex gap-2 mt-4">
                                                 {hasPermission('edit page static nasional') && (
-                                                    <Link href={route('admin.nasional.page-static.edit', pageStatic.page_id)} className="btn btn-sm btn-warning btn-outline">Edit</Link>
+                                                    <Button asChild size="sm" variant="outline" className="border-amber-500 text-amber-600 hover:bg-amber-50 hover:text-amber-700 dark:border-amber-500/60 dark:text-amber-400 dark:hover:bg-amber-950/40">
+                                                    <Link href={route('admin.nasional.page-static.edit', pageStatic.page_id)}>Edit</Link>
+                                                </Button>
                                                 )}
                                             </div>
                                         </div>
@@ -144,36 +146,38 @@ function Index({ pageStatics, filters }) {
 
                                 {/* DESKTOP VERSION (Table Mode) */}
                                 <div className="hidden md:block overflow-x-auto">
-                                    <table className="table table-zebra">
+                                    <Table>
 
-                                        <thead>
-                                            <tr>
-                                                <th>#</th>
-                                                <th>Nama</th>
+                                        <TableHeader>
+                                            <TableRow>
+                                                <TableHead>#</TableHead>
+                                                <TableHead>Nama</TableHead>
 
-                                                <th>Deskripsi</th>
-                                                <th className="text-right">Action</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
+                                                <TableHead>Deskripsi</TableHead>
+                                                <TableHead className="text-right">Action</TableHead>
+                                            </TableRow>
+                                        </TableHeader>
+                                        <TableBody>
                                             {pageStatics.data.map((pageStatic, index) => (
-                                                <tr key={pageStatic.page_id}>
-                                                    <th>{index + 1}</th>
-                                                    <td>{pageStatic.page_name}</td>
-                                                    <td>{pageStatic.page_desk}</td>
+                                                <TableRow key={pageStatic.page_id}>
+                                                    <TableCell>{index + 1}</TableCell>
+                                                    <TableCell>{pageStatic.page_name}</TableCell>
+                                                    <TableCell>{pageStatic.page_desk}</TableCell>
 
-                                                    <td>
+                                                    <TableCell>
                                                         <div className="flex justify-end gap-2">
                                                             {hasPermission('edit page static nasional') && (
-                                                                <Link href={route('admin.nasional.page-static.edit', pageStatic.page_id)} className="btn btn-sm btn-warning btn-outline">Edit</Link>
+                                                                <Button asChild size="sm" variant="outline" className="border-amber-500 text-amber-600 hover:bg-amber-50 hover:text-amber-700 dark:border-amber-500/60 dark:text-amber-400 dark:hover:bg-amber-950/40">
+                                                    <Link href={route('admin.nasional.page-static.edit', pageStatic.page_id)}>Edit</Link>
+                                                </Button>
                                                             )}
                                                         </div>
-                                                    </td>
-                                                </tr>
+                                                    </TableCell>
+                                                </TableRow>
                                             ))}
-                                        </tbody>
+                                        </TableBody>
 
-                                    </table>
+                                    </Table>
                                 </div>
 
                             </Card>

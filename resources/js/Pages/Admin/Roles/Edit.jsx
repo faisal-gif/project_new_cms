@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import Breadcrumbs from '@/Components/Breadcrumbs';
+import { Button } from '@/Components/ui/button';
 import { Head, useForm } from '@inertiajs/react';
 import Checkbox from '@/Components/Checkbox';
 import Card from '@/Components/Card';
@@ -43,13 +45,7 @@ export default function Edit({ role, rolePermissions, permissionsGrouped }) {
                             {/* end Header */}
 
                             {/* start breadcrumbs */}
-                            <div className="breadcrumbs text-sm">
-                                <ul>
-                                    <li><a>Home</a></li>
-                                    <li>Role</li>
-                                    <li>Edit Role</li>
-                                </ul>
-                            </div>
+                            <Breadcrumbs items={[{ label: 'Home', href: '/' }, { label: 'Role' }, { label: 'Edit Role' }]} />
                             {/* end breadcrumbs */}
 
                         </div>
@@ -60,7 +56,7 @@ export default function Edit({ role, rolePermissions, permissionsGrouped }) {
 
                             <TextInput
                                 type="text"
-                                className="input input-bordered w-full"
+                                className="w-full"
                                 placeholder="Nama Role (ex: admin-keuangan)"
                                 value={data.name}
                                 onChange={e => setData('name', e.target.value)}
@@ -92,9 +88,9 @@ export default function Edit({ role, rolePermissions, permissionsGrouped }) {
                                 ))}
                             </div>
 
-                            <button className="btn btn-primary mt-6" disabled={processing}>
+                            <Button className="mt-6" disabled={processing}>
                                 Simpan Role
-                            </button>
+                            </Button>
                         </form>
                     </div>
                 </div>

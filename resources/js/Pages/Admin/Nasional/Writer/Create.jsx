@@ -1,4 +1,6 @@
 import Card from '@/Components/Card'
+import Breadcrumbs from '@/Components/Breadcrumbs';
+import { Button } from '@/Components/ui/button';
 import InputError from '@/Components/InputError'
 import InputImage from '@/Components/InputImage'
 import InputLabel from '@/Components/InputLabel'
@@ -45,13 +47,7 @@ function Create() {
                                 {/* end Header */}
 
                                 {/* start breadcrumbs */}
-                                <div className="breadcrumbs text-sm">
-                                    <ul>
-                                        <li><a>Home</a></li>
-                                        <li>Penulis Nasional</li>
-                                        <li>Tambah Penulis Nasional</li>
-                                    </ul>
-                                </div>
+                                <Breadcrumbs items={[{ label: 'Home', href: '/' }, { label: 'Penulis Nasional' }, { label: 'Tambah Penulis Nasional' }]} />
                                 {/* end breadcrumbs */}
 
                             </div>
@@ -88,7 +84,7 @@ function Create() {
                                         <InputLabel
                                             htmlFor="date_join"
                                             value="Tanggal Bergabung"
-                                            className='mb-2 label-text font-bold'
+                                            className='mb-2 font-bold'
                                         />
                                         <TextInput
                                             id="date_join"
@@ -127,7 +123,7 @@ function Create() {
                                         <InputLabel
                                             htmlFor="region"
                                             value="Wilayah"
-                                            className='mb-2 label-text font-bold'
+                                            className='mb-2 font-bold'
                                         />
                                         <TextInput
                                             id="region"
@@ -173,13 +169,12 @@ function Create() {
                                     </div>
 
                                     <div className=' lg:col-span-6 flex flex-row justify-end mt-4'>
-                                        <button
+                                        <Button
                                             type="submit"
-                                            className="btn btn-primary"
                                             disabled={processing}
                                         >
                                             Simpan
-                                        </button>
+                                        </Button>
                                     </div>
 
                                 </form>

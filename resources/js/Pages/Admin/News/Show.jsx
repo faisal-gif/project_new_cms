@@ -45,12 +45,11 @@ export default function Show({ news }) {
                     <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
 
                         <div className="flex items-center gap-3">
-                            <Link
-                                href={route('admin.news.index')} // Sesuaikan dengan route index master Anda
-                                className="btn btn-sm btn-circle btn-ghost"
-                            >
-                                <ArrowLeft size={20} />
-                            </Link>
+                            <Button asChild variant="ghost" size="icon">
+                                <Link href={route('admin.news.index')}>
+                                    <ArrowLeft size={20} />
+                                </Link>
+                            </Button>
                             <div>
                                 <h1 className="text-2xl font-bold text-gray-800">Master Preview</h1>
                                 <p className="text-xs text-gray-500 font-mono mt-1">IS_CODE: {news.is_code}</p>
@@ -62,36 +61,36 @@ export default function Show({ news }) {
 
                             {/* ===== ACTION NASIONAL ===== */}
                             {isDistributedNasional ? (
-                                <button
+                                <Button
                                     disabled
-                                    className="btn btn-sm bg-gray-300 text-white border-none cursor-not-allowed"
+                                    size="sm"
+                                    className="bg-gray-300 text-white border-none cursor-not-allowed hover:bg-gray-300"
                                 >
                                     <Globe size={16} /> Telah Di-import ke Nasional
-                                </button>
+                                </Button>
                             ) : (
-                                <Link
-                                    href={route('admin.news.import.nasional', news.is_code)}
-                                    className="btn btn-sm bg-blue-600 hover:bg-blue-700 text-white border-none"
-                                >
-                                    <Globe size={16} /> Import Nasional
-                                </Link>
+                                <Button asChild size="sm" className="bg-blue-600 hover:bg-blue-700 text-white border-none">
+                                    <Link href={route('admin.news.import.nasional', news.is_code)}>
+                                        <Globe size={16} /> Import Nasional
+                                    </Link>
+                                </Button>
                             )}
 
                             {/* ===== ACTION DAERAH ===== */}
                             {isDistributedDaerah ? (
-                                <button
+                                <Button
                                     disabled
-                                    className="btn btn-sm bg-gray-300 text-white border-none cursor-not-allowed"
+                                    size="sm"
+                                    className="bg-gray-300 text-white border-none cursor-not-allowed hover:bg-gray-300"
                                 >
                                     <MapPin size={16} /> Telah Di-import ke Daerah
-                                </button>
+                                </Button>
                             ) : (
-                                <Link
-                                    href={route('admin.news.import.daerah', news.is_code)}
-                                    className="btn btn-sm bg-emerald-600 hover:bg-emerald-700 text-white border-none"
-                                >
-                                    <MapPin size={16} /> Import Daerah
-                                </Link>
+                                <Button asChild size="sm" className="bg-emerald-600 hover:bg-emerald-700 text-white border-none">
+                                    <Link href={route('admin.news.import.daerah', news.is_code)}>
+                                        <MapPin size={16} /> Import Daerah
+                                    </Link>
+                                </Button>
                             )}
 
 
@@ -175,9 +174,9 @@ export default function Show({ news }) {
                                             <span className="font-semibold text-sm">Nasional</span>
                                         </div>
                                         {isDistributedNasional ? (
-                                            <span className="badge badge-success badge-sm text-white gap-1 px-2 py-3"><CheckCircle size={12} /> Aktif</span>
+                                            <Badge className="bg-green-500 text-white gap-1"><CheckCircle size={12} /> Aktif</Badge>
                                         ) : (
-                                            <span className="badge badge-ghost badge-sm text-gray-500 gap-1 px-2 py-3"><XCircle size={12} /> Belum</span>
+                                            <Badge variant="secondary" className="text-gray-500 gap-1"><XCircle size={12} /> Belum</Badge>
                                         )}
                                     </div>
 
@@ -187,9 +186,9 @@ export default function Show({ news }) {
                                             <span className="font-semibold text-sm">Daerah</span>
                                         </div>
                                         {isDistributedDaerah ? (
-                                            <span className="badge badge-success badge-sm text-white gap-1 px-2 py-3"><CheckCircle size={12} /> Aktif</span>
+                                            <Badge className="bg-green-500 text-white gap-1"><CheckCircle size={12} /> Aktif</Badge>
                                         ) : (
-                                            <span className="badge badge-ghost badge-sm text-gray-500 gap-1 px-2 py-3"><XCircle size={12} /> Belum</span>
+                                            <Badge variant="secondary" className="text-gray-500 gap-1"><XCircle size={12} /> Belum</Badge>
                                         )}
                                     </div>
                                 </div>

@@ -1,3 +1,5 @@
+import Breadcrumbs from '@/Components/Breadcrumbs'
+import { Button } from '@/Components/ui/button';
 import Card from '@/Components/Card'
 import InputError from '@/Components/InputError'
 import InputLabel from '@/Components/InputLabel'
@@ -115,16 +117,7 @@ function Create({ paket }) {
                                 </div>
                                 {/* end Header */}
 
-                                {/* start breadcrumbs */}
-                                <div className="breadcrumbs text-sm">
-                                    <ul>
-                                        <li><a>Home</a></li>
-                                        <li>Kopi Times</li>
-                                        <li>Penulis</li>
-                                        <li>Tambah Penulis</li>
-                                    </ul>
-                                </div>
-                                {/* end breadcrumbs */}
+                                <Breadcrumbs items={[{ label: 'Home', href: '/' }, { label: 'Kopi Times' }, { label: 'Penulis' }, { label: 'Tambah Penulis' }]} />
                             </div>
 
                             {/* START: Main Form */}
@@ -276,9 +269,9 @@ function Create({ paket }) {
                                 </Card>
                                 {/* Action Buttons */}
                                 <div className='flex flex-row justify-end mt-8 pt-4'>
-                                    <button type="submit" className="btn btn-primary px-8" disabled={processing}>
+                                    <Button type="submit" className="px-8" disabled={processing}>
                                         Simpan Data Penulis
-                                    </button>
+                                    </Button>
                                 </div>
                             </form>
 

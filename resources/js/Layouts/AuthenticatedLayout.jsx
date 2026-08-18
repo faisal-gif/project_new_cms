@@ -7,6 +7,16 @@ import {
     DropdownMenuTrigger,
 } from "@/Components/ui/dropdown-menu";
 import { Badge } from '@/Components/ui/badge';
+import { Button } from '@/Components/ui/button';
+import {
+    Sidebar,
+    SidebarContent,
+    SidebarHeader,
+    SidebarInset,
+    SidebarProvider,
+    SidebarTrigger,
+} from '@/Components/ui/sidebar';
+import { cn } from '@/lib/utils';
 import { Link, router, usePage } from '@inertiajs/react';
 import {
     BookText,
@@ -52,6 +62,7 @@ export default function AuthenticatedLayout({ header, children }) {
     // AMBIL DATA NOTIFIKASI DARI MIDDLEWARE
     const [notifications, setNotifications] = useState(auth.notifications || []);
 
+
     const handleClearNotifications = () => {
         router.post(route('admin.notifications.clear'), {}, {
             preserveScroll: true,
@@ -85,6 +96,7 @@ export default function AuthenticatedLayout({ header, children }) {
     useEffect(() => {
         setNotifications(auth.notifications || []);
     }, [auth.notifications]);
+
 
     useEffect(() => {
         // Pastikan Echo sudah tersedia dan user sedang login
@@ -151,171 +163,28 @@ export default function AuthenticatedLayout({ header, children }) {
     };
 
     const linkClass = (active) =>
-        `my-0.5 hover:bg-blue-400 transition ${active ? 'bg-blue-500 text-white font-semibold' : ''}`;
-    // =========================
+        cn(
+            'flex items-center gap-2 rounded-lg px-3 py-2 text-sm my-0.5 hover:bg-blue-400 transition',
+            active && 'bg-blue-500 text-white font-semibold'
+        );
+    const summaryClass = (active) =>
+        cn(
+            linkClass(active),
+            "cursor-pointer list-none [&::-webkit-details-marker]:hidden after:ml-auto after:text-white/50 after:transition-transform after:content-['▾'] group-open:after:rotate-180"
+        );
 
     return (
-        <div className="drawer lg:drawer-open bg-base-300">
-            <input id="my-drawer-3" type="checkbox" className="drawer-toggle" />
-
-            {/* ================= CONTENT ================= */}
-            <div className="drawer-content overflow-x-clip">
-                <div className="navbar bg-base-100 border-b border-base-300 px-4">
-                    <div className="flex-none lg:hidden">
-                        <label htmlFor="my-drawer-3" className="btn btn-square btn-ghost">
-                            <Menu size={20} />
-                        </label>
-                    </div>
-                    <div className="flex-1" />
-
-                    {/* BAGIAN KANAN NAVBAR */}
-                    <div className="flex-none flex items-center gap-2">
-
-                        {/* ================= LONCENG NOTIFIKASI (SHADCN UI) ================= */}
-                        <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                                {/* Tombol Trigger (Bisa pakai class daisyUI yang sudah ada) */}
-                                <button className="btn btn-ghost btn-circle relative focus:outline-none">
-                                    <div className="indicator">
-                                        <Bell size={20} />
-                                        {notifications.length > 0 && (
-                                            <Badge className="indicator-item text-white border-none shadow-sm">
-                                                {notifications.length}
-                                            </Badge>
-                                        )}
-                                    </div>
-                                </button>
-                            </DropdownMenuTrigger>
-
-                            <DropdownMenuContent
-                                align="end"
-                                sideOffset={8}
-                                className="w-[calc(100vw-2rem)] sm:w-80 p-0 mx-2 z-[100]"
-                            >
-                                {/* Header Dropdown Notifikasi */}
-                                <div className="flex flex-row items-center justify-between px-4 py-3 bg-gray-50/50 rounded-t-md">
-                                    <span className="text-gray-900 font-bold text-sm">Notifikasi Anda</span>
-
-                                    {notifications.length > 0 && (
-                                        <button
-                                            onClick={handleClearNotifications}
-                                            className="text-[10px] text-red-500 hover:text-red-700 hover:bg-red-100 bg-red-50 px-2 py-1 rounded-md cursor-pointer uppercase tracking-wider font-bold transition"
-                                        >
-                                            Bersihkan
-                                        </button>
-                                    )}
-                                </div>
-
-                                {/* Isi List Notifikasi dengan Scrollbar */}
-                                <div className="max-h-96 overflow-y-auto p-1">
-                                    {notifications.length === 0 ? (
-                                        <div className="text-gray-500 text-center py-8 text-sm">
-                                            Belum ada notifikasi baru
-                                        </div>
-                                    ) : (
-                                        notifications.map((notif) => (
-                                            <DropdownMenuItem
-                                                key={notif.id}
-                                                asChild
-                                                className="mb-1 cursor-pointer focus:bg-transparent"
-                                            >
-                                                {notif.data.is_download ? (
-                                                    /* =========================================================
-                                                       1. LOGIKA UNTUK EXCEL (Gunakan tag <a> standar + onClick)
-                                                       ========================================================= */
-                                                    <a
-                                                        href={notif.data.url}
-                                                        download
-                                                        onClick={() => handleMarkAsRead(notif.id)}
-                                                        className="flex flex-col items-start gap-1 p-3 hover:bg-green-50 outline-none rounded-md transition duration-200"
-                                                    >
-                                                        <span className="font-bold text-success text-sm">{notif.data.title}</span>
-                                                        <span className="text-xs text-gray-600 whitespace-normal line-clamp-2">
-                                                            {notif.data.message}
-                                                        </span>
-                                                        <span className="text-xs font-semibold text-green-600 mt-1 flex items-center gap-1">
-                                                            ⬇️ Klik untuk mengunduh Excel
-                                                        </span>
-                                                    </a>
-                                                ) : (
-                                                    /* =========================================================
-                                                       2. LOGIKA UNTUK BERITA BARU (Gunakan <Link> ke rute /go)
-                                                       ========================================================= */
-                                                    <Link
-                                                        href={route('admin.notifications.go', notif.id)}
-                                                        className="flex flex-col items-start gap-1 p-3 hover:bg-blue-50 outline-none rounded-md transition duration-200"
-                                                    >
-                                                        <span className="font-bold text-primary text-sm">{notif.data.title}</span>
-                                                        <span className="text-xs text-gray-600 whitespace-normal line-clamp-2">
-                                                            {notif.data.message}
-                                                        </span>
-                                                        <span className="text-xs font-semibold text-blue-500 mt-1 flex items-center gap-1">
-                                                            👁️ Tinjau Berita Sekarang
-                                                        </span>
-                                                    </Link>
-                                                )}
-                                            </DropdownMenuItem>
-                                        ))
-                                    )}
-                                </div>
-                            </DropdownMenuContent>
-                        </DropdownMenu>
-                        {/* ======================================================================= */}
-
-                        {/* ================= MENU PROFIL USER (SHADCN UI) ================= */}
-                        <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                                <button className="btn btn-ghost btn-circle relative focus:outline-none">
-                                    <User size={20} />
-                                </button>
-                            </DropdownMenuTrigger>
-
-                            <DropdownMenuContent align="end" className="w-56 mt-1 z-[100]">
-                                {/* Opsional: Header menu kecil agar terlihat lebih profesional */}
-                                <div className="px-2 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                                    Akun Saya
-                                </div>
-
-
-
-                                {auth?.roles?.includes('editor') && (
-                                    <DropdownMenuItem asChild className="cursor-pointer py-2">
-                                        <Link href={`${route('profile.edit')}#profil-editor`} className="w-full flex items-center">
-                                            Profil Editor
-                                        </Link>
-                                    </DropdownMenuItem>
-                                )}
-
-                                <DropdownMenuItem asChild className="cursor-pointer py-2 text-red-600 focus:text-red-700 focus:bg-red-50">
-                                    <Link href={route('logout')} method="post" as="button" className="w-full flex items-center">
-                                        Log Out
-                                    </Link>
-                                </DropdownMenuItem>
-                            </DropdownMenuContent>
-                        </DropdownMenu>
-                        {/* ================================================================ */}
-                    </div>
-                </div>
-
-                <main className="p-4">
-                    {children}
-                </main>
-            </div>
-
-            {/* ================= SIDEBAR ================= */}
-            <div className="drawer-side z-50">
-                <label htmlFor="my-drawer-3" className="drawer-overlay"></label>
-
-                <ul className="menu bg-[#343a40] min-h-full w-72 p-4 text-white">
-                    {/* LOGO */}
-                    <li>
-                        <Link href="/">
-                            <ApplicationLogo className="h-10 w-full mx-auto mb-6" />
-                        </Link>
-                    </li>
-
+        <SidebarProvider>
+            <Sidebar collapsible="offcanvas">
+                <SidebarHeader>
+                    <Link href="/">
+                        <ApplicationLogo className="h-10 w-full mx-auto my-2" />
+                    </Link>
+                </SidebarHeader>
+                <SidebarContent className="px-2 py-1">
+                    <ul>
                     {/* ================= 1. GLOBAL / MASTER ================= */}
-                    <h2 className="menu-title text-white/50 uppercase text-xs tracking-wider mt-2">Global Master</h2>
+                    <h2 className="text-white/50 uppercase text-xs tracking-wider mt-2">Global Master</h2>
 
                     <li>
                         <Link href={route('dashboard')} className={linkClass(isActive('dashboard'))}>
@@ -354,11 +223,11 @@ export default function AuthenticatedLayout({ header, children }) {
                     {/* Grup Tim Daerah */}
                     {hasPermission(['view penulis master', 'view editors master']) && (
                         <li>
-                            <details open={isActive(['admin.writers.*', 'admin.editors.*'])}>
-                                <summary className={linkClass(isActive(['admin.writers.*', 'admin.editors.*']))}>
+                            <details className="group" open={isActive(['admin.writers.*', 'admin.editors.*'])}>
+                                <summary className={summaryClass(isActive(['admin.writers.*', 'admin.editors.*']))}>
                                     <Users size={16} /> Tim Redaksi Master
                                 </summary>
-                                <ul>
+                                <ul className="ml-4 border-l border-white/10 pl-2 mt-0.5">
                                     {hasPermission('view penulis master') && (
                                         <li>
                                             <Link href={route('admin.writers.index')} className={linkClass(isActive('admin.writers.*'))}>
@@ -386,8 +255,8 @@ export default function AuthenticatedLayout({ header, children }) {
                     )}
 
                     {/* ================= 2. NASIONAL ================= */}
-                    <div className="divider my-1 bg-white/10 h-[1px]"></div>
-                    <h2 className="menu-title text-blue-400 uppercase text-xs tracking-wider">Nasional</h2>
+                    <div className="my-2 bg-white/10 h-px"></div>
+                    <h2 className="text-blue-400 uppercase text-xs tracking-wider">Nasional</h2>
 
 
                     {hasPermission('view news nasional') && (
@@ -428,11 +297,11 @@ export default function AuthenticatedLayout({ header, children }) {
                     {/* Grup Tim Nasional */}
                     {hasPermission(["view penulis nasional", "view editor nasional"]) && (
                         <li>
-                            <details open={isActive(['admin.nasional.writer.*', 'admin.nasional.editor.*'])}>
-                                <summary className={linkClass(isActive(['admin.nasional.writer.*', 'admin.nasional.editor.*']))}>
+                            <details className="group" open={isActive(['admin.nasional.writer.*', 'admin.nasional.editor.*'])}>
+                                <summary className={summaryClass(isActive(['admin.nasional.writer.*', 'admin.nasional.editor.*']))}>
                                     <Users size={16} /> Tim Redaksi
                                 </summary>
-                                <ul>
+                                <ul className="ml-4 border-l border-white/10 pl-2 mt-0.5">
                                     {hasPermission('view penulis nasional') && (
                                         <li>
                                             <Link href={route('admin.nasional.writer.index')} className={linkClass(isActive('admin.nasional.writer.*'))}>
@@ -468,8 +337,8 @@ export default function AuthenticatedLayout({ header, children }) {
                     )}
 
                     {/* ================= 3. DAERAH ================= */}
-                    <div className="divider my-1 bg-white/10 h-[1px]"></div>
-                    <h2 className="menu-title text-emerald-400 uppercase text-xs tracking-wider">Daerah</h2>
+                    <div className="my-2 bg-white/10 h-px"></div>
+                    <h2 className="text-emerald-400 uppercase text-xs tracking-wider">Daerah</h2>
 
                     {hasPermission('view news daerah') && (
                         <li>
@@ -496,11 +365,11 @@ export default function AuthenticatedLayout({ header, children }) {
                     {/* Grup Tim Daerah */}
                     {hasPermission(["view penulis daerah", "view editor daerah"]) && (
                         <li>
-                            <details open={isActive(['admin.daerah.writer.*', 'admin.daerah.editor.*'])}>
-                                <summary className={linkClass(isActive(['admin.daerah.writer.*', 'admin.daerah.editor.*']))}>
+                            <details className="group" open={isActive(['admin.daerah.writer.*', 'admin.daerah.editor.*'])}>
+                                <summary className={summaryClass(isActive(['admin.daerah.writer.*', 'admin.daerah.editor.*']))}>
                                     <Users size={16} /> Tim Redaksi
                                 </summary>
-                                <ul>
+                                <ul className="ml-4 border-l border-white/10 pl-2 mt-0.5">
                                     {hasPermission('view penulis daerah') && (
                                         <li>
                                             <Link href={route('admin.daerah.writer.index')} className={linkClass(isActive('admin.daerah.writer.*'))}>
@@ -532,11 +401,11 @@ export default function AuthenticatedLayout({ header, children }) {
                     {/* ADS Daerah */}
                     {hasPermission(["view ads daerah", "view ads daerah location"]) && (
                         <li>
-                            <details open={isActive('admin.daerah.ads.*')}>
-                                <summary className={linkClass(isActive('admin.daerah.ads.*'))}>
+                            <details className="group" open={isActive('admin.daerah.ads.*')}>
+                                <summary className={summaryClass(isActive('admin.daerah.ads.*'))}>
                                     <Images size={16} /> ADS Manager
                                 </summary>
-                                <ul>
+                                <ul className="ml-4 border-l border-white/10 pl-2 mt-0.5">
                                     {hasPermission('view ads daerah location') && (
                                         <li>
                                             <Link href={route('admin.daerah.adsLocate.index')} className={linkClass(isActive('admin.daerah.ads.locate.*'))}>
@@ -557,8 +426,8 @@ export default function AuthenticatedLayout({ header, children }) {
                     )}
 
                     <>
-                        <div className="divider my-1 bg-white/10 h-[1px]"></div>
-                        <h2 className="menu-title text-yellow-300/50 uppercase text-xs tracking-wider">AJP</h2>
+                        <div className="my-2 bg-white/10 h-px"></div>
+                        <h2 className="text-yellow-300/50 uppercase text-xs tracking-wider">AJP</h2>
                         {hasPermission(['view pengumuman ajp']) && (
                             <li>
                                 <Link href={route('admin.ajp.pengumuman.index')} className={linkClass(isActive('admin.ajp.pengumuman.*'))}>
@@ -605,8 +474,8 @@ export default function AuthenticatedLayout({ header, children }) {
 
 
                     <>
-                        <div className="divider my-1 bg-white/10 h-[1px]"></div>
-                        <h2 className="menu-title text-yellow-300/50 uppercase text-xs tracking-wider">Kopi Times</h2>
+                        <div className="my-2 bg-white/10 h-px"></div>
+                        <h2 className="text-yellow-300/50 uppercase text-xs tracking-wider">Kopi Times</h2>
 
                         {hasPermission(['view pengumuman kopi-times']) && (
                             <li>
@@ -677,8 +546,8 @@ export default function AuthenticatedLayout({ header, children }) {
                     {/* ================= 4. TOOLS & EXPORT ================= */}
                     {hasPermission(['export ajp']) && (
                         <>
-                            <div className="divider my-1 bg-white/10 h-[1px]"></div>
-                            <h2 className="menu-title text-white/50 uppercase text-xs tracking-wider">Tools & Export</h2>
+                            <div className="my-2 bg-white/10 h-px"></div>
+                            <h2 className="text-white/50 uppercase text-xs tracking-wider">Tools & Export</h2>
 
                             <li>
                                 <Link href={route('admin.ajp-export.create')} className={linkClass(false)}>
@@ -687,8 +556,144 @@ export default function AuthenticatedLayout({ header, children }) {
                             </li>
                         </>
                     )}
-                </ul>
-            </div>
-        </div>
+                    </ul>
+                </SidebarContent>
+            </Sidebar>
+
+            <SidebarInset>
+                <header className="flex items-center gap-2 h-16 bg-background border-b border-border px-4 sticky top-0 z-10">
+                    <SidebarTrigger />
+                    <div className="flex-1" />
+                    <div className="flex items-center gap-2">
+
+
+                        {/* ================= LONCENG NOTIFIKASI (SHADCN UI) ================= */}
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" size="icon" className="rounded-full relative">
+                                    <Bell size={20} />
+                                    {notifications.length > 0 && (
+                                        <Badge className="absolute -top-1 -right-1 min-w-5 justify-center px-1 text-white border-none shadow-sm">
+                                            {notifications.length}
+                                        </Badge>
+                                    )}
+                                </Button>
+                            </DropdownMenuTrigger>
+
+                            <DropdownMenuContent
+                                align="end"
+                                sideOffset={8}
+                                className="w-[calc(100vw-2rem)] sm:w-80 p-0 mx-2 z-[100]"
+                            >
+                                {/* Header Dropdown Notifikasi */}
+                                <div className="flex flex-row items-center justify-between px-4 py-3 bg-gray-50/50 rounded-t-md">
+                                    <span className="text-gray-900 font-bold text-sm">Notifikasi Anda</span>
+
+                                    {notifications.length > 0 && (
+                                        <button
+                                            onClick={handleClearNotifications}
+                                            className="text-[10px] text-red-500 hover:text-red-700 hover:bg-red-100 bg-red-50 px-2 py-1 rounded-md cursor-pointer uppercase tracking-wider font-bold transition"
+                                        >
+                                            Bersihkan
+                                        </button>
+                                    )}
+                                </div>
+
+                                {/* Isi List Notifikasi dengan Scrollbar */}
+                                <div className="max-h-96 overflow-y-auto p-1">
+                                    {notifications.length === 0 ? (
+                                        <div className="text-gray-500 text-center py-8 text-sm">
+                                            Belum ada notifikasi baru
+                                        </div>
+                                    ) : (
+                                        notifications.map((notif) => (
+                                            <DropdownMenuItem
+                                                key={notif.id}
+                                                asChild
+                                                className="mb-1 cursor-pointer focus:bg-transparent"
+                                            >
+                                                {notif.data.is_download ? (
+                                                    /* =========================================================
+                                                       1. LOGIKA UNTUK EXCEL (Gunakan tag <a> standar + onClick)
+                                                       ========================================================= */
+                                                    <a
+                                                        href={notif.data.url}
+                                                        download
+                                                        onClick={() => handleMarkAsRead(notif.id)}
+                                                        className="flex flex-col items-start gap-1 p-3 hover:bg-green-50 outline-none rounded-md transition duration-200"
+                                                    >
+                                                        <span className="font-bold text-emerald-600 text-sm">{notif.data.title}</span>
+                                                        <span className="text-xs text-gray-600 whitespace-normal line-clamp-2">
+                                                            {notif.data.message}
+                                                        </span>
+                                                        <span className="text-xs font-semibold text-green-600 mt-1 flex items-center gap-1">
+                                                            ⬇️ Klik untuk mengunduh Excel
+                                                        </span>
+                                                    </a>
+                                                ) : (
+                                                    /* =========================================================
+                                                       2. LOGIKA UNTUK BERITA BARU (Gunakan <Link> ke rute /go)
+                                                       ========================================================= */
+                                                    <Link
+                                                        href={route('admin.notifications.go', notif.id)}
+                                                        className="flex flex-col items-start gap-1 p-3 hover:bg-blue-50 outline-none rounded-md transition duration-200"
+                                                    >
+                                                        <span className="font-bold text-primary text-sm">{notif.data.title}</span>
+                                                        <span className="text-xs text-gray-600 whitespace-normal line-clamp-2">
+                                                            {notif.data.message}
+                                                        </span>
+                                                        <span className="text-xs font-semibold text-blue-500 mt-1 flex items-center gap-1">
+                                                            👁️ Tinjau Berita Sekarang
+                                                        </span>
+                                                    </Link>
+                                                )}
+                                            </DropdownMenuItem>
+                                        ))
+                                    )}
+                                </div>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
+                        {/* ======================================================================= */}
+
+                        {/* ================= MENU PROFIL USER (SHADCN UI) ================= */}
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" size="icon" className="rounded-full relative">
+                                    <User size={20} />
+                                </Button>
+                            </DropdownMenuTrigger>
+
+                            <DropdownMenuContent align="end" className="w-56 mt-1 z-[100]">
+                                {/* Opsional: Header menu kecil agar terlihat lebih profesional */}
+                                <div className="px-2 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                                    Akun Saya
+                                </div>
+
+
+
+                                {auth?.roles?.includes('editor') && (
+                                    <DropdownMenuItem asChild className="cursor-pointer py-2">
+                                        <Link href={`${route('profile.edit')}#profil-editor`} className="w-full flex items-center">
+                                            Profil Editor
+                                        </Link>
+                                    </DropdownMenuItem>
+                                )}
+
+                                <DropdownMenuItem asChild className="cursor-pointer py-2 text-red-600 focus:text-red-700 focus:bg-red-50">
+                                    <Link href={route('logout')} method="post" as="button" className="w-full flex items-center">
+                                        Log Out
+                                    </Link>
+                                </DropdownMenuItem>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
+                        {/* ================================================================ */}
+                    </div>
+                </header>
+
+                <main className="p-4">
+                    {children}
+                </main>
+            </SidebarInset>
+        </SidebarProvider>
     );
 }

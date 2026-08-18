@@ -8,6 +8,8 @@ import Select from "react-select"
 
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from "recharts"
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/Components/ui/chart"
+import { Button } from "@/Components/ui/button"
+import { Spinner } from "@/Components/ui/spinner"
 
 export default function ReportDaerahIndex({ summary, chart_data, writers, editors, kanals, filters }) {
     const { flash } = usePage().props;
@@ -92,9 +94,9 @@ export default function ReportDaerahIndex({ summary, chart_data, writers, editor
                             </div>
 
                             <div className="w-full md:w-1/5">
-                                <button onClick={handleApplyFilter} className="btn btn-primary w-full">
+                                <Button onClick={handleApplyFilter} className="w-full">
                                     <Search size={18} /> Terapkan
-                                </button>
+                                </Button>
                             </div>
                         </div>
                     </Card>
@@ -210,13 +212,14 @@ export default function ReportDaerahIndex({ summary, chart_data, writers, editor
                             <h3 className="font-bold text-lg text-foreground">Unduh Data Mentah (Raw Data)</h3>
                             <p className="text-sm text-gray-600 mt-1">Export laporan daerah ini ke format Excel.</p>
                         </div>
-                        <button
+                        <Button
+                            variant="success"
                             onClick={handleExportExcel} disabled={exportProcessing}
-                            className="btn btn-success text-white px-6 shadow-sm w-full md:w-auto"
+                            className="px-6 shadow-sm w-full md:w-auto"
                         >
-                            {exportProcessing ? <span className="loading loading-spinner loading-sm"></span> : <Download size={18} />}
+                            {exportProcessing ? <Spinner /> : <Download size={18} />}
                             {exportProcessing ? 'Memproses ke Queue...' : 'Export Excel Daerah'}
-                        </button>
+                        </Button>
                     </Card>
 
                 </div>

@@ -1,4 +1,6 @@
 import Card from '@/Components/Card'
+import Breadcrumbs from '@/Components/Breadcrumbs';
+import { Button } from '@/Components/ui/button';
 import InputError from '@/Components/InputError'
 import InputLabel from '@/Components/InputLabel'
 import InputPassword from '@/Components/InputPassword'
@@ -38,13 +40,7 @@ function Create() {
                                 {/* end Header */}
 
                                 {/* start breadcrumbs */}
-                                <div className="breadcrumbs text-sm">
-                                    <ul>
-                                        <li><a>Home</a></li>
-                                        <li>Ads Locate</li>
-                                        <li>Tambah Ads Locate</li>
-                                    </ul>
-                                </div>
+                                <Breadcrumbs items={[{ label: 'Home', href: '/' }, { label: 'Ads Locate' }, { label: 'Tambah Ads Locate' }]} />
                                 {/* end breadcrumbs */}
 
                             </div>
@@ -81,7 +77,7 @@ function Create() {
                                         <InputLabel
                                             htmlFor="name"
                                             value="Nama"
-                                            className='mb-2 label-text font-bold'
+                                            className='mb-2 font-bold'
                                         />
                                         <TextInput
                                             id="name"
@@ -96,13 +92,12 @@ function Create() {
                                     </div>
                                    
                                     <div className=' lg:col-span-6 flex flex-row justify-end mt-4'>
-                                        <button
+                                        <Button
                                             type="submit"
-                                            className="btn btn-primary"
                                             disabled={processing}
                                         >
                                             Simpan
-                                        </button>
+                                        </Button>
                                     </div>
 
                                 </form>

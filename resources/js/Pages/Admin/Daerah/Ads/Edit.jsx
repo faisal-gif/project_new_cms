@@ -1,4 +1,6 @@
 import Card from '@/Components/Card'
+import Breadcrumbs from '@/Components/Breadcrumbs';
+import { Button } from '@/Components/ui/button';
 import InputError from '@/Components/InputError'
 import InputLabel from '@/Components/InputLabel'
 import InputRupiah from '@/Components/InputRupiah'
@@ -64,13 +66,7 @@ function Edit({ item, locations, networks }) {
                                 </div>
 
                                 {/* breadcrumbs */}
-                                <div className="breadcrumbs text-sm">
-                                    <ul>
-                                        <li><a>Home</a></li>
-                                        <li>Ads Daerah</li>
-                                        <li>Edit</li>
-                                    </ul>
-                                </div>
+                                <Breadcrumbs items={[{ label: 'Home', href: '/' }, { label: 'Ads Daerah' }, { label: 'Edit' }]} />
                             </div>
 
                             <form onSubmit={submit} className='space-y-6'>
@@ -102,7 +98,7 @@ function Edit({ item, locations, networks }) {
                                             <InputLabel
                                                 htmlFor="cost"
                                                 value="Cost (Biaya Iklan)"
-                                                className='mb-2 label-text font-bold'
+                                                className='mb-2 font-bold'
                                             />
                                             <InputRupiah
                                                 id="cost"
@@ -118,7 +114,7 @@ function Edit({ item, locations, networks }) {
                                             <InputLabel
                                                 htmlFor="cpc"
                                                 value="Cost Per Click (CPC)"
-                                                className='mb-2 label-text font-bold'
+                                                className='mb-2 font-bold'
                                             />
                                             <InputRupiah
                                                 id="cpc"
@@ -145,7 +141,7 @@ function Edit({ item, locations, networks }) {
                                             <InputLabel
                                                 htmlFor="datestart"
                                                 value="Date Start"
-                                                className='mb-2 label-text font-bold'
+                                                className='mb-2 font-bold'
                                             />
                                             <TextInput
                                                 id="datestart"
@@ -163,7 +159,7 @@ function Edit({ item, locations, networks }) {
                                             <InputLabel
                                                 htmlFor="dateend"
                                                 value="Date End"
-                                                className='mb-2 label-text font-bold'
+                                                className='mb-2 font-bold'
                                             />
                                             <TextInput
                                                 id="dateend"
@@ -221,7 +217,7 @@ function Edit({ item, locations, networks }) {
                                             <InputLabel
                                                 htmlFor="network"
                                                 value="Location Publish"
-                                                className='mb-2 label-text font-bold'
+                                                className='mb-2 font-bold'
                                             />
 
                                             <Select
@@ -252,7 +248,7 @@ function Edit({ item, locations, networks }) {
                                             <InputLabel
                                                 htmlFor="title"
                                                 value="Judul"
-                                                className='mb-2 label-text font-bold'
+                                                className='mb-2 font-bold'
                                             />
                                             <TextInput
                                                 id="title"
@@ -269,7 +265,7 @@ function Edit({ item, locations, networks }) {
                                             <InputLabel
                                                 htmlFor="image"
                                                 value="Gambar URL"
-                                                className='mb-2 label-text font-bold'
+                                                className='mb-2 font-bold'
                                             />
                                             <TextInput
                                                 id="image"
@@ -286,7 +282,7 @@ function Edit({ item, locations, networks }) {
                                             <InputLabel
                                                 htmlFor="url"
                                                 value="URL"
-                                                className='mb-2 label-text font-bold'
+                                                className='mb-2 font-bold'
                                             />
                                             <TextInput
                                                 id="url"
@@ -303,13 +299,12 @@ function Edit({ item, locations, networks }) {
 
                                 {/* Tombol Simpan */}
                                 <div className='flex flex-row justify-end mt-4'>
-                                    <button
+                                    <Button
                                         type="submit"
-                                        className="btn btn-primary"
                                         disabled={processing}
                                     >
                                         Update
-                                    </button>
+                                    </Button>
                                 </div>
 
                             </form>

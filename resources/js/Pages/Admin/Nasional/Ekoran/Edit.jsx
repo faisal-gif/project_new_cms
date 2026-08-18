@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from "react";
+import { Button } from '@/Components/ui/button';
+import { Spinner } from '@/Components/ui/spinner';
 import { useForm, router, Head } from "@inertiajs/react";
 import { ArrowLeft, Megaphone, Save, BookOpen } from "lucide-react";
 
@@ -83,13 +85,13 @@ export default function Edit({ ekoran }) {
             <Head title="Edit eKoran" />
             <div className="space-y-6 max-w-7xl mx-auto pb-12">
                 {/* --- HEADER --- */}
-                <div className="flex items-center gap-4 bg-base-100 p-6 rounded-2xl shadow-sm border border-base-200">
-                    <button type="button" className="btn btn-ghost btn-circle" onClick={() => router.visit("/daftar-ekoran")}>
+                <div className="flex items-center gap-4 bg-background p-6 rounded-2xl shadow-sm border border-border">
+                    <Button type="button" variant="ghost" size="icon" onClick={() => router.visit("/daftar-ekoran")}>
                         <ArrowLeft className="h-5 w-5" />
-                    </button>
+                    </Button>
                     <div>
-                        <h1 className="text-2xl md:text-3xl font-bold text-base-content">Edit eKoran: {ekoran.title}</h1>
-                        <p className="text-base-content/60 mt-1 text-sm md:text-base">
+                        <h1 className="text-2xl md:text-3xl font-bold text-foreground">Edit eKoran: {ekoran.title}</h1>
+                        <p className="text-foreground/60 mt-1 text-sm md:text-base">
                             Maks {MAX_REGULAR_PAGES} halaman reguler + {MAX_PROMO_PAGES} halaman iklan/promo
                         </p>
                     </div>
@@ -99,33 +101,33 @@ export default function Edit({ ekoran }) {
                     {/* KOLOM KIRI */}
                     <div className="lg:col-span-2 space-y-6">
                         {/* 1. Informasi Edisi (Sama persis dengan Create, hubungkan ke value data.x) */}
-                        <Card title="Informasi Edisi" padding="p-6 md:p-8" className="border border-base-200">
+                        <Card title="Informasi Edisi" padding="p-6 md:p-8" className="border border-border">
                             <div className="space-y-5">
                                 <div className="w-full flex flex-col">
                                     <InputLabel value="Judul Edisi *" className="font-bold mb-2" />
-                                    <TextInput value={data.title} onChange={(e) => setData("title", e.target.value)} className="w-full bg-base-200 focus:bg-base-100" />
+                                    <TextInput value={data.title} onChange={(e) => setData("title", e.target.value)} className="w-full bg-muted focus:bg-background" />
                                     <InputError message={errors.title} className="mt-1" />
                                 </div>
 
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                     <div className="w-full">
                                         <InputLabel value="Tanggal Terbit *" className="font-bold mb-2" />
-                                        <TextInput type="date" value={data.datepub} onChange={(e) => setData("datepub", e.target.value)} className="w-full bg-base-200 focus:bg-base-100" />
+                                        <TextInput type="date" value={data.datepub} onChange={(e) => setData("datepub", e.target.value)} className="w-full bg-muted focus:bg-background" />
                                         <InputError message={errors.datepub} className="mt-1" />
                                     </div>
                                     <div className="w-full">
                                         <InputLabel value="eMagazine ID (Opsional)" className="font-bold mb-2" />
-                                        <TextInput value={data.emagazine_id} onChange={(e) => setData("emagazine_id", e.target.value)} className="w-full bg-base-200 focus:bg-base-100" />
+                                        <TextInput value={data.emagazine_id} onChange={(e) => setData("emagazine_id", e.target.value)} className="w-full bg-muted focus:bg-background" />
                                     </div>
                                 </div>
                             </div>
                         </Card>
 
                         {/* 2. Halaman Reguler */}
-                        <Card padding="p-6 md:p-8" className="border border-base-200">
+                        <Card padding="p-6 md:p-8" className="border border-border">
                             <h2 className="text-xl font-bold mb-6 border-b pb-3 flex justify-between items-center">
                                 <span>Halaman Reguler</span>
-                                <Badge className="bg-neutral/10 text-neutral text-sm font-normal badge">{regularPages.length} / {MAX_REGULAR_PAGES}</Badge>
+                                <Badge className="bg-neutral-700/10 text-neutral-600 text-sm font-normal badge">{regularPages.length} / {MAX_REGULAR_PAGES}</Badge>
                             </h2>
                             <InputMultiImage
                                 label="Klik untuk upload halaman reguler"
@@ -139,13 +141,13 @@ export default function Edit({ ekoran }) {
                         </Card>
 
                         {/* 3. Halaman Promo */}
-                        <Card padding="p-6 md:p-8" className="border border-base-200">
+                        <Card padding="p-6 md:p-8" className="border border-border">
                             <h2 className="text-xl font-bold mb-2 flex items-center gap-2">
-                                <Megaphone className="h-5 w-5 text-warning" /> Halaman Ekoran Khusus
+                                <Megaphone className="h-5 w-5 text-amber-600" /> Halaman Ekoran Khusus
                             </h2>
                             <div className="flex justify-between items-center border-b pb-4 mb-6">
-                                <p className="text-sm text-base-content/60">Halaman sisipan khusus.</p>
-                                <Badge className="bg-warning/10 text-warning text-sm font-normal badge">{spesialPages.length} / {MAX_PROMO_PAGES}</Badge>
+                                <p className="text-sm text-foreground/60">Halaman sisipan khusus.</p>
+                                <Badge className="bg-amber-500/10 text-amber-600 text-sm font-normal badge">{spesialPages.length} / {MAX_PROMO_PAGES}</Badge>
                             </div>
                             <InputMultiImage
                                 label="Upload halaman iklan/promo"
@@ -160,29 +162,29 @@ export default function Edit({ ekoran }) {
 
                     {/* KOLOM KANAN (Sama dengan Create) */}
                     <div className="lg:col-span-1 space-y-6 lg:sticky lg:top-6">
-                        <Card title="Pengaturan Publikasi" padding="p-6" className="border border-base-200 shadow-md bg-primary/5">
+                        <Card title="Pengaturan Publikasi" padding="p-6" className="border border-border shadow-md bg-primary/5">
                             <div className="space-y-5">
                                 <div>
                                     <InputLabel value="Status" className="font-bold mb-2" />
                                     <InputSelect
                                         options={[{ value: "0", label: "📄 Draft" }, { value: "1", label: "✅ Published" }]}
-                                        value={data.status} onChange={(e) => setData("status", e.target.value)} className="bg-base-100"
+                                        value={data.status} onChange={(e) => setData("status", e.target.value)} className="bg-background"
                                     />
                                     <InputError message={errors.status} className="mt-1" />
                                 </div>
-                                <div className="rounded-xl border border-base-300 bg-base-100 p-4 text-sm space-y-2 shadow-sm">
-                                    <p className="flex justify-between"><span className="text-base-content/60">Total:</span><span className="font-bold">{regularPages.length + spesialPages.length} Halaman</span></p>
+                                <div className="rounded-xl border border-border bg-background p-4 text-sm space-y-2 shadow-sm">
+                                    <p className="flex justify-between"><span className="text-foreground/60">Total:</span><span className="font-bold">{regularPages.length + spesialPages.length} Halaman</span></p>
                                 </div>
                             </div>
                         </Card>
 
-                        <div className="bg-base-100 p-4 rounded-2xl shadow-md border border-base-200 space-y-3">
-                            <button type="button" className="btn btn-warning w-full text-base" onClick={handleSubmit} disabled={processing || regularPages.length === 0}>
-                                {processing ? <span className="loading loading-spinner"></span> : <><Save className="h-5 w-5 mr-2" /> Update eKoran</>}
-                            </button>
-                            <button type="button" className="btn btn-ghost btn-block text-base-content/60" onClick={() => router.visit("/daftar-ekoran")}>
+                        <div className="bg-background p-4 rounded-2xl shadow-md border border-border space-y-3">
+                            <Button type="button" variant="warning" className="w-full text-base" onClick={handleSubmit} disabled={processing || regularPages.length === 0}>
+                                {processing ? <Spinner /> : <><Save className="h-5 w-5 mr-2" /> Update eKoran</>}
+                            </Button>
+                            <Button type="button" variant="ghost" className="w-full text-foreground/60" onClick={() => router.visit("/daftar-ekoran")}>
                                 Batal & Kembali
-                            </button>
+                            </Button>
                         </div>
                     </div>
                 </div>

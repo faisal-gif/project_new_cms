@@ -19,6 +19,9 @@ import InputTextarea from "@/Components/InputTextarea";
 import InputSelect from "@/Components/InputSelect";
 import InputLabel from "@/Components/InputLabel";
 import InputError from "@/Components/InputError";
+import { Button } from "@/Components/ui/button";
+import { Spinner } from "@/Components/ui/spinner";
+import { Badge } from "@/Components/ui/badge";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
 import InputImage from "@/Components/InputImage";
 import InputEditor from "@/Components/InputEditor";
@@ -144,25 +147,32 @@ export default function Edit({ editors, writers, categories, gallery, isFotograf
             <div className="space-y-6 max-w-7xl mx-auto pb-12">
 
                 {/* --- HEADER --- */}
-                <div className="flex items-center gap-4 bg-base-100 p-6 rounded-2xl shadow-sm border border-base-200">
-                    <button className="btn btn-ghost btn-circle" onClick={() => router.visit(route("admin.nasional.fotografi.index"))}>
+                <div className="flex items-center gap-4 bg-background p-6 rounded-2xl shadow-sm border border-border">
+                    <Button variant="ghost" size="icon" onClick={() => router.visit(route("admin.nasional.fotografi.index"))}>
                         <ArrowLeft className="h-5 w-5" />
-                    </button>
+                    </Button>
                     <div>
-                        <h1 className="text-2xl md:text-3xl font-bold text-base-content">Edit Galeri Foto</h1>
-                        <p className="text-base-content/60 mt-1 text-sm md:text-base line-clamp-1">
-                            Perbarui informasi dan kelola foto-foto untuk: <span className="font-semibold text-base-content">{gallery.gal_title}</span>
+                        <h1 className="text-2xl md:text-3xl font-bold text-foreground">Edit Galeri Foto</h1>
+                        <p className="text-foreground/60 mt-1 text-sm md:text-base line-clamp-1">
+                            Perbarui informasi dan kelola foto-foto untuk: <span className="font-semibold text-foreground">{gallery.gal_title}</span>
                         </p>
                     </div>
                 </div>
 
                 {/* --- STEP INDICATOR --- */}
-                <div className="bg-base-100 p-5 rounded-2xl shadow-sm border border-base-200">
-                    <ul className="steps steps-horizontal w-full text-sm">
-                        <li className="step step-primary" data-content="✓">Isi Info Galeri</li>
-                        <li className="step step-primary font-semibold" data-content="2">Tambah Foto</li>
+                <div className="bg-background p-5 rounded-2xl shadow-sm border border-border">
+                    <ul className="flex items-center gap-2 w-full text-sm">
+                        <li className="flex items-center gap-2 text-primary font-medium">
+                            <span className="flex items-center justify-center w-6 h-6 rounded-full bg-primary text-primary-foreground text-xs shrink-0">✓</span>
+                            Isi Info Galeri
+                        </li>
+                        <span className="flex-1 h-px bg-primary/40" />
+                        <li className="flex items-center gap-2 text-primary font-semibold">
+                            <span className="flex items-center justify-center w-6 h-6 rounded-full bg-primary text-primary-foreground text-xs shrink-0">2</span>
+                            Tambah Foto
+                        </li>
                     </ul>
-                    <p className="text-center text-xs text-base-content/60 mt-3">
+                    <p className="text-center text-xs text-foreground/60 mt-3">
                         Langkah 2 dari 2 — tambahkan foto satu per satu. Setiap foto otomatis tersimpan.
                     </p>
                 </div>
@@ -174,7 +184,7 @@ export default function Edit({ editors, writers, categories, gallery, isFotograf
                     <div className="lg:col-span-2 space-y-6">
 
                         {/* SECTION 1: Informasi Utama */}
-                        <Card padding="p-6 md:p-8" className="border border-base-200">
+                        <Card padding="p-6 md:p-8" className="border border-border">
                             <h2 className="text-xl font-bold mb-6 flex items-center gap-2 border-b pb-3">
                                 <FileText className="h-5 w-5 text-primary" /> 1. Informasi Utama
                             </h2>
@@ -185,7 +195,7 @@ export default function Edit({ editors, writers, categories, gallery, isFotograf
                                         placeholder="Judul galeri..."
                                         value={data.title}
                                         onChange={(e) => setData("title", e.target.value)}
-                                        className="w-full input-lg bg-base-200 focus:bg-base-100"
+                                        className="w-full input-lg bg-muted focus:bg-background"
                                     />
                                     <InputError message={errors.title} className="mt-1" />
                                 </div>
@@ -196,7 +206,7 @@ export default function Edit({ editors, writers, categories, gallery, isFotograf
                                         placeholder="Tambahan keterangan judul..."
                                         value={data.subtitle}
                                         onChange={(e) => setData("subtitle", e.target.value)}
-                                        className="w-full bg-base-200 focus:bg-base-100"
+                                        className="w-full bg-muted focus:bg-background"
                                     />
                                 </div>
 
@@ -206,12 +216,12 @@ export default function Edit({ editors, writers, categories, gallery, isFotograf
                                     onChange={(e) => setData("description", e.target.value)}
                                     maxLength={150}
                                     rows={3}
-                                    className="bg-base-200 focus:bg-base-100"
+                                    className="bg-muted focus:bg-background"
                                 />
 
                                 <div className="w-full">
                                     <InputLabel value="Narasi / Konten Lengkap" className="font-bold mb-2" />
-                                    <div className="rounded-xl overflow-hidden border border-base-300">
+                                    <div className="rounded-xl overflow-hidden border border-border">
                                         <InputEditor
                                             value={data.content}
                                             height={500}
@@ -224,7 +234,7 @@ export default function Edit({ editors, writers, categories, gallery, isFotograf
                         </Card>
 
                         {/* SECTION 2: Detail Tim & Lokasi */}
-                        <Card padding="p-6 md:p-8" className="border border-base-200">
+                        <Card padding="p-6 md:p-8" className="border border-border">
                             <h2 className="text-xl font-bold mb-6 flex items-center gap-2 border-b pb-3">
                                 <MapPin className="h-5 w-5 text-primary" /> 2. Detail Tim & Lokasi
                             </h2>
@@ -268,27 +278,27 @@ export default function Edit({ editors, writers, categories, gallery, isFotograf
                                         placeholder="Contoh: Jakarta Pusat"
                                         value={data.city}
                                         onChange={(e) => setData("city", e.target.value)}
-                                        className="w-full bg-base-200 focus:bg-base-100"
+                                        className="w-full bg-muted focus:bg-background"
                                     />
                                 </div>
                             </div>
                         </Card>
 
                         {/* SECTION 3: Image Manager (Kombinasi Existing & Baru) */}
-                        <Card padding="p-6 md:p-8" className="border border-base-200">
+                        <Card padding="p-6 md:p-8" className="border border-border">
                             <h2 className="text-xl font-bold mb-2 flex items-center gap-2">
                                 <ImageIcon className="h-5 w-5 text-primary" /> 3. Kelola Foto
                             </h2>
-                            <p className="text-sm text-base-content/60 mb-6 border-b pb-4">
+                            <p className="text-sm text-foreground/60 mb-6 border-b pb-4">
                                 Atur foto yang sudah ada, hapus, atau tambahkan foto baru resolusi tinggi (1600x1067).
                             </p>
 
                             <div className="space-y-6">
                                 {/* Upload Box untuk Foto BARU — langsung ke CDN setelah crop */}
-                                <div className="bg-base-200/50 rounded-2xl p-6 border-2 border-dashed border-base-300">
+                                <div className="bg-muted/50 rounded-2xl p-6 border-2 border-dashed border-border">
                                     <p className="font-medium mb-3 text-sm flex items-center gap-2">
                                         Tambahkan Foto Baru
-                                        {uploading && <span className="loading loading-spinner loading-sm"></span>}
+                                        {uploading && <Spinner />}
                                     </p>
 
                                     {/* Caption diisi DULU, lalu pilih & crop foto (upload otomatis setelah crop) */}
@@ -313,7 +323,7 @@ export default function Edit({ editors, writers, categories, gallery, isFotograf
                                         onChange={uploadImage}
                                         previewClass="h-72 rounded-xl shadow-sm"
                                     />
-                                    <p className="text-xs text-base-content/50 mt-2">
+                                    <p className="text-xs text-foreground/50 mt-2">
                                         Foto langsung terunggah ke CDN begitu selesai di-crop.
                                     </p>
                                     <InputError message={errors.file} className="mt-1" />
@@ -321,10 +331,10 @@ export default function Edit({ editors, writers, categories, gallery, isFotograf
 
                                 {/* Empty state — bantu pemula tahu langkah berikutnya */}
                                 {images.length === 0 && !uploading && (
-                                    <div className="flex flex-col items-center text-center py-10 px-4 rounded-2xl border-2 border-dashed border-base-300 bg-base-100 mt-6">
-                                        <ImageIcon className="h-10 w-10 text-base-content/30 mb-3" />
-                                        <p className="font-semibold text-base-content">Belum ada foto</p>
-                                        <p className="text-sm text-base-content/60 mt-1 max-w-sm">
+                                    <div className="flex flex-col items-center text-center py-10 px-4 rounded-2xl border-2 border-dashed border-border bg-background mt-6">
+                                        <ImageIcon className="h-10 w-10 text-foreground/30 mb-3" />
+                                        <p className="font-semibold text-foreground">Belum ada foto</p>
+                                        <p className="text-sm text-foreground/60 mt-1 max-w-sm">
                                             Isi caption di atas, lalu pilih &amp; crop foto. Foto akan langsung tersimpan dan muncul di sini.
                                         </p>
                                     </div>
@@ -333,23 +343,23 @@ export default function Edit({ editors, writers, categories, gallery, isFotograf
                                 {/* List Gambar */}
                                 {images.length > 0 && (
                                     <div className="space-y-3 mt-6">
-                                        <h3 className="font-bold text-sm text-base-content/70 uppercase tracking-wider mb-1">
+                                        <h3 className="font-bold text-sm text-foreground/70 uppercase tracking-wider mb-1">
                                             Daftar Foto Saat Ini ({images.length})
                                         </h3>
-                                        <p className="text-xs text-base-content/50 mb-3">
+                                        <p className="text-xs text-foreground/50 mb-3">
                                             Perubahan caption &amp; cover baru tersimpan setelah klik <span className="font-semibold">"Perbarui Galeri"</span>.
                                         </p>
                                         {images.map((img, index) => (
-                                            <div key={img.id} className="flex flex-col sm:flex-row gap-4 p-4 mt-4 rounded-xl border border-base-200 bg-base-100 shadow-sm hover:shadow-md transition-all relative">
+                                            <div key={img.id} className="flex flex-col sm:flex-row gap-4 p-4 mt-4 rounded-xl border border-border bg-background shadow-sm hover:shadow-md transition-all relative">
 
                                                 {/* 1. THUMBNAIL GAMBAR */}
                                                 {/* Di mobile menggunakan aspect-video agar proporsional, di desktop menjadi kotak 32x24 */}
-                                                <div className="relative w-full aspect-video sm:aspect-auto sm:w-32 sm:h-24 rounded-lg overflow-hidden flex-shrink-0 bg-base-300">
+                                                <div className="relative w-full aspect-video sm:aspect-auto sm:w-32 sm:h-24 rounded-lg overflow-hidden flex-shrink-0 bg-muted">
                                                     <img src={img.url} alt={img.caption} className="w-full h-full object-cover" />
                                                     {img.isCover && (
-                                                        <span className="badge badge-warning font-bold absolute top-2 left-2 shadow-sm text-xs">
+                                                        <Badge className="bg-amber-400 text-amber-950 font-bold absolute top-2 left-2 shadow-sm text-xs">
                                                             COVER
-                                                        </span>
+                                                        </Badge>
                                                     )}
                                                 </div>
 
@@ -358,7 +368,7 @@ export default function Edit({ editors, writers, categories, gallery, isFotograf
                                                     <p className="text-sm font-bold text-primary">Foto {index + 1}</p>
                                                     <input
                                                         type="text"
-                                                        className="input input-sm input-bordered w-full text-sm italic"
+                                                        className="w-full text-sm italic"
                                                         value={img.caption}
                                                         onChange={(e) => {
                                                             setImages(prev => prev.map(i => i.id === img.id ? { ...i, caption: e.target.value } : i))
@@ -369,24 +379,28 @@ export default function Edit({ editors, writers, categories, gallery, isFotograf
 
                                                 {/* 3. AREA TOMBOL AKSI */}
                                                 {/* Di mobile menggunakan Grid 2 Kolom agar sejajar rapi, di desktop menggunakan flex column */}
-                                                <div className="grid grid-cols-2 sm:flex sm:flex-col gap-2 items-center justify-center border-t sm:border-t-0 sm:border-l border-base-200 pt-4 sm:pt-0 sm:pl-4 mt-2 sm:mt-0">
-                                                    <button
+                                                <div className="grid grid-cols-2 sm:flex sm:flex-col gap-2 items-center justify-center border-t sm:border-t-0 sm:border-l border-border pt-4 sm:pt-0 sm:pl-4 mt-2 sm:mt-0">
+                                                    <Button
                                                         type="button"
-                                                        className={`btn btn-sm w-full ${img.isCover ? 'btn-warning' : 'btn-ghost border-base-300'}`}
+                                                        size="sm"
+                                                        variant={img.isCover ? 'warning' : 'ghost'}
+                                                        className={`w-full ${img.isCover ? '' : 'border-border'}`}
                                                         onClick={() => setCover(img.id)}
                                                     >
-                                                        {img.isCover ? <Star className="h-4 w-4 mr-1 sm:mr-0 lg:mr-1" /> : <StarOff className="h-4 w-4 mr-1 sm:mr-0 lg:mr-1 text-base-content/50" />}
+                                                        {img.isCover ? <Star className="h-4 w-4 mr-1 sm:mr-0 lg:mr-1" /> : <StarOff className="h-4 w-4 mr-1 sm:mr-0 lg:mr-1 text-foreground/50" />}
                                                         <span className="sm:hidden lg:inline">{img.isCover ? 'Cover Aktif' : 'Jadikan Cover'}</span>
-                                                    </button>
+                                                    </Button>
 
-                                                    <button
+                                                    <Button
                                                         type="button"
-                                                        className="btn btn-sm w-full btn-outline border-base-300 text-error hover:bg-error hover:border-error hover:text-white"
+                                                        size="sm"
+                                                        variant="outline"
+                                                        className="w-full border-border text-destructive hover:bg-destructive hover:border-destructive hover:text-white"
                                                         onClick={() => removeImage(img.id)}
                                                     >
                                                         <Trash2 className="h-4 w-4 mr-1 sm:mr-0 lg:mr-1" />
                                                         <span className="sm:hidden lg:inline">Hapus</span>
-                                                    </button>
+                                                    </Button>
                                                 </div>
 
                                             </div>
@@ -399,7 +413,7 @@ export default function Edit({ editors, writers, categories, gallery, isFotograf
 
                     {/* KOLOM KANAN (Lebar 1/3) - Pengaturan Publikasi Sticky */}
                     <div className="lg:col-span-1 space-y-6 lg:sticky lg:top-6">
-                        <Card title="Pengaturan Publikasi" padding="p-6" className="border border-base-200 shadow-md bg-primary/5">
+                        <Card title="Pengaturan Publikasi" padding="p-6" className="border border-border shadow-md bg-primary/5">
                             <div className="space-y-5">
                                 <div>
                                     <InputLabel value="Kategori Berita *" className="font-bold mb-2" />
@@ -407,7 +421,7 @@ export default function Edit({ editors, writers, categories, gallery, isFotograf
                                         options={categories.map(c => ({ value: c.value, label: c.label }))}
                                         value={data.categoryId}
                                         onChange={(e) => setData("categoryId", e.target.value)}
-                                        className="bg-base-100"
+                                        className="bg-background"
                                     />
                                     <InputError message={errors.categoryId} className="mt-1" />
                                 </div>
@@ -418,7 +432,7 @@ export default function Edit({ editors, writers, categories, gallery, isFotograf
                                         type="datetime-local"
                                         value={data.datepub}
                                         onChange={(e) => setData("datepub", e.target.value)}
-                                        className="w-full bg-base-100"
+                                        className="w-full bg-background"
                                     />
                                 </div>
 
@@ -433,34 +447,35 @@ export default function Edit({ editors, writers, categories, gallery, isFotograf
                                         ]}
                                         value={data.status}
                                         onChange={(e) => setData("status", e.target.value)}
-                                        className="bg-base-100 font-medium"
+                                        className="bg-background font-medium"
                                     />
                                 </div>
                             </div>
                         </Card>
 
                         {/* Action Buttons Panel */}
-                        <div className="bg-base-100 p-4 rounded-2xl shadow-md border border-base-200 space-y-3">
-                            <button
-                                className="btn btn-primary w-full text-base"
+                        <div className="bg-background p-4 rounded-2xl shadow-md border border-border space-y-3">
+                            <Button
+                                className="w-full text-base"
                                 onClick={handleSubmit}
                                 disabled={processing}
                             >
                                 {processing ? (
-                                    <span className="loading loading-spinner"></span>
+                                    <Spinner />
                                 ) : (
                                     <><Save className="h-5 w-5 mr-2" /> Perbarui Galeri</>
                                 )}
-                            </button>
+                            </Button>
 
-                            <div className="divider my-1"></div>
+                            <div className="my-2 border-t border-border"></div>
 
-                            <button
-                                className="btn btn-ghost btn-block text-base-content/60"
+                            <Button
+                                variant="ghost"
+                                className="w-full text-foreground/60"
                                 onClick={() => router.visit(route("admin.nasional.fotografi.index"))}
                             >
                                 Batal & Kembali
-                            </button>
+                            </Button>
                         </div>
                     </div>
                 </div>

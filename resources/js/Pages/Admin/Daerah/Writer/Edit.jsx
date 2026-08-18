@@ -1,4 +1,6 @@
 import Card from '@/Components/Card'
+import Breadcrumbs from '@/Components/Breadcrumbs';
+import { Button } from '@/Components/ui/button';
 import InputError from '@/Components/InputError'
 import InputLabel from '@/Components/InputLabel'
 import InputPassword from '@/Components/InputPassword'
@@ -47,13 +49,7 @@ function Edit({ networks, writer }) {
                                 {/* end Header */}
 
                                 {/* start breadcrumbs */}
-                                <div className="breadcrumbs text-sm">
-                                    <ul>
-                                        <li><a>Home</a></li>
-                                        <li>Writer</li>
-                                        <li>Edit Writer</li>
-                                    </ul>
-                                </div>
+                                <Breadcrumbs items={[{ label: 'Home', href: '/' }, { label: 'Writer' }, { label: 'Edit Writer' }]} />
                                 {/* end breadcrumbs */}
 
                             </div>
@@ -77,7 +73,7 @@ function Edit({ networks, writer }) {
                                         <InputLabel
                                             htmlFor="date_exp"
                                             value="Tanggal Kadaluarsa"
-                                            className='mb-2 label-text font-bold'
+                                            className='mb-2 font-bold'
                                         />
                                         <TextInput
                                             id="date_exp"
@@ -94,7 +90,7 @@ function Edit({ networks, writer }) {
                                         <InputLabel
                                             htmlFor="network_id"
                                             value="Wilayah"
-                                            className='mb-2 label-text font-bold'
+                                            className='mb-2 font-bold'
                                         />
                                         <Select
                                             value={networks.find((item) => item.value === data.network_id)}
@@ -110,7 +106,7 @@ function Edit({ networks, writer }) {
                                         <InputLabel
                                             htmlFor="no_whatsapp"
                                             value="No whatsapp"
-                                            className='mb-2 label-text font-bold'
+                                            className='mb-2 font-bold'
                                         />
                                         <InputPhoneNumber
                                             id="no_whatsapp"
@@ -178,13 +174,12 @@ function Edit({ networks, writer }) {
                                         <p className="text-xs text-gray-500 mt-1">Biarkan kosong jika tidak ingin mengubah password.</p>
                                     </div>
                                     <div className=' lg:col-span-6 flex flex-row justify-end mt-4'>
-                                        <button
+                                        <Button
                                             type="submit"
-                                            className="btn btn-primary"
                                             disabled={processing}
                                         >
                                             Simpan
-                                        </button>
+                                        </Button>
                                     </div>
 
                                 </form>

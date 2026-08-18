@@ -1,4 +1,6 @@
 import Card from '@/Components/Card'
+import Breadcrumbs from '@/Components/Breadcrumbs';
+import { Button } from '@/Components/ui/button';
 import InputEditor from '@/Components/InputEditor'
 import InputError from '@/Components/InputError'
 import InputLabel from '@/Components/InputLabel'
@@ -69,13 +71,7 @@ function Create({ writers, editors, networks, kanal_daerah, fokus_daerah }) {
                                 {/* end Header */}
 
                                 {/* start breadcrumbs */}
-                                <div className="breadcrumbs text-sm">
-                                    <ul>
-                                        <li><a>Home</a></li>
-                                        <li>News</li>
-                                        <li>Tambah News</li>
-                                    </ul>
-                                </div>
+                                <Breadcrumbs items={[{ label: 'Home', href: '/' }, { label: 'News' }, { label: 'Tambah News' }]} />
                                 {/* end breadcrumbs */}
 
                             </div>
@@ -113,7 +109,7 @@ function Create({ writers, editors, networks, kanal_daerah, fokus_daerah }) {
                                             <InputLabel
                                                 htmlFor="editor"
                                                 value="Editor"
-                                                className='mb-2 label-text font-bold'
+                                                className='mb-2 font-bold'
                                             />
 
                                             <Select
@@ -129,7 +125,7 @@ function Create({ writers, editors, networks, kanal_daerah, fokus_daerah }) {
                                             <InputLabel
                                                 htmlFor="writer"
                                                 value="Penulis"
-                                                className='mb-2 label-text font-bold'
+                                                className='mb-2 font-bold'
                                             />
 
                                             <Select
@@ -157,7 +153,7 @@ function Create({ writers, editors, networks, kanal_daerah, fokus_daerah }) {
                                             <InputLabel
                                                 htmlFor="judul_nasional"
                                                 value="Judul Nasional"
-                                                className='mb-2 label-text font-bold'
+                                                className='mb-2 font-bold'
                                             />
                                             <TextInput
                                                 id="judul_nasional"
@@ -174,7 +170,7 @@ function Create({ writers, editors, networks, kanal_daerah, fokus_daerah }) {
                                             <InputLabel
                                                 htmlFor="judul_regional"
                                                 value="Judul Regional"
-                                                className='mb-2 label-text font-bold'
+                                                className='mb-2 font-bold'
                                             />
                                             <TextInput
                                                 id="judul_regional"
@@ -224,7 +220,7 @@ function Create({ writers, editors, networks, kanal_daerah, fokus_daerah }) {
                                             <InputLabel
                                                 htmlFor="is_content"
                                                 value="Isi Berita"
-                                                className='mb-2 label-text font-bold'
+                                                className='mb-2 font-bold'
                                             />
                                             <InputEditor
                                                 value={data.is_content}
@@ -273,7 +269,7 @@ function Create({ writers, editors, networks, kanal_daerah, fokus_daerah }) {
                                                         <InputLabel
                                                             htmlFor="image_1"
                                                             value="Image 1"
-                                                            className='mb-2 label-text font-bold'
+                                                            className='mb-2 font-bold'
                                                         />
                                                         <div className='flex items-center justify-center gap-0.5 mt-1'>
                                                             <TextInput
@@ -281,17 +277,17 @@ function Create({ writers, editors, networks, kanal_daerah, fokus_daerah }) {
                                                                 name="Image 1"
                                                                 type="text"
                                                                 readOnly
-                                                                className=" block w-full bg-base-300"
+                                                                className=" block w-full bg-muted"
                                                                 value={data.image_1}
                                                                 onChange={(e) => setData('image_1', e.target.value)}
                                                                 autoComplete="image_1"
                                                             />
-                                                            <button type='button' className='btn btn-secondary btn-soft'>
+                                                            <Button type='button' variant="secondary" size="icon">
                                                                 <CopyIcon className='w-5 h-5' />
-                                                            </button>
-                                                            <button type='button' className='btn btn-secondary btn-soft'>
+                                                            </Button>
+                                                            <Button type='button' variant="secondary" size="icon">
                                                                 <EyeIcon className='w-5 h-5' />
-                                                            </button>
+                                                            </Button>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -300,7 +296,7 @@ function Create({ writers, editors, networks, kanal_daerah, fokus_daerah }) {
                                                     <InputLabel
                                                         htmlFor="image_2"
                                                         value="Image 2"
-                                                        className='mb-2 label-text font-bold'
+                                                        className='mb-2 font-bold'
                                                     />
                                                     <div className='flex items-center justify-center gap-0.5 mt-1'>
                                                         <TextInput
@@ -308,17 +304,17 @@ function Create({ writers, editors, networks, kanal_daerah, fokus_daerah }) {
                                                             name="Image 2"
                                                             type="text"
                                                             readOnly
-                                                            className=" block w-full bg-base-300"
+                                                            className=" block w-full bg-muted"
                                                             value={data.image_2}
                                                             onChange={(e) => setData('image_2', e.target.value)}
                                                             autoComplete="image_2"
                                                         />
-                                                        <button type='button' className='btn btn-secondary btn-soft'>
+                                                        <Button type='button' variant="secondary" size="icon">
                                                             <CopyIcon className='w-5 h-5' />
-                                                        </button>
-                                                        <button type='button' className='btn btn-secondary btn-soft'>
+                                                        </Button>
+                                                        <Button type='button' variant="secondary" size="icon">
                                                             <EyeIcon className='w-5 h-5' />
-                                                        </button>
+                                                        </Button>
                                                     </div>
 
                                                 </div>
@@ -327,7 +323,7 @@ function Create({ writers, editors, networks, kanal_daerah, fokus_daerah }) {
                                                     <InputLabel
                                                         htmlFor="image_3"
                                                         value="Image 3"
-                                                        className='mb-2 label-text font-bold'
+                                                        className='mb-2 font-bold'
                                                     />
                                                     <div className='flex items-center justify-center gap-0.5 mt-1'>
                                                         <TextInput
@@ -335,17 +331,17 @@ function Create({ writers, editors, networks, kanal_daerah, fokus_daerah }) {
                                                             name="Image 3"
                                                             type="text"
                                                             readOnly
-                                                            className=" block w-full bg-base-300"
+                                                            className=" block w-full bg-muted"
                                                             value={data.image_3}
                                                             onChange={(e) => setData('image_3', e.target.value)}
                                                             autoComplete="image_3"
                                                         />
-                                                        <button type='button' className='btn btn-secondary btn-soft'>
+                                                        <Button type='button' variant="secondary" size="icon">
                                                             <CopyIcon className='w-5 h-5' />
-                                                        </button>
-                                                        <button type='button' className='btn btn-secondary btn-soft'>
+                                                        </Button>
+                                                        <Button type='button' variant="secondary" size="icon">
                                                             <EyeIcon className='w-5 h-5' />
-                                                        </button>
+                                                        </Button>
                                                     </div>
                                                 </div>
 
@@ -368,7 +364,7 @@ function Create({ writers, editors, networks, kanal_daerah, fokus_daerah }) {
                                             <InputLabel
                                                 htmlFor="image_url"
                                                 value="URL Thumbnail"
-                                                className='mb-2 label-text font-bold'
+                                                className='mb-2 font-bold'
                                             />
                                             <TextInput
                                                 id="image_url"
@@ -413,7 +409,7 @@ function Create({ writers, editors, networks, kanal_daerah, fokus_daerah }) {
                                             <InputLabel
                                                 htmlFor="datepub"
                                                 value="Tanggal Publish"
-                                                className='mb-2 label-text font-bold'
+                                                className='mb-2 font-bold'
                                             />
                                             <TextInput
                                                 id="datepub"
@@ -430,7 +426,7 @@ function Create({ writers, editors, networks, kanal_daerah, fokus_daerah }) {
                                             <InputLabel
                                                 htmlFor="lokus"
                                                 value="Lokus"
-                                                className='mb-2 label-text font-bold'
+                                                className='mb-2 font-bold'
                                             />
                                             <TextInput
                                                 id="lokus"
@@ -447,7 +443,7 @@ function Create({ writers, editors, networks, kanal_daerah, fokus_daerah }) {
                                             <InputLabel
                                                 htmlFor="kanal_daerah"
                                                 value="Kanal Daerah"
-                                                className='mb-2 label-text font-bold'
+                                                className='mb-2 font-bold'
                                             />
 
                                             <Select
@@ -464,7 +460,7 @@ function Create({ writers, editors, networks, kanal_daerah, fokus_daerah }) {
                                             <InputLabel
                                                 htmlFor="fokus_daerah"
                                                 value="Fokus Daerah"
-                                                className='mb-2 label-text font-bold'
+                                                className='mb-2 font-bold'
                                             />
 
                                             <Select
@@ -483,13 +479,12 @@ function Create({ writers, editors, networks, kanal_daerah, fokus_daerah }) {
 
 
                                 <div className='flex flex-row justify-end mt-4'>
-                                    <button
+                                    <Button
                                         type="submit"
-                                        className="btn btn-primary"
                                         disabled={processing}
                                     >
                                         Simpan
-                                    </button>
+                                    </Button>
                                 </div>
 
                             </form>

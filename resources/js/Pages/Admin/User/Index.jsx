@@ -1,3 +1,6 @@
+import Breadcrumbs from '@/Components/Breadcrumbs'
+import { Table, TableHeader, TableBody, TableHead, TableRow, TableCell } from '@/Components/ui/table'
+import { Button } from '@/Components/ui/button'
 import Card from '@/Components/Card'
 import InputSelect from '@/Components/InputSelect'
 import InputWithPrefix from '@/Components/InputWithPrefix'
@@ -62,15 +65,15 @@ function Index({ users, filters }) {
       case "active":
       case '1':
       case true:
-        return <Badge className="bg-success text-white">Active</Badge>;
+        return <Badge className="bg-emerald-500 text-white">Active</Badge>;
 
       case "inactive":
       case "0":
       case false:
-        return <Badge className="bg-error text-white">Inactive</Badge>;
+        return <Badge className="bg-destructive text-white">Inactive</Badge>;
 
       default:
-        return <Badge className="bg-neutral text-white">{status}</Badge>;
+        return <Badge className="bg-neutral-700 text-white">{status}</Badge>;
     }
   }
 
@@ -80,7 +83,7 @@ function Index({ users, filters }) {
         return <Badge className="bg-primary text-white">Admin</Badge>;
 
       case 3:
-        return <Badge className="bg-warning text-white">Editor</Badge>;
+        return <Badge className="bg-amber-500 text-white">Editor</Badge>;
 
       case 2:
         return <Badge className="bg-secondary text-black">Publisher</Badge>;
@@ -89,7 +92,7 @@ function Index({ users, filters }) {
         return <Badge className="bg-destructive text-white">Fotografer</Badge>;
 
       default:
-        return <Badge className="bg-neutral text-white">Unknown</Badge>;
+        return <Badge className="bg-neutral-700 text-white">Unknown</Badge>;
     }
   }
 
@@ -110,14 +113,7 @@ function Index({ users, filters }) {
                 </div>
                 {/* end Header */}
 
-                {/* start breadcrumbs */}
-                <div className="breadcrumbs text-sm">
-                  <ul>
-                    <li><a>Home</a></li>
-                    <li>User</li>
-                  </ul>
-                </div>
-                {/* end breadcrumbs */}
+                <Breadcrumbs items={[{ label: 'Home', href: '/' }, { label: 'User' }]} />
 
               </div>
 
@@ -126,9 +122,11 @@ function Index({ users, filters }) {
                 <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
                   {/* Button Tambah User */}
                   {hasPermission('create users master') && (
-                    <Link href={route('admin.users.create')} className="btn btn-primary rounded-lg">
-                      <Plus size={16} /> Tambah User
-                    </Link>
+                    <Button asChild className="rounded-lg">
+                      <Link href={route('admin.users.create')}>
+                        <Plus size={16} /> Tambah User
+                      </Link>
+                    </Button>
                   )}
 
                   {/* Field Search And Filter */}
@@ -177,7 +175,7 @@ function Index({ users, filters }) {
                 <div className="md:hidden flex flex-col gap-4">
                   {/* Contoh data, ganti dengan data.map(...) */}
                   {users.data.map((user) => (
-                    <div key={user.id} className="border rounded-xl p-4 bg-base-100 shadow-sm">
+                    <div key={user.id} className="border rounded-xl p-4 bg-background shadow-sm">
 
                       {/* Header (Nama + Status) */}
                       <div className="flex justify-between items-start mb-3">
@@ -198,7 +196,9 @@ function Index({ users, filters }) {
                       {/* Actions */}
                       {hasPermission('edit users master') && (
                         <div className="flex gap-2 mt-4">
-                          <Link href={route('admin.users.edit', user)} className="btn btn-sm btn-warning btn-outline">Edit</Link>
+                          <Button asChild size="sm" variant="outline" className="border-amber-500 text-amber-600 hover:bg-amber-50 hover:text-amber-700 dark:border-amber-500/60 dark:text-amber-400 dark:hover:bg-amber-950/40">
+                            <Link href={route('admin.users.edit', user)}>Edit</Link>
+                          </Button>
                         </div>
                       )}
                     </div>
@@ -207,54 +207,56 @@ function Index({ users, filters }) {
 
                 {/* DESKTOP VERSION (Table Mode) */}
                 <div className="hidden md:block overflow-x-auto">
-                  <table className="table table-zebra">
+                  <Table>
 
-                    <thead>
-                      <tr>
-                        <th>#</th>
-                        <th>Nama</th>
-                        <th>Username</th>
-                        <th>Email</th>
-                        <th>Role</th>
-                        <th>New Roles</th>
-                        <th>Status</th>
-                        <th className="text-right">Action</th>
-                      </tr>
-                    </thead>
-                    <tbody>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>#</TableHead>
+                        <TableHead>Nama</TableHead>
+                        <TableHead>Username</TableHead>
+                        <TableHead>Email</TableHead>
+                        <TableHead>Role</TableHead>
+                        <TableHead>New Roles</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead className="text-right">Action</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
                       {users.data.map((user, index) => (
-                        <tr key={user.id}>
-                          <th>{index + 1}</th>
-                          <td>{user.full_name}</td>
-                          <td>@{user.username}</td>
-                          <td>{user.email}</td>
-                          <td>{getRoleBadge(user.role)}</td>
-                          <td>
+                        <TableRow key={user.id}>
+                          <TableCell>{index + 1}</TableCell>
+                          <TableCell>{user.full_name}</TableCell>
+                          <TableCell>@{user.username}</TableCell>
+                          <TableCell>{user.email}</TableCell>
+                          <TableCell>{getRoleBadge(user.role)}</TableCell>
+                          <TableCell>
                             {user.roles.length > 0 && (
                               <div className="flex flex-wrap gap-1">
                                 {user.roles.map((role) => (
-                                  <Badge key={role.name} className="bg-info text-white uppercase">
+                                  <Badge key={role.name} className="bg-sky-500 text-white uppercase">
                                     {role.name}
                                   </Badge>
                                 ))}
                               </div>
                             )}
-                          </td>
-                          <td>
+                          </TableCell>
+                          <TableCell>
                             {getStatusBadge(user.status)}
-                          </td>
+                          </TableCell>
                           {hasPermission('edit users master') && (
-                            <td>
+                            <TableCell>
                               <div className="flex justify-end gap-2">
-                                <Link href={route('admin.users.edit', user)} className="btn btn-sm btn-warning btn-outline">Edit</Link>
+                                <Button asChild size="sm" variant="outline" className="border-amber-500 text-amber-600 hover:bg-amber-50 hover:text-amber-700 dark:border-amber-500/60 dark:text-amber-400 dark:hover:bg-amber-950/40">
+                            <Link href={route('admin.users.edit', user)}>Edit</Link>
+                          </Button>
                               </div>
-                            </td>
+                            </TableCell>
                           )}
-                        </tr>
+                        </TableRow>
                       ))}
-                    </tbody>
+                    </TableBody>
 
-                  </table>
+                  </Table>
                 </div>
 
               </Card>

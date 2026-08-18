@@ -303,7 +303,7 @@ export default function EditorImageModal() {
             <div className="relative bg-white rounded-xl shadow-2xl w-full max-w-xl p-6 space-y-4 max-h-[90vh] overflow-y-auto">
                 {loading && (
                     <div className="absolute inset-0 bg-white/70 z-10 flex items-center justify-center rounded-xl">
-                        <span className="loading loading-spinner loading-lg text-primary"></span>
+                        <span className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent"></span>
                     </div>
                 )}
                 <h3 className="text-lg font-semibold text-gray-800">Tambah Gambar Artikel</h3>
@@ -325,14 +325,14 @@ export default function EditorImageModal() {
                     <div className="space-y-4 pt-2">
                         {previewUrl ? (
                             <div className="space-y-3">
-                                <div className="border rounded-lg bg-base-200 flex justify-center items-center overflow-hidden" style={{ maxHeight: "400px" }}>
+                                <div className="border rounded-lg bg-muted flex justify-center items-center overflow-hidden" style={{ maxHeight: "400px" }}>
                                     <ReactCrop crop={crop} onChange={(_, percentCrop) => setCrop(percentCrop)} onComplete={(c) => setCompletedCrop(c)}>
                                         <img ref={imgRef} src={previewUrl} alt="Crop preview" style={{ maxHeight: "400px", maxWidth: "100%", objectFit: "contain" }} onLoad={onImageLoad} />
                                     </ReactCrop>
                                 </div>
                                 <div className="flex justify-between items-center gap-2 px-1">
                                     <p className="text-sm font-medium text-gray-600 truncate flex-1">{originalFileName}</p>
-                                    <button className="btn btn-sm btn-outline btn-error" onClick={() => {
+                                    <button className="inline-flex items-center justify-center gap-1.5 rounded-lg text-sm font-medium transition-colors h-8 px-3 border border-destructive text-destructive hover:bg-destructive/10" onClick={() => {
                                         URL.revokeObjectURL(previewUrl);
                                         setPreviewUrl(null); setFile(null); setOriginalFileName(""); setCrop(undefined); setCompletedCrop(null);
                                     }} disabled={loading}>
@@ -341,12 +341,12 @@ export default function EditorImageModal() {
                                 </div>
                             </div>
                         ) : (
-                            <input key={show ? "open" : "closed"} type="file" accept="image/*" className="file-input file-input-bordered w-full" onChange={handleFileChange} disabled={loading} />
+                            <input key={show ? "open" : "closed"} type="file" accept="image/*" className="w-full rounded-md border border-input bg-transparent text-sm file:mr-3 file:border-0 file:bg-muted file:px-3 file:py-2 file:text-sm" onChange={handleFileChange} disabled={loading} />
                         )}
 
                         {error && (
                             <div className="p-3 bg-red-50 border border-red-200 rounded-md">
-                                <p className="text-error text-sm font-medium">{error}</p>
+                                <p className="text-destructive text-sm font-medium">{error}</p>
                             </div>
                         )}
 
@@ -375,7 +375,7 @@ export default function EditorImageModal() {
                             />
                         </div>
 
-                        <button className="btn btn-primary w-full" type="button" onClick={upload} disabled={!file || loading || !completedCrop?.width}>
+                        <button className="inline-flex items-center justify-center gap-1.5 rounded-lg text-sm font-medium transition-colors w-full h-9 bg-primary text-primary-foreground hover:bg-primary/90" type="button" onClick={upload} disabled={!file || loading || !completedCrop?.width}>
                             {loading ? "Memproses Upload..." : "Crop & Upload Gambar"}
                         </button>
                     </div>
@@ -385,7 +385,7 @@ export default function EditorImageModal() {
                 {tab === "cdn" && (
                     <div className="space-y-4 pt-2">
                         {imageUrl ? (
-                            <div className="border rounded-lg overflow-hidden bg-base-200">
+                            <div className="border rounded-lg overflow-hidden bg-muted">
                                 <img src={imageUrl} alt="Foto terpilih" className="w-full max-h-[300px] object-contain" />
                             </div>
                         ) : (
@@ -394,13 +394,13 @@ export default function EditorImageModal() {
                             </div>
                         )}
 
-                        <button className="btn btn-outline w-full" type="button" onClick={() => setShowPicker(true)}>
+                        <button className="inline-flex items-center justify-center gap-1.5 rounded-lg text-sm font-medium transition-colors w-full h-9 border border-input hover:bg-muted" type="button" onClick={() => setShowPicker(true)}>
                             {imageUrl ? "Ganti Foto dari Galeri" : "Pilih Foto dari Galeri CDN"}
                         </button>
 
                         {error && (
                             <div className="p-3 bg-red-50 border border-red-200 rounded-md">
-                                <p className="text-error text-sm font-medium">{error}</p>
+                                <p className="text-destructive text-sm font-medium">{error}</p>
                             </div>
                         )}
 
@@ -422,7 +422,7 @@ export default function EditorImageModal() {
                             />
                         </div>
 
-                        <button className="btn btn-primary w-full" type="button" onClick={insertFromCdn} disabled={!imageUrl}>
+                        <button className="inline-flex items-center justify-center gap-1.5 rounded-lg text-sm font-medium transition-colors w-full h-9 bg-primary text-primary-foreground hover:bg-primary/90" type="button" onClick={insertFromCdn} disabled={!imageUrl}>
                             Sisipkan Gambar
                         </button>
                     </div>
@@ -433,12 +433,12 @@ export default function EditorImageModal() {
                     <div className="space-y-4 pt-2">
                         <div className="space-y-2">
                             <InputLabel value={"URL Gambar"} />
-                            <input type="text" className="input input-bordered w-full" placeholder="https://example.com/image.jpg" value={imageUrl} onChange={(e) => setImageUrl(e.target.value)} />
+                            <input type="text" className="w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm" placeholder="https://example.com/image.jpg" value={imageUrl} onChange={(e) => setImageUrl(e.target.value)} />
                         </div>
 
                         {error && (
                             <div className="p-3 bg-red-50 border border-red-200 rounded-md">
-                                <p className="text-error text-sm font-medium">{error}</p>
+                                <p className="text-destructive text-sm font-medium">{error}</p>
                             </div>
                         )}
 
@@ -462,7 +462,7 @@ export default function EditorImageModal() {
                             />
                         </div>
 
-                        <button className="btn btn-secondary w-full" type="button" onClick={insertFromUrl} disabled={!imageUrl || loading}>
+                        <button className="inline-flex items-center justify-center gap-1.5 rounded-lg text-sm font-medium transition-colors w-full h-9 bg-secondary text-secondary-foreground hover:bg-secondary/80" type="button" onClick={insertFromUrl} disabled={!imageUrl || loading}>
                             {loading ? "Memproses URL..." : "Gunakan URL"}
                         </button>
                     </div>
@@ -472,7 +472,7 @@ export default function EditorImageModal() {
                     <div className="text-xs font-semibold text-orange-600 bg-orange-50 px-2 py-1 rounded">
                         Maksimal 5 gambar dalam artikel
                     </div>
-                    <button className="btn btn-ghost btn-sm" onClick={resetAndClose} disabled={loading}>
+                    <button className="inline-flex items-center justify-center gap-1.5 rounded-lg text-sm font-medium transition-colors h-8 px-3 hover:bg-muted" onClick={resetAndClose} disabled={loading}>
                         Tutup
                     </button>
                 </div>

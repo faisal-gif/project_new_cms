@@ -17,6 +17,8 @@ import Select from "react-select";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import CustomTimeInput from '@/Components/CustomTimeInput'
+import { Button } from '@/Components/ui/button'
+import Breadcrumbs from '@/Components/Breadcrumbs'
 
 function Create({ writers, editors, networks, kanal, fokus, hasEditor, editor_id, initialData, canSelectAllNetwork = false }) {
 
@@ -67,15 +69,12 @@ function Create({ writers, editors, networks, kanal, fokus, hasEditor, editor_id
                                 </div>
                                 {/* end Header */}
 
-                                {/* start breadcrumbs */}
-                                <div className="breadcrumbs text-sm">
-                                    <ul>
-                                        <li><a>Home</a></li>
-                                        <li>News</li>
-                                        <li>Tambah News</li>
-                                    </ul>
-                                </div>
-                                {/* end breadcrumbs */}
+                                {/* breadcrumbs */}
+                                <Breadcrumbs items={[
+                                    { label: 'Home', href: '/' },
+                                    { label: 'News', href: route('admin.daerah.news.index') },
+                                    { label: 'Tambah News' },
+                                ]} />
 
                             </div>
 
@@ -111,7 +110,7 @@ function Create({ writers, editors, networks, kanal, fokus, hasEditor, editor_id
                                             <InputLabel
                                                 htmlFor="editor"
                                                 value="Editor"
-                                                className='mb-2 label-text font-bold'
+                                                className='mb-2 font-bold'
                                             />
 
                                             <Select
@@ -128,7 +127,7 @@ function Create({ writers, editors, networks, kanal, fokus, hasEditor, editor_id
                                             <InputLabel
                                                 htmlFor="writer"
                                                 value="Penulis"
-                                                className='mb-2 label-text font-bold'
+                                                className='mb-2 font-bold'
                                             />
 
                                             <Select
@@ -156,7 +155,7 @@ function Create({ writers, editors, networks, kanal, fokus, hasEditor, editor_id
                                             <InputLabel
                                                 htmlFor="judul"
                                                 value="Judul"
-                                                className='mb-2 label-text font-bold'
+                                                className='mb-2 font-bold'
                                             />
                                             <TextInput
                                                 id="judul"
@@ -206,7 +205,7 @@ function Create({ writers, editors, networks, kanal, fokus, hasEditor, editor_id
                                             <InputLabel
                                                 htmlFor="is_content"
                                                 value="Isi Berita"
-                                                className='mb-2 label-text font-bold'
+                                                className='mb-2 font-bold'
                                             />
                                             <InputEditor
                                                 value={data.is_content}
@@ -254,7 +253,7 @@ function Create({ writers, editors, networks, kanal, fokus, hasEditor, editor_id
                                                     <InputLabel
                                                         htmlFor="image_thumbnail"
                                                         value="Thumbnail"
-                                                        className='mb-2 label-text font-bold'
+                                                        className='mb-2 font-bold'
                                                     />
                                                     <div className='flex items-center justify-center gap-0.5 mt-1'>
                                                         <InputImage
@@ -271,7 +270,7 @@ function Create({ writers, editors, networks, kanal, fokus, hasEditor, editor_id
                                                 {/* Nama file wajib saat upload agar mudah dicari di galeri CDN. */}
                                                 {!data.image_thumbnail_url && (
                                                     <div className="mt-3">
-                                                        <InputLabel htmlFor="image_name" value="Nama File Foto (untuk pencarian di galeri)" className='mb-2 label-text font-bold' />
+                                                        <InputLabel htmlFor="image_name" value="Nama File Foto (untuk pencarian di galeri)" className='mb-2 font-bold' />
                                                         <TextInput
                                                             id="image_name"
                                                             type="text"
@@ -322,7 +321,7 @@ function Create({ writers, editors, networks, kanal, fokus, hasEditor, editor_id
                                             <InputLabel
                                                 htmlFor="datepub"
                                                 value="Tanggal Publish"
-                                                className='mb-2 label-text font-bold'
+                                                className='mb-2 font-bold'
                                             />
                                             <DatePicker
                                                 // Pastikan data.datepub diubah menjadi object Date agar terbaca oleh kalender
@@ -342,7 +341,7 @@ function Create({ writers, editors, networks, kanal, fokus, hasEditor, editor_id
                                                 timeInputLabel="Jam (24j):"
                                                 timeFormat="HH:mm"
                                                 dateFormat="yyyy-MM-dd HH:mm"  // Tampilan akhir di dalam kotak teks (Format 24 Jam)
-                                                className="input border border-input mt-1 block w-full"
+                                                className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm mt-1 focus:outline-none focus:ring-1 focus:ring-ring"
                                                 placeholderText="Pilih Tanggal dan Waktu..."
                                                
                                             />
@@ -352,7 +351,7 @@ function Create({ writers, editors, networks, kanal, fokus, hasEditor, editor_id
                                             <InputLabel
                                                 htmlFor="lokus"
                                                 value="Lokus"
-                                                className='mb-2 label-text font-bold'
+                                                className='mb-2 font-bold'
                                             />
                                             <TextInput
                                                 id="lokus"
@@ -370,7 +369,7 @@ function Create({ writers, editors, networks, kanal, fokus, hasEditor, editor_id
                                             <InputLabel
                                                 htmlFor="kanal"
                                                 value="Kanal"
-                                                className='mb-2 label-text font-bold'
+                                                className='mb-2 font-bold'
                                             />
 
                                             <Select
@@ -385,7 +384,7 @@ function Create({ writers, editors, networks, kanal, fokus, hasEditor, editor_id
                                             <InputLabel
                                                 htmlFor="fokus"
                                                 value="Fokus"
-                                                className='mb-2 label-text font-bold'
+                                                className='mb-2 font-bold'
                                             />
 
                                             <Select
@@ -401,27 +400,29 @@ function Create({ writers, editors, networks, kanal, fokus, hasEditor, editor_id
                                             <InputLabel
                                                 htmlFor="network"
                                                 value="Network"
-                                                className='mb-2 label-text font-bold'
+                                                className='mb-2 font-bold'
                                             />
 
                                             <div className="flex gap-2 mb-2">
                                                 {canSelectAllNetwork && (
-                                                    <button
+                                                    <Button
                                                         type="button"
-                                                        className="btn btn-xs btn-outline"
+                                                        variant="outline"
+                                                        size="xs"
                                                         onClick={() => setData('network', networks.map(n => n.value))}
                                                     >
                                                         Select All
-                                                    </button>
+                                                    </Button>
                                                 )}
 
-                                                <button
+                                                <Button
                                                     type="button"
-                                                    className="btn btn-xs btn-outline"
+                                                    variant="outline"
+                                                    size="xs"
                                                     onClick={() => setData('network', [])}
                                                 >
                                                     Clear
-                                                </button>
+                                                </Button>
                                             </div>
 
                                             <Select
@@ -452,13 +453,9 @@ function Create({ writers, editors, networks, kanal, fokus, hasEditor, editor_id
 
 
                                 <div className='flex flex-row justify-end mt-4'>
-                                    <button
-                                        type="submit"
-                                        className="btn btn-primary"
-                                        disabled={processing}
-                                    >
+                                    <Button type="submit" disabled={processing}>
                                         Simpan
-                                    </button>
+                                    </Button>
                                 </div>
 
                             </form>

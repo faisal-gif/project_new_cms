@@ -1,4 +1,5 @@
 import Card from '@/Components/Card'
+import { Button } from '@/Components/ui/button';
 import { Badge } from '@/Components/ui/badge'
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout'
 import { formatDateTime } from '@/Utils/formatter'
@@ -61,9 +62,9 @@ export default function Show({ addon }) {
 
                     {/* Header */}
                     <div className='flex items-center gap-4'>
-                        <Link href={route('admin.kopi-times.addon-requests.index')} className="btn btn-circle btn-ghost bg-base-200">
+                        <Button asChild variant="ghost" size="icon" className="bg-muted"><Link href={route('admin.kopi-times.addon-requests.index')}>
                             <ArrowLeft size={20} />
-                        </Link>
+                        </Link></Button>
                         <div>
                             <h1 className="text-3xl font-bold flex items-center gap-3">
                                 {{
@@ -120,13 +121,9 @@ export default function Show({ addon }) {
                                     <h3 className="text-lg font-bold flex items-center gap-2">
                                         <FileText size={18} /> Naskah Berita
                                     </h3>
-                                    <Link
-                                        href={route('admin.kopi-times.news.show', addon.news_id)}
-                                        className="btn btn-sm btn-outline btn-primary"
-                                        target="_blank" // Buka tab baru opsional
-                                    >
+                                    <Button asChild variant="outline" size="sm" className="border-primary text-primary hover:bg-primary/10"><Link href={route('admin.kopi-times.news.show', addon.news_id)} target="_blank">
                                         Lihat Full Page
-                                    </Link>
+                                    </Link></Button>
                                 </div>
 
                                 <div className="space-y-4">
@@ -143,20 +140,15 @@ export default function Show({ addon }) {
                                             <span className="text-sm text-muted-foreground ml-2">Nasional:</span>
                                             {getNasionalNewsBadge(addon.news?.news_nasional?.news_status)}
                                             {addon.news?.news_nasional && addon.news?.url && (
-                                                <a
-                                                    href={addon.news.url}
-                                                    target="_blank"
-                                                    rel="noopener noreferrer"
-                                                    className="btn btn-xs btn-outline btn-success gap-1 ml-1"
-                                                >
+                                                <Button asChild variant="outline" size="xs" className="gap-1 ml-1 border-green-600 text-green-700 hover:bg-green-50"><a href={addon.news.url} target="_blank" rel="noopener noreferrer">
                                                     <LinkIcon size={12} /> Lihat di Nasional
-                                                </a>
+                                                </a></Button>
                                             )}
                                         </div>
                                     </div>
 
                                     {/* Merender HTML konten berita */}
-                                    <div className="prose max-w-none prose-sm sm:prose-base text-justify bg-base-200/30 p-4 rounded-xl border border-base-200">
+                                    <div className="prose max-w-none prose-sm sm:prose-base text-justify bg-muted/30 p-4 rounded-xl border border-border">
                                         {addon.news?.content ? (
                                             <div dangerouslySetInnerHTML={{ __html: addon.news.content }} />
                                         ) : (
@@ -179,9 +171,9 @@ export default function Show({ addon }) {
                                 <form onSubmit={handleSubmit} className="space-y-5">
 
                                     <div>
-                                        <label className="label"><span className="label-text font-semibold">Tindakan Admin</span></label>
+                                        <label className="block mb-1"><span className="font-semibold">Tindakan Admin</span></label>
                                         <select
-                                            className="select select-bordered w-full"
+                                            className="w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm"
                                             value={data.status}
                                             onChange={e => setData('status', e.target.value)}
                                         >
@@ -195,21 +187,21 @@ export default function Show({ addon }) {
                                     {/* Jika status Completed */}
                                     {data.status === 'completed' && (
                                         <div className="animate-in fade-in slide-in-from-top-2">
-                                            <label className="label">
-                                                <span className="label-text font-semibold flex items-center gap-1">
+                                            <label className="block mb-1">
+                                                <span className="font-semibold flex items-center gap-1">
                                                     <LinkIcon size={14} /> URL Hasil Publish
                                                 </span>
                                             </label>
                                             <input
                                                 type="text"
-                                                className="input input-bordered w-full"
+                                                className="w-full"
                                                 placeholder={addon.jenis_request === 'feed_instagram' ? 'https://instagram.com/p/...' : 'Link PDF/Drive...'}
                                                 value={data.url_hasil}
                                                 onChange={e => setData('url_hasil', e.target.value)}
                                                 required
                                             />
-                                            <label className="label">
-                                                <span className="label-text-alt text-muted-foreground">Tautan ini akan dilihat oleh pewarta.</span>
+                                            <label className="block mb-1">
+                                                <span className="text-muted-foreground">Tautan ini akan dilihat oleh pewarta.</span>
                                             </label>
                                         </div>
                                     )}
@@ -217,34 +209,30 @@ export default function Show({ addon }) {
                                     {/* Jika status Rejected */}
                                     {data.status === 'rejected' && (
                                         <div className="animate-in fade-in slide-in-from-top-2">
-                                            <label className="label">
-                                                <span className="label-text text-error font-semibold flex items-center gap-1">
+                                            <label className="block mb-1">
+                                                <span className="text-destructive font-semibold flex items-center gap-1">
                                                     <XCircle size={14} /> Alasan Penolakan
                                                 </span>
                                             </label>
                                             <textarea
-                                                className="textarea textarea-bordered w-full h-24"
+                                                className="w-full h-24 rounded-md border border-input bg-transparent px-3 py-2 text-sm"
                                                 placeholder="Contoh: Kualitas resolusi foto terlalu kecil untuk Feed IG..."
                                                 value={data.keterangan_admin}
                                                 onChange={e => setData('keterangan_admin', e.target.value)}
                                                 required
                                             />
-                                            <label className="label">
-                                                <span className="label-text-alt text-error font-bold bg-error/10 p-2 rounded w-full">
+                                            <label className="block mb-1">
+                                                <span className="text-destructive font-bold bg-destructive/10 p-2 rounded w-full">
                                                     ⚠️ Kuota akan otomatis di-refund ke akun penulis.
                                                 </span>
                                             </label>
                                         </div>
                                     )}
 
-                                    <div className="pt-4 border-t border-base-200">
-                                        <button
-                                            type="submit"
-                                            className="btn btn-primary w-full"
-                                            disabled={processing}
-                                        >
+                                    <div className="pt-4 border-t border-border">
+                                        <Button type="submit" className="w-full" disabled={processing}>
                                             {processing ? 'Menyimpan...' : 'Simpan Perubahan'}
-                                        </button>
+                                        </Button>
                                     </div>
                                 </form>
                             </Card>

@@ -1,4 +1,6 @@
 import Card from '@/Components/Card'
+import Breadcrumbs from '@/Components/Breadcrumbs';
+import { Button } from '@/Components/ui/button';
 import Checkbox from '@/Components/Checkbox'
 import InputEditor from '@/Components/InputEditor'
 import InputError from '@/Components/InputError'
@@ -46,14 +48,7 @@ function Create({ writers }) {
                                 {/* end Header */}
 
                                 {/* start breadcrumbs */}
-                                <div className="breadcrumbs text-sm">
-                                    <ul>
-                                        <li><a>Home</a></li>
-                                        <li>Nasional</li>
-                                        <li>Page Static</li>
-                                        <li>Tambah Page Static</li>
-                                    </ul>
-                                </div>
+                                <Breadcrumbs items={[{ label: 'Home', href: '/' }, { label: 'Nasional' }, { label: 'Page Static' }, { label: 'Tambah Page Static' }]} />
                                 {/* end breadcrumbs */}
 
                             </div>
@@ -74,7 +69,7 @@ function Create({ writers }) {
                                             <InputLabel
                                                 htmlFor="name"
                                                 value="Name"
-                                                className='mb-2 label-text font-bold'
+                                                className='mb-2 font-bold'
                                             />
                                             <TextInput
                                                 id="name"
@@ -124,7 +119,7 @@ function Create({ writers }) {
                                             <InputLabel
                                                 htmlFor="content"
                                                 value="Isi Page Static"
-                                                className='mb-2 label-text font-bold'
+                                                className='mb-2 font-bold'
                                             />
                                             <InputEditor
                                                 value={data.isi}
@@ -142,13 +137,12 @@ function Create({ writers }) {
 
 
                                 <div className='flex flex-row justify-end mt-4'>
-                                    <button
+                                    <Button
                                         type="submit"
-                                        className="btn btn-primary"
                                         disabled={processing}
                                     >
                                         Simpan
-                                    </button>
+                                    </Button>
                                 </div>
 
                             </form>

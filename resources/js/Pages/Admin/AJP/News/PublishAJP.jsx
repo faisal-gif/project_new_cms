@@ -1,4 +1,6 @@
+import Breadcrumbs from '@/Components/Breadcrumbs'
 import Card from '@/Components/Card'
+import { Button } from '@/Components/ui/button'
 import Checkbox from '@/Components/Checkbox'
 import InputEditor from '@/Components/InputEditor'
 import InputError from '@/Components/InputError'
@@ -65,14 +67,7 @@ function PublishAJP({ news, editors, fokus, hasEditor, editor_id }) {
                                 <div>
                                     <h1 className="text-3xl font-bold text-foreground">Publish Berita AJP</h1>
                                 </div>
-                                <div className="breadcrumbs text-sm">
-                                    <ul>
-                                        <li><a>Beranda</a></li>
-                                        <li>AJP</li>
-                                        <li><Link href={route('admin.ajp.news.index')}>Berita</Link></li>
-                                        <li>Publish Berita</li>
-                                    </ul>
-                                </div>
+                                <Breadcrumbs items={[{ label: 'Beranda', href: '/' }, { label: 'AJP' }, { label: 'Berita', href: route('admin.ajp.news.index') }, { label: 'Publish Berita' }]} />
                             </div>
 
                             <form onSubmit={submit} className='space-y-6'>
@@ -94,7 +89,7 @@ function PublishAJP({ news, editors, fokus, hasEditor, editor_id }) {
                                         </div>
 
                                         <div className='lg:col-span-3 w-full'>
-                                            <InputLabel value="Editor" className='mb-2 label-text font-bold' />
+                                            <InputLabel value="Editor" className='mb-2 font-bold' />
                                             <Select
                                                 value={editors.find(e => e.value == data.editor)}
                                                 options={editors}
@@ -105,7 +100,7 @@ function PublishAJP({ news, editors, fokus, hasEditor, editor_id }) {
                                             <InputError message={errors.editor} className="mt-2" />
                                         </div>
                                         <div className='lg:col-span-3 w-full'>
-                                            <InputLabel value="Penulis" className='mb-2 label-text font-bold' />
+                                            <InputLabel value="Penulis" className='mb-2 font-bold' />
                                             <TextInput className="block w-full" value={news.writer.nama} disabled />
                                         </div>
 
@@ -119,7 +114,7 @@ function PublishAJP({ news, editors, fokus, hasEditor, editor_id }) {
                                     {/* ... Isi form judul Anda tetap sama seperti sebelumnya ... */}
                                     <div className='grid grid-cols-1 lg:grid-cols-6 gap-4 mt-8'>
                                         <div className='lg:col-span-6'>
-                                            <InputLabel value="Judul" className='mb-2 label-text font-bold' />
+                                            <InputLabel value="Judul" className='mb-2 font-bold' />
                                             <TextInput className="mt-1 block w-full" value={data.title} onChange={(e) => setData('title', e.target.value)} />
                                             <InputError message={errors.title} className="mt-2" />
                                         </div>
@@ -139,7 +134,7 @@ function PublishAJP({ news, editors, fokus, hasEditor, editor_id }) {
                                     {/* ... Isi form konten Anda tetap sama seperti sebelumnya ... */}
                                     <div className='grid grid-cols-1 lg:grid-cols-6 gap-4 mt-8'>
                                         <div className='lg:col-span-6'>
-                                            <InputLabel value="Isi Berita" className='mb-2 label-text font-bold' />
+                                            <InputLabel value="Isi Berita" className='mb-2 font-bold' />
                                             <InputEditor value={data.is_content} onChange={(e) => setData('is_content', e)} />
                                             <InputError message={errors.is_content} className="mt-2" />
                                         </div>
@@ -174,24 +169,27 @@ function PublishAJP({ news, editors, fokus, hasEditor, editor_id }) {
                                                     />
 
                                                     <div className="flex gap-2 mt-1">
-                                                        <button
+                                                        <Button
                                                             type="button"
+                                                            variant="outline"
+                                                            size="sm"
                                                             onClick={() => copyToClipboard(url)}
-                                                            className="btn btn-sm btn-outline flex-1 gap-1"
+                                                            className="flex-1 gap-1"
                                                         >
                                                             <CopyIcon size={14} /> Copy URL
-                                                        </button>
+                                                        </Button>
 
                                                         {/* Attribut download digunakan agar browser langsung mengunduh file */}
-                                                        <a
-                                                            href={url}
-                                                            target="_blank"
-                                                            rel="noreferrer"
-                                                            download={`Aset_Berita_${news.is_code}_${idx + 1}.jpg`}
-                                                            className="btn btn-sm btn-primary flex-1 gap-1"
-                                                        >
-                                                            <DownloadIcon size={14} /> Download
-                                                        </a>
+                                                        <Button asChild size="sm" className="flex-1 gap-1">
+                                                            <a
+                                                                href={url}
+                                                                target="_blank"
+                                                                rel="noreferrer"
+                                                                download={`Aset_Berita_${news.is_code}_${idx + 1}.jpg`}
+                                                            >
+                                                                <DownloadIcon size={14} /> Download
+                                                            </a>
+                                                        </Button>
                                                     </div>
                                                 </div>
 
@@ -213,7 +211,7 @@ function PublishAJP({ news, editors, fokus, hasEditor, editor_id }) {
                                 {/* ========================================== */}
                                 <Card title={<span className="flex gap-2 items-center text-2xl font-semibold"><CaptionsIcon className='w-6 h-6 text-blue-500' /> Caption Foto (Dari Pewarta)</span>}>
                                     <div className=''>
-                                        <InputLabel value="Caption" className='mb-2 label-text font-bold' />
+                                        <InputLabel value="Caption" className='mb-2 font-bold' />
                                         <InputTextarea className="mt-1 block w-full" value={news.caption} readOnly />
                                     </div>
                                 </Card>
@@ -224,7 +222,7 @@ function PublishAJP({ news, editors, fokus, hasEditor, editor_id }) {
                                     {/* ... Isi form thumbnail Anda tetap sama seperti sebelumnya ... */}
                                     <div className='grid grid-cols-1 lg:grid-cols-6 gap-4 mt-8'>
                                         <div className='lg:col-span-3'>
-                                            <InputLabel value="Upload Thumbnail Baru (Wajib ditarik dari aset atau edit baru)" className='mb-2 label-text font-bold text-blue-600' />
+                                            <InputLabel value="Upload Thumbnail Baru (Wajib ditarik dari aset atau edit baru)" className='mb-2 font-bold text-blue-600' />
                                             <InputImage existingImage={news.news_image_new} targetWidth={1200} targetHeight={800} value={data.image_thumbnail} onChange={(file) => setData('image_thumbnail', file)} />
                                             <InputError message={errors.image_thumbnail} className="mt-2" />
                                         </div>
@@ -250,12 +248,12 @@ function PublishAJP({ news, editors, fokus, hasEditor, editor_id }) {
                                     {/* ... Isi form finalisasi Anda tetap sama seperti sebelumnya ... */}
                                     <div className='grid grid-cols-1 lg:grid-cols-6 gap-4 mt-8'>
                                         <div className='lg:col-span-3'>
-                                            <InputLabel value="Tanggal Publish" className='mb-2 label-text font-bold' />
+                                            <InputLabel value="Tanggal Publish" className='mb-2 font-bold' />
                                             <TextInput type="datetime-local" className="mt-1 block w-full" value={data.datepub} onChange={(e) => setData('datepub', e.target.value)} />
                                             <InputError message={errors.datepub} className="mt-2" />
                                         </div>
                                         <div className='lg:col-span-3'>
-                                            <InputLabel value="Lokus" className='mb-2 label-text font-bold' />
+                                            <InputLabel value="Lokus" className='mb-2 font-bold' />
                                             <TextInput type="text" className="mt-1 block w-full" value={data.locus} onChange={(e) => setData('locus', e.target.value)} />
                                             <InputError message={errors.locus} className="mt-2" />
                                         </div>
@@ -263,9 +261,9 @@ function PublishAJP({ news, editors, fokus, hasEditor, editor_id }) {
                                 </Card>
 
                                 <div className='flex flex-row justify-end mt-4'>
-                                    <button type="submit" className="btn btn-success px-8 text-lg" disabled={processing}>
+                                    <Button type="submit" variant="success" className="px-8 text-lg" disabled={processing}>
                                         Terbitkan Berita Sekarang
-                                    </button>
+                                    </Button>
                                 </div>
                             </form>
 

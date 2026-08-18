@@ -48,7 +48,7 @@ const CustomTimeInput = ({ value, onChange }) => {
             type="text"
             value={timeStr} // Menggunakan state lokal
             onChange={handleChange}
-            className="input input-bordered border input-sm text-center ml-2"
+            className="border border-input rounded-md text-center ml-2 h-8 px-2 text-sm"
             style={{ width: '100px', margin: '0 auto' }}
             placeholder="18:00"
             maxLength={5}

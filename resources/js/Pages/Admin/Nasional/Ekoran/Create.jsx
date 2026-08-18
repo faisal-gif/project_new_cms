@@ -1,4 +1,6 @@
 import React, { useState } from "react";
+import { Button } from '@/Components/ui/button';
+import { Spinner } from '@/Components/ui/spinner';
 import { useForm, router, Head } from "@inertiajs/react";
 import { ArrowLeft, Megaphone, Save, BookOpen } from "lucide-react";
 
@@ -46,13 +48,13 @@ export default function Create() {
             <div className="space-y-6 max-w-7xl mx-auto pb-12">
 
                 {/* --- HEADER --- */}
-                <div className="flex items-center gap-4 bg-base-100 p-6 rounded-2xl shadow-sm border border-base-200">
-                    <button type="button" className="btn btn-ghost btn-circle" onClick={() => router.visit("/daftar-ekoran")}>
+                <div className="flex items-center gap-4 bg-background p-6 rounded-2xl shadow-sm border border-border">
+                    <Button type="button" variant="ghost" size="icon" onClick={() => router.visit("/daftar-ekoran")}>
                         <ArrowLeft className="h-5 w-5" />
-                    </button>
+                    </Button>
                     <div>
-                        <h1 className="text-2xl md:text-3xl font-bold text-base-content">Tambah eKoran</h1>
-                        <p className="text-base-content/60 mt-1 text-sm md:text-base">
+                        <h1 className="text-2xl md:text-3xl font-bold text-foreground">Tambah eKoran</h1>
+                        <p className="text-foreground/60 mt-1 text-sm md:text-base">
                             Maks {MAX_REGULAR_PAGES} halaman reguler + {MAX_PROMO_PAGES} halaman iklan/promo
                         </p>
                     </div>
@@ -64,7 +66,7 @@ export default function Create() {
                     <div className="lg:col-span-2 space-y-6">
 
                         {/* 1. Informasi Edisi */}
-                        <Card title="Informasi Edisi" padding="p-6 md:p-8" className="border border-base-200">
+                        <Card title="Informasi Edisi" padding="p-6 md:p-8" className="border border-border">
                             <div className="space-y-5">
                                 <div className="w-full flex flex-col">
                                     <InputLabel value="Judul Edisi *" className="font-bold mb-2" />
@@ -72,7 +74,7 @@ export default function Create() {
                                         placeholder="Contoh: Edisi Pagi - 15 Januari 2025"
                                         value={data.title}
                                         onChange={(e) => setData("title", e.target.value)}
-                                        className="w-full bg-base-200 focus:bg-base-100"
+                                        className="w-full bg-muted focus:bg-background"
                                     />
                                     <InputError message={errors.title} className="mt-1" />
                                 </div>
@@ -84,7 +86,7 @@ export default function Create() {
                                             type="date"
                                             value={data.datepub}
                                             onChange={(e) => setData("datepub", e.target.value)}
-                                            className="w-full bg-base-200 focus:bg-base-100"
+                                            className="w-full bg-muted focus:bg-background"
                                         />
                                         <InputError message={errors.datepub} className="mt-1" />
                                     </div>
@@ -94,7 +96,7 @@ export default function Create() {
                                             placeholder="Opsional"
                                             value={data.emagazine_id}
                                             onChange={(e) => setData("emagazine_id", e.target.value)}
-                                            className="w-full bg-base-200 focus:bg-base-100"
+                                            className="w-full bg-muted focus:bg-background"
                                         />
                                     </div>
                                 </div>
@@ -102,10 +104,10 @@ export default function Create() {
                         </Card>
 
                         {/* 2. Halaman Reguler */}
-                        <Card padding="p-6 md:p-8" className="border border-base-200">
+                        <Card padding="p-6 md:p-8" className="border border-border">
                             <h2 className="text-xl font-bold mb-6 border-b pb-3 flex justify-between items-center">
                                 <span>Halaman Reguler</span>
-                                <Badge className="bg-neutral/10 text-neutral text-sm font-normal badge">
+                                <Badge className="bg-neutral-700/10 text-neutral-600 text-sm font-normal badge">
                                     {regularPages.length} / {MAX_REGULAR_PAGES}
                                 </Badge>
                             </h2>
@@ -123,13 +125,13 @@ export default function Create() {
                         </Card>
 
                         {/* 3. Halaman Ekoran Khusus */}
-                        <Card padding="p-6 md:p-8" className="border border-base-200">
+                        <Card padding="p-6 md:p-8" className="border border-border">
                             <h2 className="text-xl font-bold mb-2 flex items-center gap-2">
-                                <Megaphone className="h-5 w-5 text-warning" /> Halaman Ekoran Khusus
+                                <Megaphone className="h-5 w-5 text-amber-600" /> Halaman Ekoran Khusus
                             </h2>
                             <div className="flex justify-between items-center border-b pb-4 mb-6">
-                                <p className="text-sm text-base-content/60">Halaman sisipan khusus.</p>
-                                <Badge className="bg-warning/10 text-warning text-sm font-normal badge">
+                                <p className="text-sm text-foreground/60">Halaman sisipan khusus.</p>
+                                <Badge className="bg-amber-500/10 text-amber-600 text-sm font-normal badge">
                                     {spesialPages.length} / {MAX_PROMO_PAGES}
                                 </Badge>
                             </div>
@@ -150,7 +152,7 @@ export default function Create() {
 
                     {/* KOLOM KANAN (Pengaturan Sticky) */}
                     <div className="lg:col-span-1 space-y-6 lg:sticky lg:top-6">
-                        <Card title="Pengaturan Publikasi" padding="p-6" className="border border-base-200 shadow-md bg-primary/5">
+                        <Card title="Pengaturan Publikasi" padding="p-6" className="border border-border shadow-md bg-primary/5">
                             <div className="space-y-5">
                                 <div>
                                     <InputLabel value="Status" className="font-bold mb-2" />
@@ -161,22 +163,22 @@ export default function Create() {
                                         ]}
                                         value={data.status}
                                         onChange={(e) => setData("status", e.target.value)}
-                                        className="bg-base-100"
+                                        className="bg-background"
                                     />
                                     <InputError message={errors.status} className="mt-1" />
                                 </div>
 
                                 {/* Summary Box */}
-                                <div className="rounded-xl border border-base-300 bg-base-100 p-4 text-sm space-y-2 shadow-sm">
+                                <div className="rounded-xl border border-border bg-background p-4 text-sm space-y-2 shadow-sm">
                                     <p className="flex justify-between">
-                                        <span className="text-base-content/60">Halaman Reguler:</span>
-                                        <span className="font-bold text-base-content">{regularPages.length}/{MAX_REGULAR_PAGES}</span>
+                                        <span className="text-foreground/60">Halaman Reguler:</span>
+                                        <span className="font-bold text-foreground">{regularPages.length}/{MAX_REGULAR_PAGES}</span>
                                     </p>
                                     <p className="flex justify-between">
-                                        <span className="text-base-content/60">Ekoran Khusus:</span>
-                                        <span className="font-bold text-base-content">{spesialPages.length}/{MAX_PROMO_PAGES}</span>
+                                        <span className="text-foreground/60">Ekoran Khusus:</span>
+                                        <span className="font-bold text-foreground">{spesialPages.length}/{MAX_PROMO_PAGES}</span>
                                     </p>
-                                    <div className="divider my-1"></div>
+                                    <div className="my-2 border-t border-border"></div>
                                     <p className="flex justify-between font-bold text-primary">
                                         <span>Total Upload:</span>
                                         <span>{regularPages.length + spesialPages.length} Halaman</span>
@@ -185,27 +187,27 @@ export default function Create() {
                             </div>
                         </Card>
 
-                        <div className="bg-base-100 p-4 rounded-2xl shadow-md border border-base-200 space-y-3">
-                            <button
+                        <div className="bg-background p-4 rounded-2xl shadow-md border border-border space-y-3">
+                            <Button
                                 type="button"
-                                className="btn btn-primary w-full text-base"
+                                className="w-full text-base"
                                 onClick={handleSubmit}
                                 disabled={processing || regularPages.length === 0}
                             >
                                 {processing ? (
-                                    <span className="loading loading-spinner"></span>
+                                    <Spinner />
                                 ) : (
                                     <><Save className="h-5 w-5 mr-2" /> Simpan eKoran</>
                                 )}
-                            </button>
-                            <div className="divider my-1"></div>
-                            <button
+                            </Button>
+                            <div className="my-2 border-t border-border"></div>
+                            <Button
                                 type="button"
-                                className="btn btn-ghost btn-block text-base-content/60"
+                                variant="ghost" className="w-full text-foreground/60"
                                 onClick={() => router.visit("/daftar-ekoran")}
                             >
                                 Batal & Kembali
-                            </button>
+                            </Button>
                         </div>
                     </div>
                 </div>

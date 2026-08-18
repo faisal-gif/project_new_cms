@@ -1,3 +1,6 @@
+import Breadcrumbs from '@/Components/Breadcrumbs'
+import { Table, TableHeader, TableBody, TableHead, TableRow, TableCell } from '@/Components/ui/table'
+import { Button } from '@/Components/ui/button'
 import Card from '@/Components/Card'
 import InputSelect from '@/Components/InputSelect'
 import InputWithPrefix from '@/Components/InputWithPrefix'
@@ -134,12 +137,7 @@ function Index({ permissions, categories, filters }) {
                 <div>
                   <h1 className="text-3xl font-bold text-foreground">Daftar Permission</h1>
                 </div>
-                <div className="breadcrumbs text-sm">
-                  <ul>
-                    <li><a>Home</a></li>
-                    <li>Permission</li>
-                  </ul>
-                </div>
+                <Breadcrumbs items={[{ label: 'Home', href: '/' }, { label: 'Permission' }]} />
               </div>
 
               {/* Start Head */}
@@ -147,9 +145,9 @@ function Index({ permissions, categories, filters }) {
                 <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
                   {/* Button Tambah Permission diubah menjadi onClick trigger */}
                   {hasPermission('create permission master') && (
-                    <button onClick={openAddModal} className="btn btn-primary rounded-lg">
+                    <Button onClick={openAddModal} className="rounded-lg">
                       <Plus size={16} /> Tambah Permission
-                    </button>
+                    </Button>
                   )}
 
                   {/* Field Search And Filter */}
@@ -176,21 +174,21 @@ function Index({ permissions, categories, filters }) {
               {/* Start Table */}
               <Card>
                 <div className="hidden md:block overflow-x-auto">
-                  <table className="table table-zebra">
-                    <thead className="bg-base-200">
-                      <tr>
-                        <th>#</th>
-                        <th>Nama Permission</th>
-                        <th>Category</th>
-                        <th className="text-right">Action</th>
-                      </tr>
-                    </thead>
-                    <tbody>
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>#</TableHead>
+                        <TableHead>Nama Permission</TableHead>
+                        <TableHead>Category</TableHead>
+                        <TableHead className="text-right">Action</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
                       {permissions.data.map((permission, index) => (
-                        <tr key={permission.id}>
-                          <th>{index + 1 + (permissions.current_page - 1) * permissions.per_page}</th>
-                          <td className="font-mono text-sm">{permission.name}</td>
-                          <td>
+                        <TableRow key={permission.id}>
+                          <TableCell>{index + 1 + (permissions.current_page - 1) * permissions.per_page}</TableCell>
+                          <TableCell className="font-mono text-sm">{permission.name}</TableCell>
+                          <TableCell>
                             {permission.category ? (
                               <Badge className="bg-primary/10 text-primary hover:bg-primary/20 border-none">
                                 {permission.category}
@@ -198,25 +196,25 @@ function Index({ permissions, categories, filters }) {
                             ) : (
                               <span className="text-gray-400 text-sm italic">Uncategorized</span>
                             )}
-                          </td>
-                          <td>
+                          </TableCell>
+                          <TableCell>
                             <div className="flex justify-end gap-2">
                               {hasPermission('edit permission master') && (
-                                <button onClick={() => openEditModal(permission)} className="btn btn-sm btn-warning">
+                                <Button size="sm" variant="outline" onClick={() => openEditModal(permission)} className="border-amber-500 text-amber-600 hover:bg-amber-50 hover:text-amber-700 dark:border-amber-500/60 dark:text-amber-400 dark:hover:bg-amber-950/40">
                                   <Edit size={16} />
-                                </button>
+                                </Button>
                               )}
                             </div>
-                          </td>
-                        </tr>
+                          </TableCell>
+                        </TableRow>
                       ))}
                       {permissions.data.length === 0 && (
-                        <tr>
-                          <td colSpan="4" className="text-center py-6 text-gray-500">Tidak ada data permission ditemukan.</td>
-                        </tr>
+                        <TableRow>
+                          <TableCell colSpan="4" className="text-center py-6 text-gray-500">Tidak ada data permission ditemukan.</TableCell>
+                        </TableRow>
                       )}
-                    </tbody>
-                  </table>
+                    </TableBody>
+                  </Table>
                 </div>
               </Card>
 
@@ -250,7 +248,7 @@ function Index({ permissions, categories, filters }) {
                 <TextInput
                   id="category"
                   type="text"
-                  className={`input input-bordered w-full ${errors.category ? 'input-error' : ''}`}
+                  className={`w-full ${errors.category ? 'border-destructive' : ''}`}
                   placeholder="Misal: Nasional, Daerah, Ads"
                   value={data.category}
                   onChange={e => setData('category', e.target.value)}
@@ -270,7 +268,7 @@ function Index({ permissions, categories, filters }) {
                 <TextInput
                   id="name"
                   type="text"
-                  className={`input input-bordered w-full font-mono text-sm ${errors.name ? 'input-error' : ''}`}
+                  className={`w-full font-mono text-sm ${errors.name ? 'border-destructive' : ''}`}
                   placeholder="contoh: edit berita nasional"
                   value={data.name}
                   onChange={e => setData('name', e.target.value)}
@@ -279,10 +277,10 @@ function Index({ permissions, categories, filters }) {
               </div>
 
               <div className="flex justify-end gap-2 pt-4 border-t">
-                <button type="button" onClick={closeDialog} className="btn btn-ghost">Batal</button>
-                <button type="submit" className="btn btn-primary" disabled={processing}>
+                <Button type="button" variant="ghost" onClick={closeDialog}>Batal</Button>
+                <Button type="submit" disabled={processing}>
                   {processing ? 'Menyimpan...' : 'Simpan'}
-                </button>
+                </Button>
               </div>
             </form>
           </DialogContent>

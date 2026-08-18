@@ -4,7 +4,7 @@ export default function Card({
     image,
     children,
     actions,
-    color = "bg-base-100",
+    color = "bg-background",
     shadow = "shadow",
     border = "",
     rounded = "rounded-xl",
@@ -25,8 +25,8 @@ export default function Card({
                 </figure>
             )}
 
-            <div className={`card-body ${padding}`}>
-                {title && <h2 className="card-title">{title}</h2>}
+            <div className={`flex flex-col ${padding}`}>
+                {title && <h2 className="text-lg font-semibold">{title}</h2>}
 
                 {description && <p>{description}</p>}
 
@@ -34,7 +34,7 @@ export default function Card({
                 {children}
 
                 {/* Actions / Buttons */}
-                {actions && <div className="card-actions justify-end">{actions}</div>}
+                {actions && <div className="flex justify-end gap-2">{actions}</div>}
             </div>
         </div>
     );

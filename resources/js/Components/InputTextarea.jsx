@@ -21,7 +21,7 @@ export default function InputTextarea({
     };
 
     return (
-        <div className="form-control w-full">
+        <div className="w-full">
             {label && (
                 <label className="label mb-2">
                     <span className="label-text font-bold">{label}</span>

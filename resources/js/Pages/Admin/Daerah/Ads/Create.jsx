@@ -1,4 +1,6 @@
 import Card from '@/Components/Card'
+import Breadcrumbs from '@/Components/Breadcrumbs';
+import { Button } from '@/Components/ui/button';
 import InputError from '@/Components/InputError'
 import InputLabel from '@/Components/InputLabel'
 import InputPassword from '@/Components/InputPassword'
@@ -49,13 +51,7 @@ function Create({ locations, networks }) {
                                 {/* end Header */}
 
                                 {/* start breadcrumbs */}
-                                <div className="breadcrumbs text-sm">
-                                    <ul>
-                                        <li><a>Home</a></li>
-                                        <li>Ads Daerah</li>
-                                        <li>Tambah Ads Daerah</li>
-                                    </ul>
-                                </div>
+                                <Breadcrumbs items={[{ label: 'Home', href: '/' }, { label: 'Ads Daerah' }, { label: 'Tambah Ads Daerah' }]} />
                                 {/* end breadcrumbs */}
 
                             </div>
@@ -90,7 +86,7 @@ function Create({ locations, networks }) {
                                             <InputLabel
                                                 htmlFor="cost"
                                                 value="Cost (Biaya Iklan) *"
-                                                className='mb-2 label-text font-bold'
+                                                className='mb-2 font-bold'
                                             />
 
                                             <InputRupiah
@@ -107,7 +103,7 @@ function Create({ locations, networks }) {
                                             <InputLabel
                                                 htmlFor="cpc"
                                                 value="Cost Per Click (CPC)"
-                                                className='mb-2 label-text font-bold'
+                                                className='mb-2 font-bold'
                                             />
 
                                             <InputRupiah
@@ -136,7 +132,7 @@ function Create({ locations, networks }) {
                                             <InputLabel
                                                 htmlFor="datestart"
                                                 value="Date Start"
-                                                className='mb-2 label-text font-bold'
+                                                className='mb-2 font-bold'
                                             />
                                             <TextInput
                                                 id="datestart"
@@ -153,7 +149,7 @@ function Create({ locations, networks }) {
                                             <InputLabel
                                                 htmlFor="dateend"
                                                 value="Date End"
-                                                className='mb-2 label-text font-bold'
+                                                className='mb-2 font-bold'
                                             />
                                             <TextInput
                                                 id="dateend"
@@ -208,7 +204,7 @@ function Create({ locations, networks }) {
                                             <InputLabel
                                                 htmlFor="network"
                                                 value="Location Publish"
-                                                className='mb-2 label-text font-bold'
+                                                className='mb-2 font-bold'
                                             />
                                             <Select
                                                 isMulti
@@ -237,7 +233,7 @@ function Create({ locations, networks }) {
                                             <InputLabel
                                                 htmlFor="title"
                                                 value="Judul"
-                                                className='mb-2 label-text font-bold'
+                                                className='mb-2 font-bold'
                                             />
                                             <TextInput
                                                 id="title"
@@ -254,7 +250,7 @@ function Create({ locations, networks }) {
                                             <InputLabel
                                                 htmlFor="image"
                                                 value="Gambar URL"
-                                                className='mb-2 label-text font-bold'
+                                                className='mb-2 font-bold'
                                             />
                                             <TextInput
                                                 id="image"
@@ -271,7 +267,7 @@ function Create({ locations, networks }) {
                                             <InputLabel
                                                 htmlFor="url"
                                                 value="URL"
-                                                className='mb-2 label-text font-bold'
+                                                className='mb-2 font-bold'
                                             />
                                             <TextInput
                                                 id="url"
@@ -288,13 +284,12 @@ function Create({ locations, networks }) {
                                 </Card>
 
                                 <div className='flex flex-row justify-end mt-4'>
-                                    <button
+                                    <Button
                                         type="submit"
-                                        className="btn btn-primary"
                                         disabled={processing}
                                     >
                                         Simpan
-                                    </button>
+                                    </Button>
                                 </div>
 
                             </form>

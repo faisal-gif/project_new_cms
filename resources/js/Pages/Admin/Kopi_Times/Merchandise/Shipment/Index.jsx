@@ -1,8 +1,12 @@
+import Breadcrumbs from '@/Components/Breadcrumbs'
+import { Table, TableHeader, TableBody, TableHead, TableRow, TableCell } from '@/Components/ui/table'
+import { Button } from '@/Components/ui/button'
 import Card from '@/Components/Card'
 import InputSelect from '@/Components/InputSelect'
 import InputWithPrefix from '@/Components/InputWithPrefix'
 import PaginationDaisy from '@/Components/PaginationDaisy'
 import { Badge } from '@/Components/ui/badge'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/Components/ui/dialog'
 import TextInput from '@/Components/TextInput'
 import InputLabel from '@/Components/InputLabel'
 import InputError from '@/Components/InputError'
@@ -20,6 +24,7 @@ function Index({ shipments, filters }) {
 
     // Setup Form untuk Update Status & Resi
     const [selectedShipment, setSelectedShipment] = useState(null);
+    const [editOpen, setEditOpen] = useState(false);
     const { data, setData, put, processing, errors, reset } = useForm({
         status: '',
         tracking_number: '',
@@ -49,7 +54,7 @@ function Index({ shipments, filters }) {
             status: item.status,
             tracking_number: item.tracking_number || '',
         });
-        document.getElementById('modal_edit_shipment').showModal();
+        setEditOpen(true);
     };
 
     // Fungsi submit update data
@@ -57,7 +62,7 @@ function Index({ shipments, filters }) {
         e.preventDefault();
         put(route('admin.kopi-times.shipments.update', selectedShipment.id), {
             onSuccess: () => {
-                document.getElementById('modal_edit_shipment').close();
+                setEditOpen(false);
                 reset();
                 setSelectedShipment(null);
             },
@@ -75,7 +80,7 @@ function Index({ shipments, filters }) {
             case "delivered":
                 return <Badge className="bg-green-100 text-green-700 hover:bg-green-200">Diterima</Badge>;
             default:
-                return <Badge variant="neutral">{status}</Badge>;
+                return <Badge variant="secondary">{status}</Badge>;
         }
     }
 
@@ -93,14 +98,7 @@ function Index({ shipments, filters }) {
                                     <Truck className="w-8 h-8 text-primary" /> Pengiriman Merchandise
                                 </h1>
                             </div>
-                            <div className="breadcrumbs text-sm">
-                                <ul>
-                                    <li><a>Home</a></li>
-                                    <li>Kopi Times</li>
-                                    <li>Merchandise</li>
-                                    <li>Pengiriman</li>
-                                </ul>
-                            </div>
+                            <Breadcrumbs items={[{ label: 'Home', href: '/' }, { label: 'Kopi Times' }, { label: 'Merchandise' }, { label: 'Pengiriman' }]} />
                         </div>
 
                         {/* Toolbar (Search & Filter) */}
@@ -133,79 +131,82 @@ function Index({ shipments, filters }) {
                         {/* Table Area */}
                         <Card className="p-0 overflow-hidden">
                             <div className="overflow-x-auto">
-                                <table className="table table-zebra w-full">
-                                    <thead className="bg-base-200/50">
-                                        <tr>
-                                            <th className="w-12 text-center">#</th>
-                                            <th>Penerima (Wartawan)</th>
-                                            <th>Detail Item</th>
-                                            <th>Alamat Pengiriman</th>
-                                            <th>Status & Resi</th>
-                                            <th className="text-right">Aksi</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
+                                <Table>
+                                    <TableHeader>
+                                        <TableRow>
+                                            <TableHead className="w-12 text-center">#</TableHead>
+                                            <TableHead>Penerima (Wartawan)</TableHead>
+                                            <TableHead>Detail Item</TableHead>
+                                            <TableHead>Alamat Pengiriman</TableHead>
+                                            <TableHead>Status & Resi</TableHead>
+                                            <TableHead className="text-right">Aksi</TableHead>
+                                        </TableRow>
+                                    </TableHeader>
+                                    <TableBody>
                                         {shipments.data.map((item, index) => {
                                             const from = shipments.from ?? 1;
                                             return (
-                                                <tr key={item.id} className="border-b border-base-200 hover:bg-base-100/50">
-                                                    <td className="text-center align-top py-4">{from + index}</td>
+                                                <TableRow key={item.id} className="border-b border-border hover:bg-background/50">
+                                                    <TableCell className="text-center align-top py-4">{from + index}</TableCell>
                                                     
                                                     {/* User Info */}
-                                                    <td className="py-4 align-top">
-                                                        <div className="font-bold text-base-content">{item.member?.nama || 'Unknown User'}</div>
-                                                        <div className="text-xs text-base-content/60">KT-{item.member?.id}</div>
-                                                    </td>
+                                                    <TableCell className="py-4 align-top">
+                                                        <div className="font-bold text-foreground">{item.member?.nama || 'Unknown User'}</div>
+                                                        <div className="text-xs text-foreground/60">KT-{item.member?.id}</div>
+                                                    </TableCell>
 
                                                     {/* Item Info */}
-                                                    <td className="py-4 align-top">
+                                                    <TableCell className="py-4 align-top">
                                                         <div className="flex items-center gap-2 font-medium">
                                                             <Package className="w-4 h-4 text-primary" />
                                                             {item.item_name}
                                                         </div>
-                                                        <div className="text-xs text-base-content/60 mt-1">Order: {formatDate(item.created_at)}</div>
-                                                    </td>
+                                                        <div className="text-xs text-foreground/60 mt-1">Order: {formatDate(item.created_at)}</div>
+                                                    </TableCell>
 
                                                     {/* Address */}
-                                                    <td className="py-4 align-top max-w-xs">
+                                                    <TableCell className="py-4 align-top max-w-xs">
                                                         <div className="flex items-start gap-1.5 text-sm">
-                                                            <MapPin className="w-4 h-4 shrink-0 mt-0.5 text-base-content/50" />
+                                                            <MapPin className="w-4 h-4 shrink-0 mt-0.5 text-foreground/50" />
                                                             <span className="line-clamp-2" title={item.shipping_address}>
                                                                 {item.shipping_address}
                                                             </span>
                                                         </div>
-                                                    </td>
+                                                    </TableCell>
 
                                                     {/* Status & Resi */}
-                                                    <td className="py-4 align-top">
+                                                    <TableCell className="py-4 align-top">
                                                         <div className="mb-1">{getStatusBadge(item.status)}</div>
-                                                        <div className="text-xs font-mono font-semibold text-base-content/70">
+                                                        <div className="text-xs font-mono font-semibold text-foreground/70">
                                                             Resi: {item.tracking_number || '-'}
                                                         </div>
-                                                    </td>
+                                                    </TableCell>
 
                                                     {/* Action */}
-                                                    <td className="py-4 align-top text-right">
-                                                        <button 
+                                                    <TableCell className="py-4 align-top text-right">
+                                                        <Button
+                                                            type="button"
+                                                            size="sm"
+                                                            variant="ghost"
                                                             onClick={() => openEditModal(item)}
-                                                            className="btn btn-sm btn-ghost gap-1.5 text-primary hover:bg-primary/10"
+                                                            className="gap-1.5 text-primary hover:bg-primary/10 hover:text-primary"
                                                         >
                                                             <Edit className="w-4 h-4" /> Update
-                                                        </button>
-                                                    </td>
-                                                </tr>
+                                                        </Button>
+                                                    </TableCell>
+                                                </TableRow>
                                             );
                                         })}
                                         
                                         {shipments.data.length === 0 && (
-                                            <tr>
-                                                <td colSpan="6" className="text-center py-8 text-muted-foreground bg-base-200/20">
+                                            <TableRow>
+                                                <TableCell colSpan="6" className="text-center py-8 text-muted-foreground bg-muted/20">
                                                     Tidak ada data pengiriman ditemukan.
-                                                </td>
-                                            </tr>
+                                                </TableCell>
+                                            </TableRow>
                                         )}
-                                    </tbody>
-                                </table>
+                                    </TableBody>
+                                </Table>
                             </div>
                         </Card>
 
@@ -216,15 +217,17 @@ function Index({ shipments, filters }) {
                 </div>
             </AuthenticatedLayout>
 
-            {/* MODAL UPDATE STATUS & RESI (Menggunakan DaisyUI Modal) */}
-            <dialog id="modal_edit_shipment" className="modal modal-bottom sm:modal-middle">
-                <div className="modal-box">
-                    <h3 className="font-bold text-lg mb-4 flex items-center gap-2">
-                        <Truck className="w-5 h-5 text-primary" /> Update Pengiriman
-                    </h3>
-                    
+            {/* MODAL UPDATE STATUS & RESI */}
+            <Dialog open={editOpen} onOpenChange={setEditOpen}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle className="flex items-center gap-2">
+                            <Truck className="w-5 h-5 text-primary" /> Update Pengiriman
+                        </DialogTitle>
+                    </DialogHeader>
+
                     {selectedShipment && (
-                        <div className="mb-4 p-3 bg-base-200/50 rounded-lg text-sm">
+                        <div className="mb-4 p-3 bg-muted/50 rounded-lg text-sm">
                             <p><span className="font-semibold">Penerima:</span> {selectedShipment.member?.nama}</p>
                             <p><span className="font-semibold">Item:</span> {selectedShipment.item_name}</p>
                         </div>
@@ -259,23 +262,17 @@ function Index({ shipments, filters }) {
                             <p className="text-xs text-muted-foreground mt-1">Kosongkan jika resi belum tersedia atau belum dikirim.</p>
                         </div>
 
-                        <div className="modal-action border-t border-base-200 pt-4 mt-6">
-                            {/* Tombol batal menutup modal tanpa submit */}
-                            <button type="button" className="btn btn-ghost" onClick={() => document.getElementById('modal_edit_shipment').close()}>
+                        <DialogFooter className="border-t border-border pt-4 mt-6">
+                            <Button type="button" variant="ghost" onClick={() => setEditOpen(false)}>
                                 Batal
-                            </button>
-                            <button type="submit" className="btn btn-primary" disabled={processing}>
+                            </Button>
+                            <Button type="submit" disabled={processing}>
                                 {processing ? 'Menyimpan...' : 'Simpan Perubahan'}
-                            </button>
-                        </div>
+                            </Button>
+                        </DialogFooter>
                     </form>
-                </div>
-                
-                {/* Overlay backdrop agar bisa ditutup dengan klik luar modal */}
-                <form method="dialog" className="modal-backdrop">
-                    <button>close</button>
-                </form>
-            </dialog>
+                </DialogContent>
+            </Dialog>
         </>
     )
 }

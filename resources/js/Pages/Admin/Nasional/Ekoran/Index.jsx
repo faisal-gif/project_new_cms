@@ -1,3 +1,6 @@
+import { Table, TableHeader, TableBody, TableHead, TableRow, TableCell } from '@/Components/ui/table'
+import { Button } from '@/Components/ui/button'
+import Breadcrumbs from '@/Components/Breadcrumbs'
 import Card from '@/Components/Card'
 import InputSelect from '@/Components/InputSelect'
 import InputWithPrefix from '@/Components/InputWithPrefix'
@@ -73,7 +76,7 @@ function Index({ ekorans, filters }) {
       case '1':
         return <Badge className="bg-green-300 text-green-700">Published</Badge>;
       default:
-        return <Badge variant="neutral">Unknown</Badge>;
+        return <Badge variant="secondary">Unknown</Badge>;
     }
   }
 
@@ -89,19 +92,16 @@ function Index({ ekorans, filters }) {
                 <div>
                   <h1 className="text-3xl font-bold text-foreground">Daftar eKoran</h1>
                 </div>
-                <div className="breadcrumbs text-sm">
-                  <ul>
-                    <li><a>Beranda</a></li>
-                    <li>eKoran</li>
-                  </ul>
-                </div>
+                <Breadcrumbs items={[{ label: 'Beranda', href: '/' }, { label: 'eKoran' }]} />
               </div>
 
               <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
                 {hasPermission('create ekoran nasional') && (
-                  <Link href={route('admin.nasional.ekoran.create')} className="btn btn-primary rounded-lg">
-                    <Plus size={16} /> Tambah Edisi
-                  </Link>
+                  <Button asChild className="rounded-lg">
+                    <Link href={route('admin.nasional.ekoran.create')}>
+                      <Plus size={16} /> Tambah Edisi
+                    </Link>
+                  </Button>
                 )}
               </div>
 
@@ -130,13 +130,14 @@ function Index({ ekorans, filters }) {
                     />
                   </div>
 
-                  <button
+                  <Button
                     type="button"
-                    className="btn btn-neutral md:ml-2"
+                    variant="secondary"
+                    className="md:ml-2"
                     onClick={handleReset}
                   >
                     Reset
-                  </button>
+                  </Button>
                 </div>
               </Card>
 
@@ -145,7 +146,7 @@ function Index({ ekorans, filters }) {
                 {/* MOBILE VERSION */}
                 <div className="md:hidden flex flex-col gap-4">
                   {ekorans.data.map((item) => (
-                    <div key={item.id} className="border rounded-xl p-4 bg-base-100 shadow-sm">
+                    <div key={item.id} className="border rounded-xl p-4 bg-background shadow-sm">
                       <div className="flex justify-between items-start gap-2 mb-3">
                         <div>
                           <p className="font-semibold text-base">{item.title}</p>
@@ -168,9 +169,9 @@ function Index({ ekorans, filters }) {
 
                       <div className="flex gap-2 mt-4">
                         {hasPermission('edit ekoran nasional') && (
-                          <Link href={route('admin.nasional.ekoran.edit', item.id)} className="btn btn-sm btn-warning btn-outline">
-                            Edit
-                          </Link>
+                          <Button asChild size="sm" variant="outline" className="border-amber-500 text-amber-600 hover:bg-amber-50 hover:text-amber-700 dark:border-amber-500/60 dark:text-amber-400 dark:hover:bg-amber-950/40">
+                            <Link href={route('admin.nasional.ekoran.edit', item.id)}>Edit</Link>
+                          </Button>
                         )}
                       </div>
                     </div>
@@ -179,49 +180,49 @@ function Index({ ekorans, filters }) {
 
                 {/* DESKTOP VERSION */}
                 <div className="hidden md:block overflow-x-auto">
-                  <table className="table table-zebra w-full">
-                    <thead>
-                      <tr>
-                        <th>ID</th>
-                        <th>Judul Edisi</th>
-                        <th>Tanggal Terbit</th>
-                        <th>eMagz ID</th>
-                        <th>Views</th>
-                        <th>Status</th>
-                        <th className="text-right">Aksi</th>
-                      </tr>
-                    </thead>
-                    <tbody>
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>ID</TableHead>
+                        <TableHead>Judul Edisi</TableHead>
+                        <TableHead>Tanggal Terbit</TableHead>
+                        <TableHead>eMagz ID</TableHead>
+                        <TableHead>Views</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead className="text-right">Aksi</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
                       {ekorans.data.map((item) => (
-                        <tr key={item.id}>
-                          <th>{item.id}</th>
-                          <td className="font-medium">{item.title}</td>
-                          <td>{formatDateTime(item.datepub)}</td>
-                          <td>{item.emagazine_id || '-'}</td>
-                          <td>{item.views || 0}</td>
-                          <td>{getStatusBadge(item.status)}</td>
-                          <td>
+                        <TableRow key={item.id}>
+                          <TableCell>{item.id}</TableCell>
+                          <TableCell className="font-medium">{item.title}</TableCell>
+                          <TableCell>{formatDateTime(item.datepub)}</TableCell>
+                          <TableCell>{item.emagazine_id || '-'}</TableCell>
+                          <TableCell>{item.views || 0}</TableCell>
+                          <TableCell>{getStatusBadge(item.status)}</TableCell>
+                          <TableCell>
                             <div className="flex justify-end gap-2">
                               {hasPermission('edit ekoran nasional') && (
-                                <Link href={route('admin.nasional.ekoran.edit', item.id)} className="btn btn-sm btn-warning btn-outline">
-                                  Edit
-                                </Link>
+                                <Button asChild size="sm" variant="outline" className="border-amber-500 text-amber-600 hover:bg-amber-50 hover:text-amber-700 dark:border-amber-500/60 dark:text-amber-400 dark:hover:bg-amber-950/40">
+                                  <Link href={route('admin.nasional.ekoran.edit', item.id)}>Edit</Link>
+                                </Button>
                               )}
                             </div>
-                          </td>
-                        </tr>
+                          </TableCell>
+                        </TableRow>
                       ))}
 
                       {/* Kondisi jika data kosong */}
                       {ekorans.data.length === 0 && (
-                        <tr>
-                          <td colSpan="7" className="text-center py-6 text-gray-500">
+                        <TableRow>
+                          <TableCell colSpan="7" className="text-center py-6 text-gray-500">
                             Tidak ada data eKoran ditemukan.
-                          </td>
-                        </tr>
+                          </TableCell>
+                        </TableRow>
                       )}
-                    </tbody>
-                  </table>
+                    </TableBody>
+                  </Table>
                 </div>
               </Card>
 

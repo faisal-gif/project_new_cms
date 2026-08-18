@@ -1,4 +1,6 @@
 import Card from '@/Components/Card'
+import Breadcrumbs from '@/Components/Breadcrumbs';
+import { Button } from '@/Components/ui/button';
 import InputError from '@/Components/InputError'
 import InputLabel from '@/Components/InputLabel'
 import InputPassword from '@/Components/InputPassword'
@@ -46,13 +48,7 @@ function Create({ networks }) {
                                 {/* end Header */}
 
                                 {/* start breadcrumbs */}
-                                <div className="breadcrumbs text-sm">
-                                    <ul>
-                                        <li><a>Home</a></li>
-                                        <li>Writer</li>
-                                        <li>Tambah Writer</li>
-                                    </ul>
-                                </div>
+                                <Breadcrumbs items={[{ label: 'Home', href: '/' }, { label: 'Writer' }, { label: 'Tambah Writer' }]} />
                                 {/* end breadcrumbs */}
 
                             </div>
@@ -76,7 +72,7 @@ function Create({ networks }) {
                                         <InputLabel
                                             htmlFor="date_exp"
                                             value="Tanggal Kadaluarsa"
-                                            className='mb-2 label-text font-bold'
+                                            className='mb-2 font-bold'
                                         />
                                         <TextInput
                                             id="date_exp"
@@ -93,7 +89,7 @@ function Create({ networks }) {
                                         <InputLabel
                                             htmlFor="network_id"
                                             value="Wilayah"
-                                            className='mb-2 label-text font-bold'
+                                            className='mb-2 font-bold'
                                         />
                                         <Select
                                             options={networks}
@@ -108,7 +104,7 @@ function Create({ networks }) {
                                         <InputLabel
                                             htmlFor="no_whatsapp"
                                             value="Wilayah"
-                                            className='mb-2 label-text font-bold'
+                                            className='mb-2 font-bold'
                                         />
                                         <InputPhoneNumber
                                             id="no_whatsapp"
@@ -175,13 +171,12 @@ function Create({ networks }) {
                                         <InputError message={errors.password} className="mt-2" />
                                     </div>
                                     <div className=' lg:col-span-6 flex flex-row justify-end mt-4'>
-                                        <button
+                                        <Button
                                             type="submit"
-                                            className="btn btn-primary"
                                             disabled={processing}
                                         >
                                             Simpan
-                                        </button>
+                                        </Button>
                                     </div>
 
                                 </form>

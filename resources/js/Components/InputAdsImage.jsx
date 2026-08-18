@@ -180,7 +180,7 @@ export default function InputAdsImage({
               e.stopPropagation();
               removeImage();
             }}
-            className="btn btn-error btn-sm btn-circle absolute top-3 right-3 shadow-lg"
+            className="inline-flex items-center justify-center h-8 w-8 rounded-full bg-destructive text-white hover:bg-destructive/90 absolute top-3 right-3 shadow-lg"
           >
             <XIcon className="w-4 h-4" />
           </button>
@@ -200,8 +200,8 @@ export default function InputAdsImage({
 
       {/* Modal Pemotong Gambar */}
       {cropData.src && (
-        <div className="modal modal-open z-[9999] bg-black/60 flex items-center justify-center p-4">
-          <div className="modal-box max-w-3xl bg-white rounded-xl p-6 shadow-2xl w-full">
+        <div className="fixed inset-0 z-[9999] bg-black/60 flex items-center justify-center p-4">
+          <div className="max-w-3xl bg-white rounded-xl p-6 shadow-2xl w-full">
             <h3 className="font-bold text-lg text-slate-800 mb-2">Sesuaikan Area Potongan Banner</h3>
             <p className="text-xs text-slate-500 mb-4">Pastikan teks penting berada di dalam kotak seleksi. Hasil akhir akan disimpan dengan format HD PNG.</p>
 
@@ -211,7 +211,7 @@ export default function InputAdsImage({
               </ReactCrop>
             </div>
 
-            <div className="modal-action flex w-full justify-end gap-2 mt-6">
+            <div className="flex w-full justify-end gap-2 mt-6">
               <button
                 type="button"
                 className="px-5 py-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 transition-colors font-medium text-sm flex-1 sm:flex-none"

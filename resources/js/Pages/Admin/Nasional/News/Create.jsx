@@ -1,4 +1,6 @@
 import Card from '@/Components/Card'
+import Breadcrumbs from '@/Components/Breadcrumbs';
+import { Button } from '@/Components/ui/button';
 import Checkbox from '@/Components/Checkbox'
 import InputEditor from '@/Components/InputEditor'
 import InputError from '@/Components/InputError'
@@ -67,13 +69,7 @@ function Create({ writers, editors, kanal, fokus, hasEditor, editor_id, initialD
                                 {/* end Header */}
 
                                 {/* start breadcrumbs */}
-                                <div className="breadcrumbs text-sm">
-                                    <ul>
-                                        <li><a>Beranda</a></li>
-                                        <li>Berita Nasional</li>
-                                        <li>Tambah Berita</li>
-                                    </ul>
-                                </div>
+                                <Breadcrumbs items={[{ label: 'Beranda' }, { label: 'Berita Nasional' }, { label: 'Tambah Berita' }]} />
                                 {/* end breadcrumbs */}
 
                             </div>
@@ -107,7 +103,7 @@ function Create({ writers, editors, kanal, fokus, hasEditor, editor_id, initialD
                                             <InputLabel
                                                 htmlFor="editor"
                                                 value="Editor"
-                                                className='mb-2 label-text font-bold'
+                                                className='mb-2 font-bold'
                                             />
                                             <Select
                                                 value={editors.find(e => e.value === data.editor)}
@@ -123,7 +119,7 @@ function Create({ writers, editors, kanal, fokus, hasEditor, editor_id, initialD
                                             <InputLabel
                                                 htmlFor="writer"
                                                 value="Penulis"
-                                                className='mb-2 label-text font-bold'
+                                                className='mb-2 font-bold'
                                             />
                                             <Select
                                                 value={writers.find(w => w.label === data.writer)}
@@ -153,7 +149,7 @@ function Create({ writers, editors, kanal, fokus, hasEditor, editor_id, initialD
                                             <InputLabel
                                                 htmlFor="judul"
                                                 value="Judul"
-                                                className='mb-2 label-text font-bold'
+                                                className='mb-2 font-bold'
                                             />
                                             <TextInput
                                                 id="judul"
@@ -203,7 +199,7 @@ function Create({ writers, editors, kanal, fokus, hasEditor, editor_id, initialD
                                             <InputLabel
                                                 htmlFor="is_content"
                                                 value="Isi Berita"
-                                                className='mb-2 label-text font-bold'
+                                                className='mb-2 font-bold'
                                             />
                                             <InputEditor
                                                 value={data.is_content}
@@ -239,7 +235,7 @@ function Create({ writers, editors, kanal, fokus, hasEditor, editor_id, initialD
                                                     <InputLabel
                                                         htmlFor="image_thumbnail"
                                                         value="Thumbnail"
-                                                        className='mb-2 label-text font-bold'
+                                                        className='mb-2 font-bold'
                                                     />
                                                     <div className='flex items-center justify-center gap-0.5 mt-1'>
                                                         <InputImage
@@ -258,7 +254,7 @@ function Create({ writers, editors, kanal, fokus, hasEditor, editor_id, initialD
                                                 {/* Nama file wajib saat upload agar mudah dicari di galeri CDN. Tidak berlaku bila memilih dari galeri. */}
                                                 {!data.image_thumbnail_url && (
                                                     <div>
-                                                        <InputLabel htmlFor="image_name" value="Nama File Foto (untuk pencarian di galeri)" className='mb-2 label-text font-bold' />
+                                                        <InputLabel htmlFor="image_name" value="Nama File Foto (untuk pencarian di galeri)" className='mb-2 font-bold' />
                                                         <TextInput
                                                             id="image_name"
                                                             type="text"
@@ -307,7 +303,7 @@ function Create({ writers, editors, kanal, fokus, hasEditor, editor_id, initialD
                                             <InputLabel
                                                 htmlFor="datepub"
                                                 value="Tanggal Publish"
-                                                className='mb-2 label-text font-bold'
+                                                className='mb-2 font-bold'
                                             />
                                             <DatePicker
                                                 // Pastikan data.datepub diubah menjadi object Date agar terbaca oleh kalender
@@ -338,7 +334,7 @@ function Create({ writers, editors, kanal, fokus, hasEditor, editor_id, initialD
                                             <InputLabel
                                                 htmlFor="lokus"
                                                 value="Lokus"
-                                                className='mb-2 label-text font-bold'
+                                                className='mb-2 font-bold'
                                             />
                                             <TextInput
                                                 id="lokus"
@@ -356,7 +352,7 @@ function Create({ writers, editors, kanal, fokus, hasEditor, editor_id, initialD
                                             <InputLabel
                                                 htmlFor="kanal"
                                                 value="Kanal"
-                                                className='mb-2 label-text font-bold'
+                                                className='mb-2 font-bold'
                                             />
                                             <Select
                                                 value={data.kanal ? kanal.find(k => k.value === data.kanal) : null}
@@ -372,7 +368,7 @@ function Create({ writers, editors, kanal, fokus, hasEditor, editor_id, initialD
                                                 <InputLabel
                                                     htmlFor="affiliate_link"
                                                     value="Link Affiliate (opsional)"
-                                                    className='mb-2 label-text font-bold'
+                                                    className='mb-2 font-bold'
                                                 />
                                                 <TextInput
                                                     id="affiliate_link"
@@ -391,7 +387,7 @@ function Create({ writers, editors, kanal, fokus, hasEditor, editor_id, initialD
                                             <InputLabel
                                                 htmlFor="fokus"
                                                 value="Fokus"
-                                                className='mb-2 label-text font-bold'
+                                                className='mb-2 font-bold'
                                             />
                                             <Select
                                                 value={data.focus ? fokus.find(f => f.value === data.focus) : null}
@@ -407,13 +403,12 @@ function Create({ writers, editors, kanal, fokus, hasEditor, editor_id, initialD
                                 </Card>
 
                                 <div className='flex flex-row justify-end mt-4'>
-                                    <button
+                                    <Button
                                         type="submit"
-                                        className="btn btn-primary"
                                         disabled={processing}
                                     >
                                         Simpan Ke Nasional
-                                    </button>
+                                    </Button>
                                 </div>
                             </form>
 

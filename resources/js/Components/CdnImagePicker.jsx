@@ -78,7 +78,7 @@ export default function CdnImagePicker({ open, onClose, onSelect }) {
             <div className="relative bg-white rounded-xl shadow-2xl w-full max-w-4xl p-6 space-y-4 max-h-[90vh] flex flex-col">
                 <div className="flex items-center justify-between">
                     <h3 className="text-lg font-semibold text-gray-800">Pilih Foto dari Galeri CDN</h3>
-                    <button className="btn btn-ghost btn-sm btn-circle" onClick={onClose}>
+                    <button className="inline-flex items-center justify-center h-8 w-8 rounded-full hover:bg-muted" onClick={onClose}>
                         <X size={18} />
                     </button>
                 </div>
@@ -89,14 +89,14 @@ export default function CdnImagePicker({ open, onClose, onSelect }) {
                         <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
                         <input
                             type="text"
-                            className="input input-bordered w-full pl-9"
+                            className="w-full pl-9 rounded-md border border-input bg-transparent py-2 text-sm"
                             placeholder="Cari nama foto..."
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
                         />
                     </div>
                     <select
-                        className="select select-bordered w-full sm:w-56"
+                        className="w-full sm:w-56 rounded-md border border-input bg-transparent px-3 py-2 text-sm"
                         value={category}
                         onChange={(e) => setCategory(e.target.value)}
                     >
@@ -113,10 +113,10 @@ export default function CdnImagePicker({ open, onClose, onSelect }) {
                 <div className="flex-1 overflow-y-auto min-h-[300px]">
                     {loading ? (
                         <div className="flex items-center justify-center h-64">
-                            <span className="loading loading-spinner loading-lg text-primary" />
+                            <span className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
                         </div>
                     ) : error ? (
-                        <div className="flex items-center justify-center h-64 text-error">{error}</div>
+                        <div className="flex items-center justify-center h-64 text-destructive">{error}</div>
                     ) : images.length === 0 ? (
                         <div className="flex flex-col items-center justify-center h-64 text-gray-400">
                             <ImageIcon size={32} className="mb-2" />
@@ -129,7 +129,7 @@ export default function CdnImagePicker({ open, onClose, onSelect }) {
                                     key={img.id}
                                     type="button"
                                     onClick={() => onSelect({ url: img.url, name: img.name })}
-                                    className="group relative aspect-video rounded-lg overflow-hidden border border-base-200 bg-base-200 hover:ring-2 hover:ring-primary transition"
+                                    className="group relative aspect-video rounded-lg overflow-hidden border border-border bg-muted hover:ring-2 hover:ring-primary transition"
                                     title={img.name}
                                 >
                                     <img
@@ -155,7 +155,7 @@ export default function CdnImagePicker({ open, onClose, onSelect }) {
                 {lastPage > 1 && (
                     <div className="flex items-center justify-center gap-3 pt-2 border-t border-gray-100">
                         <button
-                            className="btn btn-sm btn-ghost"
+                            className="inline-flex items-center justify-center h-8 w-8 rounded-lg hover:bg-muted disabled:opacity-40"
                             disabled={page <= 1 || loading}
                             onClick={() => setPage((p) => Math.max(1, p - 1))}
                         >
@@ -165,7 +165,7 @@ export default function CdnImagePicker({ open, onClose, onSelect }) {
                             Halaman {meta?.current_page || page} / {lastPage}
                         </span>
                         <button
-                            className="btn btn-sm btn-ghost"
+                            className="inline-flex items-center justify-center h-8 w-8 rounded-lg hover:bg-muted disabled:opacity-40"
                             disabled={page >= lastPage || loading}
                             onClick={() => setPage((p) => Math.min(lastPage, p + 1))}
                         >

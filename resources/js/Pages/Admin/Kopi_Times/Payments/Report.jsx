@@ -1,4 +1,5 @@
 import Card from '@/Components/Card'
+import { Button } from '@/Components/ui/button'
 import InputSelect from '@/Components/InputSelect'
 import TextInput from '@/Components/TextInput'
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout'
@@ -81,13 +82,15 @@ export default function Report({ packages, statistics, chart_data, package_distr
                                     </p>
                                 </div>
 
-                                <div className="join bg-base-100 shadow-sm rounded-xl">
-                                    <Link href={route('admin.kopi-times.transaction.index')} className="btn join-item btn-sm font-medium">
-                                        <ListFilter size={14} /> Daftar Transaksi
-                                    </Link>
-                                    <button className="btn join-item btn-sm btn-primary font-bold">
+                                <div className="inline-flex gap-2">
+                                    <Button asChild variant="outline" size="sm" className="font-medium">
+                                        <Link href={route('admin.kopi-times.transaction.index')}>
+                                            <ListFilter size={14} /> Daftar Transaksi
+                                        </Link>
+                                    </Button>
+                                    <Button size="sm" className="font-bold">
                                         <BarChart3 size={14} /> Grafik & Report
-                                    </button>
+                                    </Button>
                                 </div>
                             </div>
 
@@ -188,9 +191,9 @@ export default function Report({ packages, statistics, chart_data, package_distr
                                         <div className="w-56">
                                             <InputSelect value={packageId} onChange={(e) => setPackageId(e.target.value)} options={packageOptions} />
                                         </div>
-                                        <button type="button" onClick={handleReset} disabled={!isFilterApplied} className={`btn btn-square btn-outline rounded-lg ${isFilterApplied ? 'border-gray-300 text-gray-700 hover:bg-gray-100' : 'opacity-40 cursor-not-allowed text-gray-300'}`}>
+                                        <Button type="button" variant="outline" size="icon" onClick={handleReset} disabled={!isFilterApplied} className={`rounded-lg ${isFilterApplied ? 'border-gray-300 text-gray-700 hover:bg-gray-100' : 'opacity-40 cursor-not-allowed text-gray-300'}`}>
                                             <RotateCcw size={16} />
-                                        </button>
+                                        </Button>
                                     </div>
                                 </div>
                             </Card>

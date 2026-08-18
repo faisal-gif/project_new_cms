@@ -1,4 +1,7 @@
 import Card from '@/Components/Card'
+import Breadcrumbs from '@/Components/Breadcrumbs';
+import { Button } from '@/Components/ui/button';
+import { Spinner } from '@/Components/ui/spinner';
 import InputError from '@/Components/InputError'
 import InputLabel from '@/Components/InputLabel'
 import InputSelect from '@/Components/InputSelect'
@@ -73,13 +76,7 @@ function Edit({ network, kanalOptions = [], fokusOptions = [], selectedKanals = 
                                 <div>
                                     <h1 className="text-3xl font-bold text-foreground">Edit Network Daerah</h1>
                                 </div>
-                                <div className="breadcrumbs text-sm">
-                                    <ul>
-                                        <li><a>Home</a></li>
-                                        <li>Network Daerah</li>
-                                        <li>Edit Network Daerah</li>
-                                    </ul>
-                                </div>
+                                <Breadcrumbs items={[{ label: 'Home', href: '/' }, { label: 'Network Daerah' }, { label: 'Edit Network Daerah' }]} />
                             </div>
 
                             <form onSubmit={submit} className='space-y-6'>
@@ -172,7 +169,7 @@ function Edit({ network, kanalOptions = [], fokusOptions = [], selectedKanals = 
                                             </div>
 
                                             <div className='lg:col-span-3 w-full'>
-                                                <InputLabel htmlFor="name" value="Nama" className='mb-2 label-text font-bold' />
+                                                <InputLabel htmlFor="name" value="Nama" className='mb-2 font-bold' />
                                                 <TextInput
                                                     id="name"
                                                     name="name"
@@ -260,7 +257,7 @@ function Edit({ network, kanalOptions = [], fokusOptions = [], selectedKanals = 
                                     <Card>
                                         <div className='grid grid-cols-1 lg:grid-cols-6 gap-4'>
                                             <div className='lg:col-span-3 w-full'>
-                                                <InputLabel htmlFor="analytics" value="Analytics ID" className='mb-2 label-text font-bold' />
+                                                <InputLabel htmlFor="analytics" value="Analytics ID" className='mb-2 font-bold' />
                                                 <TextInput
                                                     id="analytics"
                                                     name="analytics"
@@ -272,7 +269,7 @@ function Edit({ network, kanalOptions = [], fokusOptions = [], selectedKanals = 
                                                 <InputError message={errors.analytics} className="mt-2" />
                                             </div>
                                             <div className='lg:col-span-3 w-full'>
-                                                <InputLabel htmlFor="gverify" value="Google Verify" className='mb-2 label-text font-bold' />
+                                                <InputLabel htmlFor="gverify" value="Google Verify" className='mb-2 font-bold' />
                                                 <TextInput
                                                     id="gverify"
                                                     name="gverify"
@@ -284,7 +281,7 @@ function Edit({ network, kanalOptions = [], fokusOptions = [], selectedKanals = 
                                                 <InputError message={errors.gverify} className="mt-2" />
                                             </div>
                                             <div className='lg:col-span-3 w-full'>
-                                                <InputLabel htmlFor="fb" value="Facebook" className='mb-2 label-text font-bold' />
+                                                <InputLabel htmlFor="fb" value="Facebook" className='mb-2 font-bold' />
                                                 <TextInput
                                                     id="fb"
                                                     name="fb"
@@ -296,7 +293,7 @@ function Edit({ network, kanalOptions = [], fokusOptions = [], selectedKanals = 
                                                 <InputError message={errors.fb} className="mt-2" />
                                             </div>
                                             <div className='lg:col-span-3 w-full'>
-                                                <InputLabel htmlFor="tw" value="Twitter" className='mb-2 label-text font-bold' />
+                                                <InputLabel htmlFor="tw" value="Twitter" className='mb-2 font-bold' />
                                                 <TextInput
                                                     id="tw"
                                                     name="tw"
@@ -308,7 +305,7 @@ function Edit({ network, kanalOptions = [], fokusOptions = [], selectedKanals = 
                                                 <InputError message={errors.tw} className="mt-2" />
                                             </div>
                                             <div className='lg:col-span-3 w-full'>
-                                                <InputLabel htmlFor="ig" value="Instagram" className='mb-2 label-text font-bold' />
+                                                <InputLabel htmlFor="ig" value="Instagram" className='mb-2 font-bold' />
                                                 <TextInput
                                                     id="ig"
                                                     name="ig"
@@ -320,7 +317,7 @@ function Edit({ network, kanalOptions = [], fokusOptions = [], selectedKanals = 
                                                 <InputError message={errors.ig} className="mt-2" />
                                             </div>
                                             <div className='lg:col-span-3 w-full'>
-                                                <InputLabel htmlFor="yt" value="Youtube" className='mb-2 label-text font-bold' />
+                                                <InputLabel htmlFor="yt" value="Youtube" className='mb-2 font-bold' />
                                                 <TextInput
                                                     id="yt"
                                                     name="yt"
@@ -332,7 +329,7 @@ function Edit({ network, kanalOptions = [], fokusOptions = [], selectedKanals = 
                                                 <InputError message={errors.yt} className="mt-2" />
                                             </div>
                                             <div className='lg:col-span-6 w-full'>
-                                                <InputLabel htmlFor="gp" value="Google Plus" className='mb-2 label-text font-bold' />
+                                                <InputLabel htmlFor="gp" value="Google Plus" className='mb-2 font-bold' />
                                                 <TextInput
                                                     id="gp"
                                                     name="gp"
@@ -396,13 +393,12 @@ function Edit({ network, kanalOptions = [], fokusOptions = [], selectedKanals = 
                                 </div>
 
                                 <div className='flex flex-row justify-end mt-2'>
-                                    <button
+                                    <Button
                                         type="submit"
-                                        className="btn btn-primary"
                                         disabled={processing}
                                     >
-                                        {processing ? <span className="loading loading-spinner"></span> : "Perbarui Network"}
-                                    </button>
+                                        {processing ? <Spinner /> : "Perbarui Network"}
+                                    </Button>
                                 </div>
 
                             </form>

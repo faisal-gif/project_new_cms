@@ -1,3 +1,4 @@
+import { Table, TableHeader, TableBody, TableHead, TableRow, TableCell } from '@/Components/ui/table'
 import React from 'react';
 import { Head, Link } from '@inertiajs/react';
 
@@ -56,32 +57,32 @@ export default function Invoice({ ad }) {
                         </div>
                     </div>
 
-                    <table className="w-full text-sm border-t border-b">
-                        <thead>
-                            <tr className="text-gray-500 uppercase text-xs">
-                                <th className="py-3 text-left">Deskripsi</th>
-                                <th className="py-3 text-center">Platform</th>
-                                <th className="py-3 text-right">Jumlah</th>
-                            </tr>
-                        </thead>
-                        <tbody className="text-gray-800">
+                    <Table>
+                        <TableHeader>
+                            <TableRow className="text-gray-500 uppercase text-xs">
+                                <TableHead className="py-3 text-left">Deskripsi</TableHead>
+                                <TableHead className="py-3 text-center">Platform</TableHead>
+                                <TableHead className="py-3 text-right">Jumlah</TableHead>
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody>
                             {locates.length === 0 ? (
-                                <tr className="border-t">
-                                    <td className="py-3">Penayangan iklan "{ad.title}"</td>
-                                    <td className="py-3 text-center">-</td>
-                                    <td className="py-3 text-right">{formatRupiah(total)}</td>
-                                </tr>
+                                <TableRow className="border-t">
+                                    <TableCell className="py-3">Penayangan iklan "{ad.title}"</TableCell>
+                                    <TableCell className="py-3 text-center">-</TableCell>
+                                    <TableCell className="py-3 text-right">{formatRupiah(total)}</TableCell>
+                                </TableRow>
                             ) : (
                                 locates.map((loc, i) => (
-                                    <tr key={loc.id} className="border-t">
-                                        <td className="py-3">Slot {loc.master?.name || `#${loc.locate_id}`}{loc.master ? ` (${loc.master.width}x${loc.master.height})` : ''}</td>
-                                        <td className="py-3 text-center">{loc.master?.type === 'm' ? 'Mobile' : loc.master?.type === 'd' ? 'Desktop' : '-'}</td>
-                                        <td className="py-3 text-right">{i === 0 ? formatRupiah(total) : '-'}</td>
-                                    </tr>
+                                    <TableRow key={loc.id} className="border-t">
+                                        <TableCell className="py-3">Slot {loc.master?.name || `#${loc.locate_id}`}{loc.master ? ` (${loc.master.width}x${loc.master.height})` : ''}</TableCell>
+                                        <TableCell className="py-3 text-center">{loc.master?.type === 'm' ? 'Mobile' : loc.master?.type === 'd' ? 'Desktop' : '-'}</TableCell>
+                                        <TableCell className="py-3 text-right">{i === 0 ? formatRupiah(total) : '-'}</TableCell>
+                                    </TableRow>
                                 ))
                             )}
-                        </tbody>
-                    </table>
+                        </TableBody>
+                    </Table>
 
                     <div className="flex justify-end mt-6">
                         <div className="w-64 space-y-2 text-sm">

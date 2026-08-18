@@ -1,3 +1,6 @@
+import Breadcrumbs from '@/Components/Breadcrumbs'
+import { Table, TableHeader, TableBody, TableHead, TableRow, TableCell } from '@/Components/ui/table'
+import { Button } from '@/Components/ui/button'
 import Card from '@/Components/Card'
 import InputSelect from '@/Components/InputSelect'
 import InputWithPrefix from '@/Components/InputWithPrefix'
@@ -70,37 +73,38 @@ function Index({ editors, filters }) {
             case 1:
                 return <Badge className={"bg-green-300 text-green-700"}>Active</Badge>;
             default:
-                return <Badge variant="neutral">{status}</Badge>;
+                return <Badge variant="secondary">{status}</Badge>;
         }
     }
 
     function IndexCell({ item, type, editRoute, addRoute, addLabel }) {
         if (!item) {
             return (
-                <Link
-                    href={addRoute || '#'}
-                    className="btn btn-xs btn-outline btn-primary gap-1"
-                >
-                    <Plus className="w-3 h-3" /> {addLabel}
-                </Link>
+                <Button asChild size="xs" variant="outline" className="gap-1 border-primary text-primary hover:bg-primary/10">
+                    <Link href={addRoute || '#'}>
+                        <Plus className="w-3 h-3" /> {addLabel}
+                    </Link>
+                </Button>
             );
         }
 
         if (type === "daerah") {
             return (
-                <div className="rounded-lg border border-base-200 px-2.5 py-2 w-48 bg-base-300">
+                <div className="rounded-lg border border-border px-2.5 py-2 w-48 bg-muted">
                     <div className="flex items-center justify-between gap-2 mb-1.5">
                         <span className="text-sm font-medium truncate" title={item.title || item.name}>
                             {item.name || '-'}
                         </span>
-                        <Link href={editRoute} className="btn-warning btn-soft btn btn-xs gap-1">
-                            <Pencil className="w-3 h-3" />
-                        </Link>
+                        <Button asChild size="xs" variant="outline" className="gap-1 border-amber-500 text-amber-600 hover:bg-amber-50 hover:text-amber-700 dark:border-amber-500/60 dark:text-amber-400 dark:hover:bg-amber-950/40">
+                            <Link href={editRoute}>
+                                <Pencil className="w-3 h-3" />
+                            </Link>
+                        </Button>
                     </div>
                     <div className="flex items-center justify-between gap-2">
                         {getStatusBadge(item.status)}
-                        <span className="inline-flex items-center gap-1 text-[10px] text-success">
-                            <span className="w-1.5 h-1.5 rounded-full bg-success" /> Terindeks
+                        <span className="inline-flex items-center gap-1 text-[10px] text-emerald-600">
+                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" /> Terindeks
                         </span>
                     </div>
                 </div>
@@ -109,19 +113,21 @@ function Index({ editors, filters }) {
 
         if (type === "nasional") {
             return (
-                <div className="rounded-lg border border-base-200 px-2.5 py-2 w-48 bg-base-300">
+                <div className="rounded-lg border border-border px-2.5 py-2 w-48 bg-muted">
                     <div className="flex items-center justify-between gap-2 mb-1.5">
                         <span className="text-sm font-medium truncate" title={item.title || item.editor_name}>
                             {item.editor_name || '-'}
                         </span>
-                        <Link href={editRoute} className="btn-warning btn-soft btn btn-xs gap-1">
-                            <Pencil className="w-3 h-3" />
-                        </Link>
+                        <Button asChild size="xs" variant="outline" className="gap-1 border-amber-500 text-amber-600 hover:bg-amber-50 hover:text-amber-700 dark:border-amber-500/60 dark:text-amber-400 dark:hover:bg-amber-950/40">
+                            <Link href={editRoute}>
+                                <Pencil className="w-3 h-3" />
+                            </Link>
+                        </Button>
                     </div>
                     <div className="flex items-center justify-between gap-2">
                         {getStatusBadge(item.status)}
-                        <span className="inline-flex items-center gap-1 text-[10px] text-success">
-                            <span className="w-1.5 h-1.5 rounded-full bg-success" /> Terindeks
+                        <span className="inline-flex items-center gap-1 text-[10px] text-emerald-600">
+                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" /> Terindeks
                         </span>
                     </div>
                 </div>
@@ -146,14 +152,7 @@ function Index({ editors, filters }) {
                                 </div>
                                 {/* end Header */}
 
-                                {/* start breadcrumbs */}
-                                <div className="breadcrumbs text-sm">
-                                    <ul>
-                                        <li><a>Home</a></li>
-                                        <li>Editor</li>
-                                    </ul>
-                                </div>
-                                {/* end breadcrumbs */}
+                                <Breadcrumbs items={[{ label: 'Home', href: '/' }, { label: 'Editor' }]} />
 
                             </div>
 
@@ -162,9 +161,11 @@ function Index({ editors, filters }) {
                                 <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
                                     {/* Button Tambah User */}
                                     {hasPermission('create editor master') && (
-                                        <Link href={route('admin.editors.create')} className="btn btn-primary rounded-lg">
-                                            <Plus size={16} /> Tambah Editor
-                                        </Link>
+                                        <Button asChild className="rounded-lg">
+                                            <Link href={route('admin.editors.create')}>
+                                                <Plus size={16} /> Tambah Editor
+                                            </Link>
+                                        </Button>
                                     )}
 
                                     {/* Field Search And Filter */}
@@ -199,7 +200,7 @@ function Index({ editors, filters }) {
                                 <div className="md:hidden flex flex-col gap-4">
                                     {/* Contoh data, ganti dengan data.map(...) */}
                                     {editors.data.map((editor) => (
-                                        <div key={editor.id} className="border rounded-xl p-4 bg-base-100 shadow-sm">
+                                        <div key={editor.id} className="border rounded-xl p-4 bg-background shadow-sm">
 
                                             {/* Header (Nama + Status) */}
                                             <div className="flex justify-between items-start mb-3">
@@ -223,7 +224,7 @@ function Index({ editors, filters }) {
                                             {/* Integration Status (Daerah & Nasional) */}
                                             <div className="grid grid-cols-1 gap-2">
                                                 <div>
-                                                    <div className="text-[10px] uppercase tracking-wide text-base-content/50 mb-1">Daerah</div>
+                                                    <div className="text-[10px] uppercase tracking-wide text-foreground/50 mb-1">Daerah</div>
                                                     <IndexCell
                                                         item={editor.daerah}
                                                         type="daerah"
@@ -233,7 +234,7 @@ function Index({ editors, filters }) {
                                                     />
                                                 </div>
                                                 <div>
-                                                    <div className="text-[10px] uppercase tracking-wide text-base-content/50 mb-1">Nasional</div>
+                                                    <div className="text-[10px] uppercase tracking-wide text-foreground/50 mb-1">Nasional</div>
                                                     <IndexCell
                                                         item={editor.nasional}
                                                         type="nasional"
@@ -244,11 +245,13 @@ function Index({ editors, filters }) {
                                                 </div>
                                             </div>
                                             {/* Actions */}
-                                            <div className="flex items-center justify-between text-xs text-base-content/60 pt-1">
+                                            <div className="flex items-center justify-between text-xs text-foreground/60 pt-1">
                                                 <span>Berlaku s/d {formatDate(editor.date_exp)}</span>
-                                                <Link href={route('admin.editors.edit', editor)} className="btn btn-xs btn-warning btn-soft gap-1">
-                                                    <Pencil className="w-3 h-3" /> Edit
-                                                </Link>
+                                                <Button asChild size="xs" variant="outline" className="gap-1 border-amber-500 text-amber-600 hover:bg-amber-50 hover:text-amber-700 dark:border-amber-500/60 dark:text-amber-400 dark:hover:bg-amber-950/40">
+                                                    <Link href={route('admin.editors.edit', editor)}>
+                                                        <Pencil className="w-3 h-3" /> Edit
+                                                    </Link>
+                                                </Button>
                                             </div>
                                         </div>
                                     ))}
@@ -256,34 +259,34 @@ function Index({ editors, filters }) {
 
                                 {/* DESKTOP VERSION (Table Mode) */}
                                 <div className="hidden md:block overflow-x-auto">
-                                    <table className="table table-zebra w-full">
-                                        <thead>
-                                            <tr className="border-b border-base-200">
-                                                <th className="w-12">#</th>
-                                                <th className="">Editor</th>
-                                                <th className="">Daerah</th>
-                                                <th className="">Nasional</th>
-                                                <th className="">Status</th>
-                                                <th className=" text-right">Aksi</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
+                                    <Table>
+                                        <TableHeader>
+                                            <TableRow className="border-b border-border">
+                                                <TableHead className="w-12">#</TableHead>
+                                                <TableHead className="">Editor</TableHead>
+                                                <TableHead className="">Daerah</TableHead>
+                                                <TableHead className="">Nasional</TableHead>
+                                                <TableHead className="">Status</TableHead>
+                                                <TableHead className=" text-right">Aksi</TableHead>
+                                            </TableRow>
+                                        </TableHeader>
+                                        <TableBody>
                                             {editors.data.map((editor, index) => {
                                                 const from = editors.from ?? 1;
                                                 return (
-                                                    <tr key={editor.id} className="border-b border-base-200 last:border-0 hover:bg-base-200/40 transition-colors">
-                                                        <td className="text-xs text-base-content/50 align-top py-4">{from + index}</td>
+                                                    <TableRow key={editor.id} className="border-b border-border last:border-0 hover:bg-muted/40 transition-colors">
+                                                        <TableCell className="text-xs text-foreground/50 align-top py-4">{from + index}</TableCell>
 
                                                         {/* Penulis */}
-                                                        <td className="py-4 align-top">
+                                                        <TableCell className="py-4 align-top">
                                                             <div className="flex flex-col">
-                                                                <span className="text-sm font-medium text-base-content">{editor.name}</span>
-                                                                <span className="text-xs text-base-content/60">{editor.email}</span>
+                                                                <span className="text-sm font-medium text-foreground">{editor.name}</span>
+                                                                <span className="text-xs text-foreground/60">{editor.email}</span>
                                                             </div>
-                                                        </td>
+                                                        </TableCell>
 
                                                         {/* Daerah */}
-                                                        <td className="py-4 align-top">
+                                                        <TableCell className="py-4 align-top">
                                                             <IndexCell
                                                                 item={editor.daerah}
                                                                 type="daerah"
@@ -291,10 +294,10 @@ function Index({ editors, filters }) {
                                                                 addRoute={route('admin.editors.edit', editor.id)}
                                                                 addLabel="Tambah Daerah"
                                                             />
-                                                        </td>
+                                                        </TableCell>
 
                                                         {/* Nasional */}
-                                                        <td className="py-4 align-top">
+                                                        <TableCell className="py-4 align-top">
                                                             <IndexCell
                                                                 item={editor.nasional}
                                                                 type="nasional"
@@ -302,27 +305,26 @@ function Index({ editors, filters }) {
                                                                 addRoute={route('admin.editors.edit', editor.id)}
                                                                 addLabel="Tambah Nasional"
                                                             />
-                                                        </td>
+                                                        </TableCell>
 
-                                                        <td className="py-4 align-top">
+                                                        <TableCell className="py-4 align-top">
                                                             {getStatusBadge(editor.status)}
-                                                        </td>
+                                                        </TableCell>
 
-                                                        <td className="py-4 align-top text-right">
+                                                        <TableCell className="py-4 align-top text-right">
                                                             {hasPermission('edit editor master') && (
-                                                                <Link
-                                                                    href={route('admin.editors.edit', editor)}
-                                                                    className="btn btn-sm btn-ghost gap-1.5"
-                                                                >
-                                                                    <Pencil className="w-3.5 h-3.5" /> Edit
-                                                                </Link>
+                                                                <Button asChild size="sm" variant="outline" className="gap-1.5 border-amber-500 text-amber-600 hover:bg-amber-50 hover:text-amber-700 dark:border-amber-500/60 dark:text-amber-400 dark:hover:bg-amber-950/40">
+                                                                    <Link href={route('admin.editors.edit', editor)}>
+                                                                        <Pencil className="w-3.5 h-3.5" /> Edit
+                                                                    </Link>
+                                                                </Button>
                                                             )}
-                                                        </td>
-                                                    </tr>
+                                                        </TableCell>
+                                                    </TableRow>
                                                 );
                                             })}
-                                        </tbody>
-                                    </table>
+                                        </TableBody>
+                                    </Table>
                                 </div>
 
                             </Card>

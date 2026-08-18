@@ -1,4 +1,6 @@
 import Card from '@/Components/Card'
+import Breadcrumbs from '@/Components/Breadcrumbs';
+import { Button } from '@/Components/ui/button';
 import InputError from '@/Components/InputError'
 import InputLabel from '@/Components/InputLabel'
 import InputSelect from '@/Components/InputSelect'
@@ -52,14 +54,7 @@ function Edit({ kanal }) {
                                 {/* end Header */}
 
                                 {/* start breadcrumbs */}
-                                <div className="breadcrumbs text-sm">
-                                    <ul>
-                                        <li><a>Home</a></li>
-                                        <li>Daerah</li>
-                                        <li>Kanal</li>
-                                        <li>Edit Kanal</li>
-                                    </ul>
-                                </div>
+                                <Breadcrumbs items={[{ label: 'Home', href: '/' }, { label: 'Daerah' }, { label: 'Kanal' }, { label: 'Edit Kanal' }]} />
                                 {/* end breadcrumbs */}
 
                             </div>
@@ -84,7 +79,7 @@ function Edit({ kanal }) {
                                         <InputLabel
                                             htmlFor="name"
                                             value="Nama"
-                                            className='mb-2 label-text font-bold'
+                                            className='mb-2 font-bold'
                                         />
                                         <TextInput
                                             id="name"
@@ -142,13 +137,12 @@ function Edit({ kanal }) {
 
                                     </div>
                                     <div className=' lg:col-span-6 flex flex-row justify-end mt-2'>
-                                        <button
+                                        <Button
                                             type="submit"
-                                            className="btn btn-primary"
                                             disabled={processing}
                                         >
                                             Simpan
-                                        </button>
+                                        </Button>
                                     </div>
 
                                 </form>

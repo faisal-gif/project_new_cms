@@ -1,3 +1,6 @@
+import { Table, TableHeader, TableBody, TableHead, TableRow, TableCell } from '@/Components/ui/table'
+import { Button } from '@/Components/ui/button'
+import Breadcrumbs from '@/Components/Breadcrumbs'
 import Card from '@/Components/Card'
 import InputSelect from '@/Components/InputSelect'
 import InputWithPrefix from '@/Components/InputWithPrefix'
@@ -133,7 +136,7 @@ function Index({ news, writers, kanals, filters }) {
       case 1:
         return <Badge className={"bg-green-300 text-green-700"}>Publish</Badge>;
       default:
-        return <Badge variant="neutral">{status}</Badge>;
+        return <Badge variant="secondary">{status}</Badge>;
     }
   }
 
@@ -141,13 +144,13 @@ function Index({ news, writers, kanals, filters }) {
     switch (status) {
       case '1':
       case 1:
-        return <Badge className="badge badge-primary badge-soft">ON</Badge>;
+        return <Badge>ON</Badge>;
       case '0':
       case 0:
       case null:
         return <Badge variant="secondary">OFF</Badge>;
       default:
-        return <Badge variant="neutral">{status}</Badge>;
+        return <Badge variant="secondary">{status}</Badge>;
     }
   }
 
@@ -189,14 +192,8 @@ function Index({ news, writers, kanals, filters }) {
                 </div>
                 {/* end Header */}
 
-                {/* start breadcrumbs */}
-                <div className="breadcrumbs text-sm">
-                  <ul>
-                    <li><a>Beranda</a></li>
-                    <li>Berita Nasional</li>
-                  </ul>
-                </div>
-                {/* end breadcrumbs */}
+                {/* breadcrumbs */}
+                <Breadcrumbs items={[{ label: 'Beranda', href: '/' }, { label: 'Berita Nasional' }]} />
 
               </div>
 
@@ -206,16 +203,20 @@ function Index({ news, writers, kanals, filters }) {
                 <div className="flex gap-2">
                   {/* Button Tambah */}
                   {hasPermission('create news nasional') && (
-                    <Link href={route('admin.nasional.news.create')} className="btn btn-primary rounded-lg">
-                      <Plus size={16} /> Tambah Berita
-                    </Link>
+                    <Button asChild className="rounded-lg">
+                      <Link href={route('admin.nasional.news.create')}>
+                        <Plus size={16} /> Tambah Berita
+                      </Link>
+                    </Button>
                   )}
 
                   {/* Button Export Baru */}
                   {hasPermission('view report news nasional') && (
-                    <Link href={route('admin.nasional.news.report.index')} className="btn btn-success rounded-lg">
-                      <Download size={16} /> Report Excel
-                    </Link>
+                    <Button asChild variant="secondary" className="rounded-lg">
+                      <Link href={route('admin.nasional.news.report.index')}>
+                        <Download size={16} /> Report Excel
+                      </Link>
+                    </Button>
                   )}
                 </div>
               </div>
@@ -321,13 +322,14 @@ function Index({ news, writers, kanals, filters }) {
                     </div>
 
                     <div className="w-full">
-                      <button
+                      <Button
                         type="button"
-                        className="btn btn-neutral w-full"
+                        variant="secondary"
+                        className="w-full"
                         onClick={handleReset}
                       >
                         Reset Filter
-                      </button>
+                      </Button>
                     </div>
 
                   </div>
@@ -341,7 +343,7 @@ function Index({ news, writers, kanals, filters }) {
                 <div className="md:hidden flex flex-col gap-4">
                   {/* Contoh data, ganti dengan data.map(...) */}
                   {news.data.map((n) => (
-                    <div key={n.id} className="border rounded-xl p-4 bg-base-100 shadow-sm">
+                    <div key={n.id} className="border rounded-xl p-4 bg-background shadow-sm">
 
                       {/* Header */}
                       <div className="flex justify-between items-start gap-2 mb-3">
@@ -370,9 +372,13 @@ function Index({ news, writers, kanals, filters }) {
                       {/* Actions */}
                       <div className="flex gap-2 mt-4">
                         {hasPermission('edit news nasional') && (
-                          <Link href={route('admin.nasional.news.edit', n.news_id)} className="btn btn-sm btn-warning btn-outline">Edit</Link>
+                          <Button asChild size="sm" variant="outline" className="border-amber-500 text-amber-600 hover:bg-amber-50 hover:text-amber-700 dark:border-amber-500/60 dark:text-amber-400 dark:hover:bg-amber-950/40">
+                                  <Link href={route('admin.nasional.news.edit', n.news_id)}>Edit</Link>
+                                </Button>
                         )}
-                        <Link href={route('admin.nasional.news.show', n.news_id)} className="btn btn-sm btn-primary btn-outline">Detail</Link>
+                        <Button asChild size="sm" variant="outline" className="border-primary text-primary hover:bg-primary/10">
+                                <Link href={route('admin.nasional.news.show', n.news_id)}>Detail</Link>
+                              </Button>
                       </div>
                     </div>
                   ))}
@@ -380,64 +386,70 @@ function Index({ news, writers, kanals, filters }) {
 
                 {/* DESKTOP VERSION (Table Mode) */}
                 <div className="hidden md:block overflow-x-auto">
-                  <table className="table table-zebra">
+                  <Table>
 
-                    <thead>
-                      <tr>
-                        <th>#</th>
-                        <th>Penulis</th>
-                        <th>Judul</th>
-                        <th>Kanal</th>
-                        <th>Tanggal Publish</th>
-                        <th>HL</th>
-                        <th>View</th>
-                        <th>Status</th>
-                        <th className="text-right">Action</th>
-                      </tr>
-                    </thead>
-                    <tbody>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>#</TableHead>
+                        <TableHead>Penulis</TableHead>
+                        <TableHead className="min-w-[280px]">Judul</TableHead>
+                        <TableHead>Kanal</TableHead>
+                        <TableHead>Tanggal Publish</TableHead>
+                        <TableHead>HL</TableHead>
+                        <TableHead>View</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead className="text-right">Action</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
                       {news.data.map((n, index) => (
-                        <tr key={n.news_id}>
-                          <th>{n.news_id}</th>
-                          <td>{n.news_writer}</td>
-                          <td className="text-xs font-medium leading-snug whitespace-normal break-words">{n.news_title}</td>
-                          <td>{n.kanal?.catnews_title}</td>
-                          <td>{formatDateTime(n.news_datepub)}</td>
-                          <td>
+                        <TableRow key={n.news_id}>
+                          <TableCell>{n.news_id}</TableCell>
+                          <TableCell className="max-w-[160px] whitespace-normal break-words">{n.news_writer}</TableCell>
+                          <TableCell className="text-xs font-medium leading-snug whitespace-normal break-words">{n.news_title}</TableCell>
+                          <TableCell>{n.kanal?.catnews_title}</TableCell>
+                          <TableCell>{formatDateTime(n.news_datepub)}</TableCell>
+                          <TableCell>
                             {getHeadlineBadge(n.news_headline)}
-                          </td>
-                          <td>
+                          </TableCell>
+                          <TableCell>
                             {formatNumber(n.view_data?.pageviews)}
-                          </td>
-                          <td>
+                          </TableCell>
+                          <TableCell>
                             {getStatusBadge(n.news_status)}
-                          </td>
-                          <td>
+                          </TableCell>
+                          <TableCell>
                             <div className="flex justify-end gap-2">
                               {hasPermission('edit news nasional') && (
-                                <Link href={route('admin.nasional.news.edit', n.news_id)} className="btn btn-sm btn-warning btn-outline">Edit</Link>
+                                <Button asChild size="sm" variant="outline" className="border-amber-500 text-amber-600 hover:bg-amber-50 hover:text-amber-700 dark:border-amber-500/60 dark:text-amber-400 dark:hover:bg-amber-950/40">
+                                  <Link href={route('admin.nasional.news.edit', n.news_id)}>Edit</Link>
+                                </Button>
                               )}
-                              <Link href={route('admin.nasional.news.show', n.news_id)} className="btn btn-sm btn-primary btn-outline">Detail</Link>
-                              <button
+                              <Button asChild size="sm" variant="outline" className="border-primary text-primary hover:bg-primary/10">
+                                <Link href={route('admin.nasional.news.show', n.news_id)}>Detail</Link>
+                              </Button>
+                              <Button
+                                type="button"
+                                size="sm"
+                                variant="outline"
                                 onClick={() => handleCopyLink(n)}
-                                className="btn btn-primary btn-sm btn-outline"
+                                className="border-primary text-primary hover:bg-primary/10"
                                 title="Copy Link Berita"
                               >
-                                {/* Logic: Jika ID cocok dengan state, tampilkan Centang Hijau. Jika tidak, tampilkan ikon Link. */}
                                 {copiedId === n.news_id ? (
-                                  <Check className="w-4 h-4 text-green-500" />
+                                  <Check className="w-4 h-4 text-green-600" />
                                 ) : (
                                   <Link2 className="w-4 h-4" />
                                 )}
-                              </button>
+                              </Button>
                             </div>
 
-                          </td>
-                        </tr>
+                          </TableCell>
+                        </TableRow>
                       ))}
-                    </tbody>
+                    </TableBody>
 
-                  </table>
+                  </Table>
                 </div>
 
               </Card>

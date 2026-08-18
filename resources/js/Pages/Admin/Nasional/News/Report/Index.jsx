@@ -14,6 +14,8 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from "@/Components/ui/chart"
+import { Button } from "@/Components/ui/button"
+import { Spinner } from "@/Components/ui/spinner"
 import axios from 'axios'
 import AsyncSelect from 'react-select/async'
 
@@ -207,9 +209,9 @@ export default function ReportIndex({ summary, chart_data, top_news, top_categor
             </div>
             <div className="flex flex-col md:flex-row gap-4 items-end justify-end p-2">
               <div className="w-full md:w-1/5">
-                <button onClick={handleApplyFilter} className="btn btn-primary w-full">
+                <Button onClick={handleApplyFilter} className="w-full">
                   <Search size={18} /> Terapkan Filter
-                </button>
+                </Button>
               </div>
             </div>
           </Card>
@@ -394,44 +396,46 @@ export default function ReportIndex({ summary, chart_data, top_news, top_categor
                 Unduh seluruh detail baris berita ke dalam format Microsoft Excel (.xlsx) untuk keperluan audit lebih lanjut.
               </p>
             </div>
-            <button
+            <Button
               onClick={handleExportExcel}
               disabled={exportProcessing}
-              className="btn btn-success text-white px-6 shadow-sm w-full md:w-auto"
+              variant="success"
+              className="px-6 shadow-sm w-full md:w-auto"
             >
               {exportProcessing ? (
-                <span className="loading loading-spinner loading-sm"></span>
+                <Spinner className="text-white" />
               ) : (
                 <Download size={18} />
               )}
               {exportProcessing ? 'Memproses ke Queue...' : 'Export Laporan Excel'}
-            </button>
+            </Button>
 
-            <button
+            <Button
               onClick={handleExportTopNews}
               disabled={topNewsProcessing}
-              className="btn btn-primary w-full md:w-auto"
+              className="w-full md:w-auto"
             >
               {topNewsProcessing ? (
-                <span className="loading loading-spinner loading-sm"></span>
+                <Spinner className="text-primary-foreground" />
               ) : (
                 <Download size={18} />
               )}
               {topNewsProcessing ? 'Memproses ke Queue...' : 'Export Top 50 Berita'}
-            </button>
+            </Button>
 
-            <button
+            <Button
               onClick={handleExportTopCategory}
               disabled={topCategoryProcessing}
-              className="btn btn-secondary w-full md:w-auto"
+              variant="secondary"
+              className="w-full md:w-auto"
             >
               {topCategoryProcessing ? (
-                <span className="loading loading-spinner loading-sm"></span>
+                <Spinner />
               ) : (
                 <Download size={18} />
               )}
               {topCategoryProcessing ? 'Memproses ke Queue...' : 'Export Top Kanal'}
-            </button>
+            </Button>
           </Card>
 
         </div>

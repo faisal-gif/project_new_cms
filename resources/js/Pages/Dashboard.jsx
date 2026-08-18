@@ -100,31 +100,31 @@ export default function Dashboard({ stats }) {
                 {data.title}
             </h3>
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
-                <Card color="bg-success">
+                <Card color="bg-emerald-500">
                     <div className="flex items-center justify-between text-white p-1 md:p-2">
                         <div>
                             <div className="text-2xl md:text-4xl font-bold">{formatNumber(data.published)}</div>
                             <div className="mt-1 md:mt-2 text-[10px] md:text-sm opacity-90">Published</div>
                         </div>
-                        <CheckIcon className="w-8 h-8 md:w-16 md:h-16 text-success-content opacity-70" />
+                        <CheckIcon className="w-8 h-8 md:w-16 md:h-16 text-emerald-600-content opacity-70" />
                     </div>
                 </Card>
-                <Card color="bg-warning">
+                <Card color="bg-amber-500">
                     <div className="flex items-center justify-between text-white p-1 md:p-2">
                         <div>
                             <div className="text-2xl md:text-4xl font-bold">{formatNumber(data.on_review)}</div>
                             <div className="mt-1 md:mt-2 text-[10px] md:text-sm opacity-90">On Review</div>
                         </div>
-                        <Search className="w-8 h-8 md:w-16 md:h-16 text-warning-content opacity-70" />
+                        <Search className="w-8 h-8 md:w-16 md:h-16 text-amber-600-content opacity-70" />
                     </div>
                 </Card>
-                <Card color="bg-error">
+                <Card color="bg-destructive">
                     <div className="flex items-center justify-between text-white p-1 md:p-2">
                         <div>
                             <div className="text-2xl md:text-4xl font-bold">{formatNumber(data.on_progress)}</div>
                             <div className="mt-1 md:mt-2 text-[10px] md:text-sm opacity-90">On Progress</div>
                         </div>
-                        <Loader className="w-8 h-8 md:w-16 md:h-16 text-error-content opacity-70 animate-spin-slow" />
+                        <Loader className="w-8 h-8 md:w-16 md:h-16 text-destructive-content opacity-70 animate-spin-slow" />
                     </div>
                 </Card>
                 <Card color="bg-secondary">
@@ -147,22 +147,22 @@ export default function Dashboard({ stats }) {
                 Performa Fotografi Anda
             </h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4 max-w-4xl">
-                <Card color="bg-info">
+                <Card color="bg-sky-500">
                     <div className="flex items-center justify-between text-white p-2">
                         <div>
                             <div className="text-3xl md:text-4xl font-bold">{formatNumber(data.uploaded_today || 0)}</div>
                             <div className="mt-1 md:mt-2 text-xs md:text-sm font-medium opacity-90">Diunggah Hari Ini</div>
                         </div>
-                        <Camera className="w-10 h-10 md:w-16 md:h-16 text-info-content opacity-70" />
+                        <Camera className="w-10 h-10 md:w-16 md:h-16 text-sky-600-content opacity-70" />
                     </div>
                 </Card>
-                <Card color="bg-warning">
+                <Card color="bg-amber-500">
                     <div className="flex items-center justify-between text-white p-2">
                         <div>
                             <div className="text-3xl md:text-4xl font-bold">{formatNumber(data.pending_review || 0)}</div>
                             <div className="mt-1 md:mt-2 text-xs md:text-sm font-medium opacity-90">Menunggu Review</div>
                         </div>
-                        <Clock className="w-10 h-10 md:w-16 md:h-16 text-warning-content opacity-70" />
+                        <Clock className="w-10 h-10 md:w-16 md:h-16 text-amber-600-content opacity-70" />
                     </div>
                 </Card>
             </div>
@@ -213,22 +213,22 @@ export default function Dashboard({ stats }) {
                         <FileStack className="w-8 h-8 md:w-16 md:h-16 text-white opacity-40" />
                     </div>
                 </Card>
-                <Card color="bg-success">
+                <Card color="bg-emerald-500">
                     <div className="flex items-center justify-between text-white p-1 md:p-2">
                         <div>
                             <div className="text-2xl md:text-4xl font-bold">{formatNumber(data.published)}</div>
                             <div className="mt-1 md:mt-2 text-[10px] md:text-sm opacity-90">Published</div>
                         </div>
-                        <CheckIcon className="w-8 h-8 md:w-16 md:h-16 text-success-content opacity-70" />
+                        <CheckIcon className="w-8 h-8 md:w-16 md:h-16 text-emerald-600-content opacity-70" />
                     </div>
                 </Card>
-                <Card color="bg-warning">
+                <Card color="bg-amber-500">
                     <div className="flex items-center justify-between text-white p-1 md:p-2">
                         <div>
                             <div className="text-2xl md:text-4xl font-bold">{formatNumber(data.on_pro)}</div>
                             <div className="mt-1 md:mt-2 text-[10px] md:text-sm opacity-90">On Pro</div>
                         </div>
-                        <Loader className="w-8 h-8 md:w-16 md:h-16 text-warning-content opacity-70 animate-spin-slow" />
+                        <Loader className="w-8 h-8 md:w-16 md:h-16 text-amber-600-content opacity-70 animate-spin-slow" />
                     </div>
                 </Card>
                 <Card color="bg-secondary">

@@ -1,4 +1,5 @@
 import Card from '@/Components/Card'
+import { Button } from '@/Components/ui/button';
 import InputError from '@/Components/InputError'
 import InputImage from '@/Components/InputImage'
 import InputLabel from '@/Components/InputLabel'
@@ -67,7 +68,7 @@ export default function EditorForm({ editor = null, users = [], roles = [], nasi
                     <label className="flex items-center gap-2">
                         <input
                             type="checkbox"
-                            className="checkbox"
+                            className="h-4 w-4 rounded border-input accent-primary"
                             checked={data.create_user}
                             onChange={(e) => setData('create_user', e.target.checked)}
                         />
@@ -75,7 +76,7 @@ export default function EditorForm({ editor = null, users = [], roles = [], nasi
                     </label>
 
                     {data.create_user ? (
-                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 border rounded-lg p-4 bg-base-200/40">
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 border rounded-lg p-4 bg-muted/40">
                             <div>
                                 <InputLabel value="Nama Lengkap" className="mb-2 font-bold" />
                                 <TextInput className="mt-1 block w-full" value={data.full_name} onChange={(e) => setData('full_name', e.target.value)} />
@@ -172,7 +173,7 @@ export default function EditorForm({ editor = null, users = [], roles = [], nasi
                             <label className="flex items-center gap-2">
                                 <input
                                     type="checkbox"
-                                    className="checkbox"
+                                    className="h-4 w-4 rounded border-input accent-primary"
                                     checked={data.create_nasional}
                                     disabled={!!data.nasional_id}
                                     onChange={(e) => setData('create_nasional', e.target.checked)}
@@ -228,7 +229,7 @@ export default function EditorForm({ editor = null, users = [], roles = [], nasi
                             <label className="flex items-center gap-2">
                                 <input
                                     type="checkbox"
-                                    className="checkbox"
+                                    className="h-4 w-4 rounded border-input accent-primary"
                                     checked={data.create_daerah}
                                     disabled={!!data.daerah_id}
                                     onChange={(e) => setData('create_daerah', e.target.checked)}
@@ -254,9 +255,9 @@ export default function EditorForm({ editor = null, users = [], roles = [], nasi
             </Card>
 
             <div className="flex justify-end">
-                <button type="submit" className="btn btn-primary" disabled={processing}>
+                <Button type="submit" disabled={processing}>
                     {isEdit ? 'Simpan Perubahan' : 'Simpan'}
-                </button>
+                </Button>
             </div>
         </form>
     )

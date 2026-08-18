@@ -17,6 +17,16 @@ import {
   DropdownMenuLabel,
   DropdownMenuItem,
 } from '@/Components/ui/dropdown-menu'
+import { Button } from '@/Components/ui/button'
+import Breadcrumbs from '@/Components/Breadcrumbs'
+import {
+  Table,
+  TableHeader,
+  TableBody,
+  TableHead,
+  TableRow,
+  TableCell,
+} from '@/Components/ui/table'
 
 // Dropdown salin link publik per network tempat berita ini tayang.
 function CopyLinkDropdown({ links }) {
@@ -32,9 +42,9 @@ function CopyLinkDropdown({ links }) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <button type="button" className="btn btn-sm btn-info btn-outline gap-1">
+        <Button type="button" variant="outline" size="sm" className="gap-1 border-primary text-primary hover:bg-primary/10 hover:text-primary">
           <Link2 size={14} /> Copy Link
-        </button>
+        </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-64 max-h-72">
         <DropdownMenuLabel>Pilih network</DropdownMenuLabel>
@@ -151,7 +161,7 @@ function Index({ news, writers, kanals, fokus, filters }) {
       case 1:
         return <Badge className={"bg-green-300 text-green-700"}>Publish</Badge>;
       default:
-        return <Badge variant="neutral">{status}</Badge>;
+        return <Badge variant="secondary">{status}</Badge>;
     }
   }
 
@@ -159,13 +169,13 @@ function Index({ news, writers, kanals, fokus, filters }) {
     switch (status) {
       case '1':
       case 1:
-        return <Badge className="badge badge-primary badge-soft">ON</Badge>;
+        return <Badge>ON</Badge>;
       case '0':
       case 0:
       case null:
         return <Badge variant="secondary">OFF</Badge>;
       default:
-        return <Badge variant="neutral">{status}</Badge>;
+        return <Badge variant="secondary">{status}</Badge>;
     }
   }
 
@@ -187,14 +197,8 @@ function Index({ news, writers, kanals, fokus, filters }) {
                 </div>
                 {/* end Header */}
 
-                {/* start breadcrumbs */}
-                <div className="breadcrumbs text-sm">
-                  <ul>
-                    <li><a>Home</a></li>
-                    <li>News</li>
-                  </ul>
-                </div>
-                {/* end breadcrumbs */}
+                {/* breadcrumbs */}
+                <Breadcrumbs items={[{ label: 'Home', href: '/' }, { label: 'News' }]} />
 
               </div>
 
@@ -204,17 +208,21 @@ function Index({ news, writers, kanals, fokus, filters }) {
                 <div className="flex gap-2">
                   {/* Button Tambah User */}
                   {hasPermission('create news daerah') && (
-                    <Link href={route('admin.daerah.news.create')} className="btn btn-primary rounded-lg">
-                      <Plus size={16} /> Tambah News
-                    </Link>
+                    <Button asChild className="rounded-lg">
+                      <Link href={route('admin.daerah.news.create')}>
+                        <Plus size={16} /> Tambah News
+                      </Link>
+                    </Button>
                   )}
 
 
                   {/* Button Export Baru */}
                   {hasPermission('view report news daerah') && (
-                    <Link href={route('admin.daerah.news.report.index')} className="btn btn-secondary text-white rounded-lg">
-                      <Download size={16} /> Report Excel
-                    </Link>
+                    <Button asChild variant="secondary" className="rounded-lg">
+                      <Link href={route('admin.daerah.news.report.index')}>
+                        <Download size={16} /> Report Excel
+                      </Link>
+                    </Button>
                   )}
                 </div>
               </div>
@@ -297,9 +305,9 @@ function Index({ news, writers, kanals, fokus, filters }) {
                     />
                   </div>
 
-                  <button type="button" className="btn btn-neutral" onClick={handleReset}>
+                  <Button type="button" variant="secondary" onClick={handleReset}>
                     Reset Filter
-                  </button>
+                  </Button>
                 </div>
               </Card>
               {/* End Filter */}
@@ -310,7 +318,7 @@ function Index({ news, writers, kanals, fokus, filters }) {
                 <div className="md:hidden flex flex-col gap-4">
                   {/* Contoh data, ganti dengan data.map(...) */}
                   {news.data.map((n) => (
-                    <div key={n.id} className="border rounded-xl p-4 bg-base-100 shadow-sm">
+                    <div key={n.id} className="border rounded-xl p-4 bg-background shadow-sm">
 
                       {/* Header */}
                       <div className="flex justify-between items-start gap-2 mb-3">
@@ -339,8 +347,13 @@ function Index({ news, writers, kanals, fokus, filters }) {
                       {/* Actions */}
                       <div className="flex gap-2 mt-4">
                         {hasPermission('edit news daerah') && (
-                          <Link href={route('admin.daerah.news.edit', n)} className="btn btn-sm btn-warning btn-outline">Edit</Link>
+                          <Button asChild size="sm" variant="outline" className="border-amber-500 text-amber-600 hover:bg-amber-50 hover:text-amber-700 dark:border-amber-500/60 dark:text-amber-400 dark:hover:bg-amber-950/40">
+                            <Link href={route('admin.daerah.news.edit', n)}>Edit</Link>
+                          </Button>
                         )}
+                        <Button asChild size="sm" variant="outline" className="border-primary text-primary hover:bg-primary/10">
+                          <Link href={route('admin.daerah.news.show', n)}>Detail</Link>
+                        </Button>
                         <CopyLinkDropdown links={n.share_links} />
                       </div>
                     </div>
@@ -349,51 +362,48 @@ function Index({ news, writers, kanals, fokus, filters }) {
 
                 {/* DESKTOP VERSION (Table Mode) */}
                 <div className="hidden md:block overflow-x-auto">
-                  <table className="table table-zebra">
-
-                    <thead>
-                      <tr>
-                        <th>#</th>
-                        <th>Penulis</th>
-                        <th>Judul</th>
-                        <th>Kanal</th>
-                        <th>Fokus</th>
-                        <th>Tanggal Publish</th>
-                        <th>View</th>
-                        <th>HL</th>
-                        <th>Status</th>
-                        <th className="text-right">Action</th>
-                      </tr>
-                    </thead>
-                    <tbody>
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>#</TableHead>
+                        <TableHead>Penulis</TableHead>
+                        <TableHead className="min-w-[280px]">Judul</TableHead>
+                        <TableHead>Kanal</TableHead>
+                        <TableHead>Tanggal Publish</TableHead>
+                        <TableHead>HL</TableHead>
+                        <TableHead>View</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead className="text-right">Action</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
                       {news.data.map((n, index) => (
-                        <tr key={n.id}>
-                          <th>{n.id}</th>
-                          <td>{n.writer?.name}</td>
-                          <td>{n.title}</td>
-                          <td>{n.kanal?.name}</td>
-                          <td>{n.fokus?.name}</td>
-                          <td>{n.datepub}</td>
-                          <td>{formatNumber(n.views)}</td>
-                          <td>
-                            {getHeadlineBadge(n.is_headline)}
-                          </td>
-                          <td>
-                            {getStatusBadge(n.status)}
-                          </td>
-                          <td>
+                        <TableRow key={n.id}>
+                          <TableCell className="font-medium">{n.id}</TableCell>
+                          <TableCell className="max-w-[160px] whitespace-normal break-words">{n.writer?.name}</TableCell>
+                          <TableCell className="text-xs font-medium leading-snug whitespace-normal break-words">{n.title}</TableCell>
+                          <TableCell>{n.kanal?.name}</TableCell>
+                          <TableCell>{n.datepub}</TableCell>
+                          <TableCell>{getHeadlineBadge(n.is_headline)}</TableCell>
+                          <TableCell>{formatNumber(n.views)}</TableCell>
+                          <TableCell>{getStatusBadge(n.status)}</TableCell>
+                          <TableCell>
                             <div className="flex justify-end gap-2">
                               {hasPermission('edit news daerah') && (
-                                <Link href={route('admin.daerah.news.edit', n)} className="btn btn-sm btn-warning btn-outline">Edit</Link>
+                                <Button asChild size="sm" variant="outline" className="border-amber-500 text-amber-600 hover:bg-amber-50 hover:text-amber-700 dark:border-amber-500/60 dark:text-amber-400 dark:hover:bg-amber-950/40">
+                                  <Link href={route('admin.daerah.news.edit', n)}>Edit</Link>
+                                </Button>
                               )}
+                              <Button asChild size="sm" variant="outline" className="border-primary text-primary hover:bg-primary/10">
+                                <Link href={route('admin.daerah.news.show', n)}>Detail</Link>
+                              </Button>
                               <CopyLinkDropdown links={n.share_links} />
                             </div>
-                          </td>
-                        </tr>
+                          </TableCell>
+                        </TableRow>
                       ))}
-                    </tbody>
-
-                  </table>
+                    </TableBody>
+                  </Table>
                 </div>
 
               </Card>
