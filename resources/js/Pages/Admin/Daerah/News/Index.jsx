@@ -167,9 +167,11 @@ function Index({ news, writers, kanals, fokus, filters }) {
 
 
                   {/* Button Export Baru */}
-                  <Link href={route('admin.daerah.news.report.index')} className="btn btn-secondary text-white rounded-lg">
-                    <Download size={16} /> Report Excel
-                  </Link>
+                  {hasPermission('view report news daerah') && (
+                    <Link href={route('admin.daerah.news.report.index')} className="btn btn-secondary text-white rounded-lg">
+                      <Download size={16} /> Report Excel
+                    </Link>
+                  )}
                 </div>
               </div>
               {/* End Head */}

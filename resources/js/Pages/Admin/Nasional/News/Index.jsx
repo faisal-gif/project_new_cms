@@ -212,9 +212,11 @@ function Index({ news, writers, kanals, filters }) {
                   )}
 
                   {/* Button Export Baru */}
-                  <Link href={route('admin.nasional.news.report.index')} className="btn btn-success rounded-lg">
-                    <Download size={16} /> Report Excel
-                  </Link>
+                  {hasPermission('view report news nasional') && (
+                    <Link href={route('admin.nasional.news.report.index')} className="btn btn-success rounded-lg">
+                      <Download size={16} /> Report Excel
+                    </Link>
+                  )}
                 </div>
               </div>
               {/* End Head */}
