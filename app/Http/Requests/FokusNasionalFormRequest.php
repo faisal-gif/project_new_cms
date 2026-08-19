@@ -11,7 +11,7 @@ class FokusNasionalFormRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return true; 
+        return true;
     }
 
     /**
@@ -26,6 +26,8 @@ class FokusNasionalFormRequest extends FormRequest
             'name'        => 'required|string|max:100',
             'keyword'     => 'required|string|max:255',
             'description' => 'nullable|string',
+            'link_eksternal' => 'nullable|url|max:255',
+            'hot_focus' => 'nullable|boolean',
             'status'      => 'required|integer|in:0,1',
         ];
 
@@ -60,9 +62,14 @@ class FokusNasionalFormRequest extends FormRequest
             'name.required'             => 'Judul wajib diisi.',
             'name.max'                  => 'Judul maksimal 100 karakter.',
             'keyword.required'          => 'Keyword wajib diisi.',
+            'keyword.max'               => 'Keyword maksimal 255 karakter.',
+            'description.string'        => 'Deskripsi harus berupa teks.',
+            'link_eksternal.url'        => 'Link eksternal harus berupa URL yang valid.',
+            'link_eksternal.max'        => 'Link eksternal maksimal 255 karakter.',
+            'hot_focus.boolean'         => 'Hot Focus harus berupa nilai boolean (0 atau 1).',
             'status.required'           => 'Status publikasi wajib dipilih.',
             'status.in'                 => 'Pilihan status tidak valid.',
-            
+
             // Pesan Error Gambar (Required untuk POST)
             'img_desktop_list.required' => 'Gambar Desktop List wajib diunggah.',
             'img_desktop_news.required' => 'Gambar Desktop News wajib diunggah.',
@@ -72,11 +79,11 @@ class FokusNasionalFormRequest extends FormRequest
             'img_desktop_list.image'    => 'File Desktop List harus berupa gambar.',
             'img_desktop_list.mimes'    => 'Format gambar Desktop List harus jpeg, png, jpg, atau webp.',
             'img_desktop_list.max'      => 'Ukuran gambar Desktop List tidak boleh lebih dari 2MB.',
-            
+
             'img_desktop_news.image'    => 'File Desktop News harus berupa gambar.',
             'img_desktop_news.mimes'    => 'Format gambar Desktop News harus jpeg, png, jpg, atau webp.',
             'img_desktop_news.max'      => 'Ukuran gambar Desktop News tidak boleh lebih dari 2MB.',
-            
+
             'img_mobile.image'          => 'File Mobile harus berupa gambar.',
             'img_mobile.mimes'          => 'Format gambar Mobile harus jpeg, png, jpg, atau webp.',
             'img_mobile.max'            => 'Ukuran gambar Mobile tidak boleh lebih dari 2MB.',

@@ -20,6 +20,8 @@ class FokusNasional extends Model
         'focnews_image_body',
         'focnews_image_news',
         'focnews_image_mobile',
+        'link_eksternal',
+        'hot_focus',
         'status',
         'created_by',
     ];

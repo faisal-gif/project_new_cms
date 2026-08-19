@@ -99,6 +99,8 @@ class FokusNasionalController extends Controller
                 'focnews_image_body' => $ImageDesktopListUrl,
                 'focnews_image_news' => $ImageDesktopNewsUrl,
                 'focnews_image_mobile' => $ImageMobileUrl,
+                'link_eksternal' => $request->link_eksternal,
+                'hot_focus' => $request->hot_focus,
                 'status' => $request->status,
                 'created_by' => $createdBy,
             ]);
@@ -185,6 +187,8 @@ class FokusNasionalController extends Controller
                 'focnews_image_body'   => $ImageDesktopListUrl,
                 'focnews_image_news'   => $ImageDesktopNewsUrl,
                 'focnews_image_mobile' => $ImageMobileUrl,
+                'link_eksternal'       => $request->link_eksternal,
+                'hot_focus'            => $request->hot_focus,
                 'status'               => $request->status,
                 'modified_by'          => $updatedBy,
             ]);

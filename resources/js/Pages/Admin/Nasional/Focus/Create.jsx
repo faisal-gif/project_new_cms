@@ -21,6 +21,8 @@ function Create() {
         img_desktop_list: null,
         img_desktop_news: null,
         img_mobile: null,
+        link_eksternal: null,
+        hot_focus: null,
         status: '',
     });
 
@@ -67,7 +69,31 @@ function Create() {
                                                 />
                                                 <InputError message={errors.status} className="mt-2" />
                                             </div>
-
+                                            <div className="lg:col-span-6 w-80">
+                                                <InputRadioGroup
+                                                    label="Hot Focus"
+                                                    value={data.hot_focus}
+                                                    onChange={(e) => setData('hot_focus', e)}
+                                                    options={[
+                                                        { label: "Tidak", value: 0, color: "error" },
+                                                        { label: "Ya", value: 1, color: "success" },
+                                                    ]}
+                                                />
+                                                <InputError message={errors.hot_focus} className="mt-2" />
+                                            </div>
+                                            <div className='lg:col-span-6 w-full'>
+                                                <InputLabel htmlFor="link_eksternal" value="Link Eksternal" className='mb-2 font-bold' />
+                                                <TextInput
+                                                    id="link_eksternal"
+                                                    name="link_eksternal"
+                                                    type="text"
+                                                    className="block w-full"
+                                                    value={data.link_eksternal}
+                                                    onChange={(e) => setData('link_eksternal', e.target.value)}
+                                                    autoComplete="link_eksternal"
+                                                />
+                                                <InputError message={errors.link_eksternal} className="mt-2" />
+                                            </div>
                                             <div className='lg:col-span-6 w-full'>
                                                 <InputLabel htmlFor="name" value="Nama" className='mb-2 font-bold' />
                                                 <TextInput
