@@ -210,6 +210,7 @@ class NewsAJPController extends Controller
         ]);
 
         $validated['modified_by'] = auth()->id();
+        $validated['status'] = 2; // Setelah diedit, berita kembali ke status "On Pro".
 
         $news->update($validated);
 
