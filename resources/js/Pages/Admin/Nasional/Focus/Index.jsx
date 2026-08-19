@@ -150,6 +150,11 @@ function Index({ focus, filters }) {
                           <p className="text-sm text-gray-500">{formatDate(fokus.created)}</p>
                         </div>
 
+                        {fokus.hot_focus && (
+                          <Badge variant="default" className="bg-amber-500 text-amber-foreground hover:bg-amber-500/80">
+                            Hot Focus
+                          </Badge>
+                        )}
                         {getStatusBadge(fokus.status)}
                       </div>
 
@@ -176,6 +181,7 @@ function Index({ focus, filters }) {
                         <TableHead>#</TableHead>
                         <TableHead>Nama</TableHead>
                         <TableHead>Tanggal</TableHead>
+                        <TableHead>Hot Focus</TableHead>
                         <TableHead>Status</TableHead>
                         <TableHead className="text-right">Action</TableHead>
                       </TableRow>
@@ -187,14 +193,21 @@ function Index({ focus, filters }) {
                           <TableCell>{fokus.focnews_title}</TableCell>
                           <TableCell>{formatDate(fokus.created)}</TableCell>
                           <TableCell>
+                            {fokus.hot_focus ? (
+                              <Badge variant="default" className="bg-amber-500 text-amber-foreground hover:bg-amber-500/80">
+                                Hot Focus
+                              </Badge>
+                            ) : null}
+                          </TableCell>
+                          <TableCell>
                             {getStatusBadge(fokus.status)}
                           </TableCell>
                           <TableCell>
                             <div className="flex justify-end gap-2">
                               {hasPermission('edit fokus nasional') && (
                                 <Button asChild size="sm" variant="outline" className="border-amber-500 text-amber-600 hover:bg-amber-50 hover:text-amber-700 dark:border-amber-500/60 dark:text-amber-400 dark:hover:bg-amber-950/40">
-                            <Link href={route('admin.nasional.fokus.edit', fokus.focnews_id)}>Edit</Link>
-                          </Button>
+                                  <Link href={route('admin.nasional.fokus.edit', fokus.focnews_id)}>Edit</Link>
+                                </Button>
                               )}
                             </div>
                           </TableCell>
