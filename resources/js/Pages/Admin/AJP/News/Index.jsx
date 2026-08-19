@@ -54,7 +54,7 @@ export default function Index({ news, members = [], filters }) {
         }
 
         if (statusValue === 2 || statusValue === '2') {
-            return <Badge className="bg-yellow-300 text-yellow-800">On Pro</Badge>;
+            return <Badge className="bg-red-300 text-red-800">On Pro</Badge>;
         }
         return <Badge variant="secondary">Draft</Badge>;
     }
