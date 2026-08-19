@@ -37,7 +37,7 @@ class AdsNasionalController extends Controller
         $ads = AdsNasional::query()
             ->when($request->filled('search'), function ($q) use ($request) {
                 $search = $request->search;
-                $q->where(fn ($q) => $q
+                $q->where(fn($q) => $q
                     ->where('title', 'like', "%{$search}%")
                     ->orWhere('unique_id', 'like', "%{$search}%"));
             })
@@ -79,11 +79,11 @@ class AdsNasionalController extends Controller
             // PERBAIKAN 1: Gunakan hasFile() agar tidak error jika salah satu gambar tidak diunggah
             // GIF pakai 'raw' agar CDN tidak men-transcode & mematikan animasi.
             $desktopImgUrl = $request->hasFile('d_img')
-                ? $this->cdnService->uploadImage($request->file('d_img'), "{$baseSlug}-desktop", 1, $this->cdnProcessType($request->file('d_img')), 0)
+                ? $this->cdnService->uploadImage($request->file('d_img'), "{$baseSlug}-desktop", 5, 'raw', 0)
                 : null;
 
             $mobileImgUrl  = $request->hasFile('m_img')
-                ? $this->cdnService->uploadImage($request->file('m_img'), "{$baseSlug}-mobile", 1, $this->cdnProcessType($request->file('m_img')), 0)
+                ? $this->cdnService->uploadImage($request->file('m_img'), "{$baseSlug}-mobile", 5, 'raw', 0)
                 : null;
 
             DB::beginTransaction();
