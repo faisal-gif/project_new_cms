@@ -68,6 +68,8 @@ class NewsKTController extends Controller
             ->whereHas('newsNasional')
             ->with(['newsNasional', 'writer'])
             ->when($request->filled('member'), fn ($q) => $q->where('pewarta_id', $request->member))
+            ->orderByDesc('id')
+            ->limit(100) // maks 100 berita terbaru per download
             ->get();
 
         $data = $news->map(fn ($item) => [

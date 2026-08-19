@@ -127,6 +127,9 @@ class NewsNasionalController extends Controller
         ]);
     }
 
+    /** Batas maksimal berita per download JSON (hindari load semua ke memori). */
+    private const DOWNLOAD_LIMIT = 100;
+
     public function download(Request $request)
     {
         // Reuse buildQuery (search/tag/penulis/kanal/fokus/tanggal), lalu ambil kolom
@@ -135,6 +138,7 @@ class NewsNasionalController extends Controller
         $news = $this->buildQuery($request)
             ->select('news_id', 'is_code', 'catnews_id', 'focnews_id', 'news_title', 'news_writer', 'news_image_new', 'news_description', 'news_content', 'news_tags', 'news_datepub')
             ->with(['kanal:catnews_id,catnews_title', 'fokus:focnews_id,focnews_title', 'tags:id,name'])
+            ->limit(self::DOWNLOAD_LIMIT) // buildQuery sudah orderBy news_datepub DESC → 100 terbaru
             ->get();
 
         $data = $news->map(fn ($item) => [
