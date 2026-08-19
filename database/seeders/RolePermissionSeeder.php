@@ -65,6 +65,7 @@ class RolePermissionSeeder extends Seeder
                 'edit news nasional',
                 'delete news nasional',
                 'publish news nasional',
+                'download json news nasional',
             ],
             'Kanal Nasional' => [
                 'view kanal nasional',

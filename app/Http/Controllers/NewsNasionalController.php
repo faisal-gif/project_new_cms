@@ -58,6 +58,7 @@ class NewsNasionalController extends Controller
 
         if ($request->writer) $query->where('news_writer', $request->writer);
         if ($request->kanal) $query->where('catnews_id', $request->kanal);
+        if ($request->fokus) $query->where('focnews_id', $request->fokus);
         if ($request->filled('status')) $query->where('news_status', $request->status);
 
         // FILTER RENTANG TANGGAL (Date Range)
@@ -97,6 +98,12 @@ class NewsNasionalController extends Controller
                 'label' => $u->catnews_title,
             ]);
 
+        $fokusList = FokusNasional::select('focnews_id', 'focnews_title')->get()
+            ->map(fn($u) => [
+                'value' => $u->focnews_id,
+                'label' => $u->focnews_title,
+            ]);
+
         $selectedTag = null;
         if ($request->filled('tag')) {
             $tagData = TagsNasional::find($request->tag);
@@ -112,11 +119,43 @@ class NewsNasionalController extends Controller
             'news'    => $news,
             'writers' => $writers,
             'kanals' => $kanals,
+            'fokusList' => $fokusList,
             'filters' => array_merge(
-                $request->only(['search', 'writer', 'kanal', 'status', 'start_date', 'end_date']),
+                $request->only(['search', 'writer', 'kanal', 'fokus', 'status', 'start_date', 'end_date']),
                 ['tag' => $selectedTag]
             ),
         ]);
+    }
+
+    public function download(Request $request)
+    {
+        // Reuse buildQuery (search/tag/penulis/kanal/fokus/tanggal), lalu ambil kolom
+        // lengkap + relasi untuk isi JSON. buildQuery sudah select kolom list saja,
+        // jadi override select-nya dengan kolom yang dibutuhkan konten.
+        $news = $this->buildQuery($request)
+            ->select('news_id', 'is_code', 'catnews_id', 'focnews_id', 'news_title', 'news_writer', 'news_image_new', 'news_description', 'news_content', 'news_tags', 'news_datepub')
+            ->with(['kanal:catnews_id,catnews_title', 'fokus:focnews_id,focnews_title', 'tags:id,name'])
+            ->get();
+
+        $data = $news->map(fn ($item) => [
+            'judul'     => $item->news_title,
+            'thumbnail' => $item->news_image_new,
+            'deskripsi' => $item->news_description,
+            'konten'    => $item->news_content,
+            'penulis'   => $item->news_writer,
+            'kanal'     => $item->kanal?->catnews_title,
+            'fokus'     => $item->fokus?->focnews_title,
+            'tags'      => $item->tags->pluck('name')->values(),
+            'tanggal'   => $item->news_datepub,
+        ])->values();
+
+        $fileName = 'news-nasional-' . now()->format('Ymd-His') . '.json';
+
+        return response()->streamDownload(
+            fn () => print(json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)),
+            $fileName,
+            ['Content-Type' => 'application/json']
+        );
     }
 
     public function searchTags(Request $request)

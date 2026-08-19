@@ -107,6 +107,7 @@ Route::middleware(['auth', \App\Http\Middleware\EnforceRoutePermission::class])-
     Route::prefix('nasional')->name('nasional.')->group(
         function () {
             Route::get('news/diagnoze', [NewsNasionalController::class, 'diagnose'])->name('news.diagnose');
+            Route::get('news/download', [NewsNasionalController::class, 'download'])->name('news.download');
             Route::get('news/report', [ReportNewsNasionalController::class, 'index'])->name('news.report.index');
             Route::get('fotografi/report', [ReportGalleryController::class, 'index'])->name('fotografi.report.index');
             Route::post('news/export', [ReportNewsNasionalController::class, 'export'])->name('news.report.export');

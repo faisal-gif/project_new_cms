@@ -16,12 +16,13 @@ import React, { useEffect, useRef, useState } from 'react'
 import Select from "react-select";
 import AsyncSelect from 'react-select/async'
 
-function Index({ news, writers, kanals, filters }) {
+function Index({ news, writers, kanals, fokusList = [], filters }) {
   const [search, setSearch] = useState(() => filters.search || '');
   const [tag, setTag] = useState(() => filters.tag || null);
   const [status, setStatus] = useState(() => filters.status || '');
   const [writer, setWriter] = useState(() => filters.writer || '');
   const [kanal, setKanal] = useState(() => filters.kanal || '');
+  const [fokus, setFokus] = useState(() => filters.fokus || '');
   const [startDate, setStartDate] = useState(() => filters.start_date || '');
   const [endDate, setEndDate] = useState(() => filters.end_date || '');
   const [copiedId, setCopiedId] = useState(null);
@@ -70,6 +71,7 @@ function Index({ news, writers, kanals, filters }) {
       status,
       writer,
       kanal,
+      fokus,
       start_date: startDate,
       end_date: endDate,
       page: 1
@@ -85,7 +87,7 @@ function Index({ news, writers, kanals, filters }) {
     }
 
     return () => timeout && clearTimeout(timeout);
-  }, [search, tag, status, writer, kanal, startDate, endDate]);
+  }, [search, tag, status, writer, kanal, fokus, startDate, endDate]);
 
   // 3. Update fungsi Reset
   function handleReset() {
@@ -94,12 +96,13 @@ function Index({ news, writers, kanals, filters }) {
     setStatus('');
     setWriter('');
     setKanal('');
+    setFokus('');
     setStartDate('');
     setEndDate('');
 
     router.get(
       INDEX_ROUTE,
-      { search: '', tag: '', status: '', writer: '', kanal: '', start_date: '', end_date: '', page: 1 },
+      { search: '', tag: '', status: '', writer: '', kanal: '', fokus: '', start_date: '', end_date: '', page: 1 },
       { preserveState: true, replace: true }
     );
   }
@@ -218,6 +221,24 @@ function Index({ news, writers, kanals, filters }) {
                       </Link>
                     </Button>
                   )}
+
+                  {/* Download JSON — meneruskan filter aktif (kanal/fokus/tag/penulis/tanggal) */}
+                  {hasPermission('download json news nasional') && (
+                    <Button asChild variant="outline" className="rounded-lg">
+                      <a href={route('admin.nasional.news.download', {
+                        search,
+                        tag: tag ? tag.value : '',
+                        status,
+                        writer,
+                        kanal,
+                        fokus,
+                        start_date: startDate,
+                        end_date: endDate,
+                      })}>
+                        <Download size={16} /> Download JSON
+                      </a>
+                    </Button>
+                  )}
                 </div>
               </div>
               {/* End Head */}
@@ -280,6 +301,17 @@ function Index({ news, writers, kanals, filters }) {
                         placeholder="Semua Kanal"
                         value={kanals.find(option => option.value === kanal) || null}
                         onChange={(e) => setKanal(e ? e.value : '')} // Aman jika di-clear
+                        isClearable
+                      />
+                    </div>
+
+                    <div className="w-full">
+                      <label className="text-xs text-gray-500 mb-1 block">Fokus</label>
+                      <Select
+                        options={fokusList}
+                        placeholder="Semua Fokus"
+                        value={fokusList.find(option => option.value === fokus) || null}
+                        onChange={(e) => setFokus(e ? e.value : '')} // Aman jika di-clear
                         isClearable
                       />
                     </div>
