@@ -159,6 +159,12 @@ export default function Index({ news, members = [], filters }) {
                                                         <Link href={route('admin.ajp.news.show', item.id)}>Detail</Link>
                                                     </Button>
 
+                                                    {hasPermission(['edit news ajp']) && item.news_nasional == null && (
+                                                        <Button asChild size="sm" variant="outline" className="border-blue-600 text-blue-700 hover:bg-blue-50 hover:text-blue-800 dark:border-blue-500/60 dark:text-blue-400 dark:hover:bg-blue-950/40">
+                                                            <Link href={route('admin.ajp.news.edit', item.id)}>Edit</Link>
+                                                        </Button>
+                                                    )}
+
                                                     {hasPermission(['publish news ajp']) && (
                                                         item.news_nasional != null ? (
                                                             // TAMPILAN JIKA STATUS = 1 (SUDAH PUBLISH)

@@ -174,6 +174,49 @@ class NewsAJPController extends Controller
         ]);
     }
 
+    public function edit($id)
+    {
+        $news = NewsBerbayar::with('writer:id,nama')->findOrFail($id);
+
+        if ($news->type != '1') {
+            return redirect()->back()->with('error', 'Berita Ini bukan berita AJP');
+        }
+
+        return Inertia::render('Admin/AJP/News/Edit', [
+            'news' => $news,
+        ]);
+    }
+
+    public function update(Request $request, $id)
+    {
+        $news = NewsBerbayar::findOrFail($id);
+
+        if ($news->type != '1') {
+            return redirect()->back()->with('error', 'Berita Ini bukan berita AJP');
+        }
+
+        // Edit AJP hanya menyunting teks — gambar & pewarta sengaja TIDAK disentuh.
+        $validated = $request->validate([
+            'title'   => ['required', 'string', 'max:255'],
+            'content' => ['required', 'string'],
+            'caption' => ['nullable', 'string', 'max:255'],
+            'city'    => ['nullable', 'string', 'max:100'],
+            'narsum'  => ['nullable', 'string', 'max:255'],
+            'profesi' => ['nullable', 'string', 'max:255'],
+            'contact' => ['nullable', 'string', 'max:20'],
+        ], [
+            'title.required'   => 'Judul berita wajib diisi.',
+            'content.required' => 'Isi berita tidak boleh kosong.',
+        ]);
+
+        $validated['modified_by'] = auth()->id();
+
+        $news->update($validated);
+
+        return redirect()->route('admin.ajp.news.index')
+            ->with('success', 'Berita AJP berhasil diperbarui.');
+    }
+
     public function publish($id)
     {
         $user = Auth::user();

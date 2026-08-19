@@ -179,6 +179,7 @@ class RolePermissionSeeder extends Seeder
             'News AJP' => [
                 'view news ajp',
                 'create news ajp',
+                'edit news ajp',
                 'publish news ajp',
             ],
             'News Kopi Times' => [
