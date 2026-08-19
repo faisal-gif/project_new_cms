@@ -9,7 +9,7 @@ import { Badge } from '@/Components/ui/badge'
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout'
 import { formatDate, formatDateTimeLong } from '@/Utils/formatter'
 import { Head, Link, router, usePage } from '@inertiajs/react'
-import { Plus, Search } from 'lucide-react'
+import { Plus, Search, Download } from 'lucide-react'
 import React, { useEffect, useRef, useState } from 'react'
 import Select from 'react-select'
 
@@ -74,13 +74,23 @@ export default function Index({ news, members = [], filters }) {
                     {/* Toolbar / Filters */}
                     <Card>
                         <div className="flex flex-col md:flex-row justify-between gap-4">
-                            {hasPermission(['create news kopi-times']) && (
-                                <Button asChild>
-                                    <Link href={route('admin.kopi-times.news.create')}>
-                                        <Plus size={16} /> Tulis Berita
-                                    </Link>
-                                </Button>
-                            )}
+                            <div className="flex gap-2">
+                                {hasPermission(['create news kopi-times']) && (
+                                    <Button asChild>
+                                        <Link href={route('admin.kopi-times.news.create')}>
+                                            <Plus size={16} /> Tulis Berita
+                                        </Link>
+                                    </Button>
+                                )}
+
+                                {hasPermission(['download json news kopi-times']) && (
+                                    <Button asChild variant="outline">
+                                        <a href={route('admin.kopi-times.news.download', member ? { member } : {})}>
+                                            <Download size={16} /> Download JSON
+                                        </a>
+                                    </Button>
+                                )}
+                            </div>
 
                             <div className="flex flex-col md:flex-row gap-4 w-full md:w-auto">
                                 <div className="w-full md:w-80">

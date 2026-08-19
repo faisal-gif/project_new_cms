@@ -102,6 +102,7 @@ class EnforceRoutePermission
         'ajp.news.publish.store' => 'publish news ajp',
         'kopi-times.news.publish' => 'publish news kopi-times',
         'kopi-times.news.publish.store' => 'publish news kopi-times',
+        'kopi-times.news.download' => 'download json news kopi-times',
         'kopi-times.events.toggle' => 'edit event kopi-times',
         'kopi-times.events.submissions' => 'view event kopi-times',
         'kopi-times.shipments.index' => 'view merchandise kopi-times',

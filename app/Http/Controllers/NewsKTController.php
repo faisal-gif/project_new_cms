@@ -60,6 +60,36 @@ class NewsKTController extends Controller
         ]);
     }
 
+    public function download(Request $request)
+    {
+        // Hanya berita KT yang sudah published (punya baris di News Nasional) —
+        // thumbnail/deskripsi/konten diambil dari sana. Filter opsional per member.
+        $news = NewsBerbayar::where('type', 4)
+            ->whereHas('newsNasional')
+            ->with(['newsNasional', 'writer'])
+            ->when($request->filled('member'), fn ($q) => $q->where('pewarta_id', $request->member))
+            ->get();
+
+        $data = $news->map(fn ($item) => [
+            'thumbnail' => $item->newsNasional->news_image_new,
+            'deskripsi' => $item->newsNasional->news_description,
+            'konten'    => $item->newsNasional->news_content,
+            'member'    => $item->writer ? [
+                'nama'    => $item->writer->nama,
+                'email'   => $item->writer->email,
+                'contact' => $item->writer->contact,
+            ] : null,
+        ])->values();
+
+        $fileName = 'kopi-times-news-' . now()->format('Ymd-His') . '.json';
+
+        return response()->streamDownload(
+            fn () => print(json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)),
+            $fileName,
+            ['Content-Type' => 'application/json']
+        );
+    }
+
     public function create()
     {
         // FILTERING CERDAS: Hanya ambil penulis yang memenuhi syarat

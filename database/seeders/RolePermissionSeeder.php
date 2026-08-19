@@ -186,6 +186,7 @@ class RolePermissionSeeder extends Seeder
                 'view news kopi-times',
                 'publish news kopi-times',
                 'edit news kopi-times',
+                'download json news kopi-times',
             ],
             'Transaction Kopi Times' => [
                 'view transaction kopi-times',

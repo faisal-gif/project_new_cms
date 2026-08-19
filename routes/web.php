@@ -148,6 +148,7 @@ Route::middleware(['auth', \App\Http\Middleware\EnforceRoutePermission::class])-
     Route::prefix('kopi-times')->name('kopi-times.')->group(
         function () {
             Route::resource('transaction', PaymentsKTController::class)->only('index');
+            Route::get('/news/download', [NewsKTController::class, 'download'])->name('news.download');
             Route::resource('news', NewsKTController::class);
             Route::resource('writer', WriterKtController::class);
             Route::resource('pengumuman', PengumumanKTController::class);
