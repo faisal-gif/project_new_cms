@@ -64,6 +64,7 @@ class NewsNasionalFormRequest extends FormRequest
     public function messages(): array
     {
         return [
+            'status.required'            => 'Status berita wajib dipilih.',
             'editor.required'          => 'Editor wajib dipilih.',
             'writer.required'          => 'Penulis wajib dipilih.',
             'title.required'           => 'Judul berita wajib diisi.',
