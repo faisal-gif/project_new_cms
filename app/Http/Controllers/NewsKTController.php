@@ -70,6 +70,7 @@ class NewsKTController extends Controller
             ->when($request->filled('member'), function ($query) use ($request) {
                 $query->where('pewarta_id', $request->member);
             })
+            ->where('status', 1) // Hanya berita yang sudah diterbitkan
             ->orderByDesc('id')
             ->limit(50) // maks 50 berita terbaru per download
             ->get();
