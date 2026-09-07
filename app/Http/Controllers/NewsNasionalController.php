@@ -128,7 +128,7 @@ class NewsNasionalController extends Controller
     }
 
     /** Batas maksimal berita per download JSON (hindari load semua ke memori). */
-    private const DOWNLOAD_LIMIT = 100;
+    private const DOWNLOAD_LIMIT = 50;
 
     public function download(Request $request)
     {
@@ -151,6 +151,7 @@ class NewsNasionalController extends Controller
             'fokus'     => $item->fokus?->focnews_title,
             'tags'      => $item->tags->pluck('name')->values(),
             'tanggal'   => $item->news_datepub,
+            'url'       => 'https://timesindonesia.co.id/' . ($item->kanal?->catnews_slug ?? 'unknown') . '/' . $item->news_id . '/' . Str::slug($item->news_title),
         ])->values();
 
         $fileName = 'news-nasional-' . now()->format('Ymd-His') . '.json';
