@@ -137,7 +137,7 @@ class NewsNasionalController extends Controller
         // jadi override select-nya dengan kolom yang dibutuhkan konten.
         $news = $this->buildQuery($request)
             ->select('news_id', 'is_code', 'catnews_id', 'focnews_id', 'news_title', 'news_writer', 'news_image_new', 'news_description', 'news_content', 'news_tags', 'news_datepub')
-            ->with(['kanal:catnews_id,catnews_title', 'fokus:focnews_id,focnews_title', 'tags:id,name'])
+            ->with(['kanal:catnews_id,catnews_title,catnews_slug', 'fokus:focnews_id,focnews_title', 'tags:id,name'])
             ->limit(self::DOWNLOAD_LIMIT) // buildQuery sudah orderBy news_datepub DESC → 100 terbaru
             ->get();
 
