@@ -147,10 +147,10 @@ export default function AuthenticatedLayout({ header, children }) {
 
     useEffect(() => {
         if (flash?.success) {
-            toast.success("Berhasil", { description: flash.success });
+            toast.success("Berhasil", { description: flash.success, position: "top-center" });
         }
         if (flash?.error) {
-            toast.error("Terjadi Kesalahan", { description: flash.error });
+            toast.error("Terjadi Kesalahan", { description: flash.error, position: "top-center" });
         }
     }, [flash]);
 
@@ -183,379 +183,379 @@ export default function AuthenticatedLayout({ header, children }) {
                 </SidebarHeader>
                 <SidebarContent className="px-2 py-1">
                     <ul>
-                    {/* ================= 1. GLOBAL / MASTER ================= */}
-                    <h2 className="text-white/50 uppercase text-xs tracking-wider mt-2">Global Master</h2>
+                        {/* ================= 1. GLOBAL / MASTER ================= */}
+                        <h2 className="text-white/50 uppercase text-xs tracking-wider mt-2">Global Master</h2>
 
-                    <li>
-                        <Link href={route('dashboard')} className={linkClass(isActive('dashboard'))}>
-                            <LayoutDashboard size={16} /> Dashboard
-                        </Link>
-                    </li>
-                    {hasPermission('view news master') && (
                         <li>
-                            <Link href={route('admin.news.index')} className={linkClass(isActive('admin.news.*'))}>
-                                <Newspaper size={16} /> News Master
+                            <Link href={route('dashboard')} className={linkClass(isActive('dashboard'))}>
+                                <LayoutDashboard size={16} /> Dashboard
                             </Link>
                         </li>
-                    )}
-                    {hasPermission('view users master') && (
-                        <li>
-                            <Link href={route('admin.users.index')} className={linkClass(isActive('admin.users.*'))}>
-                                <Users size={16} /> Users Master
-                            </Link>
-                        </li>
-                    )}
-                    {/* ===== START PENAMBAHAN MENU ROLE & PERMISSION ===== */}
-                    {hasPermission('view role master') && (
-                        <li>
-                            <Link href={route('admin.roles.index')} className={linkClass(isActive('admin.roles.*'))}>
-                                <ShieldCheck size={16} /> Roles Master
-                            </Link>
-                        </li>
-                    )}
-                    {hasPermission('view permission master') && (
-                        <li>
-                            <Link href={route('admin.permissions.index')} className={linkClass(isActive('admin.permissions.*'))}>
-                                <Key size={16} /> Permissions Master
-                            </Link>
-                        </li>
-                    )}
-                    {/* Grup Tim Daerah */}
-                    {hasPermission(['view penulis master', 'view editors master']) && (
-                        <li>
-                            <details className="group" open={isActive(['admin.writers.*', 'admin.editors.*'])}>
-                                <summary className={summaryClass(isActive(['admin.writers.*', 'admin.editors.*']))}>
-                                    <Users size={16} /> Tim Redaksi Master
-                                </summary>
-                                <ul className="ml-4 border-l border-white/10 pl-2 mt-0.5">
-                                    {hasPermission('view penulis master') && (
-                                        <li>
-                                            <Link href={route('admin.writers.index')} className={linkClass(isActive('admin.writers.*'))}>
-                                                <Pen size={16} /> Penulis
-                                            </Link>
-                                        </li>
-                                    )}
-                                    {hasPermission('view editor master') && (
-                                        <li>
-                                            <Link href={route('admin.editors.index')} className={linkClass(isActive('admin.editors.*'))}>
-                                                <Edit size={16} /> Editor
-                                            </Link>
-                                        </li>
-                                    )}
-                                </ul>
-                            </details>
-                        </li>
-                    )}
-                    {hasPermission('view history') && (
-                        <li>
-                            <Link href={route('admin.history.index')} className={linkClass(isActive('admin.history.*'))}>
-                                <History size={16} /> System History
-                            </Link>
-                        </li>
-                    )}
+                        {hasPermission('view news master') && (
+                            <li>
+                                <Link href={route('admin.news.index')} className={linkClass(isActive('admin.news.*'))}>
+                                    <Newspaper size={16} /> News Master
+                                </Link>
+                            </li>
+                        )}
+                        {hasPermission('view users master') && (
+                            <li>
+                                <Link href={route('admin.users.index')} className={linkClass(isActive('admin.users.*'))}>
+                                    <Users size={16} /> Users Master
+                                </Link>
+                            </li>
+                        )}
+                        {/* ===== START PENAMBAHAN MENU ROLE & PERMISSION ===== */}
+                        {hasPermission('view role master') && (
+                            <li>
+                                <Link href={route('admin.roles.index')} className={linkClass(isActive('admin.roles.*'))}>
+                                    <ShieldCheck size={16} /> Roles Master
+                                </Link>
+                            </li>
+                        )}
+                        {hasPermission('view permission master') && (
+                            <li>
+                                <Link href={route('admin.permissions.index')} className={linkClass(isActive('admin.permissions.*'))}>
+                                    <Key size={16} /> Permissions Master
+                                </Link>
+                            </li>
+                        )}
+                        {/* Grup Tim Daerah */}
+                        {hasPermission(['view penulis master', 'view editors master']) && (
+                            <li>
+                                <details className="group" open={isActive(['admin.writers.*', 'admin.editors.*'])}>
+                                    <summary className={summaryClass(isActive(['admin.writers.*', 'admin.editors.*']))}>
+                                        <Users size={16} /> Tim Redaksi Master
+                                    </summary>
+                                    <ul className="ml-4 border-l border-white/10 pl-2 mt-0.5">
+                                        {hasPermission('view penulis master') && (
+                                            <li>
+                                                <Link href={route('admin.writers.index')} className={linkClass(isActive('admin.writers.*'))}>
+                                                    <Pen size={16} /> Penulis
+                                                </Link>
+                                            </li>
+                                        )}
+                                        {hasPermission('view editor master') && (
+                                            <li>
+                                                <Link href={route('admin.editors.index')} className={linkClass(isActive('admin.editors.*'))}>
+                                                    <Edit size={16} /> Editor
+                                                </Link>
+                                            </li>
+                                        )}
+                                    </ul>
+                                </details>
+                            </li>
+                        )}
+                        {hasPermission('view history') && (
+                            <li>
+                                <Link href={route('admin.history.index')} className={linkClass(isActive('admin.history.*'))}>
+                                    <History size={16} /> System History
+                                </Link>
+                            </li>
+                        )}
 
-                    {/* ================= 2. NASIONAL ================= */}
-                    <div className="my-2 bg-white/10 h-px"></div>
-                    <h2 className="text-blue-400 uppercase text-xs tracking-wider">Nasional</h2>
-
-
-                    {hasPermission('view news nasional') && (
-                        <li>
-                            <Link href={route('admin.nasional.news.index')} className={linkClass(isActive('admin.nasional.news.*'))}>
-                                <Newspaper size={16} /> News Nasional
-                            </Link>
-                        </li>
-                    )}
-                    {hasPermission('view kanal nasional') && (
-                        <li>
-                            <Link href={route('admin.nasional.kanal.index')} className={linkClass(isActive('admin.nasional.kanal.*'))}>
-                                <File size={16} /> Kanal Nasional
-                            </Link>
-                        </li>
-                    )}
-                    {hasPermission('view fokus nasional') && (
-                        <li>
-                            <Link href={route('admin.nasional.fokus.index')} className={linkClass(isActive('admin.nasional.fokus.*'))}>
-                                <Clipboard size={16} /> Fokus Nasional
-                            </Link>
-                        </li>
-                    )}
-                    {hasPermission('view gallery nasional') && (
-                        <li>
-                            <Link href={route('admin.nasional.fotografi.index')} className={linkClass(isActive('admin.nasional.fotografi.*'))}>
-                                <ImageIcon size={16} /> Gallery Nasional
-                            </Link>
-                        </li>
-                    )}
-                    {hasPermission('view ekoran nasional') && (
-                        <li>
-                            <Link href={route('admin.nasional.ekoran.index')} className={linkClass(isActive('admin.nasional.ekoran.*'))}>
-                                <BookText size={16} /> Ekoran
-                            </Link>
-                        </li>
-                    )}
-                    {/* Grup Tim Nasional */}
-                    {hasPermission(["view penulis nasional", "view editor nasional"]) && (
-                        <li>
-                            <details className="group" open={isActive(['admin.nasional.writer.*', 'admin.nasional.editor.*'])}>
-                                <summary className={summaryClass(isActive(['admin.nasional.writer.*', 'admin.nasional.editor.*']))}>
-                                    <Users size={16} /> Tim Redaksi
-                                </summary>
-                                <ul className="ml-4 border-l border-white/10 pl-2 mt-0.5">
-                                    {hasPermission('view penulis nasional') && (
-                                        <li>
-                                            <Link href={route('admin.nasional.writer.index')} className={linkClass(isActive('admin.nasional.writer.*'))}>
-                                                <Pen size={16} /> Penulis
-                                            </Link>
-                                        </li>
-                                    )}
-                                    {hasPermission('view editor nasional') && (
-                                        <li>
-                                            <Link href={route('admin.nasional.editor.index')} className={linkClass(isActive('admin.nasional.editor.*'))}>
-                                                <Edit size={16} /> Editor
-                                            </Link>
-                                        </li>
-                                    )}
-                                </ul>
-                            </details>
-                        </li>
-                    )}
-                    {hasPermission('view ads nasional') && (
-                        <li>
-                            <Link href={route('admin.nasional.ads.index')} className={linkClass(isActive('admin.nasional.ads.*'))}>
-                                <ImagesIcon size={16} /> Ads
-                            </Link>
-                        </li>
-                    )}
-
-                    {hasPermission('view page static nasional') && (
-                        <li>
-                            <Link href={route('admin.nasional.page-static.index')} className={linkClass(isActive('admin.nasional.page-static.*'))}>
-                                <Globe2Icon size={16} /> Page Static
-                            </Link>
-                        </li>
-                    )}
-
-                    {/* ================= 3. DAERAH ================= */}
-                    <div className="my-2 bg-white/10 h-px"></div>
-                    <h2 className="text-emerald-400 uppercase text-xs tracking-wider">Daerah</h2>
-
-                    {hasPermission('view news daerah') && (
-                        <li>
-                            <Link href={route('admin.daerah.news.index')} className={linkClass(isActive('admin.daerah.news.*'))}>
-                                <Newspaper size={16} /> News Daerah
-                            </Link>
-                        </li>
-                    )}
-                    {hasPermission('view kanal daerah') && (
-                        <li>
-                            <Link href={route('admin.daerah.kanal.index')} className={linkClass(isActive('admin.daerah.kanal.*'))}>
-                                <File size={16} /> Kanal Daerah
-                            </Link>
-                        </li>
-                    )}
-                    {hasPermission('view fokus daerah') && (
-                        <li>
-                            <Link href={route('admin.daerah.fokus.index')} className={linkClass(isActive('admin.daerah.fokus.*'))}>
-                                <Clipboard size={16} /> Fokus Daerah
-                            </Link>
-                        </li>
-                    )}
-
-                    {/* Grup Tim Daerah */}
-                    {hasPermission(["view penulis daerah", "view editor daerah"]) && (
-                        <li>
-                            <details className="group" open={isActive(['admin.daerah.writer.*', 'admin.daerah.editor.*'])}>
-                                <summary className={summaryClass(isActive(['admin.daerah.writer.*', 'admin.daerah.editor.*']))}>
-                                    <Users size={16} /> Tim Redaksi
-                                </summary>
-                                <ul className="ml-4 border-l border-white/10 pl-2 mt-0.5">
-                                    {hasPermission('view penulis daerah') && (
-                                        <li>
-                                            <Link href={route('admin.daerah.writer.index')} className={linkClass(isActive('admin.daerah.writer.*'))}>
-                                                <Pen size={16} /> Penulis
-                                            </Link>
-                                        </li>
-                                    )}
-                                    {hasPermission('view editor daerah') && (
-                                        <li>
-                                            <Link href={route('admin.daerah.editor.index')} className={linkClass(isActive('admin.daerah.editor.*'))}>
-                                                <Edit size={16} /> Editor
-                                            </Link>
-                                        </li>
-                                    )}
-                                </ul>
-                            </details>
-                        </li>
-                    )}
-
-                    {/* Grup Ekstra Daerah */}
-                    {hasPermission('view network daerah') && (
-                        <li>
-                            <Link href={route('admin.daerah.network.index')} className={linkClass(isActive('admin.daerah.network.*'))}>
-                                <Globe size={16} /> Network
-                            </Link>
-                        </li>
-                    )}
-
-                    {/* ADS Daerah */}
-                    {hasPermission(["view ads daerah", "view ads daerah location"]) && (
-                        <li>
-                            <details className="group" open={isActive('admin.daerah.ads.*')}>
-                                <summary className={summaryClass(isActive('admin.daerah.ads.*'))}>
-                                    <Images size={16} /> ADS Manager
-                                </summary>
-                                <ul className="ml-4 border-l border-white/10 pl-2 mt-0.5">
-                                    {hasPermission('view ads daerah location') && (
-                                        <li>
-                                            <Link href={route('admin.daerah.adsLocate.index')} className={linkClass(isActive('admin.daerah.ads.locate.*'))}>
-                                                <MapPin size={16} /> Location
-                                            </Link>
-                                        </li>
-                                    )}
-                                    {hasPermission('view ads daerah') && (
-                                        <li>
-                                            <Link href={route('admin.daerah.ads.index')} className={linkClass(isActive('admin.daerah.ads.list.*'))}>
-                                                <List size={16} /> Ads
-                                            </Link>
-                                        </li>
-                                    )}
-                                </ul>
-                            </details>
-                        </li>
-                    )}
-
-                    <>
+                        {/* ================= 2. NASIONAL ================= */}
                         <div className="my-2 bg-white/10 h-px"></div>
-                        <h2 className="text-yellow-300/50 uppercase text-xs tracking-wider">AJP</h2>
-                        {hasPermission(['view pengumuman ajp']) && (
-                            <li>
-                                <Link href={route('admin.ajp.pengumuman.index')} className={linkClass(isActive('admin.ajp.pengumuman.*'))}>
-                                    <Megaphone size={16} /> Pengumuman AJP
-                                </Link>
-                            </li>
-                        )}
-                        {hasPermission(['view member ajp']) && (
-                            <li>
-                                <Link href={route('admin.ajp.writer.index')} className={linkClass(isActive('admin.ajp.writer.*'))}>
-                                    <User2Icon size={16} /> Member AJP
-                                </Link>
-                            </li>
-                        )}
-                        {hasPermission(['view paket ajp']) && (
-                            <li>
-                                <Link href={route('admin.ajp.paket.index')} className={linkClass(isActive('admin.ajp.paket.*'))}>
-                                    <Package size={16} /> Paket AJP
-                                </Link>
-                            </li>
-                        )}
-                        {hasPermission(['view news ajp']) && (
-                            <li>
-                                <Link href={route('admin.ajp.news.index')} className={linkClass(isActive('admin.ajp.news.*'))}>
-                                    <Newspaper size={16} /> News AJP
-                                </Link>
-                            </li>
-                        )}
-                        {hasPermission(['view addon-requests ajp']) && (
-                            <li>
-                                <Link href={route('admin.ajp.addon-requests.index')} className={linkClass(isActive('admin.ajp.addon-requests.*'))}>
-                                    <Blocks size={16} /> Addon Request AJP
-                                </Link>
-                            </li>
-                        )}
-                        {hasPermission(['view transaction ajp']) && (
-                            <li>
-                                <Link href={route('admin.ajp.transaction.index')} className={linkClass(isActive('admin.ajp.news.*'))}>
-                                    <Banknote size={16} /> Transaksi AJP
-                                </Link>
-                            </li>
-                        )}
-                    </>
+                        <h2 className="text-blue-400 uppercase text-xs tracking-wider">Nasional</h2>
 
 
-                    <>
+                        {hasPermission('view news nasional') && (
+                            <li>
+                                <Link href={route('admin.nasional.news.index')} className={linkClass(isActive('admin.nasional.news.*'))}>
+                                    <Newspaper size={16} /> News Nasional
+                                </Link>
+                            </li>
+                        )}
+                        {hasPermission('view kanal nasional') && (
+                            <li>
+                                <Link href={route('admin.nasional.kanal.index')} className={linkClass(isActive('admin.nasional.kanal.*'))}>
+                                    <File size={16} /> Kanal Nasional
+                                </Link>
+                            </li>
+                        )}
+                        {hasPermission('view fokus nasional') && (
+                            <li>
+                                <Link href={route('admin.nasional.fokus.index')} className={linkClass(isActive('admin.nasional.fokus.*'))}>
+                                    <Clipboard size={16} /> Fokus Nasional
+                                </Link>
+                            </li>
+                        )}
+                        {hasPermission('view gallery nasional') && (
+                            <li>
+                                <Link href={route('admin.nasional.fotografi.index')} className={linkClass(isActive('admin.nasional.fotografi.*'))}>
+                                    <ImageIcon size={16} /> Gallery Nasional
+                                </Link>
+                            </li>
+                        )}
+                        {hasPermission('view ekoran nasional') && (
+                            <li>
+                                <Link href={route('admin.nasional.ekoran.index')} className={linkClass(isActive('admin.nasional.ekoran.*'))}>
+                                    <BookText size={16} /> Ekoran
+                                </Link>
+                            </li>
+                        )}
+                        {/* Grup Tim Nasional */}
+                        {hasPermission(["view penulis nasional", "view editor nasional"]) && (
+                            <li>
+                                <details className="group" open={isActive(['admin.nasional.writer.*', 'admin.nasional.editor.*'])}>
+                                    <summary className={summaryClass(isActive(['admin.nasional.writer.*', 'admin.nasional.editor.*']))}>
+                                        <Users size={16} /> Tim Redaksi
+                                    </summary>
+                                    <ul className="ml-4 border-l border-white/10 pl-2 mt-0.5">
+                                        {hasPermission('view penulis nasional') && (
+                                            <li>
+                                                <Link href={route('admin.nasional.writer.index')} className={linkClass(isActive('admin.nasional.writer.*'))}>
+                                                    <Pen size={16} /> Penulis
+                                                </Link>
+                                            </li>
+                                        )}
+                                        {hasPermission('view editor nasional') && (
+                                            <li>
+                                                <Link href={route('admin.nasional.editor.index')} className={linkClass(isActive('admin.nasional.editor.*'))}>
+                                                    <Edit size={16} /> Editor
+                                                </Link>
+                                            </li>
+                                        )}
+                                    </ul>
+                                </details>
+                            </li>
+                        )}
+                        {hasPermission('view ads nasional') && (
+                            <li>
+                                <Link href={route('admin.nasional.ads.index')} className={linkClass(isActive('admin.nasional.ads.*'))}>
+                                    <ImagesIcon size={16} /> Ads
+                                </Link>
+                            </li>
+                        )}
+
+                        {hasPermission('view page static nasional') && (
+                            <li>
+                                <Link href={route('admin.nasional.page-static.index')} className={linkClass(isActive('admin.nasional.page-static.*'))}>
+                                    <Globe2Icon size={16} /> Page Static
+                                </Link>
+                            </li>
+                        )}
+
+                        {/* ================= 3. DAERAH ================= */}
                         <div className="my-2 bg-white/10 h-px"></div>
-                        <h2 className="text-yellow-300/50 uppercase text-xs tracking-wider">Kopi Times</h2>
+                        <h2 className="text-emerald-400 uppercase text-xs tracking-wider">Daerah</h2>
 
-                        {hasPermission(['view pengumuman kopi-times']) && (
+                        {hasPermission('view news daerah') && (
                             <li>
-                                <Link href={route('admin.kopi-times.pengumuman.index')} className={linkClass(isActive('admin.kopi-times.pengumuman.*'))}>
-                                    <Megaphone size={16} /> Pengumuman Kopi Times
+                                <Link href={route('admin.daerah.news.index')} className={linkClass(isActive('admin.daerah.news.*'))}>
+                                    <Newspaper size={16} /> News Daerah
+                                </Link>
+                            </li>
+                        )}
+                        {hasPermission('view kanal daerah') && (
+                            <li>
+                                <Link href={route('admin.daerah.kanal.index')} className={linkClass(isActive('admin.daerah.kanal.*'))}>
+                                    <File size={16} /> Kanal Daerah
+                                </Link>
+                            </li>
+                        )}
+                        {hasPermission('view fokus daerah') && (
+                            <li>
+                                <Link href={route('admin.daerah.fokus.index')} className={linkClass(isActive('admin.daerah.fokus.*'))}>
+                                    <Clipboard size={16} /> Fokus Daerah
                                 </Link>
                             </li>
                         )}
 
-                        {hasPermission(['view member kopi-times']) && (
+                        {/* Grup Tim Daerah */}
+                        {hasPermission(["view penulis daerah", "view editor daerah"]) && (
                             <li>
-                                <Link href={route('admin.kopi-times.writer.index')} className={linkClass(isActive('admin.kopi-times.writer.*'))}>
-                                    <User2Icon size={16} /> Member Kopi Times
+                                <details className="group" open={isActive(['admin.daerah.writer.*', 'admin.daerah.editor.*'])}>
+                                    <summary className={summaryClass(isActive(['admin.daerah.writer.*', 'admin.daerah.editor.*']))}>
+                                        <Users size={16} /> Tim Redaksi
+                                    </summary>
+                                    <ul className="ml-4 border-l border-white/10 pl-2 mt-0.5">
+                                        {hasPermission('view penulis daerah') && (
+                                            <li>
+                                                <Link href={route('admin.daerah.writer.index')} className={linkClass(isActive('admin.daerah.writer.*'))}>
+                                                    <Pen size={16} /> Penulis
+                                                </Link>
+                                            </li>
+                                        )}
+                                        {hasPermission('view editor daerah') && (
+                                            <li>
+                                                <Link href={route('admin.daerah.editor.index')} className={linkClass(isActive('admin.daerah.editor.*'))}>
+                                                    <Edit size={16} /> Editor
+                                                </Link>
+                                            </li>
+                                        )}
+                                    </ul>
+                                </details>
+                            </li>
+                        )}
+
+                        {/* Grup Ekstra Daerah */}
+                        {hasPermission('view network daerah') && (
+                            <li>
+                                <Link href={route('admin.daerah.network.index')} className={linkClass(isActive('admin.daerah.network.*'))}>
+                                    <Globe size={16} /> Network
                                 </Link>
                             </li>
                         )}
 
-                        {hasPermission(['view paket kopi-times']) && (
+                        {/* ADS Daerah */}
+                        {hasPermission(["view ads daerah", "view ads daerah location"]) && (
                             <li>
-                                <Link href={route('admin.kopi-times.paket.index')} className={linkClass(isActive('admin.kopi-times.paket.*'))}>
-                                    <Package size={16} /> Paket Kopi Times
-                                </Link>
+                                <details className="group" open={isActive('admin.daerah.ads.*')}>
+                                    <summary className={summaryClass(isActive('admin.daerah.ads.*'))}>
+                                        <Images size={16} /> ADS Manager
+                                    </summary>
+                                    <ul className="ml-4 border-l border-white/10 pl-2 mt-0.5">
+                                        {hasPermission('view ads daerah location') && (
+                                            <li>
+                                                <Link href={route('admin.daerah.adsLocate.index')} className={linkClass(isActive('admin.daerah.ads.locate.*'))}>
+                                                    <MapPin size={16} /> Location
+                                                </Link>
+                                            </li>
+                                        )}
+                                        {hasPermission('view ads daerah') && (
+                                            <li>
+                                                <Link href={route('admin.daerah.ads.index')} className={linkClass(isActive('admin.daerah.ads.list.*'))}>
+                                                    <List size={16} /> Ads
+                                                </Link>
+                                            </li>
+                                        )}
+                                    </ul>
+                                </details>
                             </li>
                         )}
 
-                        {hasPermission(['view news kopi-times']) && (
-                            <li>
-                                <Link href={route('admin.kopi-times.news.index')} className={linkClass(isActive('admin.kopi-times.news.*'))}>
-                                    <Newspaper size={16} /> News Kopi Times
-                                </Link>
-                            </li>
-                        )}
-
-                        {hasPermission(['view event kopi-times']) && (
-                            <li>
-                                <Link href={route('admin.kopi-times.events.index')} className={linkClass(isActive('admin.kopi-times.events.*'))}>
-                                    <CalendarDays size={16} /> Event Kopi Times
-                                </Link>
-                            </li>
-                        )}
-
-                        {hasPermission(['view addon-requests kopi-times']) && (
-                            <li>
-                                <Link href={route('admin.kopi-times.addon-requests.index')} className={linkClass(isActive('admin.kopi-times.addon-requests.*'))}>
-                                    <Blocks size={16} /> Addon Request Kopi Times
-                                </Link>
-                            </li>
-                        )}
-
-                        {hasPermission(['view merchandise kopi-times']) && (
-                            <li>
-                                <Link href={route('admin.kopi-times.shipments.index')} className={linkClass(isActive('admin.kopi-times.shipments.*'))}>
-                                    <Package size={16} /> Merchandise Kopi Times
-                                </Link>
-                            </li>
-                        )}
-
-                        {hasPermission(['view transaction kopi-times']) && (
-                            <li>
-                                <Link href={route('admin.kopi-times.transaction.index')} className={linkClass(isActive('admin.kopi-times.transaction.*'))}>
-                                    <Banknote size={16} /> Transaksi Kopi Times
-                                </Link>
-                            </li>
-                        )}
-                    </>
-
-
-                    {/* ================= 4. TOOLS & EXPORT ================= */}
-                    {hasPermission(['export ajp']) && (
                         <>
                             <div className="my-2 bg-white/10 h-px"></div>
-                            <h2 className="text-white/50 uppercase text-xs tracking-wider">Tools & Export</h2>
-
-                            <li>
-                                <Link href={route('admin.ajp-export.create')} className={linkClass(false)}>
-                                    <FolderInput size={16} /> Export AJP
-                                </Link>
-                            </li>
+                            <h2 className="text-yellow-300/50 uppercase text-xs tracking-wider">AJP</h2>
+                            {hasPermission(['view pengumuman ajp']) && (
+                                <li>
+                                    <Link href={route('admin.ajp.pengumuman.index')} className={linkClass(isActive('admin.ajp.pengumuman.*'))}>
+                                        <Megaphone size={16} /> Pengumuman AJP
+                                    </Link>
+                                </li>
+                            )}
+                            {hasPermission(['view member ajp']) && (
+                                <li>
+                                    <Link href={route('admin.ajp.writer.index')} className={linkClass(isActive('admin.ajp.writer.*'))}>
+                                        <User2Icon size={16} /> Member AJP
+                                    </Link>
+                                </li>
+                            )}
+                            {hasPermission(['view paket ajp']) && (
+                                <li>
+                                    <Link href={route('admin.ajp.paket.index')} className={linkClass(isActive('admin.ajp.paket.*'))}>
+                                        <Package size={16} /> Paket AJP
+                                    </Link>
+                                </li>
+                            )}
+                            {hasPermission(['view news ajp']) && (
+                                <li>
+                                    <Link href={route('admin.ajp.news.index')} className={linkClass(isActive('admin.ajp.news.*'))}>
+                                        <Newspaper size={16} /> News AJP
+                                    </Link>
+                                </li>
+                            )}
+                            {hasPermission(['view addon-requests ajp']) && (
+                                <li>
+                                    <Link href={route('admin.ajp.addon-requests.index')} className={linkClass(isActive('admin.ajp.addon-requests.*'))}>
+                                        <Blocks size={16} /> Addon Request AJP
+                                    </Link>
+                                </li>
+                            )}
+                            {hasPermission(['view transaction ajp']) && (
+                                <li>
+                                    <Link href={route('admin.ajp.transaction.index')} className={linkClass(isActive('admin.ajp.news.*'))}>
+                                        <Banknote size={16} /> Transaksi AJP
+                                    </Link>
+                                </li>
+                            )}
                         </>
-                    )}
+
+
+                        <>
+                            <div className="my-2 bg-white/10 h-px"></div>
+                            <h2 className="text-yellow-300/50 uppercase text-xs tracking-wider">Kopi Times</h2>
+
+                            {hasPermission(['view pengumuman kopi-times']) && (
+                                <li>
+                                    <Link href={route('admin.kopi-times.pengumuman.index')} className={linkClass(isActive('admin.kopi-times.pengumuman.*'))}>
+                                        <Megaphone size={16} /> Pengumuman Kopi Times
+                                    </Link>
+                                </li>
+                            )}
+
+                            {hasPermission(['view member kopi-times']) && (
+                                <li>
+                                    <Link href={route('admin.kopi-times.writer.index')} className={linkClass(isActive('admin.kopi-times.writer.*'))}>
+                                        <User2Icon size={16} /> Member Kopi Times
+                                    </Link>
+                                </li>
+                            )}
+
+                            {hasPermission(['view paket kopi-times']) && (
+                                <li>
+                                    <Link href={route('admin.kopi-times.paket.index')} className={linkClass(isActive('admin.kopi-times.paket.*'))}>
+                                        <Package size={16} /> Paket Kopi Times
+                                    </Link>
+                                </li>
+                            )}
+
+                            {hasPermission(['view news kopi-times']) && (
+                                <li>
+                                    <Link href={route('admin.kopi-times.news.index')} className={linkClass(isActive('admin.kopi-times.news.*'))}>
+                                        <Newspaper size={16} /> News Kopi Times
+                                    </Link>
+                                </li>
+                            )}
+
+                            {hasPermission(['view event kopi-times']) && (
+                                <li>
+                                    <Link href={route('admin.kopi-times.events.index')} className={linkClass(isActive('admin.kopi-times.events.*'))}>
+                                        <CalendarDays size={16} /> Event Kopi Times
+                                    </Link>
+                                </li>
+                            )}
+
+                            {hasPermission(['view addon-requests kopi-times']) && (
+                                <li>
+                                    <Link href={route('admin.kopi-times.addon-requests.index')} className={linkClass(isActive('admin.kopi-times.addon-requests.*'))}>
+                                        <Blocks size={16} /> Addon Request Kopi Times
+                                    </Link>
+                                </li>
+                            )}
+
+                            {hasPermission(['view merchandise kopi-times']) && (
+                                <li>
+                                    <Link href={route('admin.kopi-times.shipments.index')} className={linkClass(isActive('admin.kopi-times.shipments.*'))}>
+                                        <Package size={16} /> Merchandise Kopi Times
+                                    </Link>
+                                </li>
+                            )}
+
+                            {hasPermission(['view transaction kopi-times']) && (
+                                <li>
+                                    <Link href={route('admin.kopi-times.transaction.index')} className={linkClass(isActive('admin.kopi-times.transaction.*'))}>
+                                        <Banknote size={16} /> Transaksi Kopi Times
+                                    </Link>
+                                </li>
+                            )}
+                        </>
+
+
+                        {/* ================= 4. TOOLS & EXPORT ================= */}
+                        {hasPermission(['export ajp']) && (
+                            <>
+                                <div className="my-2 bg-white/10 h-px"></div>
+                                <h2 className="text-white/50 uppercase text-xs tracking-wider">Tools & Export</h2>
+
+                                <li>
+                                    <Link href={route('admin.ajp-export.create')} className={linkClass(false)}>
+                                        <FolderInput size={16} /> Export AJP
+                                    </Link>
+                                </li>
+                            </>
+                        )}
                     </ul>
                 </SidebarContent>
             </Sidebar>
