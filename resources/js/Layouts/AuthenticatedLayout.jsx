@@ -123,7 +123,7 @@ export default function AuthenticatedLayout({ header, children }) {
 
                     // C. Tampilkan Popup Toast sebagai pemberitahuan instan di layar!
                     toast.success(newNotification.data.title, {
-                        description: newNotification.data.message
+                        description: newNotification.data.message, position: "top-center", duration: 5000, closable: true
                     });
                 });
         }
@@ -147,10 +147,10 @@ export default function AuthenticatedLayout({ header, children }) {
 
     useEffect(() => {
         if (flash?.success) {
-            toast.success("Berhasil", { description: flash.success, position: "top-center" });
+            toast.success("Berhasil", { description: flash.success, position: "top-center", duration: 5000, closable: true });
         }
         if (flash?.error) {
-            toast.error("Terjadi Kesalahan", { description: flash.error, position: "top-center" });
+            toast.error("Terjadi Kesalahan", { description: flash.error, position: "top-center", duration: 5000, closable: true });
         }
     }, [flash]);
 
