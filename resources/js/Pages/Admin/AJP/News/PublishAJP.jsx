@@ -30,7 +30,8 @@ function PublishAJP({ news, editors, fokus, hasEditor, editor_id }) {
         is_content: news.content ?? '',
         is_headline: 0,
         image_thumbnail: '',
-        image_thumbnail_url: '', // Diisi bila memilih foto dari galeri CDN
+        image_thumbnail_url: '', // Diisi bila memilih foto dari galeri CDN (URL final, tanpa upload ulang)
+        image_thumbnail_from_url: '', // Diisi bila menempel URL aset pewarta; diunduh & diunggah ke CDN oleh server
         image_watermark: false,
         image_caption: '',
         datepub: '',
@@ -226,15 +227,30 @@ function PublishAJP({ news, editors, fokus, hasEditor, editor_id }) {
                                             <InputLabel value="Upload Thumbnail Baru (Wajib ditarik dari aset atau edit baru)" className='mb-2 font-bold text-blue-600' />
                                             <InputImage
                                                 value={data.image_thumbnail}
-                                                existingImage={data.image_thumbnail_url || news.news_image_new}
+                                                existingImage={data.image_thumbnail_url || data.image_thumbnail_from_url || news.news_image_new}
                                                 targetWidth={1200}
                                                 targetHeight={800}
-                                                onChange={(file) => setData({ ...data, image_thumbnail: file, image_thumbnail_url: file ? '' : data.image_thumbnail_url })}
-                                                onPickCdn={(url) => setData({ ...data, image_thumbnail: null, image_thumbnail_url: url })}
-                                                onRemove={() => setData({ ...data, image_thumbnail: null, image_thumbnail_url: '' })}
+                                                onChange={(file) => setData({ ...data, image_thumbnail: file, image_thumbnail_url: '', image_thumbnail_from_url: '' })}
+                                                onPickCdn={(url) => setData({ ...data, image_thumbnail: null, image_thumbnail_url: url, image_thumbnail_from_url: '' })}
+                                                onRemove={() => setData({ ...data, image_thumbnail: null, image_thumbnail_url: '', image_thumbnail_from_url: '' })}
                                             />
                                             <InputError message={errors.image_thumbnail} className="mt-2" />
                                             <InputError message={errors.image_thumbnail_url} className="mt-2" />
+
+                                            {/* Jalur ketiga: tempel URL aset pewarta (tombol Copy URL di kartu atas),
+                                                server yang mengunduh lalu mengunggahnya ke CDN. */}
+                                            <div className='mt-4'>
+                                                <InputLabel htmlFor="image_thumbnail_from_url" value="Atau tempel URL gambar (aset pewarta / sumber lain)" className='mb-2 font-bold' />
+                                                <TextInput
+                                                    id="image_thumbnail_from_url"
+                                                    type="url"
+                                                    className="block w-full"
+                                                    placeholder="https://... lalu server unggah ke CDN"
+                                                    value={data.image_thumbnail_from_url}
+                                                    onChange={(e) => setData({ ...data, image_thumbnail_from_url: e.target.value, image_thumbnail: null, image_thumbnail_url: '' })}
+                                                />
+                                                <InputError message={errors.image_thumbnail_from_url} className="mt-2" />
+                                            </div>
                                         </div>
 
 

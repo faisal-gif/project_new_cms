@@ -255,12 +255,28 @@ class NewsAJPController extends Controller
         // Thumbnail ditentukan DI LUAR transaksi agar upload ke CDN tidak menahan koneksi DB,
         // dan agar kegagalan upload bisa return tanpa meninggalkan transaksi menggantung.
         // Foto dari galeri CDN sudah berupa URL final; watermark hanya untuk file baru.
+        $nameThumbnail = Str::slug(Str::limit($request->title, 100, '')) . '-thumbnail';
+
         if ($request->filled('image_thumbnail_url')) {
             $thumbnailUrl = $request->image_thumbnail_url;
+        } elseif ($request->filled('image_thumbnail_from_url')) {
+            // URL sumber (mis. aset pewarta): server yang mengunduh lalu mengunggah ke CDN,
+            // supaya berita tidak bergantung pada host luar yang bisa mati.
+            try {
+                $thumbnailUrl = $this->cdnService->uploadFromUrl(
+                    $request->image_thumbnail_from_url,
+                    $nameThumbnail,
+                    3,
+                    'convert',
+                    $request->image_watermark ? 1 : 0
+                );
+                $newThumbnailId = $this->cdnService->getLastUploadedId();
+            } catch (\Exception $e) {
+                return back()->withInput()->withErrors(['error' => 'Gagal mengambil gambar dari URL: ' . $e->getMessage()]);
+            }
         } elseif ($request->hasFile('image_thumbnail')) {
             try {
                 $file = $request->file('image_thumbnail');
-                $nameThumbnail = Str::slug(Str::limit($request->title, 100, '')) . '-thumbnail';
                 $thumbnailUrl = $this->cdnService->uploadImage($file, $nameThumbnail, 3, 'convert', $request->image_watermark ? 1 : 0) ?? null;
                 $newThumbnailId = $this->cdnService->getLastUploadedId();
             } catch (\Exception $e) {

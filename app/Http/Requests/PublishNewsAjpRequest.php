@@ -30,9 +30,11 @@ class PublishNewsAjpRequest extends FormRequest
             'tag'             => 'nullable|array',
             'is_content'      => 'required|string',
             'is_headline'     => 'nullable|in:0,1,true,false',
-            // Thumbnail bisa dari upload file ATAU dipilih dari galeri CDN (URL final).
-            'image_thumbnail'     => 'required_without:image_thumbnail_url|nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
-            'image_thumbnail_url' => 'nullable|url',
+            // Thumbnail bisa datang dari tiga jalur: upload file, pilih dari galeri CDN
+            // (URL final), atau tempel URL sumber yang diunduh & diunggah ulang oleh server.
+            'image_thumbnail'          => 'required_without_all:image_thumbnail_url,image_thumbnail_from_url|nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+            'image_thumbnail_url'      => 'nullable|url',
+            'image_thumbnail_from_url' => 'nullable|url',
             'image_watermark' => 'nullable|boolean',
             'image_caption'   => 'required|string|max:255',
             'datepub'         => 'required|date',
@@ -58,8 +60,9 @@ class PublishNewsAjpRequest extends FormRequest
             'datepub.required'         => 'Tanggal publish wajib ditentukan.',
             'datepub.date'             => 'Format tanggal publish tidak valid.',
             'kanal.required'           => 'Kanal berita wajib dipilih.',
-            'image_thumbnail.required_without' => 'Gambar thumbnail wajib diunggah atau dipilih dari galeri CDN.',
-            'image_thumbnail_url.url'          => 'Gambar dari galeri CDN harus berupa URL yang valid.',
+            'image_thumbnail.required_without_all' => 'Gambar thumbnail wajib diunggah, dipilih dari galeri CDN, atau diisi URL-nya.',
+            'image_thumbnail_url.url'             => 'Gambar dari galeri CDN harus berupa URL yang valid.',
+            'image_thumbnail_from_url.url'        => 'URL gambar tidak valid (harus diawali http/https).',
             'image_caption.max'        => 'Caption gambar tidak boleh lebih dari 255 karakter.',
             'tag.array'                => 'Format tag tidak valid.',
         ];
