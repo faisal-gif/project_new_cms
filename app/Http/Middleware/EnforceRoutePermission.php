@@ -85,6 +85,8 @@ class EnforceRoutePermission
         'news.import.nasional.store' => 'import nasional news master',
         'nasional.news.import.daerah' => 'import daerah news nasional',
         'nasional.news.import.daerah.store' => 'import daerah news nasional',
+        'daerah.news.import.nasional' => 'import nasional news daerah',
+        'daerah.news.import.nasional.store' => 'import nasional news daerah',
         'history.index' => 'view history',
         // Report (index + semua export digerbang oleh satu permission per halaman)
         'nasional.news.download' => 'download json news nasional',

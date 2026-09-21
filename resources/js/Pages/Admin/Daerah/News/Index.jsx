@@ -354,6 +354,11 @@ function Index({ news, writers, kanals, fokus, filters }) {
                         <Button asChild size="sm" variant="outline" className="border-primary text-primary hover:bg-primary/10">
                           <Link href={route('admin.daerah.news.show', n)}>Detail</Link>
                         </Button>
+                        {hasPermission('import nasional news daerah') && !n.news_nasional && (
+                          <Button asChild size="sm" variant="outline" className="border-primary text-primary hover:bg-primary/10">
+                            <Link href={route('admin.daerah.news.import.nasional', n.id)}>+ Nasional</Link>
+                          </Button>
+                        )}
                         <CopyLinkDropdown links={n.share_links} />
                       </div>
                     </div>
@@ -373,6 +378,7 @@ function Index({ news, writers, kanals, fokus, filters }) {
                         <TableHead>HL</TableHead>
                         <TableHead>View</TableHead>
                         <TableHead>Status</TableHead>
+                        {hasPermission('import nasional news daerah') && <TableHead>Nasional</TableHead>}
                         <TableHead className="text-right">Action</TableHead>
                       </TableRow>
                     </TableHeader>
@@ -387,6 +393,30 @@ function Index({ news, writers, kanals, fokus, filters }) {
                           <TableCell>{getHeadlineBadge(n.is_headline)}</TableCell>
                           <TableCell>{formatNumber(n.views)}</TableCell>
                           <TableCell>{getStatusBadge(n.status)}</TableCell>
+                          {hasPermission('import nasional news daerah') && (
+                            <TableCell>
+                              {n.news_nasional ? (
+                                <div className="flex flex-col gap-1.5">
+                                  <div className="flex items-center justify-between gap-2">
+                                    <span className="text-[11px] font-bold text-emerald-600">Terindeks</span>
+                                    <Button asChild size="xs" variant="outline" className="border-amber-500 text-amber-600 hover:bg-amber-50 hover:text-amber-700 dark:border-amber-500/60 dark:text-amber-400 dark:hover:bg-amber-950/40">
+                                      <Link href={route('admin.nasional.news.edit', n.news_nasional.news_id)}>Edit</Link>
+                                    </Button>
+                                  </div>
+                                  <span className="text-[11px] leading-tight text-foreground/80 truncate max-w-[150px]" title={n.news_nasional.news_title}>
+                                    {n.news_nasional.news_title}
+                                  </span>
+                                  <span className="text-[10px] text-foreground/70">
+                                    {formatDateTime(n.news_nasional.news_datepub)}
+                                  </span>
+                                </div>
+                              ) : (
+                                <Button asChild size="xs" variant="outline" className="border-primary text-primary hover:bg-primary/10">
+                                  <Link href={route('admin.daerah.news.import.nasional', n.id)}>+ Nasional</Link>
+                                </Button>
+                              )}
+                            </TableCell>
+                          )}
                           <TableCell>
                             <div className="flex justify-end gap-2">
                               {hasPermission('edit news daerah') && (

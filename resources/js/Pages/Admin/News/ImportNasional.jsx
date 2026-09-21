@@ -19,7 +19,9 @@ import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import CustomTimeInput from '@/Components/CustomTimeInput'
 
-function ImportNasional({ writers, editors, networks, kanal, fokus, initialData, commerceKanalId }) {
+// Halaman ini dipakai dua modul: News Master (admin.news.import.nasional) dan
+// News Daerah (admin.daerah.news.import.nasional). Bedanya cuma prop storeRoute.
+function ImportNasional({ writers, editors, networks, kanal, fokus, initialData, commerceKanalId, storeRoute = 'admin.news.import.nasional.store' }) {
 
     const [showPicker, setShowPicker] = useState(false);
 
@@ -48,8 +50,7 @@ function ImportNasional({ writers, editors, networks, kanal, fokus, initialData,
 
     const submit = (e) => {
         e.preventDefault();
-        // Sesuaikan dengan nama route penyimpanan untuk Nasional di web.php kamu
-        post(route('admin.news.import.nasional.store'));
+        post(route(storeRoute));
     };
 
     return (

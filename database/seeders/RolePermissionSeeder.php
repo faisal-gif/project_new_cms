@@ -113,6 +113,7 @@ class RolePermissionSeeder extends Seeder
                 'edit news daerah',
                 'delete news daerah',
                 'publish news daerah',
+                'import nasional news daerah',
                 'select all networks',
             ],
             'Kanal Daerah' => [

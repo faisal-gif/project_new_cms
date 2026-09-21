@@ -68,6 +68,16 @@ class NewsDaerah extends Model
         return $this->belongsToMany(NetworkDaerah::class, 'news_network', 'news_id', 'net_id');
     }
 
+    /**
+     * Kembaran berita ini di DB Nasional. is_code adalah kunci korelasi lintas-database.
+     * Selalu batasi is_code non-kosong saat eager load: baris lama bisa punya is_code ''
+     * di kedua sisi dan akan berpasangan secara acak.
+     */
+    public function newsNasional()
+    {
+        return $this->hasOne(NewsNasional::class, 'is_code', 'is_code');
+    }
+
     public function tags()
     {
         return $this->belongsToMany(TagsDaerah::class, 'news_tags', 'news_id', 'tag_id')->withPivot('sort_order')

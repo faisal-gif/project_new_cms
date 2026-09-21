@@ -93,6 +93,9 @@ Route::middleware(['auth', \App\Http\Middleware\EnforceRoutePermission::class])-
         function () {
             Route::get('news/report', [ReportNewsDaerahController::class, 'index'])->name('news.report.index');
             Route::post('news/export', [ReportNewsDaerahController::class, 'export'])->name('news.report.export');
+            // Wildcard pakai id (PK), bukan is_code: sebagian baris daerah lama is_code-nya kosong.
+            Route::get('news/import-nasional/{id}', [NewsDaerahController::class, 'importNasional'])->name('news.import.nasional');
+            Route::post('news/import-nasional', [NewsDaerahController::class, 'importNasionalStore'])->name('news.import.nasional.store');
             Route::resource('kanal', KanalDaerahController::class);
             Route::resource('network', NetworkDaerahController::class);
             Route::resource('news', NewsDaerahController::class);

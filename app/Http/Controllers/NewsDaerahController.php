@@ -4,15 +4,27 @@ namespace App\Http\Controllers;
 
 use App\Exports\NewsDaerahExport;
 use App\Http\Requests\NewsDaerahFormRequest;
+use App\Http\Requests\NewsNasionalImportFormRequest;
+use App\Jobs\CrawlAffiliateLink;
+use App\Models\Editor;
 use App\Models\EditorDaerah;
+use App\Models\EditorNasional;
 use App\Models\FokusDaerah;
+use App\Models\FokusNasional;
 use App\Models\KanalDaerah;
+use App\Models\KanalNasional;
 use App\Models\NetworkDaerah;
+use App\Models\News;
+use App\Models\NewsCommerceNasional;
 use App\Models\NewsDaerah;
+use App\Models\NewsNasional;
 use App\Models\TagsDaerah;
+use App\Models\Writer;
 use App\Models\WriterDaerah;
+use App\Models\WriterNasional;
 use App\Services\CdnService;
 use App\Services\NewsDaerahTagService;
+use App\Services\NewsNasionalTagService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
@@ -28,8 +40,29 @@ class NewsDaerahController extends Controller
 
     public function __construct(
         protected CdnService $cdnService,
-        protected NewsDaerahTagService $tagService
+        protected NewsDaerahTagService $tagService,
+        protected NewsNasionalTagService $tagNasionalService
     ) {}
+
+    /**
+     * Link publik per network: https://{domain}/news/{kanal-slug}/{is_code}/{judul-slug}
+     * Dipakai index() dan show(); jangan digandakan supaya bentuk URL-nya tidak hanyut.
+     */
+    private function shareLinks(NewsDaerah $item)
+    {
+        $titleSlug = Str::slug($item->title);
+        // Fallback ke slug dari nama kanal bila kolom slug kosong.
+        $kanalSlug = filled($item->kanal?->slug)
+            ? $item->kanal->slug
+            : Str::slug($item->kanal?->name ?? '');
+
+        return $item->networks->map(fn($net) => [
+            'network' => $net->name,
+            'url' => ($kanalSlug !== '' && filled($item->is_code))
+                ? "https://{$net->domain}/news/{$kanalSlug}/{$item->is_code}/{$titleSlug}"
+                : null,
+        ])->filter(fn($l) => $l['url'])->values();
+    }
 
     // Ekstrak query builder agar reusable
     private function buildQuery(Request $request)
@@ -116,25 +149,17 @@ class NewsDaerahController extends Controller
 
     public function index(Request $request)
     {
-        $query = $this->buildQuery($request);
+        // newsNasional di-load di sini, bukan di buildQuery(), supaya export()/report
+        // tidak ikut membayar query lintas-database.
+        $query = $this->buildQuery($request)
+            ->with(['newsNasional' => fn($q) => $q
+                ->select('news_id', 'is_code', 'news_title', 'news_datepub', 'news_status')
+                ->where('is_code', '<>', '')]);
         // Faster pagination
         $news = $query->simplePaginate(10)->withQueryString();
 
-        // Bangun link publik per network: https://{domain}/news/{kanal-slug}/{is_code}/{judul-slug}
         $news->getCollection()->transform(function ($item) {
-            $titleSlug = Str::slug($item->title);
-            // Fallback ke slug dari nama kanal bila kolom slug kosong.
-            $kanalSlug = filled($item->kanal?->slug)
-                ? $item->kanal->slug
-                : Str::slug($item->kanal?->name ?? '');
-
-            $item->share_links = $item->networks->map(fn ($net) => [
-                'network' => $net->name,
-                'url' => ($kanalSlug !== '' && filled($item->is_code))
-                    ? "https://{$net->domain}/news/{$kanalSlug}/{$item->is_code}/{$titleSlug}"
-                    : null,
-            ])->filter(fn ($l) => $l['url'])->values();
-
+            $item->share_links = $this->shareLinks($item);
             $item->unsetRelation('networks'); // payload sudah diringkas ke share_links
             return $item;
         });
@@ -299,7 +324,213 @@ class NewsDaerahController extends Controller
      */
     public function show(string $id)
     {
-        //
+        // buildQuery() select-nya terlalu sempit untuk halaman detail (tidak ada content,
+        // description, image, editor_id), jadi pakai query sendiri.
+        $news = NewsDaerah::with([
+            'kanal:id,name,slug',
+            'writer:id,name',
+            'fokus:id,name',
+            'editor:id,name',
+            'tags',
+            'networks' => fn($q) => $q->where('network.status', '1'),
+            'newsNasional' => fn($q) => $q->where('is_code', '<>', ''),
+        ])->findOrFail($id);
+
+        // Berita daerah bisa tayang di beberapa domain network sekaligus, jadi tidak ada
+        // satu publicUrl seperti di Nasional.
+        $shareLinks = $this->shareLinks($news);
+        $news->unsetRelation('networks');
+
+        return Inertia::render('Admin/Daerah/News/Show', [
+            'news' => $news,
+            'shareLinks' => $shareLinks,
+        ]);
+    }
+
+    /**
+     * Form import berita Daerah ke DB Nasional.
+     * Memakai ulang halaman Admin/News/ImportNasional (sama dengan flow master -> nasional),
+     * hanya sumber datanya yang ditukar ke NewsDaerah.
+     */
+    public function importNasional($id)
+    {
+        $news = NewsDaerah::with([
+            'writer:id,name',
+            'tags',
+            'newsNasional' => fn($q) => $q->where('is_code', '<>', ''),
+        ])->findOrFail($id);
+
+        if ($news->newsNasional) {
+            return back()->withErrors(['error' => 'Berita ini sudah ada di Nasional.']);
+        }
+
+        // is_code adalah kunci korelasi lintas-DB. Sebagian baris daerah lama belum punya,
+        // jadi dibuatkan dan disimpan sekarang. Cek tabrakan di KEDUA sisi.
+        if (blank($news->is_code)) {
+            do {
+                $code = Str::random(8);
+            } while (
+                NewsDaerah::where('is_code', $code)->exists()
+                || NewsNasional::where('is_code', $code)->exists()
+            );
+
+            $news->update(['is_code' => $code]);
+        }
+
+        $user = Auth::user();
+
+        // Jembatan penulis lintas-DB: tabel writers master memetakan id_daerah -> id_nasional.
+        // Tidak ketemu -> null, biar user memilih manual (writer_id divalidasi exists).
+        $bridge = $news->writer_id
+            ? Writer::where('id_daerah', $news->writer_id)->first()
+            : null;
+
+        // Editor mengikuti artikelnya (kontinuitas redaksi), bukan user yang mengimpor:
+        // editors master memetakan id_daerah -> id_ti (= EditorNasional.editor_id).
+        $editorBridge = $news->editor_id
+            ? Editor::where('id_daerah', $news->editor_id)->first()
+            : null;
+        $mappedEditor = $editorBridge?->id_ti
+            ? EditorNasional::select('editor_id', 'editor_name', 'status')->find($editorBridge->id_ti)
+            : null;
+        $editorNasionalId = $mappedEditor?->editor_id ?: $user->editor?->id_ti;
+
+        $writers = WriterNasional::select('id as value', 'name as label')->where('status', '1')->get();
+        $editors = EditorNasional::select('editor_id as value', 'editor_name as label')->where('status', '1')->get();
+        $kanal   = KanalNasional::select('catnews_id as value', 'catnews_title as label')->where('catnews_status', '1')->get();
+        $fokus   = FokusNasional::select('focnews_id as value', 'focnews_title as label')->where('status', '1')->get();
+
+        // Editor/penulis hasil pemetaan bisa non-aktif di Nasional. Tanpa disisipkan, field
+        // editor (yang terkunci untuk role editor) tampil kosong padahal nilainya terisi.
+        if ($mappedEditor && $mappedEditor->status !== '1' && $mappedEditor->status != 1) {
+            $editors->prepend((object) [
+                'value' => $mappedEditor->editor_id,
+                'label' => $mappedEditor->editor_name . ' (non-aktif)',
+            ]);
+        }
+        if ($bridge?->id_nasional && !$writers->contains(fn($w) => $w->value == $bridge->id_nasional)) {
+            $inactiveWriter = WriterNasional::select('id', 'name')->find($bridge->id_nasional);
+            if ($inactiveWriter) {
+                $writers->prepend((object) [
+                    'value' => $inactiveWriter->id,
+                    'label' => $inactiveWriter->name . ' (non-aktif)',
+                ]);
+            }
+        }
+
+        // Berita lama menyimpan tag sebagai CSV di kolom tag tanpa baris pivot.
+        $tags = $news->tags->isNotEmpty()
+            ? $news->tags->pluck('name')->toArray()
+            : array_values(array_filter(array_map('trim', explode(',', (string) $news->tag))));
+
+        return Inertia::render('Admin/News/ImportNasional', [
+            'news'            => $news,
+            'writers'         => $writers,
+            'editors'         => $editors,
+            'kanal'           => $kanal,
+            'fokus'           => $fokus,
+            'commerceKanalId' => NewsCommerceNasional::KANAL_ID,
+            'storeRoute'      => 'admin.daerah.news.import.nasional.store',
+            'initialData'     => [
+                'is_code'         => $news->is_code,
+                'title'           => $news->title,
+                'writer'          => $news->writer?->name ?: ($bridge?->name ?? ''),
+                'writer_id'       => $bridge?->id_nasional,
+                'description'     => $news->description,
+                'content'         => $news->content,
+                'tag'             => $tags,
+                'image_caption'   => $news->caption ?? '',
+                'image_thumbnail' => $news->image ?? '',
+                'hasEditor'       => $user->hasRole('editor'),
+                'editor_id'       => $editorNasionalId,
+                'datepub'         => ($news->datepub ? Carbon::parse($news->datepub) : now())->format('Y-m-d\TH:i'),
+                'locus'           => $news->locus ?? '',
+            ],
+        ]);
+    }
+
+    public function importNasionalStore(NewsNasionalImportFormRequest $request)
+    {
+        $isCode = $request->input('is_code');
+        $source = NewsDaerah::where('is_code', $isCode)->firstOrFail();
+
+        if (NewsNasional::where('is_code', $isCode)->exists()) {
+            return back()->withInput()->withErrors(['error' => 'Berita ini sudah ada di Nasional.']);
+        }
+
+        // Kanal Commerce: hitung sekali, dipakai di dalam & sesudah transaksi.
+        $hasLink = (int) $request->kanal === NewsCommerceNasional::KANAL_ID && filled($request->affiliate_link);
+
+        DB::connection('mysql_nasional')->beginTransaction();
+
+        try {
+            // Auto-link tag ke dalam konten + koleksi ID tag nasional.
+            $tagData = $this->tagNasionalService->processTags($request->tag, $request->is_content);
+
+            $news = NewsNasional::create([
+                'is_code'          => $isCode,
+                'news_writer'      => $request->writer,
+                'journalist_id'    => $request->writer_id,
+                'editor_id'        => $request->editor,
+                'catnews_id'       => $request->kanal,
+                'focnews_id'       => $request->focus,
+                'news_title'       => $request->title,
+                'news_description' => $request->description,
+                'news_content'     => $tagData['content'],
+                'news_image_new'   => $request->image_thumbnail,
+                'news_caption'     => $request->image_caption,
+                'news_status'      => $request->status,
+                'news_city'        => $request->locus,
+                'news_datepub'     => $request->datepub ?? now(),
+                'news_headline'    => $request->is_headline ? 1 : 0,
+                'news_tags'        => $tagData['tagString'],
+            ]);
+
+            if (!empty($tagData['syncData'])) {
+                $news->tags()->sync($tagData['syncData']);
+            }
+
+            if ($hasLink) {
+                NewsCommerceNasional::create([
+                    'news_id'        => $news->news_id,
+                    'affiliate_link' => $request->affiliate_link,
+                    'crawl_status'   => 'pending',
+                ]);
+            }
+
+            DB::connection('mysql_nasional')->commit();
+        } catch (\Exception $e) {
+            DB::connection('mysql_nasional')->rollBack();
+            Log::error('Import Daerah ke Nasional gagal: ' . $e->getMessage());
+
+            return back()->withInput()->withErrors(['error' => 'Gagal simpan ke Nasional: ' . $e->getMessage()]);
+        }
+
+        // Koneksi default, jadi HARUS di luar transaksi mysql_nasional (rollback tak bisa
+        // membatalkannya). Berita native daerah bisa tidak punya baris master -> null-safe.
+        News::where('is_code', $isCode)->first()?->update(['distribution_status' => 2]);
+
+        // Dispatch SETELAH commit agar worker tidak jalan sebelum baris ter-commit.
+        if ($hasLink) {
+            CrawlAffiliateLink::dispatch($news->news_id);
+        }
+
+        activity('Import Berita')
+            ->performedOn($source)
+            ->causedBy(Auth::user())
+            ->withProperties([
+                'attributes' => [
+                    'action'           => 'Import Daerah ke Nasional',
+                    'news_nasional_id' => $news->news_id,
+                    'is_code'          => $isCode,
+                    'title'            => $news->news_title,
+                    'datepub'          => $news->news_datepub,
+                    'status'           => $news->news_status,
+                ]
+            ])
+            ->log('Import Ke Nasional');
+
+        return redirect()->route('admin.daerah.news.index')->with('success', 'Berita Nasional berhasil diterbitkan!');
     }
 
     /**
