@@ -23,7 +23,9 @@ class PublishNewsAjpRequest extends FormRequest
     {
         return [
             'is_code'         => 'nullable|string',
-            'status'          => 'required|string',
+            // in: bukan string — payload tanpa file dikirim Inertia sebagai JSON, jadi
+            // nilai radio tetap integer. Lagipula batasan sebenarnya memang 1=Publish, 2=Review.
+            'status'          => 'required|in:1,2',
             'editor'          => 'required',
             'title'           => 'required|string|max:255',
             'description'     => 'required|string|max:255',
@@ -50,6 +52,8 @@ class PublishNewsAjpRequest extends FormRequest
     public function messages(): array
     {
         return [
+            'status.required'          => 'Status publish wajib dipilih.',
+            'status.in'                => 'Status publish harus Publish atau Review.',
             'editor.required'          => 'Editor wajib dipilih.',
             'writer.required'          => 'Penulis wajib dipilih.',
             'title.required'           => 'Judul berita wajib diisi.',
