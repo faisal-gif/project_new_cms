@@ -6,6 +6,7 @@ use App\Exports\NewsNasionalExport;
 use App\Http\Requests\NewsDaerahImportFormRequest;
 use App\Http\Requests\NewsNasionalFormRequest;
 use App\Jobs\CrawlAffiliateLink;
+use App\Models\Editor;
 use App\Models\EditorDaerah;
 use App\Models\EditorNasional;
 use App\Models\NewsCommerceNasional;
@@ -422,8 +423,29 @@ class NewsNasionalController extends Controller
             ? Writer::where('id_nasional', $news->journalist_id)->first()
             : null;
 
+        // Editor mengikuti artikelnya (kontinuitas redaksi), bukan user yang mengimpor:
+        // editors master memetakan id_ti (= NewsNasional.editor_id) ke id_daerah.
+        $editorBridge = $news->editor_id
+            ? Editor::where('id_ti', $news->editor_id)->first()
+            : null;
+        // Barisnya harus benar-benar ada di DB daerah; kalau tidak, validasi exists akan
+        // menolak dan field ini terkunci untuk role editor. Jatuh ke editor user yang login.
+        $mappedEditor = $editorBridge?->id_daerah
+            ? EditorDaerah::select('id', 'name', 'status')->find($editorBridge->id_daerah)
+            : null;
+        $editorDaerahId = $mappedEditor?->id ?: $user->editor?->id_daerah;
+
         $writers  = WriterDaerah::select('id as value', 'name as label')->where('status', '1')->get();
         $editors  = EditorDaerah::select('id as value', 'name as label')->where('status', '1')->get();
+
+        // 42 dari 68 editor master memetakan ke editor daerah non-aktif. Tanpa ini, field
+        // editor (yang terkunci untuk role editor) tampil kosong padahal nilainya terisi.
+        if ($mappedEditor && $mappedEditor->status !== '1' && $mappedEditor->status != 1) {
+            $editors->prepend((object) [
+                'value' => $mappedEditor->id,
+                'label' => $mappedEditor->name . ' (non-aktif)',
+            ]);
+        }
         $networks = NetworkDaerah::select('id as value', 'name as label')->where('status', '1')->get();
         $kanal    = KanalDaerah::select('id as value', 'name as label')->where('status', '1')->get();
         $fokus    = FokusDaerah::select('id as value', 'name as label')->where('status', '1')->get();
@@ -452,7 +474,7 @@ class NewsNasionalController extends Controller
                 'image_caption'     => $news->news_caption ?? '',
                 'image_thumbnail'   => $news->news_image_new ?? '',
                 'hasEditor'         => $user->hasRole('editor'),
-                'editor_id'         => $user->editor?->id_daerah,
+                'editor_id'         => $editorDaerahId,
                 'datepub'           => ($news->news_datepub ? Carbon::parse($news->news_datepub) : now())->format('Y-m-d\TH:i'),
                 'locus'             => strtoupper($news->news_city ?: ($bridge?->daerah?->network?->name ?? '')),
             ],
