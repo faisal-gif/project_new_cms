@@ -13,7 +13,7 @@ import InputTextarea from '@/Components/InputTextarea'
 import TextInput from '@/Components/TextInput'
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout'
 import { Head, Link, useForm } from '@inertiajs/react'
-import { CaptionsIcon, CopyIcon, DownloadIcon, GlobeIcon, ImagesIcon, InfoIcon, NotebookPenIcon } from 'lucide-react'
+import { CaptionsIcon, CheckIcon, CopyIcon, DownloadIcon, GlobeIcon, ImagePlusIcon, ImagesIcon, InfoIcon, NotebookPenIcon } from 'lucide-react'
 import React, { useState } from 'react'
 import Select from "react-select";
 
@@ -50,6 +50,15 @@ function PublishAJP({ news, editors, fokus, hasEditor, editor_id }) {
         navigator.clipboard.writeText(url);
         alert("URL Gambar berhasil disalin!");
     };
+
+    // Pakai aset pewarta sebagai thumbnail: cukup isi URL-nya, server yang mengunduh
+    // lalu mengunggahnya ke CDN saat publish. Mengosongkan dua jalur thumbnail lainnya.
+    const usePewartaImage = (url) => setData({
+        ...data,
+        image_thumbnail_from_url: url,
+        image_thumbnail: null,
+        image_thumbnail_url: '',
+    });
 
     const submit = (e) => {
         e.preventDefault();
@@ -153,7 +162,10 @@ function PublishAJP({ news, editors, fokus, hasEditor, editor_id }) {
                                 <Card title={<span className="flex gap-2 items-center text-2xl font-semibold"><ImagesIcon className='w-6 h-6 text-blue-500' /> Aset Foto (Dari Pewarta)</span>}>
                                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-4">
                                         {availableImages.map((url, idx) => (
-                                            <div key={idx} className="border rounded-xl p-3 bg-gray-50/80 shadow-sm flex flex-col gap-3">
+                                            <div
+                                                key={idx}
+                                                className={`border rounded-xl p-3 bg-gray-50/80 shadow-sm flex flex-col gap-3 ${data.image_thumbnail_from_url === url ? 'ring-2 ring-emerald-500 border-emerald-500' : ''}`}
+                                            >
 
                                                 {/* Preview Gambar */}
                                                 <div className="w-full h-48 bg-gray-200 rounded-lg overflow-hidden border">
@@ -169,6 +181,27 @@ function PublishAJP({ news, editors, fokus, hasEditor, editor_id }) {
                                                         value={url}
                                                         className="w-full text-xs px-2 py-1.5 border-gray-300 rounded bg-white text-gray-600 focus:ring-0"
                                                     />
+
+                                                    {data.image_thumbnail_from_url === url ? (
+                                                        <Button
+                                                            type="button"
+                                                            variant="outline"
+                                                            size="sm"
+                                                            onClick={() => setData({ ...data, image_thumbnail_from_url: '' })}
+                                                            className="w-full gap-1 mt-1 border-emerald-500 text-emerald-600 hover:bg-emerald-50 hover:text-emerald-700"
+                                                        >
+                                                            <CheckIcon size={14} /> Dipakai sebagai Thumbnail
+                                                        </Button>
+                                                    ) : (
+                                                        <Button
+                                                            type="button"
+                                                            size="sm"
+                                                            onClick={() => usePewartaImage(url)}
+                                                            className="w-full gap-1 mt-1 bg-emerald-600 hover:bg-emerald-700 text-white border-none"
+                                                        >
+                                                            <ImagePlusIcon size={14} /> Pakai Foto Ini
+                                                        </Button>
+                                                    )}
 
                                                     <div className="flex gap-2 mt-1">
                                                         <Button
