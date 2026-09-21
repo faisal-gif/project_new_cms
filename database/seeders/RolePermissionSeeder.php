@@ -163,9 +163,6 @@ class RolePermissionSeeder extends Seeder
                 'create ads nasional',
                 'edit ads nasional',
             ],
-            'AJP' => [
-                'export ajp',
-            ],
             'History' => [
                 'view history',
             ],

@@ -23,7 +23,6 @@ import {
     Clipboard,
     Edit,
     File,
-    FolderInput,
     Globe,
     History,
     Image as ImageIcon,
@@ -541,21 +540,6 @@ export default function AuthenticatedLayout({ header, children }) {
                                 </li>
                             )}
                         </>
-
-
-                        {/* ================= 4. TOOLS & EXPORT ================= */}
-                        {hasPermission(['export ajp']) && (
-                            <>
-                                <div className="my-2 bg-white/10 h-px"></div>
-                                <h2 className="text-white/50 uppercase text-xs tracking-wider">Tools & Export</h2>
-
-                                <li>
-                                    <Link href={route('admin.ajp-export.create')} className={linkClass(false)}>
-                                        <FolderInput size={16} /> Export AJP
-                                    </Link>
-                                </li>
-                            </>
-                        )}
                     </ul>
                 </SidebarContent>
             </Sidebar>

@@ -4,7 +4,6 @@ use App\Http\Controllers\ActivityLogController;
 use App\Http\Controllers\AdsDaerahController;
 use App\Http\Controllers\AdsLocateController;
 use App\Http\Controllers\AdsNasionalController;
-use App\Http\Controllers\AJPController;
 use App\Http\Controllers\CdnLibraryController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\EditorController;
@@ -78,7 +77,6 @@ Route::middleware(['auth', \App\Http\Middleware\EnforceRoutePermission::class])-
     Route::post('/news/import-nasional', [NewsController::class, 'importNasionalStore'])->name('news.import.nasional.store');
     Route::get('/history', [ActivityLogController::class, 'index'])->name('history.index');
     Route::post('/news/{news}/notes', [NewsNoteController::class, 'store'])->name('news.notes.store');
-    Route::resource('ajp-export', AJPController::class)->only('create', 'index', 'store');
     Route::resource('roles', RoleController::class);
     Route::resource('permissions', PermissionController::class);
     Route::resource('users', UserController::class);
