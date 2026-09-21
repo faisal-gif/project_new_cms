@@ -30,7 +30,9 @@ class PublishNewsAjpRequest extends FormRequest
             'tag'             => 'nullable|array',
             'is_content'      => 'required|string',
             'is_headline'     => 'nullable|in:0,1,true,false',
-            'image_thumbnail' => 'required|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+            // Thumbnail bisa dari upload file ATAU dipilih dari galeri CDN (URL final).
+            'image_thumbnail'     => 'required_without:image_thumbnail_url|nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+            'image_thumbnail_url' => 'nullable|url',
             'image_watermark' => 'nullable|boolean',
             'image_caption'   => 'required|string|max:255',
             'datepub'         => 'required|date',
@@ -56,8 +58,8 @@ class PublishNewsAjpRequest extends FormRequest
             'datepub.required'         => 'Tanggal publish wajib ditentukan.',
             'datepub.date'             => 'Format tanggal publish tidak valid.',
             'kanal.required'           => 'Kanal berita wajib dipilih.',
-            'image_thumbnail.required' => 'Gambar thumbnail wajib diunggah.',
-            'image_thumbnail.url'      => 'Gambar thumbnail harus berupa URL yang valid.',
+            'image_thumbnail.required_without' => 'Gambar thumbnail wajib diunggah atau dipilih dari galeri CDN.',
+            'image_thumbnail_url.url'          => 'Gambar dari galeri CDN harus berupa URL yang valid.',
             'image_caption.max'        => 'Caption gambar tidak boleh lebih dari 255 karakter.',
             'tag.array'                => 'Format tag tidak valid.',
         ];

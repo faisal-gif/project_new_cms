@@ -250,25 +250,28 @@ class NewsAJPController extends Controller
 
         // Id gambar BARU yang di-upload saat publish; dihapus dari CDN bila transaksi gagal.
         $newThumbnailId = null;
+        $thumbnailUrl = null;
+
+        // Thumbnail ditentukan DI LUAR transaksi agar upload ke CDN tidak menahan koneksi DB,
+        // dan agar kegagalan upload bisa return tanpa meninggalkan transaksi menggantung.
+        // Foto dari galeri CDN sudah berupa URL final; watermark hanya untuk file baru.
+        if ($request->filled('image_thumbnail_url')) {
+            $thumbnailUrl = $request->image_thumbnail_url;
+        } elseif ($request->hasFile('image_thumbnail')) {
+            try {
+                $file = $request->file('image_thumbnail');
+                $nameThumbnail = Str::slug(Str::limit($request->title, 100, '')) . '-thumbnail';
+                $thumbnailUrl = $this->cdnService->uploadImage($file, $nameThumbnail, 3, 'convert', $request->image_watermark ? 1 : 0) ?? null;
+                $newThumbnailId = $this->cdnService->getLastUploadedId();
+            } catch (\Exception $e) {
+                return back()->withInput()->withErrors(['error' => 'Gagal mengunggah gambar ke CDN: ' . $e->getMessage()]);
+            }
+        }
 
         // Gunakan koneksi mysql_nasional untuk transaksi
         DB::connection('mysql_nasional')->beginTransaction();
 
         try {
-            $thumbnailUrl = null;
-            $imageWatermark = $request->image_watermark;
-
-            if ($request->hasFile('image_thumbnail')) {
-                try {
-                    $file = $request->file('image_thumbnail');
-                    $nameThumbnail = Str::slug(Str::limit($request->title, 100, '')) . '-thumbnail';
-                    $thumbnailUrl = $this->cdnService->uploadImage($file, $nameThumbnail, 3, 'convert', $imageWatermark ? 1 : 0) ?? null;
-                    $newThumbnailId = $this->cdnService->getLastUploadedId();
-                } catch (\Exception $e) {
-                    return back()->withInput()->withErrors(['error' => 'Gagal mengunggah gambar ke CDN: ' . $e->getMessage()]);
-                }
-            }
-
             $tagData = $this->tagNasionalService->processTags($request->tag, $request->is_content);
 
             $news = NewsNasional::create([

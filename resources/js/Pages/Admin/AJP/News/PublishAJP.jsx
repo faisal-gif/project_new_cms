@@ -30,6 +30,7 @@ function PublishAJP({ news, editors, fokus, hasEditor, editor_id }) {
         is_content: news.content ?? '',
         is_headline: 0,
         image_thumbnail: '',
+        image_thumbnail_url: '', // Diisi bila memilih foto dari galeri CDN
         image_watermark: false,
         image_caption: '',
         datepub: '',
@@ -223,18 +224,30 @@ function PublishAJP({ news, editors, fokus, hasEditor, editor_id }) {
                                     <div className='grid grid-cols-1 lg:grid-cols-6 gap-4 mt-8'>
                                         <div className='lg:col-span-3'>
                                             <InputLabel value="Upload Thumbnail Baru (Wajib ditarik dari aset atau edit baru)" className='mb-2 font-bold text-blue-600' />
-                                            <InputImage existingImage={news.news_image_new} targetWidth={1200} targetHeight={800} value={data.image_thumbnail} onChange={(file) => setData('image_thumbnail', file)} />
+                                            <InputImage
+                                                value={data.image_thumbnail}
+                                                existingImage={data.image_thumbnail_url || news.news_image_new}
+                                                targetWidth={1200}
+                                                targetHeight={800}
+                                                onChange={(file) => setData({ ...data, image_thumbnail: file, image_thumbnail_url: file ? '' : data.image_thumbnail_url })}
+                                                onPickCdn={(url) => setData({ ...data, image_thumbnail: null, image_thumbnail_url: url })}
+                                                onRemove={() => setData({ ...data, image_thumbnail: null, image_thumbnail_url: '' })}
+                                            />
                                             <InputError message={errors.image_thumbnail} className="mt-2" />
+                                            <InputError message={errors.image_thumbnail_url} className="mt-2" />
                                         </div>
 
 
-                                        <label className="flex items-center gap-2 lg:col-span-6">
-                                            <Checkbox
-                                                checked={data.image_watermark}
-                                                onChange={(e) => setData('image_watermark', e.target.checked)}
-                                            />
-                                            Apakah ini foto original?
-                                        </label>
+                                        {/* Foto dari galeri CDN sudah final — watermark hanya berlaku untuk file yang di-upload di sini. */}
+                                        {!data.image_thumbnail_url && (
+                                            <label className="flex items-center gap-2 lg:col-span-6">
+                                                <Checkbox
+                                                    checked={data.image_watermark}
+                                                    onChange={(e) => setData('image_watermark', e.target.checked)}
+                                                />
+                                                Apakah ini foto original?
+                                            </label>
+                                        )}
 
                                         <div className='lg:col-span-6'>
                                             <InputTextarea label={"Caption Thumbnail"} value={data.image_caption} onChange={(e) => setData('image_caption', e.target.value)} />
