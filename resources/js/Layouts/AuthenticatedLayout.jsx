@@ -464,7 +464,7 @@ export default function AuthenticatedLayout({ header, children }) {
                             )}
                             {hasPermission(['view transaction ajp']) && (
                                 <li>
-                                    <Link href={route('admin.ajp.transaction.index')} className={linkClass(isActive('admin.ajp.news.*'))}>
+                                    <Link href={route('admin.ajp.transaction.index')} className={linkClass(isActive('admin.ajp.transaction.*'))}>
                                         <Banknote size={16} /> Transaksi AJP
                                     </Link>
                                 </li>
