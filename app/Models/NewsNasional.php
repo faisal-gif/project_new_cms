@@ -61,6 +61,16 @@ class NewsNasional extends Model
         return $this->belongsTo(WriterNasional::class, 'journalist_id', 'id');
     }
 
+    /**
+     * Kembaran berita ini di DB Daerah. is_code adalah kunci korelasi lintas-database.
+     * Selalu batasi is_code non-kosong saat eager load: baris lama bisa punya is_code ''
+     * di kedua sisi dan akan berpasangan secara acak.
+     */
+    public function newsDaerah()
+    {
+        return $this->hasOne(NewsDaerah::class, 'is_code', 'is_code');
+    }
+
     public function viewData()
     {
         return $this->hasOne(

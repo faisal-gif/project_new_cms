@@ -116,6 +116,9 @@ Route::middleware(['auth', \App\Http\Middleware\EnforceRoutePermission::class])-
             Route::post('fotografi/export', [ReportGalleryController::class, 'export'])->name('fotografi.report.export');
             Route::get('tags/search', [NewsNasionalController::class, 'searchTags'])->name('tags.search');
             Route::post('news/{id}/recrawl', [NewsNasionalController::class, 'recrawl'])->name('news.recrawl');
+            // Wildcard pakai news_id (PK), bukan is_code: berita nasional lama bisa punya is_code kosong.
+            Route::get('news/import-daerah/{id}', [NewsNasionalController::class, 'importDaerah'])->name('news.import.daerah');
+            Route::post('news/import-daerah', [NewsNasionalController::class, 'importDaerahStore'])->name('news.import.daerah.store');
             Route::get('ads/{ads}/invoice', [AdsNasionalController::class, 'invoice'])->name('ads.invoice');
             Route::resource('ads', AdsNasionalController::class);
             Route::resource('news', NewsNasionalController::class);

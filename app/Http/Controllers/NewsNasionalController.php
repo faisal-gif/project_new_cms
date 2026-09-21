@@ -3,16 +3,26 @@
 namespace App\Http\Controllers;
 
 use App\Exports\NewsNasionalExport;
+use App\Http\Requests\NewsDaerahImportFormRequest;
 use App\Http\Requests\NewsNasionalFormRequest;
 use App\Jobs\CrawlAffiliateLink;
+use App\Models\EditorDaerah;
 use App\Models\EditorNasional;
 use App\Models\NewsCommerceNasional;
+use App\Models\FokusDaerah;
 use App\Models\FokusNasional;
+use App\Models\KanalDaerah;
 use App\Models\KanalNasional;
+use App\Models\NetworkDaerah;
+use App\Models\News;
+use App\Models\NewsDaerah;
 use App\Models\NewsNasional;
 use App\Models\TagsNasional;
+use App\Models\Writer;
+use App\Models\WriterDaerah;
 use App\Models\WriterNasional;
 use App\Services\CdnService;
+use App\Services\NewsDaerahTagService;
 use App\Services\NewsNasionalTagService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
@@ -29,7 +39,8 @@ class NewsNasionalController extends Controller
 
     public function __construct(
         protected CdnService $cdnService,
-        protected NewsNasionalTagService $tagService
+        protected NewsNasionalTagService $tagService,
+        protected NewsDaerahTagService $tagDaerahService
     ) {}
 
     // Ekstrak query builder agar reusable
@@ -81,7 +92,12 @@ class NewsNasionalController extends Controller
      */
     public function index(Request $request)
     {
-        $query = $this->buildQuery($request);
+        // newsDaerah di-load di sini, bukan di buildQuery(), supaya download() & export()
+        // tidak ikut membayar query lintas-database.
+        $query = $this->buildQuery($request)
+            ->with(['newsDaerah' => fn($q) => $q
+                ->select('id', 'is_code', 'title', 'datepub', 'status', 'cat_id')
+                ->where('is_code', '<>', '')]);
         // Faster pagination
         $news = $query->simplePaginate(10)->withQueryString();
 
@@ -343,6 +359,7 @@ class NewsNasionalController extends Controller
             'tags',
             'commerce',
             'viewData',
+            'newsDaerah' => fn($q) => $q->where('is_code', '<>', ''),
         ])->findOrFail($id);
 
         // Link berita publik hanya bila sudah terbit (news_status == 1) dan kanal punya slug.
@@ -367,6 +384,153 @@ class NewsNasionalController extends Controller
         CrawlAffiliateLink::dispatch((int) $id);
 
         return back()->with('success', 'Crawl ulang link affiliate sedang diproses.');
+    }
+
+    /**
+     * Form import berita Nasional ke DB Daerah.
+     * Memakai ulang halaman Admin/News/ImportDaerah (sama dengan flow master -> daerah),
+     * hanya sumber datanya yang ditukar ke NewsNasional.
+     */
+    public function importDaerah($id)
+    {
+        $news = NewsNasional::with([
+            'writer:id,name',
+            'tags',
+            'newsDaerah' => fn($q) => $q->where('is_code', '<>', ''),
+        ])->findOrFail($id);
+
+        if ($news->newsDaerah) {
+            return back()->withErrors(['error' => 'Berita ini sudah ada di Daerah.']);
+        }
+
+        // is_code adalah kunci korelasi lintas-DB. Berita nasional lama bisa belum punya,
+        // jadi dibuatkan dan disimpan sekarang. Idempoten: kalau user batal, kode tetap dipakai lagi.
+        if (blank($news->is_code)) {
+            do {
+                $code = Str::random(8);
+            } while (NewsNasional::where('is_code', $code)->exists());
+
+            $news->update(['is_code' => $code]);
+        }
+
+        $user = Auth::user();
+
+        // Jembatan penulis lintas-DB: tabel writers master menyimpan id_nasional + id_daerah.
+        // Tidak ketemu -> null, biar user memilih manual. Pencocokan by name terlalu berisiko
+        // salah atribusi.
+        $bridge = $news->journalist_id
+            ? Writer::where('id_nasional', $news->journalist_id)->first()
+            : null;
+
+        $writers  = WriterDaerah::select('id as value', 'name as label')->where('status', '1')->get();
+        $editors  = EditorDaerah::select('id as value', 'name as label')->where('status', '1')->get();
+        $networks = NetworkDaerah::select('id as value', 'name as label')->where('status', '1')->get();
+        $kanal    = KanalDaerah::select('id as value', 'name as label')->where('status', '1')->get();
+        $fokus    = FokusDaerah::select('id as value', 'name as label')->where('status', '1')->get();
+
+        // Berita lama menyimpan tag sebagai CSV di news_tags tanpa baris pivot.
+        $tags = $news->tags->isNotEmpty()
+            ? $news->tags->pluck('name')->toArray()
+            : array_values(array_filter(array_map('trim', explode(',', (string) $news->news_tags))));
+
+        return Inertia::render('Admin/News/ImportDaerah', [
+            'news'       => $news,
+            'writers'    => $writers,
+            'editors'    => $editors,
+            'networks'   => $networks,
+            'kanal'      => $kanal,
+            'fokus'      => $fokus,
+            'storeRoute' => 'admin.nasional.news.import.daerah.store',
+            'initialData' => [
+                'is_code'           => $news->is_code,
+                'title'             => $news->news_title,
+                'writer_id'         => $bridge?->id_daerah,
+                'writer_network_id' => $bridge?->network_id,
+                'description'       => $news->news_description,
+                'content'           => $news->news_content,
+                'tag'               => $tags,
+                'image_caption'     => $news->news_caption ?? '',
+                'image_thumbnail'   => $news->news_image_new ?? '',
+                'hasEditor'         => $user->hasRole('editor'),
+                'editor_id'         => $user->editor?->id_daerah,
+                'datepub'           => ($news->news_datepub ? Carbon::parse($news->news_datepub) : now())->format('Y-m-d\TH:i'),
+                'locus'             => strtoupper($news->news_city ?: ($bridge?->daerah?->network?->name ?? '')),
+            ],
+            'canSelectAllNetwork' => $user->can('select all networks'),
+        ]);
+    }
+
+    public function importDaerahStore(NewsDaerahImportFormRequest $request)
+    {
+        $isCode = $request->input('is_code');
+        $source = NewsNasional::where('is_code', $isCode)->firstOrFail();
+
+        if (NewsDaerah::where('is_code', $isCode)->exists()) {
+            return back()->withInput()->withErrors(['error' => 'Berita ini sudah ada di Daerah.']);
+        }
+
+        DB::connection('mysql_daerah')->beginTransaction();
+
+        try {
+            // Auto-link tag ke dalam konten + koleksi ID tag daerah.
+            $tagData = $this->tagDaerahService->processTags($request->tag, $request->is_content);
+
+            $news = NewsDaerah::create([
+                'is_code'      => $isCode,
+                'writer_id'    => $request->writer,
+                'editor_id'    => $request->editor,
+                'cat_id'       => $request->kanal,
+                'fokus_id'     => $request->focus,
+                'title'        => $request->title,
+                'description'  => $request->description,
+                'content'      => $tagData['content'],
+                'image'        => $request->image_thumbnail,
+                'caption'      => $request->image_caption,
+                'status'       => $request->status,
+                'locus'        => $request->locus,
+                'datepub'      => $request->datepub ?? now(),
+                'is_headline'  => $request->is_headline ? 1 : 0,
+                'is_editorial' => $request->is_editorial ? 1 : 0,
+                'is_adv'       => $request->is_adv ? 1 : 0,
+                'tag'          => $tagData['tagString'],
+            ]);
+
+            if (!empty($tagData['syncData'])) {
+                $news->tags()->sync($tagData['syncData']);
+            }
+
+            if (is_array($request->network)) {
+                $news->networks()->sync($request->network);
+            }
+
+            DB::connection('mysql_daerah')->commit();
+        } catch (\Exception $e) {
+            DB::connection('mysql_daerah')->rollBack();
+            Log::error('Import Nasional ke Daerah gagal: ' . $e->getMessage());
+
+            return back()->withInput()->withErrors(['error' => 'Gagal simpan: ' . $e->getMessage()]);
+        }
+
+        // Koneksi default, jadi HARUS di luar transaksi mysql_daerah (rollback tak bisa
+        // membatalkannya). Berita native nasional bisa tidak punya baris master -> null-safe.
+        News::where('is_code', $isCode)->first()?->update(['distribution_status' => 2]);
+
+        activity('Import Berita')
+            ->performedOn($source)
+            ->causedBy(Auth::user())
+            ->withProperties([
+                'attributes' => [
+                    'action'         => 'Import Nasional ke Daerah',
+                    'news_daerah_id' => $news->id,
+                    'is_code'        => $isCode,
+                    'title'          => $news->title,
+                    'datepub'        => $news->datepub,
+                    'status'         => $news->status,
+                ]
+            ])
+            ->log('Import Ke Daerah');
+
+        return redirect()->route('admin.nasional.news.index')->with('success', 'Berita Daerah berhasil diterbitkan!');
     }
 
     /**

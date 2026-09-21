@@ -2,7 +2,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import Breadcrumbs from '@/Components/Breadcrumbs';
 import { Button } from '@/Components/ui/button';
 import Card from '@/Components/Card';
-import { Head, Link, router } from '@inertiajs/react';
+import { Head, Link, router, usePage } from '@inertiajs/react';
 import {
     CalendarIcon,
     FolderIcon,
@@ -12,13 +12,16 @@ import {
     EyeIcon,
     ShoppingBagIcon,
     RotateCwIcon,
-    ExternalLinkIcon
+    ExternalLinkIcon,
+    MapPinIcon
 } from 'lucide-react';
 import React from 'react';
 import { formatDateTimeLong } from '@/Utils/formatter';
 import { Badge } from '@/Components/ui/badge';
 
 export default function Show({ news, publicUrl }) {
+
+    const canImportDaerah = (usePage().props.auth.permissions || []).includes('import daerah news nasional');
 
     return (
         <div>
@@ -39,7 +42,22 @@ export default function Show({ news, publicUrl }) {
                                     </Button>
                                     <h1 className="text-3xl font-bold text-foreground">Detail Berita</h1>
                                 </div>
-                                <Breadcrumbs items={[{ label: 'Beranda' }, { label: 'Berita Nasional' }, { label: 'Detail' }]} />
+                                <div className="flex items-center gap-3">
+                                    {canImportDaerah && (
+                                        news.news_daerah ? (
+                                            <Button disabled size="sm" className="bg-gray-300 text-white border-none cursor-not-allowed hover:bg-gray-300">
+                                                <MapPinIcon size={16} /> Telah Di-import ke Daerah
+                                            </Button>
+                                        ) : (
+                                            <Button asChild size="sm" className="bg-emerald-600 hover:bg-emerald-700 text-white border-none">
+                                                <Link href={route('admin.nasional.news.import.daerah', news.news_id)}>
+                                                    <MapPinIcon size={16} /> Import Daerah
+                                                </Link>
+                                            </Button>
+                                        )
+                                    )}
+                                    <Breadcrumbs items={[{ label: 'Beranda' }, { label: 'Berita Nasional' }, { label: 'Detail' }]} />
+                                </div>
                             </div>
 
                             <Card>

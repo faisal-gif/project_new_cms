@@ -375,7 +375,7 @@ function Index({ news, writers, kanals, fokusList = [], filters }) {
                 <div className="md:hidden flex flex-col gap-4">
                   {/* Contoh data, ganti dengan data.map(...) */}
                   {news.data.map((n) => (
-                    <div key={n.id} className="border rounded-xl p-4 bg-background shadow-sm">
+                    <div key={n.news_id} className="border rounded-xl p-4 bg-background shadow-sm">
 
                       {/* Header */}
                       <div className="flex justify-between items-start gap-2 mb-3">
@@ -411,6 +411,11 @@ function Index({ news, writers, kanals, fokusList = [], filters }) {
                         <Button asChild size="sm" variant="outline" className="border-primary text-primary hover:bg-primary/10">
                                 <Link href={route('admin.nasional.news.show', n.news_id)}>Detail</Link>
                               </Button>
+                        {hasPermission('import daerah news nasional') && !n.news_daerah && (
+                          <Button asChild size="sm" variant="outline" className="border-primary text-primary hover:bg-primary/10">
+                            <Link href={route('admin.nasional.news.import.daerah', n.news_id)}>+ Daerah</Link>
+                          </Button>
+                        )}
                       </div>
                     </div>
                   ))}
@@ -430,6 +435,7 @@ function Index({ news, writers, kanals, fokusList = [], filters }) {
                         <TableHead>HL</TableHead>
                         <TableHead>View</TableHead>
                         <TableHead>Status</TableHead>
+                        {hasPermission('import daerah news nasional') && <TableHead>Daerah</TableHead>}
                         <TableHead className="text-right">Action</TableHead>
                       </TableRow>
                     </TableHeader>
@@ -450,6 +456,30 @@ function Index({ news, writers, kanals, fokusList = [], filters }) {
                           <TableCell>
                             {getStatusBadge(n.news_status)}
                           </TableCell>
+                          {hasPermission('import daerah news nasional') && (
+                            <TableCell>
+                              {n.news_daerah ? (
+                                <div className="flex flex-col gap-1.5">
+                                  <div className="flex items-center justify-between gap-2">
+                                    <span className="text-[11px] font-bold text-emerald-600">Terindeks</span>
+                                    <Button asChild size="xs" variant="outline" className="border-amber-500 text-amber-600 hover:bg-amber-50 hover:text-amber-700 dark:border-amber-500/60 dark:text-amber-400 dark:hover:bg-amber-950/40">
+                                      <Link href={route('admin.daerah.news.edit', n.news_daerah.id)}>Edit</Link>
+                                    </Button>
+                                  </div>
+                                  <span className="text-[11px] leading-tight text-foreground/80 truncate max-w-[150px]" title={n.news_daerah.title}>
+                                    {n.news_daerah.title}
+                                  </span>
+                                  <span className="text-[10px] text-foreground/70">
+                                    {formatDateTime(n.news_daerah.datepub)}
+                                  </span>
+                                </div>
+                              ) : (
+                                <Button asChild size="xs" variant="outline" className="border-primary text-primary hover:bg-primary/10">
+                                  <Link href={route('admin.nasional.news.import.daerah', n.news_id)}>+ Daerah</Link>
+                                </Button>
+                              )}
+                            </TableCell>
+                          )}
                           <TableCell>
                             <div className="flex justify-end gap-2">
                               {hasPermission('edit news nasional') && (

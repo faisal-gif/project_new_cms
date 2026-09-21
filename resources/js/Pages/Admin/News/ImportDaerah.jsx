@@ -19,7 +19,9 @@ import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import CustomTimeInput from '@/Components/CustomTimeInput'
 
-function ImportDaerah({ writers, editors, networks, kanal, fokus, initialData, canSelectAllNetwork = false }) {
+// Halaman ini dipakai dua modul: News Master (admin.news.import.daerah) dan
+// News Nasional (admin.nasional.news.import.daerah). Bedanya cuma prop storeRoute.
+function ImportDaerah({ writers, editors, networks, kanal, fokus, initialData, canSelectAllNetwork = false, storeRoute = 'admin.news.import.daerah.store' }) {
 
     const [showPicker, setShowPicker] = useState(false);
 
@@ -43,12 +45,12 @@ function ImportDaerah({ writers, editors, networks, kanal, fokus, initialData, c
         locus: initialData?.locus || '',
         focus: '',
         kanal: '',
-        network: [initialData?.writer_network_id || ''],
+        network: initialData?.writer_network_id ? [initialData.writer_network_id] : [],
     });
 
     const submit = (e) => {
         e.preventDefault();
-        post(route('admin.news.import.daerah.store'));
+        post(route(storeRoute));
     };
 
 
