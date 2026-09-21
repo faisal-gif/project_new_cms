@@ -260,6 +260,35 @@ class NewsKTController extends Controller
             $validatedData['tags'] = implode(',', $validatedData['tags']);
         }
 
+        // 3b. Thumbnail: tiga jalur (upload file, galeri CDN, tempel URL). Kosong semua =
+        // pertahankan gambar lama. Field image_* bukan kolom tabel, jadi diterjemahkan ke
+        // 'image' lalu dibuang sebelum mass-assign.
+        $watermark = ($validatedData['image_watermark'] ?? false) ? 1 : 0;
+        $newThumbnailId = null;
+        $nameThumbnail = 'kopi-times-' . Str::slug(Str::limit($news->title, 100, '')) . '-thumbnail';
+
+        try {
+            if (filled($validatedData['image_thumbnail_url'] ?? null)) {
+                // Foto galeri CDN sudah berupa URL final.
+                $validatedData['image'] = $validatedData['image_thumbnail_url'];
+            } elseif (filled($validatedData['image_thumbnail_from_url'] ?? null)) {
+                $validatedData['image'] = $this->cdnService->uploadFromUrl($validatedData['image_thumbnail_from_url'], $nameThumbnail, 3, 'convert', $watermark);
+                $newThumbnailId = $this->cdnService->getLastUploadedId();
+            } elseif ($request->hasFile('image_thumbnail')) {
+                $validatedData['image'] = $this->cdnService->uploadImage($request->file('image_thumbnail'), $nameThumbnail, 3, 'convert', $watermark);
+                $newThumbnailId = $this->cdnService->getLastUploadedId();
+            }
+        } catch (\Exception $e) {
+            return back()->withInput()->withErrors(['error' => 'Gagal memproses gambar: ' . $e->getMessage()]);
+        }
+
+        unset(
+            $validatedData['image_thumbnail'],
+            $validatedData['image_thumbnail_url'],
+            $validatedData['image_thumbnail_from_url'],
+            $validatedData['image_watermark'],
+        );
+
         // 4. Catat user yang memodifikasi (jika pakai sistem login Laravel)
         if (auth()->check()) {
             $validatedData['modified_by'] = auth()->id();
@@ -267,7 +296,14 @@ class NewsKTController extends Controller
 
         $validatedData['status'] = 2;
         // 5. Eksekusi Update
-        $news->update($validatedData);
+        try {
+            $news->update($validatedData);
+        } catch (\Exception $e) {
+            // Update batal: hapus HANYA gambar baru yang terlanjur di-upload.
+            $this->cdnService->delete($newThumbnailId);
+
+            return back()->withInput()->withErrors(['error' => 'Gagal menyimpan perubahan: ' . $e->getMessage()]);
+        }
 
         // 6. Return response (Karena pakai Inertia, cukup redirect back)
        return redirect()->route('admin.kopi-times.news.index')->with('success', 'Berita berhasil diEdit!');
@@ -325,28 +361,37 @@ class NewsKTController extends Controller
         // Id gambar BARU yang di-upload saat publish; dihapus dari CDN bila transaksi gagal.
         $newThumbnailId = null;
 
+        // Thumbnail ditentukan DI LUAR transaksi: upload ke CDN tidak menahan koneksi DB,
+        // dan kegagalannya bisa return tanpa meninggalkan transaksi menggantung.
+        // Kosong di ketiga jalur = pakai gambar bawaan berita KT.
+        $finalImage = $ktNews->image;
+        $writerName = $writerKT?->nama ?? $ktNews->narsum ?? 'public-event';
+        $nameThumbnail = 'kopi-times-' . Str::slug(Str::limit($writerName, 100, '')) . '-thumbnail';
+
+        if ($request->filled('image_thumbnail_url')) {
+            // Foto galeri CDN sudah berupa URL final.
+            $finalImage = $request->image_thumbnail_url;
+        } elseif ($request->filled('image_thumbnail_from_url')) {
+            try {
+                $finalImage = $this->cdnService->uploadFromUrl($request->image_thumbnail_from_url, $nameThumbnail, 3, 'convert', false);
+                $newThumbnailId = $this->cdnService->getLastUploadedId();
+            } catch (\Exception $e) {
+                return back()->withInput()->withErrors(['error' => 'Gagal mengambil gambar dari URL: ' . $e->getMessage()]);
+            }
+        } elseif ($request->hasFile('image_thumbnail')) {
+            try {
+                $file = $request->file('image_thumbnail');
+                $finalImage = $this->cdnService->uploadImage($file, $nameThumbnail, 3, 'convert', false) ?? null;
+                $newThumbnailId = $this->cdnService->getLastUploadedId();
+            } catch (\Exception $e) {
+                return back()->withInput()->withErrors(['error' => 'Gagal mengunggah gambar ke CDN: ' . $e->getMessage()]);
+            }
+        }
+
         DB::connection('mysql_nasional')->beginTransaction();
 
         try {
-
-
             $tagData = $this->tagNasionalService->processTags($request->tag, $request->is_content);
-
-            // LOGIKA PENANGANAN FILE FOTO:
-            $finalImage = $ktNews->image; // Default pakai gambar bawaan
-
-            // Cek apakah ada file foto yang diunggah oleh editor
-            if ($request->hasFile('image_thumbnail')) {
-                try {
-                    $file = $request->file('image_thumbnail');
-                    $writerName = $writerKT?->nama ?? $ktNews->narsum ?? 'public-event';
-                    $nameThumbnail = 'kopi-times-' . Str::slug(Str::limit($writerName, 100, '')) . '-thumbnail';
-                    $finalImage = $this->cdnService->uploadImage($file, $nameThumbnail, 3, 'convert', false) ?? null;
-                    $newThumbnailId = $this->cdnService->getLastUploadedId();
-                } catch (\Exception $e) {
-                    return back()->withInput()->withErrors(['error' => 'Gagal mengunggah gambar ke CDN: ' . $e->getMessage()]);
-                }
-            }
 
             $news = NewsNasional::create([
                 'is_code'          => $request->is_code,

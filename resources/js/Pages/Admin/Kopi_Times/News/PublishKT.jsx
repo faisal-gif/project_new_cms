@@ -30,6 +30,8 @@ function PublishKT({ news, editors, kanal, writerkanal, hasEditor, editor_id }) 
         tag: news.tags ? news.tags.split(',') : [],
         is_content: news.content ?? '',
         image_thumbnail: '',
+        image_thumbnail_url: '', // Dipilih dari galeri CDN (URL final, tanpa upload ulang)
+        image_thumbnail_from_url: '', // URL sumber; diunduh & diunggah ke CDN oleh server
         image_caption: news.caption ?? '',
         datepub: news.datepub ?? '',
         locus: news.city ?? '',
@@ -140,13 +142,30 @@ function PublishKT({ news, editors, kanal, writerkanal, hasEditor, editor_id }) 
                                                 <InputLabel value="Ganti Thumbnail (Opsional)" className='mb-2 font-bold text-blue-700' />
                                                 <p className="text-xs text-slate-500 mb-3">Unggah gambar baru jika preview di atas buram/jelek.</p>
                                                 <InputImage
-                                                    existingImage={news.image}
+                                                    existingImage={data.image_thumbnail_url || data.image_thumbnail_from_url || news.image}
                                                     value={data.image_thumbnail}
                                                     targetWidth={1200}
                                                     targetHeight={800}
-                                                    onChange={(e) => setData('image_thumbnail', e)}
+                                                    onChange={(file) => setData({ ...data, image_thumbnail: file, image_thumbnail_url: '', image_thumbnail_from_url: '' })}
+                                                    onPickCdn={(url) => setData({ ...data, image_thumbnail: null, image_thumbnail_url: url, image_thumbnail_from_url: '' })}
+                                                    onRemove={() => setData({ ...data, image_thumbnail: null, image_thumbnail_url: '', image_thumbnail_from_url: '' })}
                                                 />
                                                 <InputError message={errors.image_thumbnail} className="mt-2" />
+                                                <InputError message={errors.image_thumbnail_url} className="mt-2" />
+
+                                                {/* Jalur ketiga: tempel URL sumber, server yang mengunduh lalu unggah ke CDN. */}
+                                                <div className='mt-4'>
+                                                    <InputLabel htmlFor="image_thumbnail_from_url" value="Atau tempel URL gambar" className='mb-2 font-bold' />
+                                                    <TextInput
+                                                        id="image_thumbnail_from_url"
+                                                        type="url"
+                                                        className="block w-full"
+                                                        placeholder="https://... lalu server unggah ke CDN"
+                                                        value={data.image_thumbnail_from_url}
+                                                        onChange={(e) => setData({ ...data, image_thumbnail_from_url: e.target.value, image_thumbnail: null, image_thumbnail_url: '' })}
+                                                    />
+                                                    <InputError message={errors.image_thumbnail_from_url} className="mt-2" />
+                                                </div>
                                             </div>
                                         </div>
 

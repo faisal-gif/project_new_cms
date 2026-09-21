@@ -19,8 +19,8 @@ import Select from "react-select";
 
 function Edit({ news, editors, kanal, writerkanal, hasEditor, editor_id }) {
 
-    // 1. Tambahkan 'transform' dari useForm Inertia
-    const { data, setData, put, processing, errors, transform } = useForm({
+    const { data, setData, post, processing, errors } = useForm({
+        _method: 'PUT', // Wajib untuk file upload (gambar) saat update di Inertia
         is_code: news.is_code ?? '',
 
         // Prioritaskan editor dari database, jika null pakai editor_id dari props (user login)
@@ -39,16 +39,15 @@ function Edit({ news, editors, kanal, writerkanal, hasEditor, editor_id }) {
         tags: news.tags ? news.tags.split(',') : [],
 
         focus: '',
-        image_thumbnail: news.image ?? '',
+        image_thumbnail: null, // File unggahan baru
+        image_thumbnail_url: '', // Dipilih dari galeri CDN (URL final)
+        image_thumbnail_from_url: '', // URL sumber; diunduh & diunggah ke CDN oleh server
         image_watermark: false,
     });
 
-
-
     const submit = (e) => {
         e.preventDefault();
-        // Fungsi put() otomatis akan memanggil transform() di atas sebelum mengirim data
-        put(route('admin.kopi-times.news.update', news.id));
+        post(route('admin.kopi-times.news.update', news.id));
     };
 
     return (
@@ -137,14 +136,44 @@ function Edit({ news, editors, kanal, writerkanal, hasEditor, editor_id }) {
                                 <Card title={<span className="flex gap-2 items-center text-2xl font-semibold"><ImagesIcon className='w-6 h-6' /> Gambar Thumbnail Publish</span>}>
                                     <div className='grid grid-cols-1 lg:grid-cols-6 gap-6 mt-8'>
 
-                                        {/* Kiri: Thumbnail Berita */}
+                                        {/* Kiri: Thumbnail Berita — bisa diganti (unggah, galeri CDN, atau tempel URL) */}
                                         <div className='lg:col-span-3'>
                                             <InputLabel value="Gambar Thumbnail" className='mb-2 font-bold' />
-                                            <img
-                                                src={data.image_thumbnail || 'https://via.placeholder.com/400x300'}
-                                                alt="Thumbnail Preview"
-                                                className="w-full max-h-[300px] object-cover rounded-lg border shadow-sm"
+                                            <InputImage
+                                                value={data.image_thumbnail}
+                                                existingImage={data.image_thumbnail_url || data.image_thumbnail_from_url || news.image}
+                                                targetWidth={1200}
+                                                targetHeight={800}
+                                                onChange={(file) => setData({ ...data, image_thumbnail: file, image_thumbnail_url: '', image_thumbnail_from_url: '' })}
+                                                onPickCdn={(url) => setData({ ...data, image_thumbnail: null, image_thumbnail_url: url, image_thumbnail_from_url: '' })}
+                                                onRemove={() => setData({ ...data, image_thumbnail: null, image_thumbnail_url: '', image_thumbnail_from_url: '' })}
                                             />
+                                            <InputError message={errors.image_thumbnail} className="mt-2" />
+                                            <InputError message={errors.image_thumbnail_url} className="mt-2" />
+
+                                            <div className='mt-4'>
+                                                <InputLabel htmlFor="image_thumbnail_from_url" value="Atau tempel URL gambar" className='mb-2 font-bold' />
+                                                <TextInput
+                                                    id="image_thumbnail_from_url"
+                                                    type="url"
+                                                    className="block w-full"
+                                                    placeholder="https://... lalu server unggah ke CDN"
+                                                    value={data.image_thumbnail_from_url}
+                                                    onChange={(e) => setData({ ...data, image_thumbnail_from_url: e.target.value, image_thumbnail: null, image_thumbnail_url: '' })}
+                                                />
+                                                <InputError message={errors.image_thumbnail_from_url} className="mt-2" />
+                                            </div>
+
+                                            {/* Foto galeri CDN sudah final — watermark hanya untuk gambar baru. */}
+                                            {!data.image_thumbnail_url && (
+                                                <label className="flex items-center gap-2 mt-3">
+                                                    <Checkbox
+                                                        checked={data.image_watermark}
+                                                        onChange={(e) => setData('image_watermark', e.target.checked)}
+                                                    />
+                                                    Apakah ini foto original?
+                                                </label>
+                                            )}
                                         </div>
 
                                         {/* Kanan: Foto Penulis & Catatan */}

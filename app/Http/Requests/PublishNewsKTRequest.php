@@ -30,7 +30,11 @@ class PublishNewsKTRequest extends FormRequest
             'description'     => 'required|string|max:255',
             'tag'             => 'nullable|array',
             'is_content'      => 'required|string',
-            'image_thumbnail' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
+            // Thumbnail opsional: kosong berarti pakai gambar bawaan dari berita KT.
+            // Tiga jalur — upload file, pilih galeri CDN (URL final), atau tempel URL sumber.
+            'image_thumbnail'          => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
+            'image_thumbnail_url'      => 'nullable|url',
+            'image_thumbnail_from_url' => 'nullable|url',
             'image_watermark' => 'nullable|boolean',
             'image_caption'   => 'required|string|max:255',
             'datepub'         => 'required|date',
@@ -57,6 +61,8 @@ class PublishNewsKTRequest extends FormRequest
             'datepub.date'             => 'Format tanggal publish tidak valid.',
             'kanal.required'           => 'Kanal berita wajib dipilih.',
             'image_thumbnail.required' => 'Gambar thumbnail wajib diunggah.',
+            'image_thumbnail_url.url'      => 'Gambar dari galeri CDN harus berupa URL yang valid.',
+            'image_thumbnail_from_url.url' => 'URL gambar tidak valid (harus diawali http/https).',
             'image_thumbnail.image' => 'File yang diunggah harus berupa gambar.',
             'image_thumbnail.mimes' => 'Format gambar harus jpeg, png, jpg, atau webp.',
             'image_thumbnail.max'   => 'Ukuran gambar maksimal adalah 2MB.',

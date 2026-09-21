@@ -128,6 +128,9 @@ function ImportNasional({ writers, editors, networks, kanal, fokus, initialData,
                                                 placeholder="Pilih Penulis..."
                                                 onChange={(val) => setData('writer_id', val?.value)}
                                             />
+                                            {/* Select ini menulis ke writer_id, jadi errors.writer_id harus ikut
+                                                dirender — kalau tidak, gagal pemetaan penulis tidak terlihat. */}
+                                            <InputError message={errors.writer_id} className="mt-2" />
                                             <InputError message={errors.writer} className="mt-2" />
                                         </div>
 
