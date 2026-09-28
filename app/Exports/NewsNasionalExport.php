@@ -72,13 +72,9 @@ class NewsNasionalExport implements FromQuery, WithHeadings, WithMapping, Should
             default => 'Unknown'
         };
 
-        // 3. Bangun URL secara dinamis
-        // Jika tabel Anda sudah memiliki kolom slug asli (misal: news_slug atau catnews_slug),
-        // Anda bisa langsung memanggil kolom tersebut daripada menggunakan Str::slug()
-        $kanalSlug = $news->kanal ? Str::slug($news->kanal->catnews_title) : 'uncategorized';
-        $titleSlug = Str::slug($news->news_title);
-
-        $urlBerita = "https://timesindonesia.co.id/{$kanalSlug}/{$news->news_id}/{$titleSlug}";
+        // 3. URL dari accessor NewsNasional (pakai catnews_slug asli). Jangan bangun dari
+        // Str::slug(catnews_title) — untuk kanal Forum Dosen/Guru/Mahasiswa hasilnya beda.
+        $urlBerita = $news->publicUrl ?? '-';
 
         return [
             $news->news_id,

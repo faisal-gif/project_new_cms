@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Str;
 use Spatie\Activitylog\LogOptions;
 use Spatie\Activitylog\Traits\LogsActivity;
 
@@ -43,6 +44,25 @@ class NewsNasional extends Model
     public function kanal()
     {
         return $this->belongsTo(KanalNasional::class, 'catnews_id');
+    }
+
+    /**
+     * Link publik berita: catnews_slug + news_id + slug judul.
+     * SATU-SATUNYA tempat bentuk URL ini didefinisikan — jangan dibangun ulang di tempat
+     * lain, karena judul dan kanal bisa berubah dan salinannya akan langsung basi.
+     * Tanpa gerbang status: pemanggil yang menentukan kapan link boleh ditampilkan.
+     * Pastikan relasi kanal sudah di-eager-load agar tidak N+1.
+     */
+    public function getPublicUrlAttribute(): ?string
+    {
+        if (! $this->kanal?->catnews_slug) {
+            return null;
+        }
+
+        return 'https://timesindonesia.co.id/'
+            . $this->kanal->catnews_slug . '/'
+            . $this->news_id . '/'
+            . Str::slug($this->news_title);
     }
 
     public function commerce()

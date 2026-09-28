@@ -413,10 +413,13 @@ class NewsKTController extends Controller
                 $news->tags()->sync($tagData['syncData']);
             }
 
+            // Status KT mengikuti pilihan form (1=Publish, 2=Review) supaya tidak berbeda
+            // dengan status di Nasional. URL diturunkan dari accessor — kanal sebenarnya
+            // bisa Forum Dosen/Guru/Mahasiswa, bukan selalu 'kopi-times'.
             $ktNews->update([
                 'is_code' => $news->is_code,
-                'status' => '1',
-                'url' => 'https://timesindonesia.co.id/kopi-times/' . $news->news_id  . '/' . Str::slug($news->news_title),
+                'status'  => $request->status,
+                'url'     => $news->load('kanal:catnews_id,catnews_title,catnews_slug')->publicUrl,
             ]);
 
             DB::connection('mysql_nasional')->commit();

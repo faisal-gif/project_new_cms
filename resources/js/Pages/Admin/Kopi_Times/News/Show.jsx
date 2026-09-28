@@ -22,10 +22,14 @@ export default function Show({ news }) {
 
     // Helper untuk status badge
     const getStatusBadge = (statusValue) => {
-        if (statusValue === 1 || statusValue === '1') {
-            return <Badge className="bg-green-300 text-green-800">Published</Badge>;
+        switch (Number(statusValue)) {
+            case 1:
+                return <Badge className="bg-green-300 text-green-800">Published</Badge>;
+            case 2:
+                return <Badge className="bg-yellow-300 text-yellow-800">Review</Badge>;
+            default:
+                return <Badge variant="secondary">Draft</Badge>;
         }
-        return <Badge variant="secondary">Draft</Badge>;
     };
 
     const availableImages = [news.image, news.image2, news.image3].filter(Boolean);

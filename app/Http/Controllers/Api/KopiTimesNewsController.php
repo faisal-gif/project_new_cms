@@ -116,13 +116,7 @@ class KopiTimesNewsController extends Controller
     /** Link publik berita nasional; null bila belum terbit atau kanal tak punya slug. */
     private function nasionalLink($nasional): ?string
     {
-        if ((int) $nasional->news_status !== 1 || ! $nasional->kanal?->catnews_slug) {
-            return null;
-        }
-
-        return 'https://timesindonesia.co.id/'
-            . $nasional->kanal->catnews_slug . '/'
-            . $nasional->news_id . '/'
-            . Str::slug($nasional->news_title);
+        // Bentuk URL-nya milik NewsNasional::$publicUrl; di sini hanya gerbang statusnya.
+        return (int) $nasional->news_status === 1 ? $nasional->publicUrl : null;
     }
 }

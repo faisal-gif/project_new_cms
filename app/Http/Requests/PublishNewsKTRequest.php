@@ -23,7 +23,9 @@ class PublishNewsKTRequest extends FormRequest
     {
         return [
             'is_code'         => 'required|string',
-            'status'          => 'required',
+            // in: bukan string/integer — payload bisa JSON (nilai radio tetap integer) atau
+            // multipart (semua jadi string). Batasan sebenarnya: 1=Publish, 2=Review.
+            'status'          => 'required|in:1,2',
             'editor'          => 'required',
             'title'           => 'required|string|max:255',
             'kanal'           => 'required',
@@ -50,6 +52,8 @@ class PublishNewsKTRequest extends FormRequest
     public function messages(): array
     {
         return [
+            'status.required'          => 'Status publish wajib dipilih.',
+            'status.in'                => 'Status publish harus Publish atau Review.',
             'editor.required'          => 'Editor wajib dipilih.',
             'writer.required'          => 'Penulis wajib dipilih.',
             'title.required'           => 'Judul berita wajib diisi.',

@@ -315,10 +315,11 @@ class NewsAJPController extends Controller
             // Gunakan $isCode dari parameter (URL/Route) untuk mencari data original, bukan dari request.
             $ajpNews = NewsBerbayar::findOrFail($id);
 
+            // Status AJP mengikuti pilihan form (1=Publish, 2=Review); URL dari accessor.
             $ajpNews->update([
                 'is_code' => $news->is_code,
-                'status'  => '1',
-                'url'     => 'https://timesindonesia.co.id/indonesia-positif/' . $news->news_id  . '/' . Str::slug($news->news_title),
+                'status'  => $request->status,
+                'url'     => $news->load('kanal:catnews_id,catnews_title,catnews_slug')->publicUrl,
             ]);
 
             DB::connection('mysql_nasional')->commit();

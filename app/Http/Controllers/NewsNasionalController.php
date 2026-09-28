@@ -16,6 +16,7 @@ use App\Models\KanalDaerah;
 use App\Models\KanalNasional;
 use App\Models\NetworkDaerah;
 use App\Models\News;
+use App\Models\NewsBerbayar;
 use App\Models\NewsDaerah;
 use App\Models\NewsNasional;
 use App\Models\TagsNasional;
@@ -168,7 +169,7 @@ class NewsNasionalController extends Controller
             'fokus'     => $item->fokus?->focnews_title,
             'tags'      => $item->tags->pluck('name')->values(),
             'tanggal'   => $item->news_datepub,
-            'url'       => 'https://timesindonesia.co.id/' . ($item->kanal?->catnews_slug ?? 'unknown') . '/' . $item->news_id . '/' . Str::slug($item->news_title),
+            'url'       => $item->publicUrl,
         ])->values();
 
         $fileName = 'news-nasional-' . now()->format('Ymd-His') . '.json';
@@ -363,11 +364,8 @@ class NewsNasionalController extends Controller
             'newsDaerah' => fn($q) => $q->where('is_code', '<>', ''),
         ])->findOrFail($id);
 
-        // Link berita publik hanya bila sudah terbit (news_status == 1) dan kanal punya slug.
-        $publicUrl = null;
-        if ((int) $news->news_status === 1 && $news->kanal?->catnews_slug) {
-            $publicUrl = 'https://timesindonesia.co.id/' . $news->kanal->catnews_slug . '/' . $news->news_id . '/' . Str::slug($news->news_title);
-        }
+        // Link berita publik hanya bila sudah terbit (news_status == 1).
+        $publicUrl = (int) $news->news_status === 1 ? $news->publicUrl : null;
 
         return inertia('Admin/Nasional/News/Show', [
             'news' => $news,
@@ -670,6 +668,8 @@ class NewsNasionalController extends Controller
                 CrawlAffiliateLink::dispatch($news->news_id);
             }
 
+            $this->syncPaidNewsUrl($news);
+
             return redirect()->route('admin.nasional.news.index')->with('success', 'Berita Nasional berhasil diperbarui!');
         } catch (\Exception $e) {
             DB::connection('mysql_nasional')->rollBack();
@@ -678,6 +678,33 @@ class NewsNasionalController extends Controller
             Log::error('Update NewsNasional Error: ' . $e->getMessage());
 
             return back()->withInput()->withErrors(['error' => 'Gagal update Nasional: ' . $e->getMessage()]);
+        }
+    }
+
+    /**
+     * Berita KT/AJP menyimpan link publiknya di kolom mysql_berbayar.news.url, dan kolom itu
+     * dibaca sistem di luar CMS ini — jadi harus ditulis ulang tiap judul atau kanal berubah,
+     * bukan sekadar diturunkan saat tampil.
+     *
+     * Dipanggil SETELAH commit: koneksi berbeda, rollback mysql_nasional tidak bisa
+     * membatalkan tulisan ke mysql_berbayar.
+     */
+    private function syncPaidNewsUrl(NewsNasional $news): void
+    {
+        $news->refresh()->load('kanal:catnews_id,catnews_title,catnews_slug');
+
+        // is_code kosong ada di puluhan ribu baris NewsBerbayar — tanpa guard ini satu edit
+        // akan menimpa semuanya sekaligus. URL null (kanal tanpa slug) juga tidak ditulis,
+        // lebih baik pertahankan nilai lama daripada mengosongkan link yang dipakai di luar.
+        if (blank($news->is_code) || blank($url = $news->publicUrl)) {
+            return;
+        }
+
+        try {
+            NewsBerbayar::where('is_code', $news->is_code)->update(['url' => $url]);
+        } catch (\Exception $e) {
+            // Jangan gagalkan penyuntingan berita hanya karena sinkronisasi link gagal.
+            Log::warning('Sync url NewsBerbayar gagal: ' . $e->getMessage(), ['is_code' => $news->is_code]);
         }
     }
     /**

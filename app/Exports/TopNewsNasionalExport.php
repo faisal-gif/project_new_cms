@@ -68,9 +68,8 @@ class TopNewsNasionalExport implements FromCollection, WithHeadings, WithMapping
     {
         $this->rank++;
 
-        $kanalSlug = $news->kanal ? Str::slug($news->kanal->catnews_title) : 'uncategorized';
-        $titleSlug = Str::slug($news->news_title);
-        $url = "https://timesindonesia.co.id/{$kanalSlug}/{$news->news_id}/{$titleSlug}";
+        // URL dari accessor NewsNasional (pakai catnews_slug asli), bukan slug dari judul kanal.
+        $url = $news->publicUrl ?? '-';
 
         return [
             $this->rank,
