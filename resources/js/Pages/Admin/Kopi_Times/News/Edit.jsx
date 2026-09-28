@@ -5,6 +5,7 @@ import Checkbox from '@/Components/Checkbox'
 import InputEditor from '@/Components/InputEditor'
 import InputError from '@/Components/InputError'
 import InputImage from '@/Components/InputImage'
+import ThumbnailComposer from '@/Components/ThumbnailComposer'
 import InputLabel from '@/Components/InputLabel'
 import InputRadioGroup from '@/Components/InputRadioGroup'
 import InputSwitch from '@/Components/InputSwitch'
@@ -13,7 +14,7 @@ import InputTextarea from '@/Components/InputTextarea'
 import TextInput from '@/Components/TextInput'
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout'
 import { Head, Link, useForm } from '@inertiajs/react'
-import { CaptionsIcon, CopyIcon, DownloadIcon, GlobeIcon, ImagesIcon, InfoIcon, NotebookPenIcon } from 'lucide-react'
+import { CaptionsIcon, CopyIcon, DownloadIcon, GlobeIcon, ImagesIcon, InfoIcon, NotebookPenIcon, WandIcon } from 'lucide-react'
 import React, { useState } from 'react'
 import Select from "react-select";
 
@@ -44,6 +45,8 @@ function Edit({ news, editors, kanal, writerkanal, hasEditor, editor_id }) {
         image_thumbnail_from_url: '', // URL sumber; diunduh & diunggah ke CDN oleh server
         image_watermark: false,
     });
+
+    const [showComposer, setShowComposer] = useState(false);
 
     const submit = (e) => {
         e.preventDefault();
@@ -151,6 +154,16 @@ function Edit({ news, editors, kanal, writerkanal, hasEditor, editor_id }) {
                                             <InputError message={errors.image_thumbnail} className="mt-2" />
                                             <InputError message={errors.image_thumbnail_url} className="mt-2" />
 
+                                            <Button
+                                                type="button"
+                                                variant="outline"
+                                                size="sm"
+                                                onClick={() => setShowComposer(true)}
+                                                className="w-full mt-3 gap-2"
+                                            >
+                                                <WandIcon className="w-4 h-4" /> Buat Thumbnail dari Template
+                                            </Button>
+
                                             <div className='mt-4'>
                                                 <InputLabel htmlFor="image_thumbnail_from_url" value="Atau tempel URL gambar" className='mb-2 font-bold' />
                                                 <TextInput
@@ -251,6 +264,20 @@ function Edit({ news, editors, kanal, writerkanal, hasEditor, editor_id }) {
                     </div>
                 </div>
             </AuthenticatedLayout>
+
+            {/* Di luar layout, sama seperti CdnImagePicker, agar overlay-nya tidak terpotong. */}
+            <ThumbnailComposer
+                open={showComposer}
+                onClose={() => setShowComposer(false)}
+                referenceImage={news.image2 || null}
+                onDone={(file) => setData({
+                    ...data,
+                    image_thumbnail: file,
+                    image_thumbnail_url: '',
+                    image_thumbnail_from_url: '',
+                    image_watermark: false, // hasil komposit sudah ber-brand, watermark tidak perlu
+                })}
+            />
         </div>
     )
 }
