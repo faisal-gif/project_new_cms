@@ -28,12 +28,12 @@ export default function Show({ addon }) {
         }
     }
 
-    // Status berita di Kopi Times (kolom status tabel news berbayar): 1=Published, 2=Review, lainnya=Draft
+    // Status berita berbayar (kolom status tabel news berbayar): 1=Publish, 2=Review, 0=Pending
     function getKtNewsBadge(status) {
         switch (Number(status)) {
-            case 1: return <Badge className="bg-green-300 text-green-800 border-none">Published</Badge>;
+            case 1: return <Badge className="bg-green-300 text-green-800 border-none">Publish</Badge>;
             case 2: return <Badge className="bg-yellow-300 text-yellow-800 border-none">Review</Badge>;
-            default: return <Badge variant="secondary">Draft</Badge>;
+            default: return <Badge variant="secondary">Pending</Badge>;
         }
     }
 

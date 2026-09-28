@@ -50,13 +50,13 @@ export default function Index({ news, members = [], filters }) {
 
     function getStatusBadge(statusValue) {
         if (statusValue === 1 || statusValue === '1') {
-            return <Badge className="bg-green-300 text-green-800">Published</Badge>;
+            return <Badge className="bg-green-300 text-green-800">Publish</Badge>;
         }
 
         if (statusValue === 2 || statusValue === '2') {
             return <Badge className="bg-yellow-300 text-yellow-800">Review</Badge>;
         }
-        return <Badge variant="secondary">Draft</Badge>;
+        return <Badge variant="secondary">Pending</Badge>;
     }
 
     return (
@@ -117,8 +117,8 @@ export default function Index({ news, members = [], filters }) {
                                         options={[
                                             { label: "Semua Status", value: "" },
                                             { label: "Review", value: "2" },
-                                            { label: "Published", value: "1" },
-                                            { label: "Draft", value: "0" },
+                                            { label: "Publish", value: "1" },
+                                            { label: "Pending", value: "0" },
 
                                         ]}
                                     />

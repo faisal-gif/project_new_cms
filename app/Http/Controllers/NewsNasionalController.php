@@ -668,7 +668,7 @@ class NewsNasionalController extends Controller
                 CrawlAffiliateLink::dispatch($news->news_id);
             }
 
-            $this->syncPaidNewsUrl($news);
+            $this->syncPaidNews($news);
 
             return redirect()->route('admin.nasional.news.index')->with('success', 'Berita Nasional berhasil diperbarui!');
         } catch (\Exception $e) {
@@ -682,29 +682,41 @@ class NewsNasionalController extends Controller
     }
 
     /**
-     * Berita KT/AJP menyimpan link publiknya di kolom mysql_berbayar.news.url, dan kolom itu
-     * dibaca sistem di luar CMS ini — jadi harus ditulis ulang tiap judul atau kanal berubah,
-     * bukan sekadar diturunkan saat tampil.
+     * Berita KT/AJP menyimpan salinan status dan link publiknya di mysql_berbayar.news,
+     * dan kolom itu dibaca sistem di luar CMS ini. Keduanya dibekukan saat publish, jadi
+     * harus ditulis ulang tiap berita Nasional-nya disunting — kalau tidak, member melihat
+     * status dan link yang sudah basi.
+     *
+     * Status dipetakan 1:1 karena angkanya kebetulan sama di kedua tabel:
+     *   0 Pending/Draft · 1 Publish · 2 Review. (3 On Pro di Nasional tidak punya padanan
+     *   di sisi berbayar, diperlakukan sebagai Review.)
      *
      * Dipanggil SETELAH commit: koneksi berbeda, rollback mysql_nasional tidak bisa
      * membatalkan tulisan ke mysql_berbayar.
      */
-    private function syncPaidNewsUrl(NewsNasional $news): void
+    private function syncPaidNews(NewsNasional $news): void
     {
         $news->refresh()->load('kanal:catnews_id,catnews_title,catnews_slug');
 
         // is_code kosong ada di puluhan ribu baris NewsBerbayar — tanpa guard ini satu edit
-        // akan menimpa semuanya sekaligus. URL null (kanal tanpa slug) juga tidak ditulis,
-        // lebih baik pertahankan nilai lama daripada mengosongkan link yang dipakai di luar.
-        if (blank($news->is_code) || blank($url = $news->publicUrl)) {
+        // akan menimpa semuanya sekaligus.
+        if (blank($news->is_code)) {
             return;
         }
 
+        $payload = ['status' => (int) $news->news_status === 3 ? 2 : (int) $news->news_status];
+
+        // URL null (kanal tanpa slug) tidak ditulis: lebih baik pertahankan nilai lama
+        // daripada mengosongkan link yang dipakai sistem luar.
+        if (filled($url = $news->publicUrl)) {
+            $payload['url'] = $url;
+        }
+
         try {
-            NewsBerbayar::where('is_code', $news->is_code)->update(['url' => $url]);
+            NewsBerbayar::where('is_code', $news->is_code)->update($payload);
         } catch (\Exception $e) {
-            // Jangan gagalkan penyuntingan berita hanya karena sinkronisasi link gagal.
-            Log::warning('Sync url NewsBerbayar gagal: ' . $e->getMessage(), ['is_code' => $news->is_code]);
+            // Jangan gagalkan penyuntingan berita hanya karena sinkronisasi gagal.
+            Log::warning('Sync NewsBerbayar gagal: ' . $e->getMessage(), ['is_code' => $news->is_code]);
         }
     }
     /**

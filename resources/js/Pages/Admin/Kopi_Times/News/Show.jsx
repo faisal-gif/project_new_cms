@@ -24,11 +24,11 @@ export default function Show({ news }) {
     const getStatusBadge = (statusValue) => {
         switch (Number(statusValue)) {
             case 1:
-                return <Badge className="bg-green-300 text-green-800">Published</Badge>;
+                return <Badge className="bg-green-300 text-green-800">Publish</Badge>;
             case 2:
                 return <Badge className="bg-yellow-300 text-yellow-800">Review</Badge>;
             default:
-                return <Badge variant="secondary">Draft</Badge>;
+                return <Badge variant="secondary">Pending</Badge>;
         }
     };
 
