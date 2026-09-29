@@ -23,6 +23,16 @@ return [
         'api_key' => env('TIN_CDN_API_KEY'),
     ],
 
+    // API Berita (api.tin.co.id) — host BERBEDA dari CDN di atas, kredensialnya sendiri.
+    // purge_token dipakai khusus endpoint /cache/purge, yang menuntut token ini DI LUAR
+    // x-api-key. Kalau purge_token kosong, fitur purge diam-diam tidak aktif (lihat
+    // App\Jobs\PurgeNewsCache) supaya deploy tanpa kredensial tidak error.
+    'tin_api' => [
+        'url' => env('TIN_API_URL', 'https://api.tin.co.id/v1'),
+        'api_key' => env('TIN_API_KEY'),
+        'purge_token' => env('TIN_API_PURGE_TOKEN'),
+    ],
+
     // URL aplikasi publik (berbayar) — dipakai untuk merangkai link form kirim berita
     // publik: {url}/kirim-berita/{slug}. Dipisah per brand (KT & AJP). Fallback APP_URL.
     'berbayar' => [

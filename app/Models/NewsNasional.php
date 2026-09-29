@@ -2,7 +2,9 @@
 
 namespace App\Models;
 
+use App\Jobs\PurgeNewsCache;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Spatie\Activitylog\LogOptions;
 use Spatie\Activitylog\Traits\LogsActivity;
@@ -11,6 +13,35 @@ class NewsNasional extends Model
 {
 
     use LogsActivity;
+
+    /**
+     * Cache API Berita dibersihkan dari sini, bukan dari masing-masing controller.
+     * Jalur yang menulis baris ini ada enam (store/update Nasional, publish KT, publish AJP,
+     * import dari Master, import dari Daerah) dan akan bertambah — satu hook di model
+     * menjamin tidak ada yang terlewat.
+     */
+    protected static function booted(): void
+    {
+        static::saved(function (self $news) {
+            // Artikel baru, atau perubahan yang mengubah daftar (status/kanal/headline),
+            // membuat cache daftar ikut basi -> purge menyeluruh. Suntingan isi biasa
+            // cukup membersihkan cache detail artikel itu saja.
+            $ubahDaftar = $news->wasRecentlyCreated
+                || $news->wasChanged(['news_status', 'catnews_id', 'news_headline']);
+
+            try {
+                PurgeNewsCache::dispatch($ubahDaftar ? null : $news->news_id);
+            } catch (\Throwable $e) {
+                // Queue memakai koneksi default (tabel jobs). Kalau koneksi itu bermasalah,
+                // dispatch melempar — dan tanpa guard ini SETIAP publish/sunting berita ikut
+                // gagal hanya karena cache tak bisa dibersihkan. Cache basi jauh lebih ringan
+                // daripada berita batal tersimpan.
+                Log::warning('Dispatch purge cache gagal: ' . $e->getMessage(), [
+                    'news_id' => $news->news_id,
+                ]);
+            }
+        });
+    }
 
     // App\Models\NewsNasional.php
     protected $connection = 'mysql_nasional'; // Sesuaikan nama koneksi di config/database.php
