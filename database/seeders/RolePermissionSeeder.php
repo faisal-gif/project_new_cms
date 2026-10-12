@@ -163,6 +163,17 @@ class RolePermissionSeeder extends Seeder
                 'create ads nasional',
                 'edit ads nasional',
             ],
+            'Afiliasi' => [
+                'view afiliasi',
+                'create afiliasi',
+                'edit afiliasi',
+                'view komisi afiliasi',
+                'edit komisi afiliasi',
+                'view pencairan afiliasi',
+                'create pencairan afiliasi',
+                'edit pencairan afiliasi',
+                'view laporan afiliasi',
+            ],
             'History' => [
                 'view history',
             ],

@@ -2,10 +2,13 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\PurgesNewsCacheOnChange;
 use Illuminate\Database\Eloquent\Model;
 
 class TagsNasional extends Model
 {
+    use PurgesNewsCacheOnChange;
+
     protected $connection = 'mysql_nasional';
     protected $table = 'tags';
     protected $fillable = [

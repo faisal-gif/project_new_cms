@@ -2,12 +2,15 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\PurgesNewsCacheOnChange;
 use Illuminate\Database\Eloquent\Model;
 use Spatie\Activitylog\LogOptions;
 use Spatie\Activitylog\Traits\LogsActivity;
 
 class FokusNasional extends Model
 {
+    use PurgesNewsCacheOnChange;
+
     use LogsActivity;
 
     protected $connection = 'mysql_nasional';

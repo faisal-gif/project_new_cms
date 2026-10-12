@@ -15,6 +15,32 @@ class PaketBerita extends Model
     const CREATED_AT = 'created';
     const UPDATED_AT = 'modified';
 
+    /**
+     * Lini produk (situs) pemilik paket. Kolom `type` inilah satu-satunya penanda situs
+     * asal sebuah komisi: affiliate_commissions.payment_id -> payments.package_id -> type.
+     *
+     * Hanya 1 dan 4 yang benar-benar terpakai di data saat ini; 2 dan 3 ada di enum tapi
+     * belum dipakai, jadi labelnya netral sampai ada nama resminya.
+     */
+    public const SITUS = [
+        '1' => 'AJP',
+        '2' => 'Lini 2',
+        '3' => 'Lini 3',
+        '4' => 'Kopi TIMES',
+    ];
+
+    public static function labelSitus(?string $type): string
+    {
+        // Paket lama (5 baris) type-nya kosong dan tidak punya pembayaran lunas.
+        return self::SITUS[$type] ?? ($type === null || $type === '' ? 'Tanpa Situs' : "Lini {$type}");
+    }
+
+    /** Opsi dropdown filter situs, dipakai daftar komisi dan laporan. */
+    public static function opsiSitus(): array
+    {
+        return collect(self::SITUS)->map(fn($label, $key) => ['value' => $key, 'label' => $label])->values()->all();
+    }
+
     protected $fillable = [
         'name',
         'type',

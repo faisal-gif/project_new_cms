@@ -35,6 +35,9 @@ class EnforceRoutePermission
     /** Basis nama route (tanpa "admin." dan tanpa aksi) → resource permission. */
     private const RESOURCES = [
         // Master
+        'affiliate' => 'afiliasi',
+        'affiliate-commission' => 'komisi afiliasi',
+        'affiliate-payout' => 'pencairan afiliasi',
         'news' => 'news master',
         'users' => 'users master',
         'roles' => 'role master',
@@ -87,6 +90,20 @@ class EnforceRoutePermission
         'nasional.news.import.daerah.store' => 'import daerah news nasional',
         'daerah.news.import.nasional' => 'import nasional news daerah',
         'daerah.news.import.nasional.store' => 'import nasional news daerah',
+        // Aksi cepat setujui/tangguhkan + pencarian akun untuk penautan.
+        'affiliate.status' => 'edit afiliasi',
+        'affiliate.search-user' => 'edit afiliasi',
+        // Komisi: melihat vs mengubah status dipisah.
+        'affiliate-commission.unassigned' => 'view komisi afiliasi',
+        'affiliate-commission.approve' => 'edit komisi afiliasi',
+        'affiliate-commission.reject' => 'edit komisi afiliasi',
+        'affiliate-commission.reverse' => 'edit komisi afiliasi',
+        'affiliate-commission.assign' => 'edit komisi afiliasi',
+        // Pencairan: menandai lunas & membatalkan menyentuh uang, jadi izinnya terpisah.
+        'affiliate-payout.mark-paid' => 'edit pencairan afiliasi',
+        'affiliate-payout.cancel' => 'edit pencairan afiliasi',
+        'affiliate-report.index' => 'view laporan afiliasi',
+        'affiliate-report.fraud' => 'view laporan afiliasi',
         'history.index' => 'view history',
         // Report (index + semua export digerbang oleh satu permission per halaman)
         'nasional.news.download' => 'download json news nasional',
