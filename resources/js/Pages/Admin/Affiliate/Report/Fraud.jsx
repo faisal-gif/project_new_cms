@@ -14,7 +14,7 @@ import React, { useState } from 'react'
  * Daftar yang perlu dilihat manusia — bukan vonis. Dua pola yang disorot:
  * rasio menulis rendah, dan beberapa pendaftaran dengan pola email mirip.
  */
-export default function Fraud({ rows, filters }) {
+export default function Fraud({ rows, filters, routePrefix = '' }) {
     const [min, setMin] = useState(filters.min_direkrut)
 
     return (
@@ -27,7 +27,7 @@ export default function Fraud({ rows, filters }) {
                         <div className="flex flex-col md:flex-row justify-between md:items-center gap-2">
                             <div className="flex items-center gap-3">
                                 <Button asChild variant="ghost" size="icon">
-                                    <Link href={route('admin.affiliate-report.index')}><ArrowLeftIcon className="w-5 h-5" /></Link>
+                                    <Link href={route(`admin.${routePrefix}affiliate-report.index`)}><ArrowLeftIcon className="w-5 h-5" /></Link>
                                 </Button>
                                 <h1 className="text-3xl font-bold text-foreground">Deteksi Kecurangan</h1>
                             </div>
@@ -51,7 +51,7 @@ export default function Fraud({ rows, filters }) {
                                     <InputLabel value="Minimal jumlah direkrut" className="mb-2 font-bold" />
                                     <TextInput type="number" min="1" className="w-40" value={min} onChange={(e) => setMin(e.target.value)} />
                                 </div>
-                                <Button onClick={() => router.get(route('admin.affiliate-report.fraud'), { min_direkrut: min }, { preserveState: true })}>
+                                <Button onClick={() => router.get(route(`admin.${routePrefix}affiliate-report.fraud`), { min_direkrut: min }, { preserveState: true })}>
                                     Terapkan
                                 </Button>
                             </div>
@@ -99,7 +99,7 @@ export default function Fraud({ rows, filters }) {
                                                 </TableCell>
                                                 <TableCell className="text-right">
                                                     <Button asChild size="xs" variant="outline" className="border-primary text-primary hover:bg-primary/10">
-                                                        <Link href={route('admin.affiliate.edit', r.id)}>Periksa</Link>
+                                                        <Link href={route(`admin.${routePrefix}affiliate.edit`, r.id)}>Periksa</Link>
                                                     </Button>
                                                 </TableCell>
                                             </TableRow>

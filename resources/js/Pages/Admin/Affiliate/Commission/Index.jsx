@@ -47,18 +47,18 @@ function roleBadge(r) {
     return <Badge variant="outline">{peta[r] || r}</Badge>
 }
 
-export default function Index({ commissions, filters, affiliates, situsOptions = [], ringkasan }) {
-    const SITUS = [{ value: '', label: 'Semua Situs' }, ...situsOptions]
+export default function Index({ commissions, filters, affiliates, situsLabel, ringkasan, routePrefix = '' }) {
+    // Permission bersufiks situs; slug-nya diturunkan dari prefix route.
+    const situsSlug = routePrefix.replace('.', '')
 
     const { auth } = usePage().props
     const punya = (p) => (auth.permissions || []).includes(p)
-    const bolehUbah = punya('edit komisi afiliasi')
+    const bolehUbah = punya(`edit komisi afiliasi ${situsSlug}`)
 
     const [f, setF] = useState({
         affiliate_id: filters.affiliate_id || '',
         status: filters.status || '',
         role: filters.role || '',
-        situs: filters.situs || '',
         start_date: filters.start_date || '',
         end_date: filters.end_date || '',
     })
@@ -69,7 +69,7 @@ export default function Index({ commissions, filters, affiliates, situsOptions =
     useEffect(() => {
         if (pertama.current) { pertama.current = false; return }
         const t = setTimeout(() => {
-            router.get(route('admin.affiliate-commission.index'), f, { preserveState: true, replace: true })
+            router.get(route(`admin.${routePrefix}affiliate-commission.index`), f, { preserveState: true, replace: true })
         }, 400)
         return () => clearTimeout(t)
     }, [f])
@@ -85,7 +85,7 @@ export default function Index({ commissions, filters, affiliates, situsOptions =
 
     const setujui = () => {
         if (!pilih.length) return
-        router.post(route('admin.affiliate-commission.approve'), { ids: pilih }, {
+        router.post(route(`admin.${routePrefix}affiliate-commission.approve`), { ids: pilih }, {
             preserveScroll: true,
             onSuccess: () => setPilih([]),
         })
@@ -111,6 +111,8 @@ export default function Index({ commissions, filters, affiliates, situsOptions =
 
                         <div className="flex flex-col md:flex-row justify-between md:items-center gap-2">
                             <h1 className="text-3xl font-bold text-foreground">Komisi Afiliasi</h1>
+                            {/* Situs dikunci route; tidak bisa diubah dari layar. */}
+                            <span className="text-sm bg-muted border border-border rounded-full px-3 py-1">{situsLabel}</span>
                             <Breadcrumbs items={[{ label: 'Beranda' }, { label: 'Afiliasi' }, { label: 'Komisi' }]} />
                         </div>
 
@@ -130,12 +132,10 @@ export default function Index({ commissions, filters, affiliates, situsOptions =
                         </div>
 
                         <Card>
-                            <div className="grid grid-cols-1 md:grid-cols-6 gap-3">
+                            <div className="grid grid-cols-1 md:grid-cols-5 gap-3">
                                 <Select options={affiliates} isClearable placeholder="Semua afiliator"
                                     value={affiliates.find((a) => String(a.value) === String(f.affiliate_id)) || null}
                                     onChange={(v) => setF({ ...f, affiliate_id: v?.value ?? '' })} />
-                                <Select options={SITUS} value={SITUS.find((s) => s.value === f.situs)}
-                                    onChange={(v) => setF({ ...f, situs: v?.value ?? '' })} />
                                 <Select options={STATUS} value={STATUS.find((s) => s.value === f.status)}
                                     onChange={(v) => setF({ ...f, status: v?.value ?? '' })} />
                                 <Select options={ROLE} value={ROLE.find((r) => r.value === f.role)}
@@ -261,7 +261,7 @@ export default function Index({ commissions, filters, affiliates, situsOptions =
                                         Ada <strong>{formatRupiah(ringkasan.unassigned)}</strong> komisi tier-2 tanpa penerima.
                                     </span>
                                     <Button asChild size="sm" variant="outline">
-                                        <Link href={route('admin.affiliate-commission.unassigned')}>Lihat baris tertahan</Link>
+                                        <Link href={route(`admin.${routePrefix}affiliate-commission.unassigned`)}>Lihat baris tertahan</Link>
                                     </Button>
                                 </div>
                             </Card>

@@ -20,6 +20,8 @@ use Inertia\Inertia;
  */
 class AffiliateReportController extends Controller
 {
+    use \App\Http\Controllers\Concerns\ScopesAffiliateSite;
+
     public function index(Request $request)
     {
         // Default: bulan berjalan. Zona waktu aplikasi sudah Asia/Jakarta, sama dengan
@@ -31,8 +33,8 @@ class AffiliateReportController extends Controller
             ? Carbon::parse($request->end_date)->endOfDay()
             : now()->endOfMonth();
 
-        // Filter situs opsional — dipakai saat laporan dibuka dari menu AJP / Kopi Times.
-        $situs = $request->filled('situs') ? (string) $request->situs : null;
+        // Situs dikunci route, bukan query string — lihat ScopesAffiliateSite.
+        $situs = $this->situs($request);
 
         // Dipecah per situs. Situs ditelusuri lewat paket yang dibeli — tidak ada
         // kolom situs di tabel komisi.
@@ -42,7 +44,7 @@ class AffiliateReportController extends Controller
             ->join('news_package as np', 'np.id', '=', 'p.package_id')
             ->whereBetween('c.created_at', [$awal, $akhir])
             ->where('c.status', '<>', 'rejected')
-            ->when($situs !== null, fn($q) => $q->where('np.type', $situs))
+            ->where('np.type', $situs)
             ->groupBy('np.type')
             ->selectRaw("
                 np.type situs,
@@ -60,7 +62,7 @@ class AffiliateReportController extends Controller
             ->join('news_package as np', 'np.id', '=', 'p.package_id')
             ->where('p.status', 'paid')
             ->whereBetween('p.paid_at', [$awal, $akhir])
-            ->when($situs !== null, fn($q) => $q->where('np.type', $situs))
+            ->where('np.type', $situs)
             ->groupBy('np.type')
             ->selectRaw('np.type situs, SUM(p.amount) kotor')
             ->pluck('kotor', 'situs');
@@ -96,10 +98,9 @@ class AffiliateReportController extends Controller
             'filters' => [
                 'start_date' => $awal->toDateString(),
                 'end_date' => $akhir->toDateString(),
-                'situs' => $situs,
-            ],
-            'situsOptions' => PaketBerita::opsiSitus(),
-            'situsLabel' => $situs !== null ? PaketBerita::labelSitus($situs) : null,
+                ],
+            'situsLabel' => PaketBerita::labelSitus($situs),
+            'routePrefix' => $this->prefixSitus($request),
             'perSitus' => $baris,
             'rekap' => $total,
             'perAfiliator' => $this->perAfiliator($awal, $akhir, $situs),
@@ -167,16 +168,18 @@ class AffiliateReportController extends Controller
         return Inertia::render('Admin/Affiliate/Report/Fraud', [
             'rows' => $hasil,
             'filters' => ['min_direkrut' => $minDirekrut],
+            'situsLabel' => $this->labelSitus($request),
+            'routePrefix' => $this->prefixSitus($request),
         ]);
     }
 
-    private function perAfiliator(Carbon $awal, Carbon $akhir, ?string $situs = null)
+    private function perAfiliator(Carbon $awal, Carbon $akhir, string $situs)
     {
         return AffiliateCommission::whereBetween('created_at', [$awal, $akhir])
             ->where('status', '<>', 'rejected')
             ->whereNotNull('affiliate_id')
             // Ikut filter situs supaya daftar ini konsisten dengan tabel di atasnya.
-            ->when($situs !== null, fn($q) => $q->whereHas('payment.package', fn($p) => $p->where('type', $situs)))
+            ->whereHas('payment.package', fn($p) => $p->where('type', $situs))
             ->selectRaw('affiliate_id, SUM(amount) total, COUNT(*) jumlah')
             ->groupBy('affiliate_id')
             ->orderByDesc('total')

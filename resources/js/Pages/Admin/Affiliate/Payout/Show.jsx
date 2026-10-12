@@ -13,21 +13,23 @@ import { Head, Link, useForm, usePage } from '@inertiajs/react'
 import { AlertTriangle, ArrowLeftIcon, ExternalLinkIcon } from 'lucide-react'
 import React from 'react'
 
-export default function Show({ payout, jumlahKomisi, selisih }) {
+export default function Show({ payout, jumlahKomisi, selisih, routePrefix = '' }) {
+    // Permission bersufiks situs; slug-nya diturunkan dari prefix route.
+    const situsSlug = routePrefix.replace('.', '')
     const { auth } = usePage().props
-    const bolehUbah = (auth.permissions || []).includes('edit pencairan afiliasi')
+    const bolehUbah = (auth.permissions || []).includes(`edit pencairan afiliasi ${situsSlug}`)
 
     const lunas = useForm({ reference: '', proof: null, paid_at: '' })
     const batal = useForm({ note: '' })
 
     const tandaiLunas = (e) => {
         e.preventDefault()
-        lunas.post(route('admin.affiliate-payout.mark-paid', payout.id), { preserveScroll: true, forceFormData: true })
+        lunas.post(route(`admin.${routePrefix}affiliate-payout.mark-paid`, payout.id), { preserveScroll: true, forceFormData: true })
     }
 
     const batalkan = (e) => {
         e.preventDefault()
-        batal.patch(route('admin.affiliate-payout.cancel', payout.id), { preserveScroll: true })
+        batal.patch(route(`admin.${routePrefix}affiliate-payout.cancel`, payout.id), { preserveScroll: true })
     }
 
     const badge = payout.status === 'paid'
@@ -46,7 +48,7 @@ export default function Show({ payout, jumlahKomisi, selisih }) {
                         <div className="flex flex-col md:flex-row justify-between md:items-center gap-2">
                             <div className="flex items-center gap-3">
                                 <Button asChild variant="ghost" size="icon">
-                                    <Link href={route('admin.affiliate-payout.index')}><ArrowLeftIcon className="w-5 h-5" /></Link>
+                                    <Link href={route(`admin.${routePrefix}affiliate-payout.index`)}><ArrowLeftIcon className="w-5 h-5" /></Link>
                                 </Button>
                                 <h1 className="text-3xl font-bold text-foreground">Batch #{payout.id}</h1>
                                 {badge}

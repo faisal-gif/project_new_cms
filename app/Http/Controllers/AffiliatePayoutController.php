@@ -22,10 +22,16 @@ use Inertia\Inertia;
  */
 class AffiliatePayoutController extends Controller
 {
+    use \App\Http\Controllers\Concerns\ScopesAffiliateSite;
+
     public function index(Request $request)
     {
         $query = AffiliatePayout::with('affiliate:id,name,code')
             ->withCount('commissions')
+            // Batch tidak punya kolom situs — satu batch bisa memuat komisi lintas situs.
+            // Dilingkupkan ke batch yang MEMUAT komisi situs ini; batch campuran memang
+            // tampil di kedua situs, dan itu jujur: uangnya memang milik keduanya.
+            ->whereHas('commissions.payment.package', fn($p) => $p->where('type', $this->situs($request)))
             ->when($request->filled('status'), fn($q) => $q->where('status', $request->status))
             ->when($request->filled('affiliate_id'), fn($q) => $q->where('affiliate_id', $request->affiliate_id));
 
@@ -33,6 +39,8 @@ class AffiliatePayoutController extends Controller
             'payouts' => $query->latest('id')->paginate(20)->withQueryString(),
             'filters' => $request->only(['status', 'affiliate_id']),
             'affiliates' => $this->opsiAfiliator(),
+            'situsLabel' => $this->labelSitus($request),
+            'routePrefix' => $this->prefixSitus($request),
         ]);
     }
 
@@ -55,6 +63,8 @@ class AffiliatePayoutController extends Controller
             'filters' => $request->only(['affiliate_id', 'period_start', 'period_end']),
             // Rekening wajib lengkap sebelum batch pertama dibuat.
             'rekeningLengkap' => $affiliate ? filled($affiliate->bank_account_number) && filled($affiliate->bank_account_name) : false,
+            'situsLabel' => $this->labelSitus($request),
+            'routePrefix' => $this->prefixSitus($request),
         ]);
     }
 
@@ -112,11 +122,11 @@ class AffiliatePayoutController extends Controller
             return back()->withErrors(['error' => 'Gagal membuat batch pencairan: ' . $e->getMessage()]);
         }
 
-        return redirect()->route('admin.affiliate-payout.show', $payout->id)
+        return redirect()->route('admin.' . $this->prefixSitus($request) . 'affiliate-payout.show', $payout->id)
             ->with('success', 'Batch pencairan dibuat.');
     }
 
-    public function show($id)
+    public function show(Request $request, $id)
     {
         $payout = AffiliatePayout::with([
             'affiliate:id,name,code,email,phone',
@@ -131,6 +141,8 @@ class AffiliatePayoutController extends Controller
             'payout' => $payout,
             'jumlahKomisi' => $jumlahKomisi,
             'selisih' => (int) $payout->amount - $jumlahKomisi,
+            'situsLabel' => $this->labelSitus($request),
+            'routePrefix' => $this->prefixSitus($request),
         ]);
     }
 

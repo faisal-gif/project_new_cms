@@ -35,9 +35,6 @@ class EnforceRoutePermission
     /** Basis nama route (tanpa "admin." dan tanpa aksi) → resource permission. */
     private const RESOURCES = [
         // Master
-        'affiliate' => 'afiliasi',
-        'affiliate-commission' => 'komisi afiliasi',
-        'affiliate-payout' => 'pencairan afiliasi',
         'news' => 'news master',
         'users' => 'users master',
         'roles' => 'role master',
@@ -70,6 +67,10 @@ class EnforceRoutePermission
         'ajp.pengumuman' => 'pengumuman ajp',
         'ajp.transaction' => 'transaction ajp',
         'ajp.addon-requests' => 'addon-requests ajp',
+        // Afiliasi dipisah per situs; situsnya dikunci route, bukan query string.
+        'ajp.affiliate' => 'afiliasi ajp',
+        'ajp.affiliate-commission' => 'komisi afiliasi ajp',
+        'ajp.affiliate-payout' => 'pencairan afiliasi ajp',
         // Kopi Times
         'kopi-times.news' => 'news kopi-times',
         'kopi-times.writer' => 'member kopi-times',
@@ -78,6 +79,9 @@ class EnforceRoutePermission
         'kopi-times.events' => 'event kopi-times',
         'kopi-times.transaction' => 'transaction kopi-times',
         'kopi-times.addon-requests' => 'addon-requests kopi-times',
+        'kopi-times.affiliate' => 'afiliasi kopi-times',
+        'kopi-times.affiliate-commission' => 'komisi afiliasi kopi-times',
+        'kopi-times.affiliate-payout' => 'pencairan afiliasi kopi-times',
     ];
 
     /** Route non-CRUD yang punya permission spesifik (nama penuh tanpa "admin."). */
@@ -91,19 +95,30 @@ class EnforceRoutePermission
         'daerah.news.import.nasional' => 'import nasional news daerah',
         'daerah.news.import.nasional.store' => 'import nasional news daerah',
         // Aksi cepat setujui/tangguhkan + pencarian akun untuk penautan.
-        'affiliate.status' => 'edit afiliasi',
-        'affiliate.search-user' => 'edit afiliasi',
-        // Komisi: melihat vs mengubah status dipisah.
-        'affiliate-commission.unassigned' => 'view komisi afiliasi',
-        'affiliate-commission.approve' => 'edit komisi afiliasi',
-        'affiliate-commission.reject' => 'edit komisi afiliasi',
-        'affiliate-commission.reverse' => 'edit komisi afiliasi',
-        'affiliate-commission.assign' => 'edit komisi afiliasi',
-        // Pencairan: menandai lunas & membatalkan menyentuh uang, jadi izinnya terpisah.
-        'affiliate-payout.mark-paid' => 'edit pencairan afiliasi',
-        'affiliate-payout.cancel' => 'edit pencairan afiliasi',
-        'affiliate-report.index' => 'view laporan afiliasi',
-        'affiliate-report.fraud' => 'view laporan afiliasi',
+        // Afiliasi non-CRUD, per situs. Melihat vs mengubah dipisah; aksi yang menyentuh
+        // uang (mark-paid, cancel) memakai izin edit pencairan, bukan izin lihat.
+        'ajp.affiliate.status' => 'edit afiliasi ajp',
+        'ajp.affiliate.search-user' => 'edit afiliasi ajp',
+        'ajp.affiliate-commission.unassigned' => 'view komisi afiliasi ajp',
+        'ajp.affiliate-commission.approve' => 'edit komisi afiliasi ajp',
+        'ajp.affiliate-commission.reject' => 'edit komisi afiliasi ajp',
+        'ajp.affiliate-commission.reverse' => 'edit komisi afiliasi ajp',
+        'ajp.affiliate-commission.assign' => 'edit komisi afiliasi ajp',
+        'ajp.affiliate-payout.mark-paid' => 'edit pencairan afiliasi ajp',
+        'ajp.affiliate-payout.cancel' => 'edit pencairan afiliasi ajp',
+        'ajp.affiliate-report.index' => 'view laporan afiliasi ajp',
+        'ajp.affiliate-report.fraud' => 'view laporan afiliasi ajp',
+        'kopi-times.affiliate.status' => 'edit afiliasi kopi-times',
+        'kopi-times.affiliate.search-user' => 'edit afiliasi kopi-times',
+        'kopi-times.affiliate-commission.unassigned' => 'view komisi afiliasi kopi-times',
+        'kopi-times.affiliate-commission.approve' => 'edit komisi afiliasi kopi-times',
+        'kopi-times.affiliate-commission.reject' => 'edit komisi afiliasi kopi-times',
+        'kopi-times.affiliate-commission.reverse' => 'edit komisi afiliasi kopi-times',
+        'kopi-times.affiliate-commission.assign' => 'edit komisi afiliasi kopi-times',
+        'kopi-times.affiliate-payout.mark-paid' => 'edit pencairan afiliasi kopi-times',
+        'kopi-times.affiliate-payout.cancel' => 'edit pencairan afiliasi kopi-times',
+        'kopi-times.affiliate-report.index' => 'view laporan afiliasi kopi-times',
+        'kopi-times.affiliate-report.fraud' => 'view laporan afiliasi kopi-times',
         'history.index' => 'view history',
         // Report (index + semua export digerbang oleh satu permission per halaman)
         'nasional.news.download' => 'download json news nasional',

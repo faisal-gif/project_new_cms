@@ -4,7 +4,7 @@ import { Head, useForm } from '@inertiajs/react'
 import React from 'react'
 import AffiliateForm from './AffiliateForm'
 
-export default function Create({ uplines, initialData, referralBase }) {
+export default function Create({ uplines, initialData, referralBase, routePrefix = '' }) {
     const { data, setData, post, processing, errors } = useForm({
         name: '',
         email: '',
@@ -23,7 +23,7 @@ export default function Create({ uplines, initialData, referralBase }) {
 
     const submit = (e) => {
         e.preventDefault()
-        post(route('admin.affiliate.store'))
+        post(route(`admin.${routePrefix}affiliate.store`))
     }
 
     return (
@@ -35,7 +35,7 @@ export default function Create({ uplines, initialData, referralBase }) {
                         <div className="space-y-6">
                             <div className="flex flex-col md:flex-row justify-between md:items-center gap-2">
                                 <h1 className="text-3xl font-bold text-foreground">Tambah Afiliator</h1>
-                                <Breadcrumbs items={[{ label: 'Beranda' }, { label: 'Afiliasi', href: route('admin.affiliate.index') }, { label: 'Tambah' }]} />
+                                <Breadcrumbs items={[{ label: 'Beranda' }, { label: 'Afiliasi', href: route(`admin.${routePrefix}affiliate.index`) }, { label: 'Tambah' }]} />
                             </div>
 
                             <AffiliateForm

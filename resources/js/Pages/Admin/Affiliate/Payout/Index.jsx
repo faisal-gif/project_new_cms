@@ -24,12 +24,14 @@ function badge(s) {
     return <Badge className="bg-yellow-300 text-yellow-800">Pending</Badge>
 }
 
-export default function Index({ payouts, filters, affiliates }) {
+export default function Index({ payouts, filters, affiliates, routePrefix = '' }) {
+    // Permission bersufiks situs; slug-nya diturunkan dari prefix route.
+    const situsSlug = routePrefix.replace('.', '')
     const { auth } = usePage().props
     const punya = (p) => (auth.permissions || []).includes(p)
 
     const ubahFilter = (key, val) => {
-        router.get(route('admin.affiliate-payout.index'), { ...filters, [key]: val ?? '' }, { preserveState: true, replace: true })
+        router.get(route(`admin.${routePrefix}affiliate-payout.index`), { ...filters, [key]: val ?? '' }, { preserveState: true, replace: true })
     }
 
     return (
@@ -58,9 +60,9 @@ export default function Index({ payouts, filters, affiliates }) {
                                     </div>
                                 </div>
 
-                                {punya('create pencairan afiliasi') && (
+                                {punya(`create pencairan afiliasi ${situsSlug}`) && (
                                     <Button asChild className="gap-2">
-                                        <Link href={route('admin.affiliate-payout.create')}><Plus className="w-4 h-4" /> Buat Batch</Link>
+                                        <Link href={route(`admin.${routePrefix}affiliate-payout.create`)}><Plus className="w-4 h-4" /> Buat Batch</Link>
                                     </Button>
                                 )}
                             </div>
@@ -105,7 +107,7 @@ export default function Index({ payouts, filters, affiliates }) {
                                                 <TableCell>{badge(p.status)}</TableCell>
                                                 <TableCell className="text-right">
                                                     <Button asChild size="xs" variant="outline" className="border-primary text-primary hover:bg-primary/10">
-                                                        <Link href={route('admin.affiliate-payout.show', p.id)}>Detail</Link>
+                                                        <Link href={route(`admin.${routePrefix}affiliate-payout.show`, p.id)}>Detail</Link>
                                                     </Button>
                                                 </TableCell>
                                             </TableRow>

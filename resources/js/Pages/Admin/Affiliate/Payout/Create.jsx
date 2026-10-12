@@ -17,7 +17,7 @@ import Select from 'react-select'
  * Pratinjau dulu, baru buat. Nominal batch dihitung ulang di server dari komisi yang
  * dikunci — angka di layar ini hanya pratinjau, bukan yang dikirim.
  */
-export default function Create({ affiliates, affiliate, commissions, total, filters, rekeningLengkap }) {
+export default function Create({ affiliates, affiliate, commissions, total, filters, rekeningLengkap, routePrefix = '' }) {
     const { data, setData, post, processing, errors } = useForm({
         affiliate_id: filters.affiliate_id || '',
         period_start: filters.period_start || '',
@@ -29,14 +29,14 @@ export default function Create({ affiliates, affiliate, commissions, total, filt
     const muatPratinjau = (ubah) => {
         const f = { ...data, ...ubah }
         setData(f)
-        router.get(route('admin.affiliate-payout.create'), {
+        router.get(route(`admin.${routePrefix}affiliate-payout.create`), {
             affiliate_id: f.affiliate_id, period_start: f.period_start, period_end: f.period_end,
         }, { preserveState: true, replace: true })
     }
 
     const submit = (e) => {
         e.preventDefault()
-        post(route('admin.affiliate-payout.store'))
+        post(route(`admin.${routePrefix}affiliate-payout.store`))
     }
 
     return (
@@ -49,7 +49,7 @@ export default function Create({ affiliates, affiliate, commissions, total, filt
                         <div className="flex flex-col md:flex-row justify-between md:items-center gap-2">
                             <div className="flex items-center gap-3">
                                 <Button asChild variant="ghost" size="icon">
-                                    <Link href={route('admin.affiliate-payout.index')}><ArrowLeftIcon className="w-5 h-5" /></Link>
+                                    <Link href={route(`admin.${routePrefix}affiliate-payout.index`)}><ArrowLeftIcon className="w-5 h-5" /></Link>
                                 </Button>
                                 <h1 className="text-3xl font-bold text-foreground">Buat Batch Pencairan</h1>
                             </div>
@@ -90,7 +90,7 @@ export default function Create({ affiliates, affiliate, commissions, total, filt
                                         <div>
                                             <strong>Rekening belum lengkap.</strong> Nomor dan nama pemilik rekening wajib
                                             terisi sebelum batch dibuat.{' '}
-                                            <Link href={route('admin.affiliate.edit', affiliate.id)} className="underline">Lengkapi di sini</Link>.
+                                            <Link href={route(`admin.${routePrefix}affiliate.edit`, affiliate.id)} className="underline">Lengkapi di sini</Link>.
                                         </div>
                                     </div>
                                 </Card>

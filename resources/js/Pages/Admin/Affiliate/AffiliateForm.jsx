@@ -27,7 +27,7 @@ const METODE = [
  * Catatan: kode referral TIDAK dibuat ulang saat mengedit — URL publik yang sudah
  * tersebar bergantung padanya.
  */
-export default function AffiliateForm({ data, setData, errors, processing, onSubmit, uplines = [], referralBase, submitLabel }) {
+export default function AffiliateForm({ data, setData, errors, processing, onSubmit, uplines = [], referralBase, submitLabel, routePrefix = '' }) {
     const [disalin, setDisalin] = useState(false)
 
     const salinLink = () => {
@@ -39,7 +39,7 @@ export default function AffiliateForm({ data, setData, errors, processing, onSub
     // Cari akun member di tabel wartawan untuk ditautkan sebagai user_id.
     const cariUser = (input) => {
         if (!input || input.length < 3) return Promise.resolve([])
-        return fetch(route('admin.affiliate.search-user', { q: input }), { headers: { Accept: 'application/json' } })
+        return fetch(route(`admin.${routePrefix}affiliate.search-user`, { q: input }), { headers: { Accept: 'application/json' } })
             .then((r) => r.json())
             .catch(() => [])
     }

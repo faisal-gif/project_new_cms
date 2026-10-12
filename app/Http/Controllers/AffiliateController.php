@@ -17,9 +17,20 @@ use Inertia\Inertia;
  */
 class AffiliateController extends Controller
 {
+    use \App\Http\Controllers\Concerns\ScopesAffiliateSite;
+
     public function index(Request $request)
     {
+        $situs = $this->situs($request);
+
         $query = Affiliate::query()
+            // Afiliator tidak punya kolom situs. Dilingkupkan lewat asal komisinya:
+            // yang pernah menghasilkan komisi di situs ini, DITAMBAH yang belum punya
+            // komisi sama sekali — kalau tidak, afiliator baru tidak akan terlihat
+            // di layar mana pun.
+            ->where(fn($q) => $q
+                ->whereHas('commissions.payment.package', fn($p) => $p->where('type', $situs))
+                ->orWhereDoesntHave('commissions'))
             ->with('upline:id,name,code')
             ->withCount('referrals')
             // Ringkasan komisi per afiliator. Dihitung lewat subquery supaya tidak N+1.
@@ -44,10 +55,12 @@ class AffiliateController extends Controller
             'affiliates' => $query->latest('id')->paginate(15)->withQueryString(),
             'filters' => $request->only(['search', 'status']),
             'referralBase' => rtrim(config('services.berbayar.kt_url'), '/') . '/?ref=',
+            'situsLabel' => $this->labelSitus($request),
+            'routePrefix' => $this->prefixSitus($request),
         ]);
     }
 
-    public function create()
+    public function create(Request $request)
     {
         return Inertia::render('Admin/Affiliate/Create', [
             'uplines' => $this->opsiUpline(),
@@ -56,6 +69,8 @@ class AffiliateController extends Controller
                 'code' => Affiliate::generateCode(),
             ],
             'referralBase' => rtrim(config('services.berbayar.kt_url'), '/') . '/?ref=',
+            'situsLabel' => $this->labelSitus($request),
+            'routePrefix' => $this->prefixSitus($request),
         ]);
     }
 
@@ -68,11 +83,11 @@ class AffiliateController extends Controller
 
         $affiliate = Affiliate::create($data);
 
-        return redirect()->route('admin.affiliate.index')
+        return redirect()->route('admin.' . $this->prefixSitus($request) . 'affiliate.index')
             ->with('success', "Afiliator {$affiliate->name} berhasil dibuat dengan kode {$affiliate->code}.");
     }
 
-    public function edit($id)
+    public function edit(Request $request, $id)
     {
         $affiliate = Affiliate::with('upline:id,name,code', 'user:id,nama,email')->findOrFail($id);
 
@@ -82,6 +97,8 @@ class AffiliateController extends Controller
             // tetap dijaga validasi di server.
             'uplines' => $this->opsiUpline($affiliate->id),
             'referralBase' => rtrim(config('services.berbayar.kt_url'), '/') . '/?ref=',
+            'situsLabel' => $this->labelSitus($request),
+            'routePrefix' => $this->prefixSitus($request),
         ]);
     }
 
@@ -97,7 +114,7 @@ class AffiliateController extends Controller
 
         $affiliate->update($data);
 
-        return redirect()->route('admin.affiliate.index')
+        return redirect()->route('admin.' . $this->prefixSitus($request) . 'affiliate.index')
             ->with('success', "Afiliator {$affiliate->name} berhasil diperbarui.");
     }
 

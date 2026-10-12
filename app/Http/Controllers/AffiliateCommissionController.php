@@ -19,6 +19,8 @@ use Inertia\Inertia;
  */
 class AffiliateCommissionController extends Controller
 {
+    use \App\Http\Controllers\Concerns\ScopesAffiliateSite;
+
     public function index(Request $request)
     {
         return Inertia::render('Admin/Affiliate/Commission/Index', [
@@ -26,9 +28,11 @@ class AffiliateCommissionController extends Controller
             // relasi payment.package, jadi accessor situs akan memicu N+1 di sana.
             'commissions' => $this->buildQuery($request)->latest('id')->paginate(25)->withQueryString()
                 ->through(fn($c) => $c->append('situs')),
-            'filters' => $request->only(['affiliate_id', 'status', 'role', 'situs', 'start_date', 'end_date']),
+            'filters' => $request->only(['affiliate_id', 'status', 'role', 'start_date', 'end_date']),
             'affiliates' => $this->opsiAfiliator(),
-            'situsOptions' => PaketBerita::opsiSitus(),
+            // Situs tidak lagi bisa dipilih di layar — sudah terkunci oleh route.
+            'situsLabel' => $this->labelSitus($request),
+            'routePrefix' => $this->prefixSitus($request),
             'ringkasan' => $this->ringkasan($request),
         ]);
     }
@@ -41,13 +45,20 @@ class AffiliateCommissionController extends Controller
     {
         $query = AffiliateCommission::query()
             ->where('status', 'unassigned')
+            ->tap(fn($q) => $this->batasiKomisiKeSitus($q, $request))
             ->with(['sourceAffiliate:id,name,code', 'user:id,nama,email', 'payment:id,reference,amount,paid_at'])
             ->latest('id');
+
+        $total = AffiliateCommission::where('status', 'unassigned')
+            ->tap(fn($q) => $this->batasiKomisiKeSitus($q, $request))
+            ->sum('amount');
 
         return Inertia::render('Admin/Affiliate/Commission/Unassigned', [
             'commissions' => $query->paginate(25)->withQueryString(),
             'affiliates' => $this->opsiAfiliator(),
-            'total' => (int) AffiliateCommission::where('status', 'unassigned')->sum('amount'),
+            'total' => (int) $total,
+            'situsLabel' => $this->labelSitus($request),
+            'routePrefix' => $this->prefixSitus($request),
         ]);
     }
 
@@ -62,7 +73,13 @@ class AffiliateCommissionController extends Controller
             'ids.*' => ['integer'],
         ], ['ids.required' => 'Pilih minimal satu baris komisi.']);
 
-        $kandidat = AffiliateCommission::whereIn('id', $data['ids'])->get();
+        // Dibatasi ke situs aktif: tanpa ini, id dari situs lain yang diselipkan ke
+        // payload akan ikut disetujui oleh pemegang izin satu situs.
+        $kandidat = AffiliateCommission::whereIn('id', $data['ids'])
+            ->tap(fn($q) => $this->batasiKomisiKeSitus($q, $request))
+            ->get();
+
+        $diluarSitus = count($data['ids']) - $kandidat->count();
 
         $disetujui = 0;
         $ditolakTahan = 0;
@@ -92,6 +109,7 @@ class AffiliateCommissionController extends Controller
         if ($ditolakTahan) $pesan .= " {$ditolakTahan} masih dalam masa tahan 7 hari.";
         if ($ditolakStatus) $pesan .= " {$ditolakStatus} statusnya bukan accrued.";
         if ($ditolakTanpaPenerima) $pesan .= " {$ditolakTanpaPenerima} belum punya penerima.";
+        if ($diluarSitus) $pesan .= " {$diluarSitus} bukan milik situs ini.";
 
         return back()->with($disetujui ? 'success' : 'error', $pesan);
     }
@@ -104,7 +122,12 @@ class AffiliateCommissionController extends Controller
             ['status_note.required' => 'Alasan penolakan wajib diisi.']
         );
 
-        $komisi = AffiliateCommission::findOrFail($id);
+        $komisi = AffiliateCommission::with('payment.package:id,type')->findOrFail($id);
+
+        // Penjaga lintas-situs: izin satu situs tidak boleh menyentuh baris situs lain.
+        if (! $this->komisiMilikSitus($komisi, $request)) {
+            return back()->withErrors(['error' => 'Komisi ini bukan milik situs yang sedang dibuka.']);
+        }
 
         if (!in_array($komisi->status, ['accrued', 'unassigned'], true)) {
             return back()->withErrors(['error' => 'Hanya komisi accrued atau unassigned yang bisa ditolak.']);
@@ -123,7 +146,12 @@ class AffiliateCommissionController extends Controller
             ['status_note.required' => 'Alasan pembalikan wajib diisi.']
         );
 
-        $komisi = AffiliateCommission::findOrFail($id);
+        $komisi = AffiliateCommission::with('payment.package:id,type')->findOrFail($id);
+
+        // Penjaga lintas-situs: izin satu situs tidak boleh menyentuh baris situs lain.
+        if (! $this->komisiMilikSitus($komisi, $request)) {
+            return back()->withErrors(['error' => 'Komisi ini bukan milik situs yang sedang dibuka.']);
+        }
 
         if (!in_array($komisi->status, ['approved', 'paid'], true)) {
             return back()->withErrors(['error' => 'Hanya komisi approved atau paid yang bisa dibalik.']);
@@ -141,7 +169,12 @@ class AffiliateCommissionController extends Controller
             'affiliate_id' => ['required', 'integer', Rule::exists('mysql_berbayar.affiliates', 'id')],
         ], ['affiliate_id.required' => 'Penerima wajib dipilih.']);
 
-        $komisi = AffiliateCommission::findOrFail($id);
+        $komisi = AffiliateCommission::with('payment.package:id,type')->findOrFail($id);
+
+        // Penjaga lintas-situs: izin satu situs tidak boleh menyentuh baris situs lain.
+        if (! $this->komisiMilikSitus($komisi, $request)) {
+            return back()->withErrors(['error' => 'Komisi ini bukan milik situs yang sedang dibuka.']);
+        }
 
         if ($komisi->status !== 'unassigned') {
             return back()->withErrors(['error' => 'Hanya baris unassigned yang bisa ditetapkan penerimanya.']);
@@ -167,11 +200,8 @@ class AffiliateCommissionController extends Controller
             ->when($request->filled('affiliate_id'), fn($q) => $q->where('affiliate_id', $request->affiliate_id))
             ->when($request->filled('status'), fn($q) => $q->where('status', $request->status))
             ->when($request->filled('role'), fn($q) => $q->where('role', $request->role))
-            // Situs tidak ada di tabel komisi; disaring lewat rantai payment -> package.
-            ->when($request->filled('situs'), fn($q) => $q->whereHas(
-                'payment.package',
-                fn($p) => $p->where('type', $request->situs)
-            ))
+            // Situs SELALU dibatasi dari route, bukan opsional dari query string.
+            ->tap(fn($q) => $this->batasiKomisiKeSitus($q, $request))
             ->when($request->filled('start_date'), fn($q) => $q->whereDate('created_at', '>=', $request->start_date))
             ->when($request->filled('end_date'), fn($q) => $q->whereDate('created_at', '<=', $request->end_date));
     }

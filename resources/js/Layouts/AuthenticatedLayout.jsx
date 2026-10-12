@@ -63,22 +63,23 @@ import { toast } from 'sonner';
  * semua situs. Jadi kedua pintu masuk ini menuju halaman yang sama; asal situs tiap
  * komisi tampil sebagai kolom dan filter di dalamnya.
  */
+/**
+ * Submenu Afiliasi per situs. `situs` adalah slug route ("ajp" / "kopi-times"), dan
+ * seluruh izinnya bersufiks slug itu — situsnya dikunci di route, jadi izin per situs
+ * benar-benar membatasi data, bukan sekadar menyembunyikan menu.
+ */
 function MenuAfiliasi({ situs, hasPermission, isActive, linkClass, summaryClass }) {
-    // Situs yang sedang dibuka, dibaca dari query string. Dipakai supaya hanya submenu
-    // milik situs itu yang tersorot — tanpa ini kedua submenu (AJP & Kopi Times) menyala
-    // bersamaan karena nama route-nya sama.
-    const url = usePage().url;
-    const situsAktif = new URLSearchParams(url.split('?')[1] || '').get('situs');
-    const iniSitusnya = String(situsAktif ?? '') === String(situs);
+    const p = `admin.${situs}.`;
+    const izin = (aksi, sumber) => `${aksi} ${sumber} ${situs}`;
 
-    const polaSitus = ['admin.affiliate-commission.*', 'admin.affiliate-report.*'];
-    // Afiliator & Pencairan tidak punya dimensi situs — saldonya memang satu untuk semua
-    // situs — jadi keduanya tidak pernah menyorot submenu manapun secara khusus.
-    const terbuka = isActive(polaSitus) && iniSitusnya;
+    const semua = [
+        izin('view', 'afiliasi'), izin('view', 'komisi afiliasi'),
+        izin('view', 'pencairan afiliasi'), izin('view', 'laporan afiliasi'),
+    ];
+    if (!hasPermission(semua)) return null;
 
-    if (!hasPermission(['view afiliasi', 'view komisi afiliasi', 'view pencairan afiliasi', 'view laporan afiliasi'])) {
-        return null;
-    }
+    const pola = [`${p}affiliate.*`, `${p}affiliate-commission.*`, `${p}affiliate-payout.*`, `${p}affiliate-report.*`];
+    const terbuka = isActive(pola);
 
     return (
         <li>
@@ -87,32 +88,30 @@ function MenuAfiliasi({ situs, hasPermission, isActive, linkClass, summaryClass 
                     <Handshake size={16} /> Afiliasi
                 </summary>
                 <ul className="ml-4 border-l border-white/10 pl-2 mt-0.5">
-                    {hasPermission('view afiliasi') && (
+                    {hasPermission(izin('view', 'afiliasi')) && (
                         <li>
-                            <Link href={route('admin.affiliate.index')} className={linkClass(isActive('admin.affiliate.*'))}>
+                            <Link href={route(`${p}affiliate.index`)} className={linkClass(isActive(`${p}affiliate.*`))}>
                                 <Users size={16} /> Afiliator
                             </Link>
                         </li>
                     )}
-                    {hasPermission('view komisi afiliasi') && (
+                    {hasPermission(izin('view', 'komisi afiliasi')) && (
                         <li>
-                            <Link href={route('admin.affiliate-commission.index', { situs })}
-                                className={linkClass(isActive('admin.affiliate-commission.*') && iniSitusnya)}>
+                            <Link href={route(`${p}affiliate-commission.index`)} className={linkClass(isActive(`${p}affiliate-commission.*`))}>
                                 <Banknote size={16} /> Komisi
                             </Link>
                         </li>
                     )}
-                    {hasPermission('view pencairan afiliasi') && (
+                    {hasPermission(izin('view', 'pencairan afiliasi')) && (
                         <li>
-                            <Link href={route('admin.affiliate-payout.index')} className={linkClass(isActive('admin.affiliate-payout.*'))}>
+                            <Link href={route(`${p}affiliate-payout.index`)} className={linkClass(isActive(`${p}affiliate-payout.*`))}>
                                 <Wallet size={16} /> Pencairan
                             </Link>
                         </li>
                     )}
-                    {hasPermission('view laporan afiliasi') && (
+                    {hasPermission(izin('view', 'laporan afiliasi')) && (
                         <li>
-                            <Link href={route('admin.affiliate-report.index', { situs })}
-                                className={linkClass(isActive('admin.affiliate-report.*') && iniSitusnya)}>
+                            <Link href={route(`${p}affiliate-report.index`)} className={linkClass(isActive(`${p}affiliate-report.*`))}>
                                 <Clipboard size={16} /> Laporan
                             </Link>
                         </li>
@@ -539,7 +538,7 @@ export default function AuthenticatedLayout({ header, children }) {
                                     </Link>
                                 </li>
                             )}
-                            <MenuAfiliasi situs="1" hasPermission={hasPermission} isActive={isActive} linkClass={linkClass} summaryClass={summaryClass} />
+                            <MenuAfiliasi situs="ajp" hasPermission={hasPermission} isActive={isActive} linkClass={linkClass} summaryClass={summaryClass} />
                         </>
 
 
@@ -603,7 +602,7 @@ export default function AuthenticatedLayout({ header, children }) {
                                 </li>
                             )}
 
-                            <MenuAfiliasi situs="4" hasPermission={hasPermission} isActive={isActive} linkClass={linkClass} summaryClass={summaryClass} />
+                            <MenuAfiliasi situs="kopi-times" hasPermission={hasPermission} isActive={isActive} linkClass={linkClass} summaryClass={summaryClass} />
                             {hasPermission(['view transaction kopi-times']) && (
                                 <li>
                                     <Link href={route('admin.kopi-times.transaction.index')} className={linkClass(isActive('admin.kopi-times.transaction.*'))}>

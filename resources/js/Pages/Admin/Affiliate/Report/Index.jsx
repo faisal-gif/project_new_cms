@@ -15,11 +15,10 @@ import Select from 'react-select'
  * Rekap periode. Pos internal (KITA AI) HANYA boleh tampil di sini — tidak pernah
  * di aplikasi publik.
  */
-export default function Index({ filters, rekap, perSitus = [], perAfiliator, invarian, situsOptions = [], situsLabel }) {
+export default function Index({ filters, rekap, perSitus = [], perAfiliator, invarian, situsLabel, routePrefix = '' }) {
     const [f, setF] = useState(filters)
-    const SITUS = [{ value: '', label: 'Semua Situs' }, ...situsOptions]
 
-    const terapkan = () => router.get(route('admin.affiliate-report.index'), f, { preserveState: true })
+    const terapkan = () => router.get(route(`admin.${routePrefix}affiliate-report.index`), f, { preserveState: true })
 
     const adaMasalah = invarian.total_timpang.length > 0 || invarian.batch_campur.length > 0
 
@@ -35,11 +34,7 @@ export default function Index({ filters, rekap, perSitus = [], perAfiliator, inv
                                 <h1 className="text-3xl font-bold text-foreground">Laporan Afiliasi</h1>
                                 {/* Dibuka dari menu AJP / Kopi Times -> tersaring otomatis. */}
                                 {situsLabel && (
-                                    <span className="inline-flex items-center gap-2 text-sm bg-muted border border-border rounded-full px-3 py-1">
-                                        Situs: <strong>{situsLabel}</strong>
-                                        <Link href={route('admin.affiliate-report.index', { start_date: filters.start_date, end_date: filters.end_date })}
-                                            className="text-muted-foreground hover:text-foreground underline">lepas</Link>
-                                    </span>
+                                    <span className="text-sm bg-muted border border-border rounded-full px-3 py-1">{situsLabel}</span>
                                 )}
                             </div>
                             <Breadcrumbs items={[{ label: 'Beranda' }, { label: 'Afiliasi' }, { label: 'Laporan' }]} />
@@ -74,16 +69,10 @@ export default function Index({ filters, rekap, perSitus = [], perAfiliator, inv
                                     <InputLabel value="Sampai" className="mb-2 font-bold" />
                                     <TextInput type="date" value={f.end_date} onChange={(e) => setF({ ...f, end_date: e.target.value })} />
                                 </div>
-                                <div className="w-full sm:w-52">
-                                    <InputLabel value="Situs" className="mb-2 font-bold" />
-                                    <Select options={SITUS}
-                                        value={SITUS.find((s) => String(s.value) === String(f.situs ?? '')) || SITUS[0]}
-                                        onChange={(v) => setF({ ...f, situs: v?.value ?? '' })} />
-                                </div>
                                 <Button onClick={terapkan}>Terapkan</Button>
                                 <div className="sm:ml-auto">
                                     <Button asChild variant="outline" className="gap-2">
-                                        <Link href={route('admin.affiliate-report.fraud')}>
+                                        <Link href={route(`admin.${routePrefix}affiliate-report.fraud`)}>
                                             <ShieldAlert className="w-4 h-4" /> Deteksi Kecurangan
                                         </Link>
                                     </Button>

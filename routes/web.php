@@ -81,28 +81,39 @@ Route::middleware(['auth', \App\Http\Middleware\EnforceRoutePermission::class])-
     Route::post('/news/import-nasional', [NewsController::class, 'importNasionalStore'])->name('news.import.nasional.store');
     Route::get('/history', [ActivityLogController::class, 'index'])->name('history.index');
     Route::post('/news/{news}/notes', [NewsNoteController::class, 'store'])->name('news.notes.store');
-    // Program afiliasi. DB dipakai bersama aplikasi publik (timesindo_ajp), jadi taruh di
-    // level admin — bukan di bawah kopi-times — karena skemanya akan dipakai ulang ajp juga.
-    Route::get('affiliate/search-user', [AffiliateController::class, 'searchUser'])->name('affiliate.search-user');
-    Route::patch('affiliate/{affiliate}/status', [AffiliateController::class, 'status'])->name('affiliate.status');
-    Route::resource('affiliate', AffiliateController::class)->except('show', 'destroy');
+    // Program afiliasi, dipisah per situs.
+    //
+    // Situs DIKUNCI oleh nama route (admin.ajp.* / admin.kopi-times.*), bukan query
+    // string: permission per situs hanya mengikat kalau nilainya tidak bisa diubah
+    // pemakai. Lihat Concerns\ScopesAffiliateSite.
+    //
+    // Datanya sendiri tetap satu tabel — satu afiliator bisa merekrut ke beberapa situs
+    // dan satu batch pencairan bisa memuat komisi lintas situs. Jadi pelingkupannya
+    // memakai asal komisi, dan baris yang menyentuh dua situs memang tampil di keduanya.
+    foreach (['ajp', 'kopi-times'] as $situsSlug) {
+        Route::prefix($situsSlug)->name($situsSlug . '.')->group(function () {
+            Route::get('affiliate/search-user', [AffiliateController::class, 'searchUser'])->name('affiliate.search-user');
+            Route::patch('affiliate/{affiliate}/status', [AffiliateController::class, 'status'])->name('affiliate.status');
+            Route::resource('affiliate', AffiliateController::class)->except('show', 'destroy');
 
-    // Komisi — CMS hanya mengubah status, tidak pernah menyisipkan baris.
-    Route::get('affiliate-commission/unassigned', [AffiliateCommissionController::class, 'unassigned'])->name('affiliate-commission.unassigned');
-    Route::post('affiliate-commission/approve', [AffiliateCommissionController::class, 'approve'])->name('affiliate-commission.approve');
-    Route::patch('affiliate-commission/{id}/reject', [AffiliateCommissionController::class, 'reject'])->name('affiliate-commission.reject');
-    Route::patch('affiliate-commission/{id}/reverse', [AffiliateCommissionController::class, 'reverse'])->name('affiliate-commission.reverse');
-    Route::patch('affiliate-commission/{id}/assign', [AffiliateCommissionController::class, 'assign'])->name('affiliate-commission.assign');
-    Route::get('affiliate-commission', [AffiliateCommissionController::class, 'index'])->name('affiliate-commission.index');
+            // Komisi — CMS hanya mengubah status, tidak pernah menyisipkan baris.
+            Route::get('affiliate-commission/unassigned', [AffiliateCommissionController::class, 'unassigned'])->name('affiliate-commission.unassigned');
+            Route::post('affiliate-commission/approve', [AffiliateCommissionController::class, 'approve'])->name('affiliate-commission.approve');
+            Route::patch('affiliate-commission/{id}/reject', [AffiliateCommissionController::class, 'reject'])->name('affiliate-commission.reject');
+            Route::patch('affiliate-commission/{id}/reverse', [AffiliateCommissionController::class, 'reverse'])->name('affiliate-commission.reverse');
+            Route::patch('affiliate-commission/{id}/assign', [AffiliateCommissionController::class, 'assign'])->name('affiliate-commission.assign');
+            Route::get('affiliate-commission', [AffiliateCommissionController::class, 'index'])->name('affiliate-commission.index');
 
-    // Pencairan
-    Route::post('affiliate-payout/{id}/mark-paid', [AffiliatePayoutController::class, 'markPaid'])->name('affiliate-payout.mark-paid');
-    Route::patch('affiliate-payout/{id}/cancel', [AffiliatePayoutController::class, 'cancel'])->name('affiliate-payout.cancel');
-    Route::resource('affiliate-payout', AffiliatePayoutController::class)->only('index', 'create', 'store', 'show');
+            // Pencairan
+            Route::post('affiliate-payout/{id}/mark-paid', [AffiliatePayoutController::class, 'markPaid'])->name('affiliate-payout.mark-paid');
+            Route::patch('affiliate-payout/{id}/cancel', [AffiliatePayoutController::class, 'cancel'])->name('affiliate-payout.cancel');
+            Route::resource('affiliate-payout', AffiliatePayoutController::class)->only('index', 'create', 'store', 'show');
 
-    // Laporan — pos internal (KITA AI) hanya boleh tampil di sini, tidak di aplikasi publik.
-    Route::get('affiliate-report/fraud', [AffiliateReportController::class, 'fraud'])->name('affiliate-report.fraud');
-    Route::get('affiliate-report', [AffiliateReportController::class, 'index'])->name('affiliate-report.index');
+            // Laporan — pos internal (KITA AI) hanya boleh tampil di sini, tidak di aplikasi publik.
+            Route::get('affiliate-report/fraud', [AffiliateReportController::class, 'fraud'])->name('affiliate-report.fraud');
+            Route::get('affiliate-report', [AffiliateReportController::class, 'index'])->name('affiliate-report.index');
+        });
+    }
 
     Route::resource('roles', RoleController::class);
     Route::resource('permissions', PermissionController::class);

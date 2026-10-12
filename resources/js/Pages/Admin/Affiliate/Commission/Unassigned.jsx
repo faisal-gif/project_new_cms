@@ -14,15 +14,17 @@ import Select from 'react-select'
  * Baris tier-2 tanpa upline. Uangnya belum jadi milik siapa pun — manajemen memutuskan
  * penerimanya belakangan. Tanpa layar ini, uang tertahan tidak terlihat siapa pun.
  */
-export default function Unassigned({ commissions, affiliates, total }) {
+export default function Unassigned({ commissions, affiliates, total, routePrefix = '' }) {
+    // Permission bersufiks situs; slug-nya diturunkan dari prefix route.
+    const situsSlug = routePrefix.replace('.', '')
     const { auth } = usePage().props
-    const bolehUbah = (auth.permissions || []).includes('edit komisi afiliasi')
+    const bolehUbah = (auth.permissions || []).includes(`edit komisi afiliasi ${situsSlug}`)
     const [pilihan, setPilihan] = useState({})
 
     const tetapkan = (c) => {
         const id = pilihan[c.id]
         if (!id) return
-        router.patch(route('admin.affiliate-commission.assign', c.id), { affiliate_id: id }, { preserveScroll: true })
+        router.patch(route(`admin.${routePrefix}affiliate-commission.assign`, c.id), { affiliate_id: id }, { preserveScroll: true })
     }
 
     return (
@@ -35,7 +37,7 @@ export default function Unassigned({ commissions, affiliates, total }) {
                         <div className="flex flex-col md:flex-row justify-between md:items-center gap-2">
                             <div className="flex items-center gap-3">
                                 <Button asChild variant="ghost" size="icon">
-                                    <Link href={route('admin.affiliate-commission.index')}><ArrowLeftIcon className="w-5 h-5" /></Link>
+                                    <Link href={route(`admin.${routePrefix}affiliate-commission.index`)}><ArrowLeftIcon className="w-5 h-5" /></Link>
                                 </Button>
                                 <h1 className="text-3xl font-bold text-foreground">Komisi Tertahan</h1>
                             </div>

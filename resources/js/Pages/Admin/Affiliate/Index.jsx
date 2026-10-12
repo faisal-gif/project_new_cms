@@ -33,7 +33,9 @@ function statusBadge(status) {
     }
 }
 
-export default function Index({ affiliates, filters, referralBase }) {
+export default function Index({ affiliates, filters, referralBase, routePrefix = '' }) {
+    // Permission bersufiks situs; slug-nya diturunkan dari prefix route.
+    const situsSlug = routePrefix.replace('.', '')
     const { auth } = usePage().props
     const izin = auth.permissions || []
     const punya = (p) => izin.includes(p)
@@ -46,7 +48,7 @@ export default function Index({ affiliates, filters, referralBase }) {
     useEffect(() => {
         if (pertama.current) { pertama.current = false; return }
         const t = setTimeout(() => {
-            router.get(route('admin.affiliate.index'), { search, status }, { preserveState: true, replace: true })
+            router.get(route(`admin.${routePrefix}affiliate.index`), { search, status }, { preserveState: true, replace: true })
         }, 400)
         return () => clearTimeout(t)
     }, [search, status])
@@ -58,7 +60,7 @@ export default function Index({ affiliates, filters, referralBase }) {
     }
 
     const ubahStatus = (a, baru) => {
-        router.patch(route('admin.affiliate.status', a.id), { status: baru }, { preserveScroll: true })
+        router.patch(route(`admin.${routePrefix}affiliate.status`, a.id), { status: baru }, { preserveScroll: true })
     }
 
     return (
@@ -95,9 +97,9 @@ export default function Index({ affiliates, filters, referralBase }) {
                                         </div>
                                     </div>
 
-                                    {punya('create afiliasi') && (
+                                    {punya(`create afiliasi ${situsSlug}`) && (
                                         <Button asChild className="gap-2">
-                                            <Link href={route('admin.affiliate.create')}><Plus className="w-4 h-4" /> Tambah Afiliator</Link>
+                                            <Link href={route(`admin.${routePrefix}affiliate.create`)}><Plus className="w-4 h-4" /> Tambah Afiliator</Link>
                                         </Button>
                                     )}
                                 </div>
@@ -150,19 +152,19 @@ export default function Index({ affiliates, filters, referralBase }) {
                                                     <TableCell>{statusBadge(a.status)}</TableCell>
                                                     <TableCell>
                                                         <div className="flex justify-end gap-2">
-                                                            {punya('edit afiliasi') && a.status !== 'active' && (
+                                                            {punya(`edit afiliasi ${situsSlug}`) && a.status !== 'active' && (
                                                                 <Button size="xs" variant="outline" className="border-green-600 text-green-700 hover:bg-green-50" onClick={() => ubahStatus(a, 'active')}>
                                                                     Setujui
                                                                 </Button>
                                                             )}
-                                                            {punya('edit afiliasi') && a.status === 'active' && (
+                                                            {punya(`edit afiliasi ${situsSlug}`) && a.status === 'active' && (
                                                                 <Button size="xs" variant="outline" className="border-amber-500 text-amber-600 hover:bg-amber-50" onClick={() => ubahStatus(a, 'suspended')}>
                                                                     Tangguhkan
                                                                 </Button>
                                                             )}
-                                                            {punya('edit afiliasi') && (
+                                                            {punya(`edit afiliasi ${situsSlug}`) && (
                                                                 <Button asChild size="xs" variant="outline" className="border-primary text-primary hover:bg-primary/10">
-                                                                    <Link href={route('admin.affiliate.edit', a.id)}>Edit</Link>
+                                                                    <Link href={route(`admin.${routePrefix}affiliate.edit`, a.id)}>Edit</Link>
                                                                 </Button>
                                                             )}
                                                         </div>

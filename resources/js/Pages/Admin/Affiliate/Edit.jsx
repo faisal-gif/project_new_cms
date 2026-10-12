@@ -4,7 +4,7 @@ import { Head, useForm } from '@inertiajs/react'
 import React from 'react'
 import AffiliateForm from './AffiliateForm'
 
-export default function Edit({ affiliate, uplines, referralBase }) {
+export default function Edit({ affiliate, uplines, referralBase, routePrefix = '' }) {
     const { data, setData, put, processing, errors } = useForm({
         name: affiliate.name ?? '',
         email: affiliate.email ?? '',
@@ -26,7 +26,7 @@ export default function Edit({ affiliate, uplines, referralBase }) {
 
     const submit = (e) => {
         e.preventDefault()
-        put(route('admin.affiliate.update', affiliate.id))
+        put(route(`admin.${routePrefix}affiliate.update`, affiliate.id))
     }
 
     return (
@@ -38,7 +38,7 @@ export default function Edit({ affiliate, uplines, referralBase }) {
                         <div className="space-y-6">
                             <div className="flex flex-col md:flex-row justify-between md:items-center gap-2">
                                 <h1 className="text-3xl font-bold text-foreground">Edit Afiliator</h1>
-                                <Breadcrumbs items={[{ label: 'Beranda' }, { label: 'Afiliasi', href: route('admin.affiliate.index') }, { label: 'Edit' }]} />
+                                <Breadcrumbs items={[{ label: 'Beranda' }, { label: 'Afiliasi', href: route(`admin.${routePrefix}affiliate.index`) }, { label: 'Edit' }]} />
                             </div>
 
                             <AffiliateForm
