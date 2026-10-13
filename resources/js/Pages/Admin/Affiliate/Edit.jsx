@@ -49,6 +49,7 @@ export default function Edit({ affiliate, uplines, referralBase, routePrefix = '
                                 onSubmit={submit}
                                 uplines={uplines}
                                 referralBase={referralBase}
+                                routePrefix={routePrefix}
                                 submitLabel="Simpan Perubahan"
                             />
                         </div>

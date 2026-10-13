@@ -46,6 +46,7 @@ export default function Create({ uplines, initialData, referralBase, routePrefix
                                 onSubmit={submit}
                                 uplines={uplines}
                                 referralBase={referralBase}
+                                routePrefix={routePrefix}
                                 submitLabel="Simpan Afiliator"
                             />
                         </div>
