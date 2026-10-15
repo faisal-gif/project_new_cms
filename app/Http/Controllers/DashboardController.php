@@ -208,10 +208,11 @@ class DashboardController extends Controller
     {
         $period = now()->format('Y_m');
         $agg = Cache::remember("dashboard_payment_stats_v2_{$type}_{$period}", 60 * 5, function () use ($type) {
-            return $this->perDatabase("berbayar (pembayaran type {$type})", fn () => PaymentsNewsBerbayar::where('type', $type)
-                ->where('status', 'paid')
-                ->whereMonth('created_at', now()->month)
-                ->whereYear('created_at', now()->year)
+            // scopeLunasPada: definisi omzet yang sama dengan laporan transaksi dan
+            // laporan afiliasi. Rentang, bukan whereMonth/whereYear — fungsi pada
+            // kolom membuat index tidak terpakai.
+            return $this->perDatabase("berbayar (pembayaran type {$type})", fn () => PaymentsNewsBerbayar::situs($type)
+                ->lunasPada(now()->startOfMonth(), now()->endOfMonth())
                 ->selectRaw('COUNT(*) as transactions, COALESCE(SUM(amount), 0) as revenue')
                 ->first());
         });

@@ -6,6 +6,7 @@ use App\Models\Affiliate;
 use App\Models\AffiliateCommission;
 use App\Models\AffiliatePayout;
 use App\Models\PaketBerita;
+use App\Models\PaymentsNewsBerbayar;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -41,7 +42,10 @@ class AffiliateReportController extends Controller
         $perSitus = DB::connection('mysql_berbayar')
             ->table('affiliate_commissions as c')
             ->whereBetween('c.created_at', [$awal, $akhir])
-            ->where('c.status', '<>', 'rejected')
+            // rejected DAN reversed sama-sama dibatalkan sebelum uangnya berpindah.
+            // Daftar ini harus sama dengan yang dipakai kolom "Komisi Keluar" di
+            // daftar transaksi, kalau tidak net kantor di dua layar akan berbeda.
+            ->whereNotIn('c.status', PaymentsNewsBerbayar::STATUS_KOMISI_KELUAR)
             ->where('c.type', $situs)
             ->groupBy('c.type')
             ->selectRaw("
@@ -54,15 +58,14 @@ class AffiliateReportController extends Controller
                 COUNT(DISTINCT c.payment_id) jumlah_pembayaran
             ")->get();
 
-        // Pemasukan kotor per situs, dari pembayaran yang benar-benar lunas.
-        $kotorPerSitus = DB::connection('mysql_berbayar')
-            ->table('payments as p')
-            ->join('news_package as np', 'np.id', '=', 'p.package_id')
-            ->where('p.status', 'paid')
-            ->whereBetween('p.paid_at', [$awal, $akhir])
-            ->where('np.type', $situs)
-            ->groupBy('np.type')
-            ->selectRaw('np.type situs, SUM(p.amount) kotor')
+        // Pemasukan kotor per situs — lewat scopeLunasPada(), definisi omzet yang
+        // sama dengan laporan transaksi dan dashboard. Join ke news_package dibuang:
+        // payments.type sudah membawa situsnya (0 beda dari 1.784 baris), dan tanpa
+        // join itu pembayaran yang paketnya sudah terhapus tidak ikut lenyap.
+        $kotorPerSitus = PaymentsNewsBerbayar::situs($situs)
+            ->lunasPada($awal, $akhir)
+            ->groupBy('type')
+            ->selectRaw('type situs, SUM(amount) kotor')
             ->pluck('kotor', 'situs');
 
         // Gabungkan: situs yang punya pemasukan tapi nol komisi tetap harus muncul.
@@ -175,7 +178,7 @@ class AffiliateReportController extends Controller
     private function perAfiliator(Carbon $awal, Carbon $akhir, string $situs)
     {
         return AffiliateCommission::whereBetween('created_at', [$awal, $akhir])
-            ->where('status', '<>', 'rejected')
+            ->whereNotIn('status', PaymentsNewsBerbayar::STATUS_KOMISI_KELUAR)
             ->whereNotNull('affiliate_id')
             // Ikut filter situs supaya daftar ini konsisten dengan tabel di atasnya.
             ->where('type', $situs)

@@ -134,6 +134,11 @@ class EnforceRoutePermission
         'nasional.news.report.export-top-category' => 'view report news nasional',
         'daerah.news.report.index' => 'view report news daerah',
         'daerah.news.report.export' => 'view report news daerah',
+        // WAJIB ada di sini: permissionFor() memecah nama route di titik terakhir,
+        // dan "report" bukan salah satu VERBS, jadi tanpa entri ini pemetaannya
+        // gagal, mengembalikan null, dan halaman omzet lolos tanpa gerbang apa pun.
+        'ajp.transaction.report' => 'view transaction ajp',
+        'kopi-times.transaction.report' => 'view transaction kopi-times',
         'nasional.fotografi.report.index' => 'view report gallery nasional',
         'nasional.fotografi.report.export' => 'view report gallery nasional',
         'nasional.fotografi.images.store' => 'create gallery nasional',

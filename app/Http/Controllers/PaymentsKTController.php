@@ -13,20 +13,43 @@ use Inertia\Inertia;
 
 class PaymentsKTController extends Controller
 {
+    use \App\Http\Controllers\Concerns\ScopesAffiliateSite;
+
     public function index(Request $request)
     {
         $search = $request->input('search');
         $status = $request->input('status');
         $packageId = $request->input('package_id');
 
-        // Default ke Bulan Ini. 
+        // Default ke Bulan Ini.
         $startDate = $request->has('start_date') ? $request->input('start_date') : Carbon::now()->startOfMonth()->toDateString();
         $endDate = $request->has('end_date') ? $request->input('end_date') : Carbon::now()->endOfMonth()->toDateString();
+
+        // Rincian potongan afiliasi hanya untuk pemegang izin laporan afiliasi.
+        // Kolom "komisi keluar" membocorkan pos internal secara tidak langsung:
+        // yang tahu tarif publik (20% + 5%) bisa menyimpulkan sisanya dari selisih.
+        // Digerbang di BACKEND, bukan disembunyikan di JSX — prop Inertia terbaca
+        // di sumber halaman, jadi menyembunyikan kolom tidak menyembunyikan data.
+        $bolehLihatAfiliasi = (bool) $request->user()
+            ?->can('view laporan afiliasi ' . $this->slugSitus($request));
 
         $query = PaymentsNewsBerbayar::with([
             'user:id,nama,email',
             'package:id,name,price'
-        ])->where('type', 4);
+        ])->situs(4);
+
+        if ($bolehLihatAfiliasi) {
+            $query->with([
+                'commissions:id,payment_id,role,affiliate_id,source_affiliate_id,amount,status',
+                'commissions.affiliate:id,name,code',
+                'commissions.sourceAffiliate:id,name,code',
+            ]);
+
+            // Filter opsional: hanya transaksi yang benar-benar memotong komisi.
+            if ($request->boolean('berkomisi')) {
+                $query->whereHas('commissions');
+            }
+        }
 
         if (!empty($search)) {
             $query->where(function ($q) use ($search) {
@@ -54,6 +77,10 @@ class PaymentsKTController extends Controller
         }
 
         // --- OPTIMALISASI STATISTIK ---
+        // SENGAJA tetap mengikuti sumbu `created_at` milik daftar di bawahnya, bukan
+        // scopeLunasPada(). Kartu ini meringkas transaksi yang SEDANG TAMPIL (termasuk
+        // pending & expired yang paid_at-nya NULL), bukan omzet periode. Angka omzet
+        // yang otoritatif ada di report() dan laporan afiliasi, keduanya pakai paid_at.
         $statsQuery = clone $query;
         $totalUniqueUsers = (clone $statsQuery)->distinct('user_id')->count('user_id');
         $totalTransactions = (clone $statsQuery)->count();
@@ -73,6 +100,8 @@ class PaymentsKTController extends Controller
         return Inertia::render('Admin/Kopi_Times/Payments/Index', [
             'payments' => $payments,
             'packages' => $packages,
+            'bolehLihatAfiliasi' => $bolehLihatAfiliasi,
+            'statusKomisiDibatalkan' => PaymentsNewsBerbayar::STATUS_KOMISI_KELUAR,
             'statistics' => [
                 'total_users' => $totalUniqueUsers,
                 'total_transactions' => $totalTransactions,
@@ -84,6 +113,7 @@ class PaymentsKTController extends Controller
                 'package_id' => $packageId,
                 'start_date' => $startDate,
                 'end_date' => $endDate,
+                'berkomisi' => $request->boolean('berkomisi'),
             ]
         ]);
     }
@@ -97,8 +127,10 @@ class PaymentsKTController extends Controller
         $endDate = $request->input('end_date', Carbon::now()->endOfMonth()->toDateString());
 
         // Base query statistik ringkas tanpa memuat relasi berat (menghemat memori)
-        $query = PaymentsNewsBerbayar::where('type', 4)
-            ->whereBetween('created_at', [$startDate . ' 00:00:00', $endDate . ' 23:59:59']);
+        // scopeLunasPada: satu definisi omzet untuk seluruh CMS — `paid_at`, bukan
+        // `created_at`, supaya angka di sini cocok dengan laporan afiliasi.
+        $query = PaymentsNewsBerbayar::situs(4)
+            ->lunasPada(Carbon::parse($startDate)->startOfDay(), Carbon::parse($endDate)->endOfDay());
 
         if (!empty($packageId)) {
             $query->where('package_id', $packageId);
@@ -106,21 +138,19 @@ class PaymentsKTController extends Controller
 
         // 1. Hitung statistik ringkas untuk Box Card
         $statsQuery = clone $query;
-        $totalUniqueUsers = (clone $statsQuery)->where('status', 'paid')->distinct('user_id')->count('user_id');
-        $totalTransactions = (clone $statsQuery)->where('status', 'paid')->count();
-        $totalRevenue = (clone $statsQuery)->where('status', 'paid')->sum('amount');
+        $totalUniqueUsers = (clone $statsQuery)->distinct('user_id')->count('user_id');
+        $totalTransactions = (clone $statsQuery)->count();
+        $totalRevenue = (clone $statsQuery)->sum('amount');
 
-        // 2. Ambil data chart tren harian (Hanya transaksi berstatus paid)
+        // 2. Ambil data chart tren harian (sumbunya tanggal pembayaran lunas)
         $chartData = (clone $statsQuery)
-            ->where('status', 'paid')
-            ->selectRaw('DATE(created_at) as date, SUM(amount) as total_revenue, COUNT(id) as total_transactions')
+            ->selectRaw('DATE(paid_at) as date, SUM(amount) as total_revenue, COUNT(id) as total_transactions')
             ->groupBy('date')
             ->orderBy('date', 'asc')
             ->get();
 
         // 3. Ambil data kontribusi paket (Bar/Pie Chart)
         $packageDistribution = (clone $statsQuery)
-            ->where('status', 'paid')
             ->selectRaw('package_id, COUNT(id) as total_sales')
             ->groupBy('package_id')
             ->with('package:id,name')

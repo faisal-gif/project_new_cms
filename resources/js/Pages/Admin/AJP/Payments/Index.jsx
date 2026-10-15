@@ -5,21 +5,23 @@ import Card from '@/Components/Card'
 import InputSelect from '@/Components/InputSelect'
 import InputWithPrefix from '@/Components/InputWithPrefix'
 import PaginationDaisy from '@/Components/PaginationDaisy'
+import RincianAfiliasi, { HeaderRincianAfiliasi, hitungAfiliasi } from '@/Components/RincianAfiliasi'
 import TextInput from '@/Components/TextInput'
 import { Badge } from '@/Components/ui/badge'
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout'
 import { formatDate } from '@/Utils/formatter'
 import { Head, Link, router } from '@inertiajs/react'
 // Import icon Wallet ditambahkan
-import { Search, Receipt, Users, Calendar, RotateCcw, Wallet } from 'lucide-react'
+import { Search, Receipt, Users, Calendar, RotateCcw, Wallet, ListFilter, BarChart3 } from 'lucide-react'
 import React, { useEffect, useRef, useState } from 'react'
 
-export default function Index({ payments, packages, statistics, filters }) {
+export default function Index({ payments, packages, statistics, filters, bolehLihatAfiliasi = false, statusKomisiDibatalkan }) {
     const [search, setSearch] = useState(() => filters.search || '');
     const [status, setStatus] = useState(() => filters.status || '');
     const [packageId, setPackageId] = useState(() => filters.package_id || '');
     const [startDate, setStartDate] = useState(() => filters.start_date || '');
     const [endDate, setEndDate] = useState(() => filters.end_date || '');
+    const [berkomisi, setBerkomisi] = useState(() => !!filters.berkomisi);
 
     const isFirst = useRef(true);
     const INDEX_ROUTE = route('admin.ajp.transaction.index');
@@ -38,6 +40,7 @@ export default function Index({ payments, packages, statistics, filters }) {
             package_id: packageId,
             start_date: startDate,
             end_date: endDate,
+            berkomisi: berkomisi ? 1 : '',
             page: 1
         };
 
@@ -50,13 +53,14 @@ export default function Index({ payments, packages, statistics, filters }) {
         }
 
         return () => timeout && clearTimeout(timeout);
-    }, [search, status, packageId, startDate, endDate]);
+    }, [search, status, packageId, startDate, endDate, berkomisi]);
 
     // FUNGSI RESET: Mengembalikan ke Filter Bulan Ini
     const handleReset = () => {
         setSearch('');
         setStatus('');
         setPackageId('');
+        setBerkomisi(false);
         
         // Kalkulasi akurat tanggal hari pertama dan terakhir bulan berjalan di Javascript
         const now = new Date();
@@ -69,7 +73,7 @@ export default function Index({ payments, packages, statistics, filters }) {
     };
 
     // Mengecek apakah filter diubah dari state asal prop
-    const isFilterApplied = search || status || packageId || startDate !== filters.start_date || endDate !== filters.end_date;
+    const isFilterApplied = search || status || packageId || berkomisi || startDate !== filters.start_date || endDate !== filters.end_date;
 
     const formatCurrency = (amount) => `Rp ${new Intl.NumberFormat('id-ID').format(amount)}`;
 
@@ -104,8 +108,24 @@ export default function Index({ payments, packages, statistics, filters }) {
                                         Periode: <span className="font-semibold text-gray-600">{startDate ? formatDate(startDate) : 'Awal'}</span> s/d <span className="font-semibold text-gray-600">{endDate ? formatDate(endDate) : 'Sekarang'}</span>
                                     </p>
                                 </div>
-                                <Breadcrumbs items={[{ label: 'Home', href: '/' }, { label: 'AJP' }, { label: 'Transaksi' }]} />
+                                {/* Tanpa pasangan tombol ini, admin.ajp.transaction.report
+                                    tidak bisa dijangkau dari UI mana pun — hanya dengan
+                                    mengetik URL-nya. Versi Kopi TIMES sudah punya. */}
+                                <div className="inline-flex bg-background shadow-sm rounded-xl overflow-hidden">
+                                    <Button asChild size="sm" className="rounded-none font-bold">
+                                        <Link href={route('admin.ajp.transaction.index')}>
+                                            <ListFilter size={14} /> Daftar Transaksi
+                                        </Link>
+                                    </Button>
+                                    <Button asChild size="sm" variant="ghost" className="rounded-none font-medium">
+                                        <Link href={route('admin.ajp.transaction.report')}>
+                                            <BarChart3 size={14} /> Grafik & Report
+                                        </Link>
+                                    </Button>
+                                </div>
                             </div>
+
+                            <Breadcrumbs items={[{ label: 'Home', href: '/' }, { label: 'AJP' }, { label: 'Transaksi' }]} />
 
                             {/* KARTU STATISTIK (Berubah menjadi 3 Kolom) */}
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -222,6 +242,17 @@ export default function Index({ payments, packages, statistics, filters }) {
                                                 ]}
                                             />
                                         </div>
+                                        {bolehLihatAfiliasi && (
+                                            <label className="flex w-full cursor-pointer items-center gap-2 text-sm md:w-auto">
+                                                <input
+                                                    type="checkbox"
+                                                    className="checkbox checkbox-sm"
+                                                    checked={berkomisi}
+                                                    onChange={(e) => setBerkomisi(e.target.checked)}
+                                                />
+                                                Hanya yang berkomisi
+                                            </label>
+                                        )}
                                     </div>
                                 </div>
                             </Card>
@@ -264,6 +295,35 @@ export default function Index({ payments, packages, statistics, filters }) {
                                                         <span className="text-green-600 font-medium">{formatDate(payment.paid_at)}</span>
                                                     </div>
                                                 )}
+
+                                                {/* Potongan afiliasi — hanya bila berhak dan memang ada komisinya. */}
+                                                {bolehLihatAfiliasi && (() => {
+                                                    const a = hitungAfiliasi(payment, statusKomisiDibatalkan)
+                                                    if (!a.adaKomisi) return null
+
+                                                    return (
+                                                        <div className="space-y-2 border-t border-gray-200 pt-2">
+                                                            <div className="flex justify-between">
+                                                                <span className="font-medium text-gray-600">Perekrut:</span>
+                                                                <span className="font-mono">{a.sumber ? a.sumber.code : '—'}</span>
+                                                            </div>
+                                                            <div className="flex justify-between">
+                                                                <span className="font-medium text-gray-600">Komisi keluar:</span>
+                                                                <span className="font-semibold text-amber-700">{formatCurrency(a.keluar)}</span>
+                                                            </div>
+                                                            <div className="flex justify-between">
+                                                                <span className="font-medium text-gray-600">Net kantor:</span>
+                                                                <span className="font-semibold text-emerald-700">{formatCurrency(a.net)}</span>
+                                                            </div>
+                                                            {a.rows.map((c) => (
+                                                                <div key={c.id} className="flex justify-between text-xs text-gray-500">
+                                                                    <span>{c.role}</span>
+                                                                    <span>{formatCurrency(c.amount)} · {c.status}</span>
+                                                                </div>
+                                                            ))}
+                                                        </div>
+                                                    )
+                                                })()}
                                             </div>
                                         </div>
                                     ))}
@@ -279,6 +339,9 @@ export default function Index({ payments, packages, statistics, filters }) {
                                                 <TableHead>Paket</TableHead>
                                                 <TableHead>Metode</TableHead>
                                                 <TableHead className="text-right">Total Nominal</TableHead>
+                                                {/* Kolom afiliasi hanya untuk pemegang izin laporan afiliasi;
+                                                    tanpa izin itu, backend tidak mengirim datanya sama sekali. */}
+                                                {bolehLihatAfiliasi && <HeaderRincianAfiliasi />}
                                                 <TableHead>Waktu Transaksi</TableHead>
                                                 <TableHead>Status</TableHead>
                                             </TableRow>
@@ -296,6 +359,9 @@ export default function Index({ payments, packages, statistics, filters }) {
                                                     <TableCell className="text-right font-medium text-blue-600">
                                                         {formatCurrency(payment.amount)}
                                                     </TableCell>
+                                                    {bolehLihatAfiliasi && (
+                                                        <RincianAfiliasi payment={payment} statusDibatalkan={statusKomisiDibatalkan} />
+                                                    )}
                                                     <TableCell>
                                                         <div className="text-sm text-gray-900">{formatDate(payment.created_at)}</div>
                                                         {payment.status === 'paid' && payment.paid_at && (
@@ -312,7 +378,7 @@ export default function Index({ payments, packages, statistics, filters }) {
 
                                             {payments.data.length === 0 && (
                                                 <TableRow>
-                                                    <TableCell colSpan="7" className="text-center py-8 text-gray-500">
+                                                    <TableCell colSpan={bolehLihatAfiliasi ? 10 : 7} className="text-center py-8 text-gray-500">
                                                         Tidak ada data pembayaran yang ditemukan.
                                                     </TableCell>
                                                 </TableRow>
