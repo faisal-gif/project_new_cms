@@ -63,6 +63,12 @@ return [
             ]) : [],
         ],
 
+        /*
+         * Ketiga koneksi di bawah menunjuk host REMOTE. Tanpa batas waktu, host
+         * yang mati membuat PHP menunggu TCP timeout sistem (puluhan detik) dan
+         * halaman ikut menggantung. DB_REMOTE_TIMEOUT membatasinya; naikkan bila
+         * jaringan ke salah satu host memang lambat.
+         */
         'mysql_nasional' => [
             'driver' => 'mysql',
             'host' => env('DB_HOST_NASIONAL'),
@@ -72,6 +78,7 @@ return [
             'password' => env('DB_PASSWORD_NASIONAL'),
             'charset' => env('DB_CHARSET', 'utf8mb4'),
             'collation' => env('DB_COLLATION', 'utf8mb4_unicode_ci'),
+            'options' => [PDO::ATTR_TIMEOUT => (int) env('DB_REMOTE_TIMEOUT', 5)],
         ],
 
         'mysql_daerah' => [
@@ -83,6 +90,7 @@ return [
             'password' => env('DB_PASSWORD_DAERAH'),
             'charset' => env('DB_CHARSET', 'utf8mb4'),
             'collation' => env('DB_COLLATION', 'utf8mb4_unicode_ci'),
+            'options' => [PDO::ATTR_TIMEOUT => (int) env('DB_REMOTE_TIMEOUT', 5)],
         ],
 
         'mysql_berbayar' => [
@@ -94,6 +102,7 @@ return [
             'password' => env('DB_PASSWORD_BERBAYAR'),
             'charset' => env('DB_CHARSET', 'utf8mb4'),
             'collation' => env('DB_COLLATION', 'utf8mb4_unicode_ci'),
+            'options' => [PDO::ATTR_TIMEOUT => (int) env('DB_REMOTE_TIMEOUT', 5)],
         ],
 
 

@@ -8,6 +8,21 @@ Bangun layar **admin program afiliasi**: kelola afiliator, tinjau komisi, dan ca
 
 **Sudah memegang versi sebelumnya? Baca bagian ini dulu, sisanya hanya penajaman.**
 
+### 2026-10-15 — pos internal (tim IT / KITA AI) terbit juga tanpa kode referral
+
+**Mengoreksi aturan "tanpa perekrut tidak ada baris sama sekali".** Pos `internal` sekarang dicatat untuk **setiap pendaftaran member baru**, termasuk pembeli yang datang tanpa kode referral, supaya bagian tim IT tidak bergantung pada ada atau tidaknya perekrut.
+
+| Hal | Versi sebelumnya | Yang benar sekarang |
+|---|---|---|
+| Member baru tanpa perekrut | Nol baris komisi | **Satu baris `internal`**, nominal 4.800 (10% dari 48.000 utuh) |
+| Afiliator tidak aktif / situs lain | Nol baris komisi | Sama: hanya baris `internal` |
+| `source_affiliate_id` pos internal | Selalu terisi | **Bisa NULL** bila penjualannya tanpa perekrut |
+| Perpanjangan | Nol baris | Tetap nol baris, pos `internal` sekalipun |
+
+Nominalnya 4.800 dan bukan 3.840 karena dasarnya harga utuh: pada penjualan berafiliasi 10% dihitung dari 38.400 (setelah komisi perekrut), sedangkan di sini tidak ada potongan perekrut yang benar-benar terjadi.
+
+Dampaknya ke layar CMS: tidak ada perubahan skema dan tidak ada perubahan kode yang diwajibkan. Yang perlu diketahui saat membaca data — daftar komisi akan memuat baris `internal` tanpa afiliator asal (tampilkan `—`), dan rekap `kita_ai` jadi lebih besar daripada 10% total komisi perekrut karena memuat penjualan non-referral juga.
+
 ### 2026-10-12 — program ini melayani lebih dari satu situs
 
 Versi pertama dokumen ini menyebut `ajp.times.co.id` akan memakai **database terpisah**. **Itu keliru.** AJP dan Kopi TIMES memakai codebase dan database yang sama (`timesindo_ajp`), hanya beda projek dan branding.
@@ -81,9 +96,18 @@ Pembagian per pembayaran member baru **yang punya perekrut**:
 | `internal` | alokasi tim IT / KITA AI | 38.400 | 10% | **3.840** |
 | — | net kantor (tidak disimpan sebagai baris) | | sisa | **32.640** |
 
+Pembagian per pembayaran member baru **tanpa perekrut** — hanya pos internal:
+
+| Pos (`role`) | Penerima | Dasar | Tarif | Nominal |
+|---|---|---|---|---|
+| `internal` | alokasi tim IT / KITA AI | 48.000 | 10% | **4.800** |
+| — | net kantor (tidak disimpan sebagai baris) | | sisa | **43.200** |
+
 Aturan penting:
 
-- **Member baru tanpa perekrut tidak menghasilkan baris komisi sama sekali**, termasuk pos `internal`. Rp 48.000 utuh ke kantor.
+- **Pos `internal` terbit untuk setiap member baru, ada perekrut atau tidak.** Tanpa perekrut hanya pos itu yang ada — tidak ada `tier1`, tidak ada `tier2` — dan `source_affiliate_id`-nya **NULL**. Nominalnya 4.800, bukan 3.840, karena tidak ada potongan `tier1` yang benar-benar terjadi sehingga dasarnya harga utuh.
+- Tiga keadaan diperlakukan sama dengan "tanpa perekrut": tidak ada referral, afiliatornya tidak aktif, dan afiliatornya milik situs lain. Ketiganya hanya menerbitkan pos `internal`.
+- **Perpanjangan tetap nol baris**, pos `internal` sekalipun. Yang berkomisi hanya pendaftaran member baru.
 - Pos `internal` adalah angka internal. **Hanya boleh tampil di CMS**, tidak pernah di aplikasi publik.
 - Komisi **ditahan 7 hari** sejak pembayaran lunas. Kolom `available_at` sudah berisi tanggalnya.
 - Bila perekrut tidak punya upline, baris `tier2` **tetap dibuat** dengan `affiliate_id = NULL` dan `status = 'unassigned'`. Uang itu belum jadi milik siapa pun; manajemen memutuskan belakangan.

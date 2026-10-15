@@ -12,6 +12,7 @@ use App\Models\NewsNasional;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
 
 class DashboardController extends Controller
@@ -33,14 +34,14 @@ class DashboardController extends Controller
                     ->pluck('total', 'distribution_status');
 
                 // Agregasi Nasional (Hanya 1 Query)
-                $nasionalCounts = NewsNasional::selectRaw('news_status, COUNT(*) as total')
+                $nasionalCounts = $this->perDatabase('nasional', fn () => NewsNasional::selectRaw('news_status, COUNT(*) as total')
                     ->groupBy('news_status')
-                    ->pluck('total', 'news_status');
+                    ->pluck('total', 'news_status'));
 
                 // Agregasi Daerah (Hanya 1 Query)
-                $daerahCounts = NewsDaerah::selectRaw('status, COUNT(*) as total')
+                $daerahCounts = $this->perDatabase('daerah', fn () => NewsDaerah::selectRaw('status, COUNT(*) as total')
                     ->groupBy('status')
-                    ->pluck('total', 'status');
+                    ->pluck('total', 'status'));
 
                 return [
                     'utama' => [
@@ -51,6 +52,8 @@ class DashboardController extends Controller
                     ],
                     'nasional' => [
                         'title'       => 'Berita Nasional',
+                        // false = databasenya tidak terjangkau, angkanya bukan nol sungguhan.
+                        'tersedia'    => $nasionalCounts !== null,
                         'published'   => $nasionalCounts[1] ?? 0,
                         'on_review'   => $nasionalCounts[2] ?? 0,
                         'on_progress' => $nasionalCounts[3] ?? 0,
@@ -58,6 +61,7 @@ class DashboardController extends Controller
                     ],
                     'daerah' => [
                         'title'       => 'Berita Daerah',
+                        'tersedia'    => $daerahCounts !== null,
                         'published'   => $daerahCounts[1] ?? 0,
                         'on_review'   => $daerahCounts[2] ?? 0,
                         'on_progress' => $daerahCounts[3] ?? 0,
@@ -71,13 +75,16 @@ class DashboardController extends Controller
                 'dashboard_popular_news_today_' . today()->toDateString(),
                 60 * 5,
                 function () {
-                    return NewsNasional::query()
+                    return $this->perDatabase('nasional (berita populer)', fn () => NewsNasional::query()
                         ->leftJoin('news_views', 'news.news_id', '=', 'news_views.news_id')
-                        ->whereDate('news.news_datepub', today())
+                        // Rentang, bukan whereDate(): DATE(news_datepub) membungkus
+                        // kolomnya sehingga index news_datepub tidak terpakai dan
+                        // MySQL memindai seluruh tabel 2,8 GB.
+                        ->whereBetween('news.news_datepub', [today(), today()->endOfDay()])
                         ->selectRaw('news.news_id, news.news_title, COALESCE(news_views.pageviews, 0) as pageviews')
                         ->orderByDesc('pageviews')
                         ->limit(10)
-                        ->get();
+                        ->get()) ?? collect();
                 }
             );
 
@@ -90,13 +97,13 @@ class DashboardController extends Controller
                     function () use ($user) {
                         $today = Carbon::today();
 
-                        $countDaerah = NewsDaerah::where('editor_id', $user->editor->id_daerah)
+                        $countDaerah = $this->perDatabase('daerah (produktivitas editor)', fn () => NewsDaerah::where('editor_id', $user->editor->id_daerah)
                             ->whereDate('created_at', $today)
-                            ->count();
+                            ->count()) ?? 0;
 
-                        $countNasional = NewsNasional::where('editor_id', $user->editor->id_ti)
+                        $countNasional = $this->perDatabase('nasional (produktivitas editor)', fn () => NewsNasional::where('editor_id', $user->editor->id_ti)
                             ->whereDate('created', $today)
-                            ->count();
+                            ->count()) ?? 0;
 
                         return [
                             'total_today' => $countDaerah + $countNasional,
@@ -111,10 +118,10 @@ class DashboardController extends Controller
         // 2. Logika untuk Kopi Times (berita berbayar, type = 4)
         if ($user->can('view dashboard kopi times')) {
             $ktCounts = Cache::remember('dashboard_kt_stats_v1', 60 * 5, function () {
-                return NewsBerbayar::where('type', 4)
+                return $this->perDatabase('berbayar (Kopi Times)', fn () => NewsBerbayar::where('type', 4)
                     ->selectRaw('status, COUNT(*) as total')
                     ->groupBy('status')
-                    ->pluck('total', 'status');
+                    ->pluck('total', 'status')) ?? collect();
             });
 
             $stats['kopi_times'] = [
@@ -131,10 +138,10 @@ class DashboardController extends Controller
         // 3. Logika untuk AJP (berita berbayar, type = 1)
         if ($user->can('view dashboard ajp')) {
             $ajpCounts = Cache::remember('dashboard_ajp_stats_v1', 60 * 5, function () {
-                return NewsBerbayar::where('type', 1)
+                return $this->perDatabase('berbayar (AJP)', fn () => NewsBerbayar::where('type', 1)
                     ->selectRaw('status, COUNT(*) as total')
                     ->groupBy('status')
-                    ->pluck('total', 'status');
+                    ->pluck('total', 'status')) ?? collect();
             });
 
             $stats['ajp'] = [
@@ -154,7 +161,7 @@ class DashboardController extends Controller
                 "dashboard_photos_{$user->id}_" . today()->toDateString(),
                 60 * 2,
                 function () use ($user) {
-                    return [
+                    return $this->perDatabase('nasional (galeri)', fn () => [
                         // Pastikan kolom 'created' dan 'id_fotografer' akurat sesuai skema tabel Gallery
                         'uploaded_today' => Gallery::whereDate('created', today())
                             ->where('fotografer_id', $user->id_fotografer)
@@ -163,7 +170,7 @@ class DashboardController extends Controller
                         'pending_review' => Gallery::where('gal_status', 0)
                             ->where('fotografer_id', $user->id_fotografer)
                             ->count(),
-                    ];
+                    ]) ?? ['uploaded_today' => 0, 'pending_review' => 0];
                 }
             );
         }
@@ -174,18 +181,39 @@ class DashboardController extends Controller
     }
 
     /**
+     * Jalankan agregasi yang menyentuh database di host lain.
+     *
+     * Dashboard ini membaca empat database di empat host; tiga di antaranya remote.
+     * Satu host yang mati seharusnya mengosongkan satu kartu, bukan menjatuhkan
+     * seluruh halaman — jadi kegagalannya dicatat dan dikembalikan sebagai null,
+     * dan pemanggilnya yang memutuskan nilai penggantinya.
+     */
+    private function perDatabase(string $nama, callable $query)
+    {
+        try {
+            return $query();
+        } catch (\Throwable $e) {
+            Log::warning("Dashboard: agregasi {$nama} gagal, kartunya dikosongkan.", [
+                'pesan' => $e->getMessage(),
+            ]);
+
+            return null;
+        }
+    }
+
+    /**
      * Agregasi pembayaran berita berbayar (paid) BULAN INI per tipe (1 = AJP, 4 = Kopi Times).
      */
     private function paidNewsPayment(int $type): array
     {
         $period = now()->format('Y_m');
         $agg = Cache::remember("dashboard_payment_stats_v2_{$type}_{$period}", 60 * 5, function () use ($type) {
-            return PaymentsNewsBerbayar::where('type', $type)
+            return $this->perDatabase("berbayar (pembayaran type {$type})", fn () => PaymentsNewsBerbayar::where('type', $type)
                 ->where('status', 'paid')
                 ->whereMonth('created_at', now()->month)
                 ->whereYear('created_at', now()->year)
                 ->selectRaw('COUNT(*) as transactions, COALESCE(SUM(amount), 0) as revenue')
-                ->first();
+                ->first());
         });
 
         return [
@@ -201,11 +229,11 @@ class DashboardController extends Controller
     {
         $period = now()->format('Y_m');
         return Cache::remember("dashboard_new_writers_v1_{$type}_{$period}", 60 * 5, function () use ($type) {
-            return WriterBerbayar::where('type', $type)
+            return $this->perDatabase("berbayar (penulis baru type {$type})", fn () => WriterBerbayar::where('type', $type)
                 ->where('status', 1)
                 ->whereMonth('created', now()->month)
                 ->whereYear('created', now()->year)
-                ->count();
+                ->count()) ?? 0;
         });
     }
 }

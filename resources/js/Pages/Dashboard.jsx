@@ -99,6 +99,14 @@ export default function Dashboard({ stats }) {
             <h3 className="text-base md:text-lg font-bold text-gray-700 mb-3 md:mb-4 pb-2 border-b border-gray-200">
                 {data.title}
             </h3>
+            {/* tersedia === false: databasenya tidak terjangkau. Nolnya bukan angka
+                sungguhan, jadi jangan ditampilkan seolah-olah data. */}
+            {data.tersedia === false ? (
+                <div className="rounded-lg border border-amber-300 bg-amber-50 px-4 py-6 text-center text-sm text-amber-800">
+                    Data tidak bisa diambil — database sumbernya sedang tidak terjangkau.
+                    Angka terakhir akan muncul kembali setelah koneksinya pulih.
+                </div>
+            ) : (
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
                 <Card color="bg-emerald-500">
                     <div className="flex items-center justify-between text-white p-1 md:p-2">
@@ -137,6 +145,7 @@ export default function Dashboard({ stats }) {
                     </div>
                 </Card>
             </div>
+            )}
         </div>
     );
 

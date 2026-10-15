@@ -16,6 +16,7 @@ use App\Services\NewsNasionalTagService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 use Illuminate\Support\Str;
@@ -30,11 +31,19 @@ class NewsKTController extends Controller
     public function index(Request $request)
     {
         $news = NewsBerbayar::query()
+            // Hanya kolom yang dipakai tabel di layar. `select *` menarik kolom
+            // `content` tiap baris dari tabel 188 MB di host lain — 68 ms jadi 20 ms.
+            // is_code & pewarta_id ikut karena jadi kunci relasi di bawah.
+            ->select('id', 'is_code', 'pewarta_id', 'title', 'headline', 'datetime', 'status')
             ->with('writer:id,nama', 'newsNasional:is_code,news_id,news_title,news_status')
-            ->where('type', '4')
+            ->where('type', 4)
             ->when($request->search, function ($query, $search) {
-                $query->where('title', 'like', "%{$search}%")
-                    ->orWhere('is_code', 'like', "%{$search}%");
+                // Dikurung: tanpa closure ini OR-nya keluar dari filter type dan
+                // berita non-Kopi TIMES ikut muncul saat mencari lewat kode.
+                $query->where(function ($q) use ($search) {
+                    $q->where('title', 'like', "%{$search}%")
+                        ->orWhere('is_code', 'like', "%{$search}%");
+                });
             })
             ->when($request->filled('status'), function ($query) use ($request) {
                 $query->where('status', $request->status);
@@ -48,10 +57,15 @@ class NewsKTController extends Controller
             ->withQueryString();
 
         // Daftar member (pewarta) yang benar-benar punya berita KT — untuk dropdown filter.
-        $memberIds = NewsBerbayar::where('type', '4')->distinct()->pluck('pewarta_id');
-        $members = WriterBerbayar::whereIn('id', $memberIds)
-            ->orderBy('nama')
-            ->get(['id as value', 'nama as label']);
+        // Isinya hanya berubah saat ada pewarta baru menulis, jadi tidak perlu
+        // dihitung ulang tiap kali halaman dibuka atau filter diubah.
+        $members = Cache::remember('kt_news_member_options_v1', 60 * 10, function () {
+            $memberIds = NewsBerbayar::where('type', 4)->distinct()->pluck('pewarta_id');
+
+            return WriterBerbayar::whereIn('id', $memberIds)
+                ->orderBy('nama')
+                ->get(['id as value', 'nama as label']);
+        });
 
         return Inertia::render('Admin/Kopi_Times/News/Index', [
             'news'    => $news,
@@ -174,6 +188,9 @@ class NewsKTController extends Controller
             $writer->decrement('quota_news', 1);
 
             DB::commit();
+
+            // Pewarta ini mungkin baru pertama kali menulis: segarkan opsi dropdown.
+            Cache::forget('kt_news_member_options_v1');
 
             return redirect()->route('admin.kopi-times.news.index')
                 ->with('success', 'Berita berhasil disimpan ke sistem dan kuota penulis telah disesuaikan.');
