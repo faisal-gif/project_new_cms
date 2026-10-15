@@ -29,7 +29,7 @@ class AffiliateCommissionController extends Controller
             'commissions' => $this->buildQuery($request)->latest('id')->paginate(25)->withQueryString()
                 ->through(fn($c) => $c->append('situs')),
             'filters' => $request->only(['affiliate_id', 'status', 'role', 'start_date', 'end_date']),
-            'affiliates' => $this->opsiAfiliator(),
+            'affiliates' => $this->opsiAfiliator($this->situs($request)),
             // Situs tidak lagi bisa dipilih di layar — sudah terkunci oleh route.
             'situsLabel' => $this->labelSitus($request),
             'routePrefix' => $this->prefixSitus($request),
@@ -55,7 +55,7 @@ class AffiliateCommissionController extends Controller
 
         return Inertia::render('Admin/Affiliate/Commission/Unassigned', [
             'commissions' => $query->paginate(25)->withQueryString(),
-            'affiliates' => $this->opsiAfiliator(),
+            'affiliates' => $this->opsiAfiliator($this->situs($request)),
             'total' => (int) $total,
             'situsLabel' => $this->labelSitus($request),
             'routePrefix' => $this->prefixSitus($request),
@@ -122,7 +122,7 @@ class AffiliateCommissionController extends Controller
             ['status_note.required' => 'Alasan penolakan wajib diisi.']
         );
 
-        $komisi = AffiliateCommission::with('payment.package:id,type')->findOrFail($id);
+        $komisi = AffiliateCommission::findOrFail($id);
 
         // Penjaga lintas-situs: izin satu situs tidak boleh menyentuh baris situs lain.
         if (! $this->komisiMilikSitus($komisi, $request)) {
@@ -146,7 +146,7 @@ class AffiliateCommissionController extends Controller
             ['status_note.required' => 'Alasan pembalikan wajib diisi.']
         );
 
-        $komisi = AffiliateCommission::with('payment.package:id,type')->findOrFail($id);
+        $komisi = AffiliateCommission::findOrFail($id);
 
         // Penjaga lintas-situs: izin satu situs tidak boleh menyentuh baris situs lain.
         if (! $this->komisiMilikSitus($komisi, $request)) {
@@ -166,10 +166,19 @@ class AffiliateCommissionController extends Controller
     public function assign(Request $request, $id)
     {
         $data = $request->validate([
-            'affiliate_id' => ['required', 'integer', Rule::exists('mysql_berbayar.affiliates', 'id')],
-        ], ['affiliate_id.required' => 'Penerima wajib dipilih.']);
+            // Penerima wajib afiliator situs ini: komisi lahir di situs ini, jadi tidak
+            // boleh jatuh ke afiliator situs lain.
+            'affiliate_id' => [
+                'required',
+                'integer',
+                Rule::exists('mysql_berbayar.affiliates', 'id')->where('type', $this->situs($request)),
+            ],
+        ], [
+            'affiliate_id.required' => 'Penerima wajib dipilih.',
+            'affiliate_id.exists' => 'Penerima harus afiliator di situs yang sedang dibuka.',
+        ]);
 
-        $komisi = AffiliateCommission::with('payment.package:id,type')->findOrFail($id);
+        $komisi = AffiliateCommission::findOrFail($id);
 
         // Penjaga lintas-situs: izin satu situs tidak boleh menyentuh baris situs lain.
         if (! $this->komisiMilikSitus($komisi, $request)) {
@@ -194,8 +203,8 @@ class AffiliateCommissionController extends Controller
                 'sourceAffiliate:id,name,code',
                 'user:id,nama,email',
                 'payment:id,reference,package_id,amount,paid_at',
-                // type = penanda situs asal komisi (AJP / Kopi TIMES / dst).
-                'payment.package:id,name,type',
+                // Nama paket untuk ditampilkan. Situs tidak lagi dari sini — ada di kolom type.
+                'payment.package:id,name',
             ])
             ->when($request->filled('affiliate_id'), fn($q) => $q->where('affiliate_id', $request->affiliate_id))
             ->when($request->filled('status'), fn($q) => $q->where('status', $request->status))
@@ -227,9 +236,11 @@ class AffiliateCommissionController extends Controller
         ];
     }
 
-    private function opsiAfiliator()
+    /** Hanya afiliator situs aktif. */
+    private function opsiAfiliator(?string $situs = null)
     {
-        return Affiliate::orderBy('name')->get(['id', 'name', 'code'])
+        return Affiliate::when($situs, fn($q) => $q->where('type', $situs))
+            ->orderBy('name')->get(['id', 'name', 'code'])
             ->map(fn($a) => ['value' => $a->id, 'label' => "{$a->name} ({$a->code})"]);
     }
 }

@@ -98,6 +98,9 @@ class EnforceRoutePermission
         // Afiliasi non-CRUD, per situs. Melihat vs mengubah dipisah; aksi yang menyentuh
         // uang (mark-paid, cancel) memakai izin edit pencairan, bukan izin lihat.
         'ajp.affiliate.status' => 'edit afiliasi ajp',
+        'ajp.affiliate.applications' => 'view afiliasi ajp',
+        'ajp.affiliate.applications.approve' => 'edit afiliasi ajp',
+        'ajp.affiliate.applications.reject' => 'edit afiliasi ajp',
         'ajp.affiliate.search-user' => 'edit afiliasi ajp',
         'ajp.affiliate-commission.unassigned' => 'view komisi afiliasi ajp',
         'ajp.affiliate-commission.approve' => 'edit komisi afiliasi ajp',
@@ -109,6 +112,9 @@ class EnforceRoutePermission
         'ajp.affiliate-report.index' => 'view laporan afiliasi ajp',
         'ajp.affiliate-report.fraud' => 'view laporan afiliasi ajp',
         'kopi-times.affiliate.status' => 'edit afiliasi kopi-times',
+        'kopi-times.affiliate.applications' => 'view afiliasi kopi-times',
+        'kopi-times.affiliate.applications.approve' => 'edit afiliasi kopi-times',
+        'kopi-times.affiliate.applications.reject' => 'edit afiliasi kopi-times',
         'kopi-times.affiliate.search-user' => 'edit afiliasi kopi-times',
         'kopi-times.affiliate-commission.unassigned' => 'view komisi afiliasi kopi-times',
         'kopi-times.affiliate-commission.approve' => 'edit komisi afiliasi kopi-times',

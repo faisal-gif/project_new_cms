@@ -8,7 +8,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout'
 import { formatRupiah } from '@/Utils/formatter'
 import { Head, Link, router, usePage } from '@inertiajs/react'
-import { Check, Copy, Plus, Search } from 'lucide-react'
+import { Check, Copy, Inbox, Plus, Search } from 'lucide-react'
 import React, { useEffect, useRef, useState } from 'react'
 import Select from 'react-select'
 
@@ -97,11 +97,18 @@ export default function Index({ affiliates, filters, referralBase, routePrefix =
                                         </div>
                                     </div>
 
-                                    {punya(`create afiliasi ${situsSlug}`) && (
-                                        <Button asChild className="gap-2">
-                                            <Link href={route(`admin.${routePrefix}affiliate.create`)}><Plus className="w-4 h-4" /> Tambah Afiliator</Link>
+                                    <div className="flex flex-wrap gap-2">
+                                        <Button asChild variant="outline" className="gap-2">
+                                            <Link href={route(`admin.${routePrefix}affiliate.applications`)}>
+                                                <Inbox className="w-4 h-4" /> Pengajuan
+                                            </Link>
                                         </Button>
-                                    )}
+                                        {punya(`create afiliasi ${situsSlug}`) && (
+                                            <Button asChild className="gap-2">
+                                                <Link href={route(`admin.${routePrefix}affiliate.create`)}><Plus className="w-4 h-4" /> Tambah Afiliator</Link>
+                                            </Button>
+                                        )}
+                                    </div>
                                 </div>
                             </Card>
 

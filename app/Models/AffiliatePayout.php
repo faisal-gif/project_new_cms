@@ -18,6 +18,8 @@ class AffiliatePayout extends Model
     protected $table = 'affiliate_payouts';
 
     protected $fillable = [
+        // Situs batch ini; satu batch hanya boleh berisi komisi dengan type yang sama.
+        'type',
         'affiliate_id',
         'period_start',
         'period_end',

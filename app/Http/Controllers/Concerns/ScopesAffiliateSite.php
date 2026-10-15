@@ -12,8 +12,10 @@ use Illuminate\Http\Request;
  * dari query string. Kalau dibaca dari ?situs=, permission per situs tidak mengikat
  * apa-apa — pemegang izin AJP tinggal mengetik ?situs=4 untuk melihat Kopi TIMES.
  *
- * Tabelnya satu untuk semua situs; asal situs sebuah komisi ditelusuri lewat
- * affiliate_commissions.payment_id -> payments.package_id -> news_package.type.
+ * Tabelnya satu untuk semua situs, tapi tiap baris afiliasi membawa kolom `type`
+ * (1 = AJP, 4 = Kopi TIMES) yang diisi aplikasi publik. Afiliator terikat satu situs,
+ * komisi hanya lahir dari pendaftar di situs yang sama, dan satu batch pencairan hanya
+ * boleh memuat komisi dari satu situs.
  */
 trait ScopesAffiliateSite
 {
@@ -40,21 +42,31 @@ trait ScopesAffiliateSite
         return $this->slugSitus($request) . '.';
     }
 
-    /** Batasi query komisi ke situs aktif, lewat rantai payment -> package. */
+    /** Batasi query ke situs aktif lewat kolom `type`. Berlaku untuk komisi, afiliator, dan pencairan. */
+    protected function batasiKeSitus($query, Request $request)
+    {
+        return $query->where('type', $this->situs($request));
+    }
+
+    /** Nama lama, dipertahankan supaya pemanggil yang sudah ada tidak perlu diubah. */
     protected function batasiKomisiKeSitus($query, Request $request)
     {
-        $situs = $this->situs($request);
-
-        return $query->whereHas('payment.package', fn($p) => $p->where('type', $situs));
+        return $this->batasiKeSitus($query, $request);
     }
 
     /**
-     * Apakah satu baris komisi memang milik situs aktif. Dipakai sebelum aksi
-     * setujui/tolak/balikkan/tetapkan — tanpa ini pemegang izin satu situs bisa
-     * mengubah komisi situs lain hanya dengan menebak id-nya.
+     * Apakah satu baris (komisi, afiliator, atau pencairan) memang milik situs aktif.
+     * Dipakai sebelum aksi ubah — tanpa ini pemegang izin satu situs bisa mengubah
+     * data situs lain hanya dengan menebak id-nya.
      */
+    protected function milikSitus($baris, Request $request): bool
+    {
+        return (string) ($baris->type ?? '') === $this->situs($request);
+    }
+
+    /** Nama lama untuk baris komisi. */
     protected function komisiMilikSitus($komisi, Request $request): bool
     {
-        return (string) ($komisi->payment?->package?->type ?? '') === $this->situs($request);
+        return $this->milikSitus($komisi, $request);
     }
 }

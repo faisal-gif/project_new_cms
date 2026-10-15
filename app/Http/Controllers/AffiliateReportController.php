@@ -36,18 +36,16 @@ class AffiliateReportController extends Controller
         // Situs dikunci route, bukan query string — lihat ScopesAffiliateSite.
         $situs = $this->situs($request);
 
-        // Dipecah per situs. Situs ditelusuri lewat paket yang dibeli — tidak ada
-        // kolom situs di tabel komisi.
+        // Dipecah per situs langsung dari kolom `c.type` — tidak perlu join ke
+        // payments dan news_package lagi.
         $perSitus = DB::connection('mysql_berbayar')
             ->table('affiliate_commissions as c')
-            ->join('payments as p', 'p.id', '=', 'c.payment_id')
-            ->join('news_package as np', 'np.id', '=', 'p.package_id')
             ->whereBetween('c.created_at', [$awal, $akhir])
             ->where('c.status', '<>', 'rejected')
-            ->where('np.type', $situs)
-            ->groupBy('np.type')
+            ->where('c.type', $situs)
+            ->groupBy('c.type')
             ->selectRaw("
-                np.type situs,
+                c.type situs,
                 SUM(CASE WHEN c.role = 'tier1'    THEN c.amount ELSE 0 END) tier1,
                 SUM(CASE WHEN c.role = 'tier2'    THEN c.amount ELSE 0 END) tier2,
                 SUM(CASE WHEN c.role = 'internal' THEN c.amount ELSE 0 END) kita_ai,
@@ -118,7 +116,8 @@ class AffiliateReportController extends Controller
     {
         $minDirekrut = (int) $request->get('min_direkrut', 3);
 
-        $afiliator = Affiliate::withCount('referrals')
+        $afiliator = Affiliate::where('type', $this->situs($request))
+            ->withCount('referrals')
             ->having('referrals_count', '>=', $minDirekrut)
             ->orderByDesc('referrals_count')
             ->limit(100)
@@ -179,7 +178,7 @@ class AffiliateReportController extends Controller
             ->where('status', '<>', 'rejected')
             ->whereNotNull('affiliate_id')
             // Ikut filter situs supaya daftar ini konsisten dengan tabel di atasnya.
-            ->whereHas('payment.package', fn($p) => $p->where('type', $situs))
+            ->where('type', $situs)
             ->selectRaw('affiliate_id, SUM(amount) total, COUNT(*) jumlah')
             ->groupBy('affiliate_id')
             ->orderByDesc('total')

@@ -13,7 +13,7 @@ import { Head, Link, useForm, usePage } from '@inertiajs/react'
 import { AlertTriangle, ArrowLeftIcon, ExternalLinkIcon } from 'lucide-react'
 import React from 'react'
 
-export default function Show({ payout, jumlahKomisi, selisih, routePrefix = '' }) {
+export default function Show({ payout, jumlahKomisi, selisih, situsCampuran = [], routePrefix = '' }) {
     // Permission bersufiks situs; slug-nya diturunkan dari prefix route.
     const situsSlug = routePrefix.replace('.', '')
     const { auth } = usePage().props
@@ -65,6 +65,21 @@ export default function Show({ payout, jumlahKomisi, selisih, routePrefix = '' }
                                         <strong>Total batch tidak cocok dengan jumlah komisinya.</strong><br />
                                         Batch {formatRupiah(payout.amount)} · jumlah komisi {formatRupiah(jumlahKomisi)} · selisih {formatRupiah(selisih)}.
                                         Jangan tandai lunas sebelum ini diselidiki.
+                                    </div>
+                                </div>
+                            </Card>
+                        )}
+
+                        {/* Invariant 2: satu batch hanya boleh memuat komisi dari satu situs. */}
+                        {situsCampuran.length > 0 && (
+                            <Card>
+                                <div className="flex items-start gap-3 text-sm text-red-700">
+                                    <AlertTriangle className="w-5 h-5 shrink-0 mt-0.5" />
+                                    <div>
+                                        <strong>Batch ini memuat komisi dari lebih dari satu situs.</strong><br />
+                                        Situs yang tercampur: {situsCampuran.join(', ')}. Sejak pencairan dipisah per
+                                        situs, batch campuran hanya mungkin berasal dari data lama. Batalkan batch ini
+                                        dan susun ulang per situs.
                                     </div>
                                 </div>
                             </Card>

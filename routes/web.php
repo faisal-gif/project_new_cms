@@ -93,6 +93,10 @@ Route::middleware(['auth', \App\Http\Middleware\EnforceRoutePermission::class])-
     foreach (['ajp', 'kopi-times'] as $situsSlug) {
         Route::prefix($situsSlug)->name($situsSlug . '.')->group(function () {
             Route::get('affiliate/search-user', [AffiliateController::class, 'searchUser'])->name('affiliate.search-user');
+            // Antrean pengajuan dari member (status pending, terms_accepted_at terisi).
+            Route::get('affiliate/pengajuan', [AffiliateController::class, 'applications'])->name('affiliate.applications');
+            Route::post('affiliate/pengajuan/{affiliate}/approve', [AffiliateController::class, 'approveApplication'])->name('affiliate.applications.approve');
+            Route::patch('affiliate/pengajuan/{affiliate}/reject', [AffiliateController::class, 'rejectApplication'])->name('affiliate.applications.reject');
             Route::patch('affiliate/{affiliate}/status', [AffiliateController::class, 'status'])->name('affiliate.status');
             Route::resource('affiliate', AffiliateController::class)->except('show', 'destroy');
 

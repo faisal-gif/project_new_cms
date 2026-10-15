@@ -28,17 +28,15 @@ class AffiliatePayoutController extends Controller
     {
         $query = AffiliatePayout::with('affiliate:id,name,code')
             ->withCount('commissions')
-            // Batch tidak punya kolom situs — satu batch bisa memuat komisi lintas situs.
-            // Dilingkupkan ke batch yang MEMUAT komisi situs ini; batch campuran memang
-            // tampil di kedua situs, dan itu jujur: uangnya memang milik keduanya.
-            ->whereHas('commissions.payment.package', fn($p) => $p->where('type', $this->situs($request)))
+            // Batch kini milik satu situs lewat kolom `type`; tidak ada lagi batch campuran.
+            ->where('type', $this->situs($request))
             ->when($request->filled('status'), fn($q) => $q->where('status', $request->status))
             ->when($request->filled('affiliate_id'), fn($q) => $q->where('affiliate_id', $request->affiliate_id));
 
         return Inertia::render('Admin/Affiliate/Payout/Index', [
             'payouts' => $query->latest('id')->paginate(20)->withQueryString(),
             'filters' => $request->only(['status', 'affiliate_id']),
-            'affiliates' => $this->opsiAfiliator(),
+            'affiliates' => $this->opsiAfiliator($this->situs($request)),
             'situsLabel' => $this->labelSitus($request),
             'routePrefix' => $this->prefixSitus($request),
         ]);
@@ -56,7 +54,7 @@ class AffiliatePayoutController extends Controller
             : collect();
 
         return Inertia::render('Admin/Affiliate/Payout/Create', [
-            'affiliates' => $this->opsiAfiliator(),
+            'affiliates' => $this->opsiAfiliator($this->situs($request)),
             'affiliate' => $affiliate,
             'commissions' => $komisi,
             'total' => (int) $komisi->sum('amount'),
@@ -81,27 +79,42 @@ class AffiliatePayoutController extends Controller
         ]);
 
         $affiliate = Affiliate::findOrFail($data['affiliate_id']);
+        abort_unless($this->milikSitus($affiliate, $request), 404);
 
         if (blank($affiliate->bank_account_number) || blank($affiliate->bank_account_name)) {
             return back()->withErrors(['error' => 'Nomor dan nama pemilik rekening afiliator wajib diisi sebelum pencairan.']);
         }
 
+        $situs = $this->situs($request);
+        $minimum = (int) config('affiliate.min_payout', 50000);
+
         try {
-            $payout = DB::connection('mysql_berbayar')->transaction(function () use ($affiliate, $data) {
+            $payout = DB::connection('mysql_berbayar')->transaction(function () use ($affiliate, $data, $situs, $minimum) {
                 // Dikunci supaya batch paralel tidak menarik komisi yang sama dua kali.
+                // Difilter ke situs aktif: satu batch hanya boleh memuat satu situs.
                 $komisi = $this->komisiSiapCair($affiliate->id, $data['period_start'] ?? null, $data['period_end'] ?? null)
+                    ->where('type', $situs)
                     ->lockForUpdate()->get();
 
                 if ($komisi->isEmpty()) {
                     throw new \RuntimeException('Tidak ada komisi siap cair untuk afiliator dan periode ini.');
                 }
 
+                $total = $komisi->sum('amount');
+                if ($total < $minimum) {
+                    throw new \RuntimeException(
+                        'Total komisi Rp ' . number_format($total, 0, ',', '.') .
+                        ' belum mencapai minimum pencairan Rp ' . number_format($minimum, 0, ',', '.') . '.'
+                    );
+                }
+
                 // Total dihitung dari baris yang benar-benar dikunci -> invariant 1 terjaga.
                 $payout = AffiliatePayout::create([
+                    'type' => $situs,
                     'affiliate_id' => $affiliate->id,
                     'period_start' => $data['period_start'] ?? null,
                     'period_end' => $data['period_end'] ?? null,
-                    'amount' => $komisi->sum('amount'),
+                    'amount' => $total,
                     'method' => $affiliate->payout_method,
                     // Disalin saat batch dibuat supaya jadi bukti rekening pada saat itu.
                     'bank_name' => $affiliate->bank_name,
@@ -133,14 +146,21 @@ class AffiliatePayoutController extends Controller
             'commissions.user:id,nama',
             'commissions.payment:id,reference',
         ])->findOrFail($id);
+        abort_unless($this->milikSitus($payout, $request), 404);
 
-        // Invariant 1 diperiksa saat ditampilkan, bukan diasumsikan.
+        // Invariant diperiksa saat ditampilkan, bukan diasumsikan:
+        // 1) total batch = jumlah komisinya, 2) satu batch hanya satu situs.
         $jumlahKomisi = (int) $payout->commissions->sum('amount');
+        $situsKomisi = $payout->commissions->pluck('type')->unique()->values();
 
         return Inertia::render('Admin/Affiliate/Payout/Show', [
             'payout' => $payout,
             'jumlahKomisi' => $jumlahKomisi,
             'selisih' => (int) $payout->amount - $jumlahKomisi,
+            // Diisi hanya bila batch terlanjur memuat lebih dari satu situs (data lama).
+            'situsCampuran' => $situsKomisi->count() > 1
+                ? $situsKomisi->map(fn($t) => \App\Models\PaketBerita::labelSitus((string) $t))->all()
+                : [],
             'situsLabel' => $this->labelSitus($request),
             'routePrefix' => $this->prefixSitus($request),
         ]);
@@ -156,6 +176,7 @@ class AffiliatePayoutController extends Controller
         ], ['proof.image' => 'Bukti transfer harus berupa gambar.']);
 
         $payout = AffiliatePayout::findOrFail($id);
+        abort_unless($this->milikSitus($payout, $request), 404);
 
         if ($payout->status !== 'pending') {
             return back()->withErrors(['error' => 'Hanya batch berstatus pending yang bisa ditandai lunas.']);
@@ -198,6 +219,7 @@ class AffiliatePayoutController extends Controller
         );
 
         $payout = AffiliatePayout::findOrFail($id);
+        abort_unless($this->milikSitus($payout, $request), 404);
 
         if ($payout->status !== 'pending') {
             return back()->withErrors(['error' => 'Batch yang sudah lunas tidak bisa dibatalkan. Buat batch koreksi.']);
@@ -227,9 +249,11 @@ class AffiliatePayoutController extends Controller
             ->when($akhir, fn($q) => $q->whereDate('created_at', '<=', $akhir));
     }
 
-    private function opsiAfiliator()
+    /** Hanya afiliator situs aktif: batch tidak boleh lintas situs. */
+    private function opsiAfiliator(?string $situs = null)
     {
-        return Affiliate::orderBy('name')->get(['id', 'name', 'code'])
+        return Affiliate::when($situs, fn($q) => $q->where('type', $situs))
+            ->orderBy('name')->get(['id', 'name', 'code'])
             ->map(fn($a) => ['value' => $a->id, 'label' => "{$a->name} ({$a->code})"]);
     }
 }

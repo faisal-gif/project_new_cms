@@ -17,6 +17,9 @@ class Affiliate extends Model
     protected $table = 'affiliates';
 
     protected $fillable = [
+        // Situs pemilik afiliator: 1 = AJP, 4 = Kopi TIMES. Afiliator hanya berkomisi
+        // dari pendaftar di situs yang sama, jadi nilainya tidak diubah setelah dibuat.
+        'type',
         'user_id',
         'upline_id',
         'code',
@@ -36,7 +39,20 @@ class Affiliate extends Model
     {
         return [
             'approved_at' => 'datetime',
+            // Diisi aplikasi publik saat member mengajukan diri; kosong bila dibuat admin.
+            'terms_accepted_at' => 'datetime',
         ];
+    }
+
+    /** Pengajuan mandiri dari member, bukan dibuat admin. */
+    public function isPengajuanMandiri(): bool
+    {
+        return $this->terms_accepted_at !== null;
+    }
+
+    public function scopeSitus($query, $type)
+    {
+        return $query->where('type', $type);
     }
 
     /** Kode referral: huruf besar + angka, dipakai di URL publik ?ref= */

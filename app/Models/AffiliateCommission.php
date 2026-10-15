@@ -45,13 +45,18 @@ class AffiliateCommission extends Model
     }
 
     /**
-     * Situs asal komisi. Tidak ada kolomnya di tabel ini — ditelusuri lewat paket yang
-     * dibeli: payment_id -> payments.package_id -> news_package.type. Pastikan relasi
-     * payment.package sudah di-eager-load, kalau tidak akan N+1.
+     * Situs asal komisi, langsung dari kolom `type` (1 = AJP, 4 = Kopi TIMES).
+     * Sebelumnya ditelusuri lewat payment -> package; kolomnya kini ditulis aplikasi
+     * publik saat komisi dicatat, jadi tidak perlu join lagi.
      */
     public function getSitusAttribute(): string
     {
-        return PaketBerita::labelSitus($this->payment?->package?->type);
+        return PaketBerita::labelSitus((string) $this->type);
+    }
+
+    public function scopeSitus($query, $type)
+    {
+        return $query->where('type', $type);
     }
 
     public function affiliate()

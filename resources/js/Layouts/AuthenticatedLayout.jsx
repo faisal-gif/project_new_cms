@@ -24,6 +24,7 @@ import {
     Edit,
     File,
     Globe,
+    Inbox,
     Handshake,
     History,
     Wallet,
@@ -92,6 +93,13 @@ function MenuAfiliasi({ situs, hasPermission, isActive, linkClass, summaryClass 
                         <li>
                             <Link href={route(`${p}affiliate.index`)} className={linkClass(isActive(`${p}affiliate.*`))}>
                                 <Users size={16} /> Afiliator
+                            </Link>
+                        </li>
+                    )}
+                    {hasPermission(izin('view', 'afiliasi')) && (
+                        <li>
+                            <Link href={route(`${p}affiliate.applications`)} className={linkClass(isActive(`${p}affiliate.applications`))}>
+                                <Inbox size={16} /> Pengajuan
                             </Link>
                         </li>
                     )}

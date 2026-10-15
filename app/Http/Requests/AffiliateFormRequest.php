@@ -18,6 +18,8 @@ class AffiliateFormRequest extends FormRequest
         // Pada update, baris ini sendiri dikecualikan dari aturan unik.
         $id = $this->route('affiliate');
         $koneksi = 'mysql_berbayar.';
+        // Situs aktif dikunci nama route, sama seperti ScopesAffiliateSite.
+        $situs = str_starts_with((string) $this->route()?->getName(), 'admin.ajp.') ? '1' : '4';
 
         return [
             'name' => ['required', 'string', 'max:255'],
@@ -25,7 +27,9 @@ class AffiliateFormRequest extends FormRequest
             'phone' => ['nullable', 'string', 'max:30'],
             // code di-generate otomatis, tapi tetap divalidasi: URL publik bergantung padanya.
             'code' => ['required', 'string', 'regex:/^[A-Z0-9]{3,32}$/', Rule::unique($koneksi . 'affiliates', 'code')->ignore($id)],
-            'upline_id' => ['nullable', 'integer', Rule::exists($koneksi . 'affiliates', 'id')],
+            // Upline wajib dari situs yang sama: komisi tingkat 2 lahir di situs ini,
+            // jadi penerimanya tidak boleh afiliator situs lain.
+            'upline_id' => ['nullable', 'integer', Rule::exists($koneksi . 'affiliates', 'id')->where('type', $situs)],
             'user_id' => ['nullable', 'integer', Rule::exists($koneksi . 'wartawan', 'id'), Rule::unique($koneksi . 'affiliates', 'user_id')->ignore($id)],
             'payout_method' => ['required', Rule::in(['bank', 'ewallet'])],
             'bank_name' => ['nullable', 'string', 'max:60'],

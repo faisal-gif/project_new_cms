@@ -24,13 +24,9 @@ class AffiliateController extends Controller
         $situs = $this->situs($request);
 
         $query = Affiliate::query()
-            // Afiliator tidak punya kolom situs. Dilingkupkan lewat asal komisinya:
-            // yang pernah menghasilkan komisi di situs ini, DITAMBAH yang belum punya
-            // komisi sama sekali — kalau tidak, afiliator baru tidak akan terlihat
-            // di layar mana pun.
-            ->where(fn($q) => $q
-                ->whereHas('commissions.payment.package', fn($p) => $p->where('type', $situs))
-                ->orWhereDoesntHave('commissions'))
+            // Afiliator kini terikat satu situs lewat kolom `type`, jadi pelingkupannya
+            // langsung — tidak perlu lagi ditebak dari asal komisinya.
+            ->where('type', $situs)
             ->with('upline:id,name,code')
             ->withCount('referrals')
             // Ringkasan komisi per afiliator. Dihitung lewat subquery supaya tidak N+1.
@@ -60,10 +56,108 @@ class AffiliateController extends Controller
         ]);
     }
 
+    /**
+     * Antrean pengajuan: baris `pending` di situs ini.
+     *
+     * Sejak aplikasi publik punya formulir pengajuan, baris pending bisa datang dari
+     * member sendiri — ditandai `terms_accepted_at` yang terisi. Pengajuan mandiri selalu
+     * masuk tanpa upline, jadi admin menetapkannya saat menyetujui.
+     */
+    public function applications(Request $request)
+    {
+        $pengajuan = Affiliate::where('type', $this->situs($request))
+            ->where('status', 'pending')
+            ->with('user:id,nama,email,status,dateexp')
+            ->orderBy('created_at')
+            ->paginate(20)
+            ->through(fn($a) => [
+                'id' => $a->id,
+                'name' => $a->name,
+                'code' => $a->code,
+                'email' => $a->email,
+                'phone' => $a->phone,
+                'applicant_note' => $a->applicant_note,
+                'terms_accepted_at' => $a->terms_accepted_at,
+                'mandiri' => $a->isPengajuanMandiri(),
+                'created_at' => $a->created_at,
+                'payout_method' => $a->payout_method,
+                'bank_name' => $a->bank_name,
+                'bank_account_number' => $a->bank_account_number,
+                'bank_account_name' => $a->bank_account_name,
+                // Status membership pemohon, supaya admin tahu ia member aktif atau bukan.
+                'member' => $a->user ? [
+                    'nama' => $a->user->nama,
+                    'email' => $a->user->email,
+                    'aktif' => (int) $a->user->status === 1,
+                    'dateexp' => $a->user->dateexp,
+                ] : null,
+            ]);
+
+        return Inertia::render('Admin/Affiliate/Applications', [
+            'applications' => $pengajuan,
+            'uplines' => $this->opsiUpline($this->situs($request)),
+            'situsLabel' => $this->labelSitus($request),
+            'routePrefix' => $this->prefixSitus($request),
+        ]);
+    }
+
+    /** Setujui pengajuan, sekalian menetapkan upline bila ada. */
+    public function approveApplication(Request $request, $id)
+    {
+        $situs = $this->situs($request);
+
+        $data = $request->validate([
+            'upline_id' => [
+                'nullable',
+                'integer',
+                Rule::exists('mysql_berbayar.affiliates', 'id')->where('type', $situs),
+            ],
+        ], ['upline_id.exists' => 'Upline harus afiliator di situs yang sama.']);
+
+        $affiliate = Affiliate::findOrFail($id);
+        abort_unless($this->milikSitus($affiliate, $request), 404);
+
+        if ($affiliate->status !== 'pending') {
+            return back()->withErrors(['error' => 'Pengajuan ini sudah diproses.']);
+        }
+
+        if (Affiliate::wouldLoop($affiliate->id, $data['upline_id'] ?? null)) {
+            return back()->withErrors(['upline_id' => 'Upline ini membentuk lingkaran.']);
+        }
+
+        $affiliate->update([
+            'status' => 'active',
+            'approved_at' => now(),
+            'upline_id' => $data['upline_id'] ?? $affiliate->upline_id,
+        ]);
+
+        return back()->with('success', "Pengajuan {$affiliate->name} disetujui.");
+    }
+
+    /** Tolak pengajuan; alasannya wajib dan disimpan di catatan admin. */
+    public function rejectApplication(Request $request, $id)
+    {
+        $data = $request->validate(
+            ['note' => ['required', 'string', 'max:255']],
+            ['note.required' => 'Alasan penolakan wajib diisi.']
+        );
+
+        $affiliate = Affiliate::findOrFail($id);
+        abort_unless($this->milikSitus($affiliate, $request), 404);
+
+        if ($affiliate->status !== 'pending') {
+            return back()->withErrors(['error' => 'Pengajuan ini sudah diproses.']);
+        }
+
+        $affiliate->update(['status' => 'inactive', 'note' => $data['note']]);
+
+        return back()->with('success', "Pengajuan {$affiliate->name} ditolak.");
+    }
+
     public function create(Request $request)
     {
         return Inertia::render('Admin/Affiliate/Create', [
-            'uplines' => $this->opsiUpline(),
+            'uplines' => $this->opsiUpline($this->situs($request)),
             'initialData' => [
                 // Digenerate di awal supaya admin bisa melihat & menyalin kodenya sebelum simpan.
                 'code' => Affiliate::generateCode(),
@@ -80,6 +174,8 @@ class AffiliateController extends Controller
 
         // approved_at menandai kapan afiliator mulai boleh menghasilkan komisi.
         $data['approved_at'] = $data['status'] === 'active' ? now() : null;
+        // Afiliator terikat situs tempat ia dibuat.
+        $data['type'] = $this->situs($request);
 
         $affiliate = Affiliate::create($data);
 
@@ -90,12 +186,13 @@ class AffiliateController extends Controller
     public function edit(Request $request, $id)
     {
         $affiliate = Affiliate::with('upline:id,name,code', 'user:id,nama,email')->findOrFail($id);
+        abort_unless($this->milikSitus($affiliate, $request), 404);
 
         return Inertia::render('Admin/Affiliate/Edit', [
             'affiliate' => $affiliate,
             // Dirinya sendiri dikeluarkan dari pilihan upline; lingkaran yang lebih dalam
             // tetap dijaga validasi di server.
-            'uplines' => $this->opsiUpline($affiliate->id),
+            'uplines' => $this->opsiUpline($this->situs($request), $affiliate->id),
             'referralBase' => rtrim(config('services.berbayar.kt_url'), '/') . '/?ref=',
             'situsLabel' => $this->labelSitus($request),
             'routePrefix' => $this->prefixSitus($request),
@@ -105,7 +202,11 @@ class AffiliateController extends Controller
     public function update(AffiliateFormRequest $request, $id)
     {
         $affiliate = Affiliate::findOrFail($id);
+        abort_unless($this->milikSitus($affiliate, $request), 404);
+
         $data = $request->validated();
+        // Situs tidak pernah berpindah setelah baris dibuat.
+        unset($data['type']);
 
         // Isi approved_at saat pertama kali menjadi active; jangan ditimpa bila sudah ada.
         if ($data['status'] === 'active' && !$affiliate->approved_at) {
@@ -131,6 +232,8 @@ class AffiliateController extends Controller
         );
 
         $affiliate = Affiliate::findOrFail($id);
+        abort_unless($this->milikSitus($affiliate, $request), 404);
+
         $ubah = ['status' => $data['status']];
 
         if ($data['status'] === 'active' && !$affiliate->approved_at) {
@@ -165,10 +268,14 @@ class AffiliateController extends Controller
         return response()->json($users);
     }
 
-    /** Pilihan upline: afiliator lain, tanpa dirinya sendiri. */
-    private function opsiUpline(?int $kecuali = null)
+    /**
+     * Pilihan upline: afiliator lain di SITUS YANG SAMA, tanpa dirinya sendiri.
+     * Upline beda situs akan menerima komisi dari situs yang bukan miliknya.
+     */
+    private function opsiUpline(string $situs, ?int $kecuali = null)
     {
-        return Affiliate::when($kecuali, fn($q) => $q->where('id', '<>', $kecuali))
+        return Affiliate::where('type', $situs)
+            ->when($kecuali, fn($q) => $q->where('id', '<>', $kecuali))
             ->orderBy('name')
             ->get(['id', 'name', 'code'])
             ->map(fn($a) => ['value' => $a->id, 'label' => "{$a->name} ({$a->code})"]);
