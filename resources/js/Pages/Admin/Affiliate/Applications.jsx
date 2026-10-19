@@ -16,16 +16,21 @@ export default function Applications({ applications, uplines = [], situsLabel, r
     const izin = auth.permissions || []
     const bolehUbah = izin.includes(`edit afiliasi ${situsSlug}`)
 
-    // upline yang dipilih per baris; kosong berarti ditetapkan belakangan
+    // Upline yang DIUBAH admin per baris. Kunci yang belum ada berarti admin belum
+    // menyentuhnya, jadi nilai otomatis dari perekrut yang dipakai; nilai null berarti
+    // admin sengaja mengosongkannya. Dua hal itu harus dibedakan, kalau tidak upline
+    // otomatis tidak akan pernah bisa dibatalkan.
     const [upline, setUpline] = useState({})
     const [proses, setProses] = useState(null)
+
+    const uplineTerpilih = (a) => (a.id in upline ? upline[a.id] : a.upline?.id ?? null)
 
     const setujui = (a) => {
         if (!confirm(`Setujui pengajuan ${a.name}?`)) return
         setProses(a.id)
         router.post(
             route(`admin.${routePrefix}affiliate.applications.approve`, a.id),
-            { upline_id: upline[a.id] || null },
+            { upline_id: uplineTerpilih(a) },
             { preserveScroll: true, onFinish: () => setProses(null) },
         )
     }
@@ -57,7 +62,8 @@ export default function Applications({ applications, uplines = [], situsLabel, r
                     <h1 className="text-xl font-bold">Pengajuan Afiliator — {situsLabel}</h1>
                     <p className="text-sm text-muted-foreground">
                         Pengajuan berstatus <strong>pending</strong>, baik yang dikirim member lewat aplikasi publik
-                        maupun yang dibuat admin. Pengajuan mandiri selalu masuk tanpa upline — tetapkan di sini.
+                        maupun yang dibuat admin. Upline diisi otomatis dari afiliator yang dulu merekrut orang
+                        ini jadi member; yang kosong berarti ia mendaftar tanpa link referral — tetapkan di sini.
                     </p>
                 </div>
                 <Link href={route(`admin.${routePrefix}affiliate.index`)}>
@@ -124,17 +130,21 @@ export default function Applications({ applications, uplines = [], situsLabel, r
                                 <div className="mt-5 flex flex-wrap items-end gap-3 border-t pt-4">
                                     <div className="min-w-64 flex-1">
                                         <label className="mb-1 block text-xs font-semibold uppercase text-muted-foreground">
-                                            Upline (opsional)
+                                            Upline {a.upline ? '(terisi otomatis)' : '(opsional)'}
                                         </label>
                                         <Select
                                             options={uplines}
                                             isClearable
                                             placeholder="Siapa yang mengajak orang ini?"
-                                            value={uplines.find((u) => u.value === upline[a.id]) || null}
-                                            onChange={(opt) => setUpline((s) => ({ ...s, [a.id]: opt?.value || null }))}
+                                            // Nilai otomatis dari perekrut dipakai sebagai pilihan awal, jadi
+                                            // menyetujui tanpa menyentuh dropdown ini mempertahankannya.
+                                            value={uplines.find((u) => u.value === uplineTerpilih(a)) || null}
+                                            onChange={(opt) => setUpline((s) => ({ ...s, [a.id]: opt?.value ?? null }))}
                                         />
                                         <p className="mt-1 text-xs text-muted-foreground">
-                                            Dibiarkan kosong berarti komisi tingkat 2 dari afiliator ini akan tertahan.
+                                            {a.upline
+                                                ? `Diisi otomatis: ${a.upline.name} (${a.upline.code}) yang merekrutnya jadi member. Ganti bila tidak sesuai.`
+                                                : 'Dibiarkan kosong berarti komisi tingkat 2 dari afiliator ini akan tertahan.'}
                                         </p>
                                     </div>
                                     <div className="flex gap-2">

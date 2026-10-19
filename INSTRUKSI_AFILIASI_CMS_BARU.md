@@ -8,6 +8,29 @@ Bangun layar **admin program afiliasi**: kelola afiliator, tinjau komisi, dan ca
 
 **Sudah memegang versi sebelumnya? Baca bagian ini dulu, sisanya hanya penajaman.**
 
+### 2026-10-19 — upline pengajuan mandiri terisi otomatis
+
+**Mengoreksi aturan "pengajuan mandiri selalu masuk tanpa upline".** Aplikasi publik kini mengisi `upline_id` otomatis saat member mengajukan diri: uplinenya adalah **afiliator yang dulu merekrut orang itu jadi member**, dibaca dari `affiliate_referrals`.
+
+Otomatisasi ini **dilewati** dan uplinenya tetap kosong bila:
+
+- orang itu mendaftar tanpa link referral siapa pun;
+- perekrutnya bukan afiliator berstatus `active`;
+- perekrutnya milik situs lain — komisi tingkat 2 tidak boleh melintasi situs.
+
+Dampaknya ke layar CMS:
+
+| Hal | Sebelumnya | Sekarang |
+|---|---|---|
+| `upline_id` pada baris `pending` | Selalu NULL | **Bisa sudah terisi** |
+| Antrean pengajuan | Dropdown upline selalu kosong | Nilai otomatis jadi **pilihan awal** dropdown |
+| Menyetujui tanpa menyentuh dropdown | Tidak ada yang tersimpan | **Mempertahankan** upline otomatis |
+| Mengosongkan dropdown lalu menyetujui | — | **Membatalkan** upline otomatis; kirim `upline_id` bernilai null |
+
+Yang penting di sisi implementasi: bedakan "admin tidak menyentuh dropdown" dari "admin sengaja mengosongkannya". Kalau keduanya sama-sama dikirim sebagai null dan backend memakai `?? $affiliate->upline_id`, upline otomatis tidak akan pernah bisa dibatalkan.
+
+Tidak ada perubahan skema. Admin tetap berwenang penuh menimpa nilainya, baik saat menyetujui maupun lewat layar ubah afiliator.
+
 ### 2026-10-15 — pos internal (tim IT / KITA AI) terbit juga tanpa kode referral
 
 **Mengoreksi aturan "tanpa perekrut tidak ada baris sama sekali".** Pos `internal` sekarang dicatat untuk **setiap pendaftaran member baru**, termasuk pembeli yang datang tanpa kode referral, supaya bagian tim IT tidak bergantung pada ada atau tidaknya perekrut.
@@ -77,7 +100,7 @@ Dua kolom baru di `affiliates` (keduanya nullable, baris lama tetap valid):
 Yang perlu disiapkan CMS:
 
 - **Antrean pengajuan**: daftar `status = 'pending'`, menampilkan `applicant_note`, data rekening, status membership pemohon, dan `terms_accepted_at`. Aksi: setujui (jadi `active`, isi `approved_at`) atau tolak (`inactive` atau `suspended`, isi `note`).
-- **Upline wajib ditetapkan manual.** Pengajuan mandiri selalu masuk dengan `upline_id` kosong. Selama kosong, komisi tingkat 2 dari afiliator itu tercatat `unassigned`, jadi laporan baris tertahan makin penting.
+- **Upline ditetapkan manual.** Pengajuan mandiri selalu masuk dengan `upline_id` kosong. Selama kosong, komisi tingkat 2 dari afiliator itu tercatat `unassigned`, jadi laporan baris tertahan makin penting. *(Diperbarui 2026-10-19: kini bisa terisi otomatis — lihat catatan paling atas.)*
 - **Kode referral sudah digenerate** aplikasi publik saat pengajuan. Jangan dibuat ulang.
 - **Minimum pencairan Rp 50.000** (`config/affiliate.php`, `min_payout`). Nominal ini tertulis di syarat & ketentuan yang disetujui pemohon, jadi batch pencairan harus mengikutinya.
 
@@ -233,7 +256,7 @@ Keduanya final. Kalau ada kekeliruan setelah `paid`, buat batch baru sebagai kor
 
 ## Yang harus dibangun
 
-0. **Antrean pengajuan** — daftar `status = 'pending'` berisi nama, email, kontak, `applicant_note`, data rekening, status membership pemohon, dan tanggal persetujuan S&K. Aksi: setujui (`active` + `approved_at`), tolak (`inactive`/`suspended` + `note`), dan tetapkan `upline_id` sekalian saat menyetujui.
+0. **Antrean pengajuan** — daftar `status = 'pending'` berisi nama, email, kontak, `applicant_note`, data rekening, status membership pemohon, dan tanggal persetujuan S&K. Aksi: setujui (`active` + `approved_at`), tolak (`inactive`/`suspended` + `note`), dan tetapkan `upline_id` sekalian saat menyetujui. **Tampilkan `upline_id` yang sudah terisi** — sejak 2026-10-19 nilainya bisa datang otomatis dari perekrut membernya, dan admin perlu melihat apa yang akan tersimpan sebelum menyetujui.
 
 1. **Daftar afiliator** — kolom: nama, kode, status, upline, jumlah member direkrut, total komisi (tertahan / siap cair / sudah dibayar). Filter per status, pencarian nama/kode/email.
 

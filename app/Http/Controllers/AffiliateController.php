@@ -60,14 +60,18 @@ class AffiliateController extends Controller
      * Antrean pengajuan: baris `pending` di situs ini.
      *
      * Sejak aplikasi publik punya formulir pengajuan, baris pending bisa datang dari
-     * member sendiri — ditandai `terms_accepted_at` yang terisi. Pengajuan mandiri selalu
-     * masuk tanpa upline, jadi admin menetapkannya saat menyetujui.
+     * member sendiri — ditandai `terms_accepted_at` yang terisi.
+     *
+     * Uplinenya BISA sudah terisi: aplikasi publik mengisinya otomatis dari afiliator
+     * yang dulu merekrut orang ini jadi member, bila perekrutnya aktif dan di situs yang
+     * sama. Yang kosong berarti ia mendaftar tanpa link referral — admin menetapkannya
+     * di sini. Menyetujui tanpa memilih apa pun mempertahankan upline yang sudah ada.
      */
     public function applications(Request $request)
     {
         $pengajuan = Affiliate::where('type', $this->situs($request))
             ->where('status', 'pending')
-            ->with('user:id,nama,email,status,dateexp')
+            ->with('user:id,nama,email,status,dateexp', 'upline:id,name,code')
             ->orderBy('created_at')
             ->paginate(20)
             ->through(fn($a) => [
@@ -80,6 +84,12 @@ class AffiliateController extends Controller
                 'terms_accepted_at' => $a->terms_accepted_at,
                 'mandiri' => $a->isPengajuanMandiri(),
                 'created_at' => $a->created_at,
+                // Terisi = sudah ditentukan otomatis dari perekrut membernya.
+                'upline' => $a->upline ? [
+                    'id' => $a->upline->id,
+                    'name' => $a->upline->name,
+                    'code' => $a->upline->code,
+                ] : null,
                 'payout_method' => $a->payout_method,
                 'bank_name' => $a->bank_name,
                 'bank_account_number' => $a->bank_account_number,
@@ -128,7 +138,12 @@ class AffiliateController extends Controller
         $affiliate->update([
             'status' => 'active',
             'approved_at' => now(),
-            'upline_id' => $data['upline_id'] ?? $affiliate->upline_id,
+            // Kunci yang DIKIRIM dipakai apa adanya, termasuk null — itulah cara admin
+            // membatalkan upline yang terisi otomatis. Hanya bila kuncinya sama sekali
+            // tidak dikirim, upline yang sudah ada dipertahankan.
+            'upline_id' => array_key_exists('upline_id', $data)
+                ? $data['upline_id']
+                : $affiliate->upline_id,
         ]);
 
         return back()->with('success', "Pengajuan {$affiliate->name} disetujui.");
