@@ -50,7 +50,7 @@ class AffiliateController extends Controller
         return Inertia::render('Admin/Affiliate/Index', [
             'affiliates' => $query->latest('id')->paginate(15)->withQueryString(),
             'filters' => $request->only(['search', 'status']),
-            'referralBase' => rtrim(config('services.berbayar.kt_url'), '/') . '/?ref=',
+            'referralBase' => $this->basisReferral($request),
             'situsLabel' => $this->labelSitus($request),
             'routePrefix' => $this->prefixSitus($request),
         ]);
@@ -177,7 +177,7 @@ class AffiliateController extends Controller
                 // Digenerate di awal supaya admin bisa melihat & menyalin kodenya sebelum simpan.
                 'code' => Affiliate::generateCode(),
             ],
-            'referralBase' => rtrim(config('services.berbayar.kt_url'), '/') . '/?ref=',
+            'referralBase' => $this->basisReferral($request),
             'situsLabel' => $this->labelSitus($request),
             'routePrefix' => $this->prefixSitus($request),
         ]);
@@ -208,7 +208,7 @@ class AffiliateController extends Controller
             // Dirinya sendiri dikeluarkan dari pilihan upline; lingkaran yang lebih dalam
             // tetap dijaga validasi di server.
             'uplines' => $this->opsiUpline($this->situs($request), $affiliate->id),
-            'referralBase' => rtrim(config('services.berbayar.kt_url'), '/') . '/?ref=',
+            'referralBase' => $this->basisReferral($request),
             'situsLabel' => $this->labelSitus($request),
             'routePrefix' => $this->prefixSitus($request),
         ]);

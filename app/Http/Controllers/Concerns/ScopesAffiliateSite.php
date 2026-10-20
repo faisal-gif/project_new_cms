@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Concerns;
 
+use App\Models\Affiliate;
 use App\Models\PaketBerita;
 use Illuminate\Http\Request;
 
@@ -34,6 +35,19 @@ trait ScopesAffiliateSite
     protected function labelSitus(Request $request): string
     {
         return PaketBerita::labelSitus($this->situs($request));
+    }
+
+    /**
+     * Basis link referral situs aktif, mis. "https://ajp.times.co.id/?ref=".
+     *
+     * WAJIB ikut situs aktif. Sebelum 2026-10-20 ketiga layar afiliasi memakai URL
+     * Kopi TIMES untuk kedua situs, sehingga tombol salin di layar AJP membagikan
+     * link ke domain yang salah — referralnya tercatat tapi komisinya nol, karena
+     * kode hanya berlaku di situs afiliatornya sendiri.
+     */
+    protected function basisReferral(Request $request): string
+    {
+        return Affiliate::basisReferral($this->situs($request));
     }
 
     /** Prefix nama route situs aktif, mis. "ajp." — dipakai untuk redirect & tautan. */

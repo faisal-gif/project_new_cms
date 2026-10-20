@@ -120,8 +120,24 @@ class Affiliate extends Model
         return $this->hasMany(AffiliatePayout::class, 'affiliate_id');
     }
 
+    /**
+     * Basis link referral untuk satu situs: 1 = AJP, 4 = Kopi TIMES.
+     *
+     * AJP dan Kopi TIMES berdiri di domain berbeda, dan kode referral hanya berlaku
+     * di situs afiliatornya sendiri — kode AJP yang dipakai di domain Kopi TIMES
+     * tercatat sebagai referral tapi TIDAK menghasilkan komisi sepeser pun. Jadi
+     * memakai URL yang salah di sini sama dengan membagikan link yang mustahil
+     * membayar, dan kegagalannya baru terlihat saat komisi tidak muncul.
+     */
+    public static function basisReferral($type): string
+    {
+        $kunci = (int) $type === 1 ? 'ajp_url' : 'kt_url';
+
+        return rtrim((string) config("services.berbayar.{$kunci}"), '/') . '/?ref=';
+    }
+
     public function getReferralLinkAttribute(): string
     {
-        return rtrim(config('services.berbayar.kt_url'), '/') . '/?ref=' . $this->code;
+        return static::basisReferral($this->type) . $this->code;
     }
 }
