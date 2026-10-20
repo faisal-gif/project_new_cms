@@ -17,9 +17,9 @@ export default function Applications({ applications, uplines = [], situsLabel, r
     const bolehUbah = izin.includes(`edit afiliasi ${situsSlug}`)
 
     // Upline yang DIUBAH admin per baris. Kunci yang belum ada berarti admin belum
-    // menyentuhnya, jadi nilai otomatis dari perekrut yang dipakai; nilai null berarti
-    // admin sengaja mengosongkannya. Dua hal itu harus dibedakan, kalau tidak upline
-    // otomatis tidak akan pernah bisa dibatalkan.
+    // menyentuhnya, jadi nilai yang sudah tersimpan dipakai; nilai null berarti admin
+    // sengaja mengosongkannya. Dua hal itu harus dibedakan, kalau tidak upline yang
+    // sudah tersimpan tidak akan pernah bisa dibatalkan dari layar ini.
     const [upline, setUpline] = useState({})
     const [proses, setProses] = useState(null)
 
@@ -62,8 +62,9 @@ export default function Applications({ applications, uplines = [], situsLabel, r
                     <h1 className="text-xl font-bold">Pengajuan Afiliator — {situsLabel}</h1>
                     <p className="text-sm text-muted-foreground">
                         Pengajuan berstatus <strong>pending</strong>, baik yang dikirim member lewat aplikasi publik
-                        maupun yang dibuat admin. Upline diisi otomatis dari afiliator yang dulu merekrut orang
-                        ini jadi member; yang kosong berarti ia mendaftar tanpa link referral — tetapkan di sini.
+                        maupun yang dibuat admin. Pengajuan mandiri selalu masuk <strong>tanpa upline</strong> —
+                        tetapkan di sini. Upline menentukan siapa menerima komisi 5%, dan selama kosong komisi itu
+                        tertahan tanpa pemilik.
                     </p>
                 </div>
                 <Link href={route(`admin.${routePrefix}affiliate.index`)}>
@@ -130,7 +131,7 @@ export default function Applications({ applications, uplines = [], situsLabel, r
                                 <div className="mt-5 flex flex-wrap items-end gap-3 border-t pt-4">
                                     <div className="min-w-64 flex-1">
                                         <label className="mb-1 block text-xs font-semibold uppercase text-muted-foreground">
-                                            Upline {a.upline ? '(terisi otomatis)' : '(opsional)'}
+                                            Upline — penerima komisi 5%
                                         </label>
                                         <Select
                                             options={uplines}
@@ -143,8 +144,8 @@ export default function Applications({ applications, uplines = [], situsLabel, r
                                         />
                                         <p className="mt-1 text-xs text-muted-foreground">
                                             {a.upline
-                                                ? `Diisi otomatis: ${a.upline.name} (${a.upline.code}) yang merekrutnya jadi member. Ganti bila tidak sesuai.`
-                                                : 'Dibiarkan kosong berarti komisi tingkat 2 dari afiliator ini akan tertahan.'}
+                                                ? `Sudah ditetapkan: ${a.upline.name} (${a.upline.code}). Ganti bila tidak sesuai.`
+                                                : 'Dibiarkan kosong berarti komisi 5% dari afiliator ini tertahan tanpa pemilik.'}
                                         </p>
                                     </div>
                                     <div className="flex gap-2">

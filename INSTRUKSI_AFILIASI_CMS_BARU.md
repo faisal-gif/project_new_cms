@@ -8,7 +8,23 @@ Bangun layar **admin program afiliasi**: kelola afiliator, tinjau komisi, dan ca
 
 **Sudah memegang versi sebelumnya? Baca bagian ini dulu, sisanya hanya penajaman.**
 
-### 2026-10-19 — upline pengajuan mandiri terisi otomatis
+### 2026-10-20 — upline sepenuhnya ditetapkan admin (membatalkan catatan 2026-10-19)
+
+**Catatan 2026-10-19 di bawah ini TIDAK berlaku lagi.** Pengisian upline otomatis dicabut sehari setelah diterapkan, atas permintaan pemilik produk: penerima komisi 5% harus ditentukan admin, bukan disimpulkan sistem dari data referral.
+
+| Hal | Catatan 2026-10-19 | Yang benar sekarang |
+|---|---|---|
+| `upline_id` pada pengajuan mandiri | Bisa sudah terisi otomatis | **Selalu NULL** |
+| Dropdown upline di antrean pengajuan | Nilai otomatis jadi pilihan awal | Kosong, kecuali admin sudah menetapkannya lewat layar ubah afiliator |
+| Siapa menentukan penerima 5% | Sistem, admin boleh menimpa | **Admin, selalu** |
+
+Mekanisme komisinya sendiri tidak berubah dan memang sudah benar: akun A yang mengundang B memperoleh 20% dari pendaftaran B; bila B kemudian mengundang C, A memperoleh 5% dari pendaftaran C. Yang menentukan A memperoleh 5% itu adalah `affiliates.upline_id` milik B — dan kolom itu kini hanya terisi lewat CMS.
+
+**Konsekuensi yang harus dipantau:** selama upline seorang afiliator kosong, setiap komisi 5% dari jaringannya lahir berstatus `unassigned`. Layar **Baris Tertahan** karena itu bukan laporan pelengkap melainkan antrean kerja, dan menetapkan upline saat menyetujui pengajuan adalah cara mencegah tumpukan itu.
+
+Tidak ada perubahan skema.
+
+### 2026-10-19 — upline pengajuan mandiri terisi otomatis *(dibatalkan, lihat catatan 2026-10-20)*
 
 **Mengoreksi aturan "pengajuan mandiri selalu masuk tanpa upline".** Aplikasi publik kini mengisi `upline_id` otomatis saat member mengajukan diri: uplinenya adalah **afiliator yang dulu merekrut orang itu jadi member**, dibaca dari `affiliate_referrals`.
 

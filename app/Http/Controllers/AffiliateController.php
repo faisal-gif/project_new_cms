@@ -62,10 +62,10 @@ class AffiliateController extends Controller
      * Sejak aplikasi publik punya formulir pengajuan, baris pending bisa datang dari
      * member sendiri — ditandai `terms_accepted_at` yang terisi.
      *
-     * Uplinenya BISA sudah terisi: aplikasi publik mengisinya otomatis dari afiliator
-     * yang dulu merekrut orang ini jadi member, bila perekrutnya aktif dan di situs yang
-     * sama. Yang kosong berarti ia mendaftar tanpa link referral — admin menetapkannya
-     * di sini. Menyetujui tanpa memilih apa pun mempertahankan upline yang sudah ada.
+     * Pengajuan mandiri SELALU masuk tanpa upline: upline menentukan penerima komisi
+     * tingkat 2 (5%), dan itu keputusan admin, bukan kesimpulan sistem. Uplinenya hanya
+     * terisi bila admin sudah menetapkannya lewat layar ubah afiliator sebelum pengajuan
+     * disetujui. Menyetujui tanpa memilih apa pun mempertahankan nilai yang sudah ada.
      */
     public function applications(Request $request)
     {
@@ -84,7 +84,7 @@ class AffiliateController extends Controller
                 'terms_accepted_at' => $a->terms_accepted_at,
                 'mandiri' => $a->isPengajuanMandiri(),
                 'created_at' => $a->created_at,
-                // Terisi = sudah ditentukan otomatis dari perekrut membernya.
+                // Terisi hanya bila admin sudah menetapkannya lebih dulu.
                 'upline' => $a->upline ? [
                     'id' => $a->upline->id,
                     'name' => $a->upline->name,
@@ -139,7 +139,7 @@ class AffiliateController extends Controller
             'status' => 'active',
             'approved_at' => now(),
             // Kunci yang DIKIRIM dipakai apa adanya, termasuk null — itulah cara admin
-            // membatalkan upline yang terisi otomatis. Hanya bila kuncinya sama sekali
+            // membatalkan upline yang sudah tersimpan. Hanya bila kuncinya sama sekali
             // tidak dikirim, upline yang sudah ada dipertahankan.
             'upline_id' => array_key_exists('upline_id', $data)
                 ? $data['upline_id']
