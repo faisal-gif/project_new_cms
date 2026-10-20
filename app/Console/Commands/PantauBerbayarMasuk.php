@@ -31,14 +31,26 @@ class PantauBerbayarMasuk extends Command
     private const MAKS_SEKALI = 20;
 
     /**
-     * Peran yang menerima notifikasi.
+     * Izin penerima notifikasi: terpisah per ALIRAN dan per SITUS, jadi redaksi
+     * bisa dapat notifikasi berita tanpa ikut kebanjiran pesanan kaos, dan
+     * sebaliknya. Empat nama yang terbentuk:
      *
-     * SENGAJA peran, bukan permission. Membuat izin baru seperti 'edit news ajp'
-     * akan MENGAKTIFKAN gerbang EnforceRoutePermission pada layar AJP yang saat ini
-     * fail-open (izinnya belum ada di database), sehingga semua orang kecuali
-     * super-admin langsung kena 403 di layar yang hari ini jalan normal.
+     *   terima notifikasi berita ajp          terima notifikasi berita kopi-times
+     *   terima notifikasi merchandise ajp     terima notifikasi merchandise kopi-times
+     *
+     * Kata 'terima' dipilih dengan sengaja. EnforceRoutePermission hanya pernah
+     * menyusun nama izin sebagai "{view|create|edit|delete} {resource}", jadi izin
+     * berawalan 'terima' mustahil ikut menggerbangi route mana pun. Memakai nama
+     * seperti 'edit news ajp' justru akan MENGAKTIFKAN gerbang di layar AJP yang
+     * hari ini fail-open, dan mengunci semua orang kecuali super-admin.
      */
-    private const PERAN_PENERIMA = ['admin', 'super-admin'];
+    private const IZIN_PENERIMA = 'terima notifikasi ';
+
+    /** Bangun nama izin untuk satu aliran di satu situs. */
+    private function izin(string $aliran, string $situs): string
+    {
+        return self::IZIN_PENERIMA . $aliran . ' ' . self::SLUG[$situs];
+    }
 
     /** slug route per situs; dipakai menyusun tautan. */
     private const SLUG = ['1' => 'ajp', '4' => 'kopi-times'];
@@ -67,6 +79,7 @@ class PantauBerbayarMasuk extends Command
         $this->proses(
             kunci: "berbayar:watermark:news:{$situs}",
             judulAliran: 'Berita ' . PaketBerita::labelSitus($situs),
+            izin: $this->izin('berita', $situs),
             baris: fn($sesudah) => NewsBerbayar::where('type', $situs)
                 ->where('status', 0)
                 ->where('id', '>', $sesudah)
@@ -89,6 +102,7 @@ class PantauBerbayarMasuk extends Command
         $this->proses(
             kunci: "berbayar:watermark:merch:{$situs}",
             judulAliran: 'Merchandise ' . PaketBerita::labelSitus($situs),
+            izin: $this->izin('merchandise', $situs),
             baris: fn($sesudah) => MerchandiseShipment::where('type', $situs)
                 ->where('id', '>', $sesudah)
                 ->orderBy('id')
@@ -114,6 +128,7 @@ class PantauBerbayarMasuk extends Command
     private function proses(
         string $kunci,
         string $judulAliran,
+        string $izin,
         callable $baris,
         callable $maksId,
         callable $jadiNotifikasi,
@@ -136,13 +151,12 @@ class PantauBerbayarMasuk extends Command
             return;
         }
 
-        $penerima = User::role(self::PERAN_PENERIMA)->get();
+        $penerima = User::permission($izin)->get();
 
         // Penerima kosong = notifikasi menguap tanpa jejak. Watermark TIDAK dimajukan
         // supaya barisnya terkirim pada putaran berikutnya, bukan hilang diam-diam.
         if ($penerima->isEmpty()) {
-            $peran = implode('/', self::PERAN_PENERIMA);
-            $pesan = "{$judulAliran}: {$baru->count()} baris baru TIDAK terkirim — tidak ada user berperan {$peran}.";
+            $pesan = "{$judulAliran}: {$baru->count()} baris baru TIDAK terkirim — tidak ada user dengan izin '{$izin}'.";
             $this->warn($pesan);
             Log::warning($pesan);
 

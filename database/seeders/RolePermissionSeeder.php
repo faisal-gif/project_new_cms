@@ -266,6 +266,18 @@ class RolePermissionSeeder extends Seeder
                 'create event kopi-times',
                 'edit event kopi-times',
             ],
+            'Notifikasi' => [
+                // Penentu SIAPA yang menerima notifikasi berita masuk & pesanan
+                // merchandise dari aplikasi publik (lihat PantauBerbayarMasuk).
+                //
+                // Nama sengaja memakai kata 'terima', bukan view/create/edit/delete:
+                // EnforceRoutePermission hanya menyusun nama dari keempat verb itu,
+                // jadi izin ini mustahil ikut menggerbangi route mana pun.
+                'terima notifikasi berita ajp',
+                'terima notifikasi berita kopi-times',
+                'terima notifikasi merchandise ajp',
+                'terima notifikasi merchandise kopi-times',
+            ],
             'Report' => [
                 'view report news nasional',
                 'view report news daerah',
