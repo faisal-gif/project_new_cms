@@ -67,8 +67,11 @@ export default function ReportIndex({ summary, chart_data, top_news, top_categor
     }
 
     // post() otomatis membawa state 'data' di atas, menghindari error The start date is required
+    // preserveState wajib: tanpa itu komponen remount setelah redirect back()
+    // dan useForm terisi ulang dari prop filters -> isian pengguna hilang.
     post(route('admin.nasional.news.report.export'), {
       preserveScroll: true,
+      preserveState: true,
     });
   };
 
@@ -81,6 +84,7 @@ export default function ReportIndex({ summary, chart_data, top_news, top_categor
     setTopNewsProcessing(true);
     router.post(route('admin.nasional.news.report.export-top-news'), data, {
       preserveScroll: true,
+      preserveState: true,
       onFinish: () => setTopNewsProcessing(false),
     });
   };
@@ -94,6 +98,7 @@ export default function ReportIndex({ summary, chart_data, top_news, top_categor
     setTopCategoryProcessing(true);
     router.post(route('admin.nasional.news.report.export-top-category'), data, {
       preserveScroll: true,
+      preserveState: true,
       onFinish: () => setTopCategoryProcessing(false),
     });
   };

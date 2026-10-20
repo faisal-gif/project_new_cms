@@ -37,8 +37,11 @@ export default function ReportDaerahIndex({ summary, chart_data, writers, editor
         }
 
         // Arahkan ke rute export DAERAH
+        // preserveState wajib: tanpa itu komponen remount setelah redirect back()
+        // dan useForm terisi ulang dari prop filters -> isian pengguna hilang.
         post(route('admin.daerah.news.report.export'), {
             preserveScroll: true,
+            preserveState: true,
         });
     };
 
