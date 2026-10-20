@@ -4,7 +4,6 @@ namespace App\Exports;
 
 use App\Models\NewsNasional;
 use Carbon\Carbon;
-use Illuminate\Support\Str;
 use Maatwebsite\Excel\Concerns\Exportable;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithHeadings;
@@ -26,30 +25,25 @@ class TopNewsNasionalExport implements FromCollection, WithHeadings, WithMapping
     }
 
     /**
-     * Eksekusi query agregasi di level MySQL
+     * Top 50 memakai scopeFilterLaporan yang sama dengan layar Report. Versi lama
+     * menyalin filternya sendiri dan hanya menangani kanal + writer: pilih editor
+     * atau tag di layar, berkasnya tetap berisi peringkat seluruh redaksi.
      */
-    public function collection()
+    /** Dipisah dari collection() supaya filternya bisa diperiksa tanpa koneksi DB. */
+    public function baseQuery()
     {
-        $query = NewsNasional::query()
+        return NewsNasional::query()
             ->join('news_views', 'news.news_id', '=', 'news_views.news_id')
             ->select('news.news_id', 'news.news_title', 'news.news_datepub', 'news.catnews_id', 'news_views.pageviews')
-            ->with(['kanal']); // Hindari N+1 query untuk relasi
+            ->with(['kanal'])
+            ->filterLaporan($this->filters)
+            ->orderBy('news_views.pageviews', 'DESC')
+            ->limit(50);
+    }
 
-        // Terapkan Filter Tanggal
-        if (!empty($this->filters['start_date']) && !empty($this->filters['end_date'])) {
-            $query->whereBetween('news.news_datepub', [
-                Carbon::parse($this->filters['start_date'])->startOfDay(),
-                Carbon::parse($this->filters['end_date'])->endOfDay(),
-            ])->where('news.news_status', 1); // Hanya berita yang sudah publish
-        }
-
-        // Terapkan Filter Lain (Opsional, sesuai input React)
-        if (!empty($this->filters['kanal'])) $query->where('news.catnews_id', $this->filters['kanal']);
-        if (!empty($this->filters['writer'])) $query->where('news.news_writer', $this->filters['writer']);
-
-        // Ambil TOP 50 Berita Berdasarkan Views
-        // Karena datanya dibatasi (limit), ini sangat aman dan tidak butuh sistem Queue yang rumit.
-        return $query->orderBy('news_views.pageviews', 'DESC')->limit(50)->get();
+    public function collection()
+    {
+        return $this->baseQuery()->get();
     }
 
     public function headings(): array

@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Jobs\PurgeNewsCache;
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
@@ -142,6 +143,30 @@ class NewsNasional extends Model
             'id'
         )->withPivot('sort_order')
             ->orderByPivot('sort_order', 'asc');
+    }
+
+    /**
+     * Filter laporan — SATU definisi dipakai layar Report sekaligus ketiga kelas Export.
+     *
+     * Sebelumnya tiap Export menyalin blok if-nya sendiri dan salinan itu menua terpisah:
+     * NewsNasionalExport kehilangan filter editor, TopNewsNasionalExport kehilangan editor
+     * dan tag. Akibatnya berkas bernama "...editor-budi.xlsx" berisi berita semua editor —
+     * salah tanpa pesan error. Satu sumber kebenaran menutup celah itu permanen.
+     *
+     * Kolom diawali `news.` karena pemanggilnya ikut join ke news_category & news_views,
+     * yang sama-sama punya kolom catnews_id / news_id.
+     */
+    public function scopeFilterLaporan($query, array $filters)
+    {
+        return $query
+            ->when(filled($filters['start_date'] ?? null) && filled($filters['end_date'] ?? null), fn($q) => $q->whereBetween('news.news_datepub', [
+                Carbon::parse($filters['start_date'])->startOfDay(),
+                Carbon::parse($filters['end_date'])->endOfDay(),
+            ]))
+            ->when(filled($filters['kanal'] ?? null), fn($q) => $q->where('news.catnews_id', $filters['kanal']))
+            ->when(filled($filters['writer'] ?? null), fn($q) => $q->where('news.news_writer', $filters['writer']))
+            ->when(filled($filters['editor'] ?? null), fn($q) => $q->where('news.editor_id', $filters['editor']))
+            ->when(filled($filters['tag'] ?? null), fn($q) => $q->whereHas('tags', fn($t) => $t->where('tags.id', $filters['tag'])));
     }
 
     public function getActivitylogOptions(): LogOptions

@@ -22,41 +22,10 @@ use Illuminate\Support\Str;
 
 class ReportNewsNasionalController extends Controller
 {
-    // 1. PENTING: Jangan gunakan ->with() di sini agar query base-nya ringan
+    /** Filter dipegang model (NewsNasional::scopeFilterLaporan) supaya layar & export tidak pernah beda. */
     private function buildQuery(Request $request)
     {
-        $query = NewsNasional::query();
-
-        // Karena kita sudah menyuntikkan nilai default di index(), 
-        // blok ini akan selalu tereksekusi dengan aman.
-        if ($request->filled('start_date') && $request->filled('end_date')) {
-            $query->whereBetween('news.news_datepub', [
-                Carbon::parse($request->start_date)->startOfDay(),
-                Carbon::parse($request->end_date)->endOfDay(),
-            ]);
-        }
-
-
-        if ($request->filled('tag')) {
-
-            $query->whereHas('tags', function ($q) use ($request) {
-                // Gunakan ID agar query eksekusi lebih cepat pada relasi many-to-many
-                $q->where('tags.id', $request->tag);
-            });
-        }
-
-        if ($request->filled('kanal')) {
-            $query->where('catnews_id', $request->kanal);
-        }
-        if ($request->filled('writer')) {
-            $query->where('news_writer', $request->writer);
-        }
-
-        if ($request->filled('editor')) {
-            $query->where('editor_id', $request->editor);
-        }
-
-        return $query;
+        return NewsNasional::query()->filterLaporan($request->all());
     }
 
     public function index(Request $request)
@@ -159,7 +128,8 @@ class ReportNewsNasionalController extends Controller
 
         // Cek dan tambahkan filter Kanal
         if (!empty($filters['kanal'])) {
-            $nameParts[] = 'kanal-' . Str::slug($filters['kanal']);
+            $kanalName = KanalNasional::where('catnews_id', $filters['kanal'])->value('catnews_title');
+            $nameParts[] = 'kanal-' . Str::slug($kanalName ?: $filters['kanal']);
         }
 
         // Cek dan tambahkan filter Writer
@@ -195,7 +165,7 @@ class ReportNewsNasionalController extends Controller
 
         // 3. Queue dan simpan ke folder 'exports' di disk 'public'
         Excel::queue(
-            new NewsNasionalExport($filters),
+            new NewsNasionalExport($filters, $userId, $fileName),
             'exports/' . $fileName,
             'public'
         )->chain([
@@ -209,7 +179,16 @@ class ReportNewsNasionalController extends Controller
             }
         ]);
 
-        return back()->with('success', 'Laporan Berita Nasional sedang diproses di belakang layar. Silakan cek lonceng notifikasi dalam beberapa saat.');
+        // Export dibatasi BATAS_BARIS. Tanpa diberitahu, berkas terpotong tidak bisa
+        // dibedakan dari yang utuh — persis jenis kesalahan diam yang sedang diperbaiki.
+        $jumlah = $this->buildQuery($request)->count();
+        $batas  = NewsNasionalExport::BATAS_BARIS;
+
+        $pesan = $jumlah > $batas
+            ? "Laporan diproses, tapi DIBATASI {$batas} baris teratas dari total " . number_format($jumlah, 0, ',', '.') . " baris. Persempit rentang tanggal untuk data lengkap."
+            : number_format($jumlah, 0, ',', '.') . ' baris Laporan Berita Nasional sedang diproses di belakang layar. Silakan cek lonceng notifikasi.';
+
+        return back()->with('success', $pesan);
     }
 
     public function exportTopNews(Request $request)

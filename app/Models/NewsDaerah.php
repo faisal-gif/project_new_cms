@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 use Spatie\Activitylog\LogOptions;
 use Spatie\Activitylog\Traits\LogsActivity;
@@ -82,6 +83,19 @@ class NewsDaerah extends Model
     {
         return $this->belongsToMany(TagsDaerah::class, 'news_tags', 'news_id', 'tag_id')->withPivot('sort_order')
             ->orderByPivot('sort_order', 'asc');
+    }
+
+    /** Filter laporan — satu definisi dipakai layar Report dan NewsDaerahExport. Lihat NewsNasional::scopeFilterLaporan. */
+    public function scopeFilterLaporan($query, array $filters)
+    {
+        return $query
+            ->when(filled($filters['start_date'] ?? null) && filled($filters['end_date'] ?? null), fn($q) => $q->whereBetween('news.datepub', [
+                Carbon::parse($filters['start_date'])->startOfDay(),
+                Carbon::parse($filters['end_date'])->endOfDay(),
+            ]))
+            ->when(filled($filters['kanal'] ?? null), fn($q) => $q->where('news.cat_id', $filters['kanal']))
+            ->when(filled($filters['writer'] ?? null), fn($q) => $q->where('news.writer_id', $filters['writer']))
+            ->when(filled($filters['editor'] ?? null), fn($q) => $q->where('news.editor_id', $filters['editor']));
     }
 
     public function getActivitylogOptions(): LogOptions

@@ -19,33 +19,10 @@ use Illuminate\Support\Str;
 
 class ReportNewsDaerahController extends Controller
 {
-    // 1. PENTING: Kueri dasar yang ringan, tanpa ->with() 
+    /** Filter dipegang model (NewsDaerah::scopeFilterLaporan) supaya layar & export tidak pernah beda. */
     private function buildQuery(Request $request)
     {
-        $query = NewsDaerah::query();
-
-        // Filter berdasarkan kolom datepub untuk daerah
-        if ($request->filled('start_date') && $request->filled('end_date')) {
-            $query->whereBetween('datepub', [
-                Carbon::parse($request->start_date)->startOfDay(),
-                Carbon::parse($request->end_date)->endOfDay(),
-            ]);
-        }
-
-        // Filter relasi menggunakan foreign key daerah
-        if ($request->filled('kanal')) {
-            $query->where('cat_id', $request->kanal);
-        }
-        if ($request->filled('writer')) {
-            $query->where('writer_id', $request->writer);
-        }
-
-        if ($request->filled('editor')) {
-            $query->where('editor_id', $request->editor);
-        }
-
-
-        return $query;
+        return NewsDaerah::query()->filterLaporan($request->all());
     }
 
     public function index(Request $request)
@@ -128,7 +105,8 @@ class ReportNewsDaerahController extends Controller
 
         // Cek dan tambahkan filter Kanal
         if (!empty($filters['kanal'])) {
-            $nameParts[] = 'kanal-' . Str::slug($filters['kanal']);
+            $kanalName = KanalDaerah::where('id', $filters['kanal'])->value('name');
+            $nameParts[] = 'kanal-' . Str::slug($kanalName ?: $filters['kanal']);
         }
 
         // Cek dan tambahkan filter Writer (Ambil nama asli dari DB jika yang dikirim ID)
@@ -159,7 +137,7 @@ class ReportNewsDaerahController extends Controller
         $userId = Auth::id();
 
         // 3. Operkan $filters (tipe data Array murni) ke dalam NewsDaerahExport
-        Excel::queue(new NewsDaerahExport($filters), 'exports/' . $fileName, 'public')->chain([
+        Excel::queue(new NewsDaerahExport($filters, $userId, $fileName), 'exports/' . $fileName, 'public')->chain([
             function () use ($userId, $fileName) {
                 $user = User::find($userId);
 
@@ -169,6 +147,14 @@ class ReportNewsDaerahController extends Controller
             }
         ]);
 
-        return back()->with('success', 'Laporan Berita Daerah sedang diproses di belakang layar. Silakan cek lonceng notifikasi dalam beberapa saat.');
+        // Lihat ReportNewsNasionalController: berkas terpotong harus mengaku terpotong.
+        $jumlah = $this->buildQuery($request)->count();
+        $batas  = NewsDaerahExport::BATAS_BARIS;
+
+        $pesan = $jumlah > $batas
+            ? "Laporan diproses, tapi DIBATASI {$batas} baris teratas dari total " . number_format($jumlah, 0, ',', '.') . " baris. Persempit rentang tanggal untuk data lengkap."
+            : number_format($jumlah, 0, ',', '.') . ' baris Laporan Berita Daerah sedang diproses di belakang layar. Silakan cek lonceng notifikasi.';
+
+        return back()->with('success', $pesan);
     }
 }

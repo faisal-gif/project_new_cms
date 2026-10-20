@@ -19,18 +19,18 @@ class NotificationController extends Controller
 
     public function open($id)
     {
-        // Cari notifikasi berdasarkan ID milik user yang sedang login
         $notification = auth()->user()->notifications()->findOrFail($id);
-
-        // Tandai sudah dibaca (Otomatis hilang dari kueri unreadNotifications)
-        $notification->markAsRead();
-        $notification = auth()->user()->notifications()->findOrFail($id);
-
-        // Tandai sudah dibaca (Otomatis hilang dari kueri unreadNotifications)
         $notification->markAsRead();
 
-        // Alihkan editor langsung ke URL tujuan berita atau unduhan excel
-        return redirect($notification->data['url'])->with('success', 'Notifikasi sudah dibaca. Anda dialihkan ke halaman tujuan.');
+        // Notifikasi kegagalan export tidak punya tujuan — tanpa penjagaan ini
+        // redirect(null) melempar pengguna ke halaman kosong.
+        $url = $notification->data['url'] ?? null;
+
+        if (blank($url)) {
+            return back()->with('success', 'Notifikasi sudah dibaca.');
+        }
+
+        return redirect($url)->with('success', 'Notifikasi sudah dibaca. Anda dialihkan ke halaman tujuan.');
     }
 
     public function markAsRead($id)
