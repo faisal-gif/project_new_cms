@@ -15,7 +15,7 @@ import { Head, Link, router } from '@inertiajs/react'
 import { Search, Receipt, Users, Calendar, RotateCcw, Wallet, ListFilter, BarChart3 } from 'lucide-react'
 import React, { useEffect, useRef, useState } from 'react'
 
-export default function Index({ payments, packages, statistics, filters, bolehLihatAfiliasi = false, statusKomisiDibatalkan }) {
+export default function Index({ payments, packages, statistics, filters, bolehLihatAfiliasi = false, bolehLihatStaffIt = false, statusKomisiDibatalkan }) {
     const [search, setSearch] = useState(() => filters.search || '');
     const [status, setStatus] = useState(() => filters.status || '');
     const [packageId, setPackageId] = useState(() => filters.package_id || '');
@@ -307,14 +307,18 @@ export default function Index({ payments, packages, statistics, filters, bolehLi
                                                                 <span className="font-medium text-gray-600">Perekrut:</span>
                                                                 <span className="font-mono">{a.sumber ? a.sumber.code : '—'}</span>
                                                             </div>
-                                                            <div className="flex justify-between">
-                                                                <span className="font-medium text-gray-600">Komisi keluar:</span>
-                                                                <span className="font-semibold text-amber-700">{formatCurrency(a.keluar)}</span>
-                                                            </div>
-                                                            <div className="flex justify-between">
-                                                                <span className="font-medium text-gray-600">Net kantor:</span>
-                                                                <span className="font-semibold text-emerald-700">{formatCurrency(a.net)}</span>
-                                                            </div>
+                                                            {bolehLihatStaffIt && (
+                                                                <>
+                                                                    <div className="flex justify-between">
+                                                                        <span className="font-medium text-gray-600">Komisi keluar:</span>
+                                                                        <span className="font-semibold text-amber-700">{formatCurrency(a.keluar)}</span>
+                                                                    </div>
+                                                                    <div className="flex justify-between">
+                                                                        <span className="font-medium text-gray-600">Net kantor:</span>
+                                                                        <span className="font-semibold text-emerald-700">{formatCurrency(a.net)}</span>
+                                                                    </div>
+                                                                </>
+                                                            )}
                                                             {a.rows.map((c) => (
                                                                 <div key={c.id} className="flex justify-between text-xs text-gray-500">
                                                                     <span>{c.role}</span>
@@ -341,7 +345,7 @@ export default function Index({ payments, packages, statistics, filters, bolehLi
                                                 <TableHead className="text-right">Total Nominal</TableHead>
                                                 {/* Kolom afiliasi hanya untuk pemegang izin laporan afiliasi;
                                                     tanpa izin itu, backend tidak mengirim datanya sama sekali. */}
-                                                {bolehLihatAfiliasi && <HeaderRincianAfiliasi />}
+                                                {bolehLihatAfiliasi && <HeaderRincianAfiliasi bolehLihatStaffIt={bolehLihatStaffIt} />}
                                                 <TableHead>Waktu Transaksi</TableHead>
                                                 <TableHead>Status</TableHead>
                                             </TableRow>
@@ -360,7 +364,7 @@ export default function Index({ payments, packages, statistics, filters, bolehLi
                                                         {formatCurrency(payment.amount)}
                                                     </TableCell>
                                                     {bolehLihatAfiliasi && (
-                                                        <RincianAfiliasi payment={payment} statusDibatalkan={statusKomisiDibatalkan} />
+                                                        <RincianAfiliasi payment={payment} statusDibatalkan={statusKomisiDibatalkan} bolehLihatStaffIt={bolehLihatStaffIt} />
                                                     )}
                                                     <TableCell>
                                                         <div className="text-sm text-gray-900">{formatDate(payment.created_at)}</div>
@@ -378,7 +382,7 @@ export default function Index({ payments, packages, statistics, filters, bolehLi
 
                                             {payments.data.length === 0 && (
                                                 <TableRow>
-                                                    <TableCell colSpan={bolehLihatAfiliasi ? 10 : 7} className="text-center py-8 text-gray-500">
+                                                    <TableCell colSpan={7 + (bolehLihatAfiliasi ? 1 : 0) + (bolehLihatStaffIt ? 2 : 0)} className="text-center py-8 text-gray-500">
                                                         Tidak ada data pembayaran yang ditemukan.
                                                     </TableCell>
                                                 </TableRow>

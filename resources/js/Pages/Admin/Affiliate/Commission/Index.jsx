@@ -26,7 +26,7 @@ const ROLE = [
     { value: '', label: 'Semua Pos' },
     { value: 'tier1', label: 'Tier 1 — perekrut (20%)' },
     { value: 'tier2', label: 'Tier 2 — upline (5%)' },
-    { value: 'internal', label: 'Internal — KITA AI (10%)' },
+    { value: 'internal', label: 'Staff IT (10% + Rp 1.000)' },
 ]
 
 function statusBadge(s) {
@@ -43,7 +43,7 @@ function statusBadge(s) {
 }
 
 function roleBadge(r) {
-    const peta = { tier1: 'Tier 1', tier2: 'Tier 2', internal: 'KITA AI' }
+    const peta = { tier1: 'Tier 1', tier2: 'Tier 2', internal: 'Staff IT' }
     return <Badge variant="outline">{peta[r] || r}</Badge>
 }
 

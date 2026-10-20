@@ -113,7 +113,8 @@ Route::middleware(['auth', \App\Http\Middleware\EnforceRoutePermission::class])-
             Route::patch('affiliate-payout/{id}/cancel', [AffiliatePayoutController::class, 'cancel'])->name('affiliate-payout.cancel');
             Route::resource('affiliate-payout', AffiliatePayoutController::class)->only('index', 'create', 'store', 'show');
 
-            // Laporan — pos internal (KITA AI) hanya boleh tampil di sini, tidak di aplikasi publik.
+            // Laporan — pos internal (staff IT) hanya boleh tampil di sini, tidak di
+            // aplikasi publik, dan di dalamnya dipagari izin `view komisi staff it {situs}`.
             Route::get('affiliate-report/fraud', [AffiliateReportController::class, 'fraud'])->name('affiliate-report.fraud');
             Route::get('affiliate-report', [AffiliateReportController::class, 'index'])->name('affiliate-report.index');
         });

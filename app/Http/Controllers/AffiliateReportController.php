@@ -13,8 +13,8 @@ use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 
 /**
- * Laporan program afiliasi. HANYA untuk CMS — pos 'internal' (KITA AI) tidak pernah
- * boleh tampil di aplikasi publik.
+ * Laporan program afiliasi. HANYA untuk CMS — pos 'internal' (staff IT) tidak pernah
+ * boleh tampil di aplikasi publik, dan di dalam CMS pun dipagari izin tersendiri.
  *
  * Net kantor tidak pernah jadi baris komisi; dihitung sebagai
  * pemasukan kotor - total komisi keluar.
@@ -37,6 +37,10 @@ class AffiliateReportController extends Controller
         // Situs dikunci route, bukan query string — lihat ScopesAffiliateSite.
         $situs = $this->situs($request);
 
+        // Pos staff IT punya izin sendiri, terpisah dari izin melihat laporan.
+        $bolehLihatStaffIt = (bool) $request->user()
+            ?->can('view komisi staff it ' . $this->slugSitus($request));
+
         // Dipecah per situs langsung dari kolom `c.type` — tidak perlu join ke
         // payments dan news_package lagi.
         $perSitus = DB::connection('mysql_berbayar')
@@ -52,7 +56,7 @@ class AffiliateReportController extends Controller
                 c.type situs,
                 SUM(CASE WHEN c.role = 'tier1'    THEN c.amount ELSE 0 END) tier1,
                 SUM(CASE WHEN c.role = 'tier2'    THEN c.amount ELSE 0 END) tier2,
-                SUM(CASE WHEN c.role = 'internal' THEN c.amount ELSE 0 END) kita_ai,
+                SUM(CASE WHEN c.role = 'internal' THEN c.amount ELSE 0 END) staff_it,
                 SUM(CASE WHEN c.status = 'unassigned' THEN c.amount ELSE 0 END) tertahan,
                 SUM(c.amount) total_keluar,
                 COUNT(DISTINCT c.payment_id) jumlah_pembayaran
@@ -71,28 +75,39 @@ class AffiliateReportController extends Controller
         // Gabungkan: situs yang punya pemasukan tapi nol komisi tetap harus muncul.
         $semuaSitus = $perSitus->pluck('situs')->merge($kotorPerSitus->keys())->unique();
 
-        $baris = $semuaSitus->map(function ($situs) use ($perSitus, $kotorPerSitus) {
+        $baris = $semuaSitus->map(function ($situs) use ($perSitus, $kotorPerSitus, $bolehLihatStaffIt) {
             $r = $perSitus->firstWhere('situs', $situs);
             $kotor = (int) ($kotorPerSitus[$situs] ?? 0);
             $keluar = (int) ($r->total_keluar ?? 0);
 
-            return [
+            $row = [
                 'situs' => $situs,
                 'label' => PaketBerita::labelSitus($situs === null ? null : (string) $situs),
                 'kotor' => $kotor,
                 'tier1' => (int) ($r->tier1 ?? 0),
                 'tier2' => (int) ($r->tier2 ?? 0),
-                'kita_ai' => (int) ($r->kita_ai ?? 0),
                 'tertahan' => (int) ($r->tertahan ?? 0),
-                'total_keluar' => $keluar,
-                'net_kantor' => $kotor - $keluar,
                 'jumlah_pembayaran' => (int) ($r->jumlah_pembayaran ?? 0),
             ];
+
+            // Tiga angka ini hanya untuk pemegang izin staff IT. total_keluar dan
+            // net_kantor ikut dipagari bukan karena sensitif sendiri, tapi karena
+            // staff_it bisa dihitung ulang dari keduanya: keluar - tier1 - tier2.
+            if ($bolehLihatStaffIt) {
+                $row['staff_it'] = (int) ($r->staff_it ?? 0);
+                $row['total_keluar'] = $keluar;
+                $row['net_kantor'] = $kotor - $keluar;
+            }
+
+            return $row;
         })->sortByDesc('kotor')->values();
 
         // Baris total = jumlah seluruh situs, bukan query terpisah, supaya tidak mungkin
         // berbeda dari rinciannya.
-        $kunci = ['kotor', 'tier1', 'tier2', 'kita_ai', 'tertahan', 'total_keluar', 'net_kantor', 'jumlah_pembayaran'];
+        $kunci = ['kotor', 'tier1', 'tier2', 'tertahan', 'jumlah_pembayaran'];
+        if ($bolehLihatStaffIt) {
+            $kunci = array_merge($kunci, ['staff_it', 'total_keluar', 'net_kantor']);
+        }
         $total = collect($kunci)->mapWithKeys(fn($k) => [$k => (int) $baris->sum($k)])->all();
 
         return Inertia::render('Admin/Affiliate/Report/Index', [
@@ -102,6 +117,7 @@ class AffiliateReportController extends Controller
                 ],
             'situsLabel' => PaketBerita::labelSitus($situs),
             'routePrefix' => $this->prefixSitus($request),
+            'bolehLihatStaffIt' => $bolehLihatStaffIt,
             'perSitus' => $baris,
             'rekap' => $total,
             'perAfiliator' => $this->perAfiliator($awal, $akhir, $situs),

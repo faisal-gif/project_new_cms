@@ -175,6 +175,9 @@ class RolePermissionSeeder extends Seeder
                 'create pencairan afiliasi ajp',
                 'edit pencairan afiliasi ajp',
                 'view laporan afiliasi ajp',
+                // Pos staff IT dipisah: angka itu bukan untuk semua yang boleh
+                // melihat laporan afiliasi, dan dari situ net kantor ikut terbaca.
+                'view komisi staff it ajp',
             ],
             'Afiliasi Kopi Times' => [
                 'view afiliasi kopi-times',
@@ -186,6 +189,7 @@ class RolePermissionSeeder extends Seeder
                 'create pencairan afiliasi kopi-times',
                 'edit pencairan afiliasi kopi-times',
                 'view laporan afiliasi kopi-times',
+                'view komisi staff it kopi-times',
             ],
             'History' => [
                 'view history',

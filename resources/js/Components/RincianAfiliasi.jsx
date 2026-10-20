@@ -11,6 +11,10 @@ import React, { useState } from 'react'
  * Hanya dirender bila prop `bolehLihatAfiliasi` dari backend bernilai true; kalau
  * false, backend tidak mengirim relasi `commissions` sama sekali.
  *
+ * Pos staff IT punya izin sendiri (`view komisi staff it {situs}`). Tanpa izin itu
+ * barisnya tidak dikirim backend, dan kolom Komisi Keluar + Net Kantor ikut
+ * disembunyikan — keduanya memuat angka staff IT secara implisit.
+ *
  * Kantor menyimpan sisanya: net = amount - komisi yang benar-benar keluar.
  * Baris `rejected`/`reversed` dibatalkan sebelum uangnya berpindah, jadi tidak
  * ikut dihitung — daftar statusnya datang dari backend supaya definisinya satu.
@@ -19,7 +23,7 @@ import React, { useState } from 'react'
 const LABEL_POS = {
     tier1: 'Tier 1 · perekrut',
     tier2: 'Tier 2 · upline',
-    internal: 'Internal · KITA AI',
+    internal: 'Staff IT',
 }
 
 const DIBATALKAN = ['rejected', 'reversed']
@@ -63,17 +67,21 @@ export function hitungAfiliasi(payment, statusDibatalkan = DIBATALKAN) {
 }
 
 /** Header ketiga kolom, supaya kedua halaman tidak menuliskannya dua kali. */
-export function HeaderRincianAfiliasi() {
+export function HeaderRincianAfiliasi({ bolehLihatStaffIt = false }) {
     return (
         <>
             <TableHead>Perekrut</TableHead>
-            <TableHead className="text-right">Komisi Keluar</TableHead>
-            <TableHead className="text-right">Net Kantor</TableHead>
+            {bolehLihatStaffIt && (
+                <>
+                    <TableHead className="text-right">Komisi Keluar</TableHead>
+                    <TableHead className="text-right">Net Kantor</TableHead>
+                </>
+            )}
         </>
     )
 }
 
-export default function RincianAfiliasi({ payment, statusDibatalkan = DIBATALKAN }) {
+export default function RincianAfiliasi({ payment, statusDibatalkan = DIBATALKAN, bolehLihatStaffIt = false }) {
     const [terbuka, setTerbuka] = useState(false)
     const { rows, adaKomisi, keluar, net, sumber } = hitungAfiliasi(payment, statusDibatalkan)
 
@@ -85,8 +93,12 @@ export default function RincianAfiliasi({ payment, statusDibatalkan = DIBATALKAN
         return (
             <>
                 <TableCell>{kosong}</TableCell>
-                <TableCell className="text-right">{kosong}</TableCell>
-                <TableCell className="text-right">{kosong}</TableCell>
+                {bolehLihatStaffIt && (
+                    <>
+                        <TableCell className="text-right">{kosong}</TableCell>
+                        <TableCell className="text-right">{kosong}</TableCell>
+                    </>
+                )}
             </>
         )
     }
@@ -104,6 +116,7 @@ export default function RincianAfiliasi({ payment, statusDibatalkan = DIBATALKAN
                 )}
             </TableCell>
 
+            {!bolehLihatStaffIt ? null : (
             <TableCell className="whitespace-normal text-right align-top text-xs">
                 <button
                     type="button"
@@ -129,7 +142,7 @@ export default function RincianAfiliasi({ payment, statusDibatalkan = DIBATALKAN
                                     <div className="flex items-center justify-between gap-2 text-[11px] text-muted-foreground">
                                         <span className="truncate">
                                             {c.role === 'internal'
-                                                ? 'KITA AI'
+                                                ? 'Staff IT'
                                                 : c.affiliate
                                                     ? c.affiliate.name
                                                     : 'belum ada penerima'}
@@ -143,9 +156,13 @@ export default function RincianAfiliasi({ payment, statusDibatalkan = DIBATALKAN
                 )}
             </TableCell>
 
-            <TableCell className="text-right align-top text-xs font-semibold text-emerald-700">
-                {formatRupiah(net)}
-            </TableCell>
+            )}
+
+            {bolehLihatStaffIt && (
+                <TableCell className="text-right align-top text-xs font-semibold text-emerald-700">
+                    {formatRupiah(net)}
+                </TableCell>
+            )}
         </>
     )
 }

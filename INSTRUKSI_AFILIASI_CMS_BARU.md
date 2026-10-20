@@ -8,6 +8,46 @@ Bangun layar **admin program afiliasi**: kelola afiliator, tinjau komisi, dan ca
 
 **Sudah memegang versi sebelumnya? Baca bagian ini dulu, sisanya hanya penajaman.**
 
+### 2026-10-20 (3) — "KITA AI" jadi "Staff IT", potongannya 10% + Rp 1.000, dan izinnya dipisah
+
+**Nama.** Pos `internal` sekarang disebut **Staff IT** di seluruh layar. Nilai `role`-nya di database tetap `internal` — tidak ada migrasi data, hanya labelnya yang berubah. Kunci rekap di laporan ikut berganti: `kita_ai` → `staff_it`.
+
+**Rumus.** Dari `10% dari sisa setelah tier1` menjadi **`10% dari sisa + Rp 1.000`**:
+
+| Pos (`role`) | Penerima | Dasar | Tarif | Nominal |
+|---|---|---|---|---|
+| `tier1` | perekrut langsung | 48.000 | 20% | **9.600** |
+| `tier2` | upline si perekrut | 38.400 | 5% | **1.920** |
+| `internal` | **Staff IT** | 38.400 | **10% + Rp 1.000** | **4.840** |
+| — | net kantor | | sisa | **31.640** |
+
+Tanpa perekrut: `internal` = 10% × 48.000 + 1.000 = **5.800**, net kantor **42.200**.
+
+**Satu kolom baru di `affiliate_commissions`** (migration dari aplikasi publik):
+
+| Kolom | Tipe | Keterangan |
+|---|---|---|
+| `flat_amount` | unsignedBigInteger, default 0 | Komponen tetap yang sudah termasuk di `amount` |
+
+Kolom ini wajib dibaca kalau CMS pernah menghitung ulang sebuah baris. Rumus barisnya sekarang:
+
+```
+amount = intdiv(base_amount * rate_bps, 10000) + flat_amount
+```
+
+Tanpa `flat_amount`, baris internal akan tampak salah: base 38.400 dengan rate 1000 bps seharusnya 3.840, padahal `amount`-nya 4.840. Baris lama tetap valid karena defaultnya 0.
+
+**Izin terpisah untuk angka Staff IT.** Dua permission baru: `view komisi staff it ajp` dan `view komisi staff it kopi-times`.
+
+| Layar | Tanpa izin staff IT | Dengan izin |
+|---|---|---|
+| Laporan afiliasi | kotor, tier1, tier2, tertahan, jumlah pembayaran | + kolom **Staff IT**, **Keluar**, **Net Kantor** |
+| Daftar transaksi | kolom Perekrut saja | + **Komisi Keluar** dan **Net Kantor**, dan baris `internal` muncul di rinciannya |
+
+**Kenapa Keluar dan Net Kantor ikut dipagari:** keduanya memuat angka Staff IT secara implisit — `staff_it = keluar − tier1 − tier2`. Memagari kolomnya saja berarti pagarnya bocor lewat pengurangan.
+
+Penegakannya di **backend**: tanpa izin itu, baris `internal` tidak dimuat sama sekali dan ketiga angka tidak pernah masuk prop Inertia. Menyembunyikan di frontend saja tidak menyembunyikan apa pun, karena prop terbaca di sumber halaman.
+
 ### 2026-10-20 (2) — kolom baru `tier2_eligible`, dropdown upline dihapus
 
 **Ini bentuk final; dua catatan di bawahnya sudah tidak berlaku.** Pembagiannya: **admin menentukan siapa BERHAK menerima komisi 5%, sistem menurunkan rantainya** dari data referral.
@@ -72,7 +112,7 @@ Yang penting di sisi implementasi: bedakan "admin tidak menyentuh dropdown" dari
 
 Tidak ada perubahan skema. Admin tetap berwenang penuh menimpa nilainya, baik saat menyetujui maupun lewat layar ubah afiliator.
 
-### 2026-10-15 — pos internal (tim IT / KITA AI) terbit juga tanpa kode referral
+### 2026-10-15 — pos internal (staff IT) terbit juga tanpa kode referral
 
 **Mengoreksi aturan "tanpa perekrut tidak ada baris sama sekali".** Pos `internal` sekarang dicatat untuk **setiap pendaftaran member baru**, termasuk pembeli yang datang tanpa kode referral, supaya bagian tim IT tidak bergantung pada ada atau tidaknya perekrut.
 
@@ -85,7 +125,7 @@ Tidak ada perubahan skema. Admin tetap berwenang penuh menimpa nilainya, baik sa
 
 Nominalnya 4.800 dan bukan 3.840 karena dasarnya harga utuh: pada penjualan berafiliasi 10% dihitung dari 38.400 (setelah komisi perekrut), sedangkan di sini tidak ada potongan perekrut yang benar-benar terjadi.
 
-Dampaknya ke layar CMS: tidak ada perubahan skema dan tidak ada perubahan kode yang diwajibkan. Yang perlu diketahui saat membaca data — daftar komisi akan memuat baris `internal` tanpa afiliator asal (tampilkan `—`), dan rekap `kita_ai` jadi lebih besar daripada 10% total komisi perekrut karena memuat penjualan non-referral juga.
+Dampaknya ke layar CMS: tidak ada perubahan skema dan tidak ada perubahan kode yang diwajibkan. Yang perlu diketahui saat membaca data — daftar komisi akan memuat baris `internal` tanpa afiliator asal (tampilkan `—`), dan rekap `staff_it` jadi lebih besar daripada 10% total komisi perekrut karena memuat penjualan non-referral juga.
 
 ### 2026-10-12 — program ini melayani lebih dari satu situs
 
@@ -157,14 +197,14 @@ Pembagian per pembayaran member baru **yang punya perekrut**:
 |---|---|---|---|---|
 | `tier1` | perekrut langsung | 48.000 | 20% | **9.600** |
 | `tier2` | upline si perekrut | 38.400 | 5% | **1.920** |
-| `internal` | alokasi tim IT / KITA AI | 38.400 | 10% | **3.840** |
+| `internal` | Staff IT | 38.400 | 10% + Rp 1.000 | **4.840** |
 | — | net kantor (tidak disimpan sebagai baris) | | sisa | **32.640** |
 
 Pembagian per pembayaran member baru **tanpa perekrut** — hanya pos internal:
 
 | Pos (`role`) | Penerima | Dasar | Tarif | Nominal |
 |---|---|---|---|---|
-| `internal` | alokasi tim IT / KITA AI | 48.000 | 10% | **4.800** |
+| `internal` | Staff IT | 48.000 | 10% + Rp 1.000 | **5.800** |
 | — | net kantor (tidak disimpan sebagai baris) | | sisa | **43.200** |
 
 Aturan penting:
@@ -316,7 +356,7 @@ Keduanya final. Kalau ada kekeliruan setelah `paid`, buat batch baru sebagai kor
 
 6. **Batch pencairan** — pilih afiliator dan periode, sistem menarik semua komisi `approved` miliknya yang `payout_id`-nya masih NULL, hitung totalnya, lalu buat `affiliate_payouts` dan isi `payout_id` di komisi tersebut. **Totalnya minimal Rp 50.000**, sesuai syarat & ketentuan yang disetujui afiliator. Lanjutan: tandai lunas (isi `reference`, unggah bukti, set `paid_at`, semua komisinya jadi `paid`) atau batalkan (lepaskan kembali komisinya).
 
-7. **Laporan rekap per periode** — pemasukan kotor, total `tier1`, total `tier2`, total `internal` (KITA AI), total tertahan, dan net kantor, **dipecah per situs dan ada barisan totalnya**. **Hanya di CMS.**
+7. **Laporan rekap per periode** — pemasukan kotor, total `tier1`, total `tier2`, total `internal` (Staff IT), total tertahan, dan net kantor, **dipecah per situs dan ada barisan totalnya**. **Hanya di CMS.**
 
 8. **Deteksi kecurangan sederhana** — daftar afiliator dengan rasio mencurigakan, misalnya banyak member direkrut tetapi hampir tidak ada yang pernah mengirim tulisan, atau beberapa pendaftaran dari pola email yang mirip.
 
@@ -350,7 +390,7 @@ SELECT
   c.type AS situs,
   SUM(CASE WHEN c.role = 'tier1'    THEN c.amount ELSE 0 END) AS tier1,
   SUM(CASE WHEN c.role = 'tier2'    THEN c.amount ELSE 0 END) AS tier2,
-  SUM(CASE WHEN c.role = 'internal' THEN c.amount ELSE 0 END) AS kita_ai,
+  SUM(CASE WHEN c.role = 'internal' THEN c.amount ELSE 0 END) AS staff_it,
   SUM(CASE WHEN c.status = 'unassigned' THEN c.amount ELSE 0 END) AS tertahan,
   SUM(c.amount) AS total_keluar
 FROM affiliate_commissions c

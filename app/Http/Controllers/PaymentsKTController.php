@@ -33,6 +33,13 @@ class PaymentsKTController extends Controller
         $bolehLihatAfiliasi = (bool) $request->user()
             ?->can('view laporan afiliasi ' . $this->slugSitus($request));
 
+        // Pos staff IT punya izin sendiri. Tanpa izin itu barisnya tidak dimuat sama
+        // sekali — bukan sekadar disembunyikan di layar, karena prop Inertia terbaca
+        // di sumber halaman. Kolom Komisi Keluar & Net Kantor ikut hilang, sebab
+        // keduanya memuat angka staff IT secara implisit.
+        $bolehLihatStaffIt = (bool) $request->user()
+            ?->can('view komisi staff it ' . $this->slugSitus($request));
+
         $query = PaymentsNewsBerbayar::with([
             'user:id,nama,email',
             'package:id,name,price'
@@ -40,7 +47,9 @@ class PaymentsKTController extends Controller
 
         if ($bolehLihatAfiliasi) {
             $query->with([
-                'commissions:id,payment_id,role,affiliate_id,source_affiliate_id,amount,status',
+                'commissions' => fn ($q) => $q
+                    ->select('id', 'payment_id', 'role', 'affiliate_id', 'source_affiliate_id', 'amount', 'status')
+                    ->when(! $bolehLihatStaffIt, fn ($q2) => $q2->where('role', '<>', 'internal')),
                 'commissions.affiliate:id,name,code',
                 'commissions.sourceAffiliate:id,name,code',
             ]);
@@ -101,6 +110,7 @@ class PaymentsKTController extends Controller
             'payments' => $payments,
             'packages' => $packages,
             'bolehLihatAfiliasi' => $bolehLihatAfiliasi,
+            'bolehLihatStaffIt' => $bolehLihatStaffIt,
             'statusKomisiDibatalkan' => PaymentsNewsBerbayar::STATUS_KOMISI_KELUAR,
             'statistics' => [
                 'total_users' => $totalUniqueUsers,

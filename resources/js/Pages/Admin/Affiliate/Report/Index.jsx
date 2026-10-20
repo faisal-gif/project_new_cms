@@ -12,10 +12,11 @@ import React, { useState } from 'react'
 import Select from 'react-select'
 
 /**
- * Rekap periode. Pos internal (KITA AI) HANYA boleh tampil di sini — tidak pernah
+ * Rekap periode. Pos internal (staff IT) HANYA boleh tampil di sini, dan hanya bagi
+ * pemegang izin `view komisi staff it {situs}` — tidak pernah
  * di aplikasi publik.
  */
-export default function Index({ filters, rekap, perSitus = [], perAfiliator, invarian, situsLabel, routePrefix = '' }) {
+export default function Index({ filters, rekap, perSitus = [], perAfiliator, invarian, situsLabel, bolehLihatStaffIt = false, routePrefix = '' }) {
     const [f, setF] = useState(filters)
 
     const terapkan = () => router.get(route(`admin.${routePrefix}affiliate-report.index`), f, { preserveState: true })
@@ -86,15 +87,22 @@ export default function Index({ filters, rekap, perSitus = [], perAfiliator, inv
                                 <div className="text-2xl font-bold">{formatRupiah(rekap.kotor)}</div>
                                 <div className="text-xs text-muted-foreground mt-1">{rekap.jumlah_pembayaran} pembayaran berkomisi</div>
                             </Card>
-                            <Card>
-                                <div className="text-xs text-muted-foreground">Total komisi keluar</div>
-                                <div className="text-2xl font-bold text-red-700">{formatRupiah(rekap.total_keluar)}</div>
-                            </Card>
-                            <Card>
-                                <div className="text-xs text-muted-foreground">Net kantor</div>
-                                <div className="text-2xl font-bold text-green-700">{formatRupiah(rekap.net_kantor)}</div>
-                                <div className="text-xs text-muted-foreground mt-1">kotor − komisi, tidak pernah jadi baris</div>
-                            </Card>
+                            {/* Keluar & net kantor memuat pos staff IT secara implisit:
+                                staff_it = keluar − tier1 − tier2. Jadi keduanya ikut
+                                dipagari izin yang sama, kalau tidak pagarnya bocor. */}
+                            {bolehLihatStaffIt && (
+                                <>
+                                    <Card>
+                                        <div className="text-xs text-muted-foreground">Total komisi keluar</div>
+                                        <div className="text-2xl font-bold text-red-700">{formatRupiah(rekap.total_keluar)}</div>
+                                    </Card>
+                                    <Card>
+                                        <div className="text-xs text-muted-foreground">Net kantor</div>
+                                        <div className="text-2xl font-bold text-green-700">{formatRupiah(rekap.net_kantor)}</div>
+                                        <div className="text-xs text-muted-foreground mt-1">kotor − komisi, tidak pernah jadi baris</div>
+                                    </Card>
+                                </>
+                            )}
                         </div>
 
                         <Card title={<span className="text-xl font-semibold">Rincian Pos</span>}>
@@ -102,7 +110,7 @@ export default function Index({ filters, rekap, perSitus = [], perAfiliator, inv
                                 {[
                                     ['Tier 1 — perekrut (20%)', rekap.tier1],
                                     ['Tier 2 — upline (5%)', rekap.tier2],
-                                    ['Internal — KITA AI (10%)', rekap.kita_ai],
+                                    ...(bolehLihatStaffIt ? [['Staff IT (10% + Rp 1.000)', rekap.staff_it]] : []),
                                     ['Tertahan (unassigned)', rekap.tertahan],
                                 ].map(([label, nilai]) => (
                                     <div key={label} className="bg-muted rounded-lg p-4 border border-border">
@@ -112,7 +120,9 @@ export default function Index({ filters, rekap, perSitus = [], perAfiliator, inv
                                 ))}
                             </div>
                             <p className="text-xs text-muted-foreground mt-4">
-                                Pos internal adalah angka internal — jangan pernah ditampilkan di aplikasi publik.
+                                {bolehLihatStaffIt
+                                    ? 'Pos staff IT adalah angka internal — jangan pernah ditampilkan di aplikasi publik.'
+                                    : 'Sebagian pos disembunyikan: Anda tidak punya izin melihat pos staff IT.'}
                             </p>
                         </Card>
 
@@ -128,15 +138,19 @@ export default function Index({ filters, rekap, perSitus = [], perAfiliator, inv
                                             <TableHead className="text-right">Kotor</TableHead>
                                             <TableHead className="text-right">Tier 1</TableHead>
                                             <TableHead className="text-right">Tier 2</TableHead>
-                                            <TableHead className="text-right">KITA AI</TableHead>
+                                            {bolehLihatStaffIt && <TableHead className="text-right">Staff IT</TableHead>}
                                             <TableHead className="text-right">Tertahan</TableHead>
-                                            <TableHead className="text-right">Keluar</TableHead>
-                                            <TableHead className="text-right">Net Kantor</TableHead>
+                                            {bolehLihatStaffIt && (
+                                                <>
+                                                    <TableHead className="text-right">Keluar</TableHead>
+                                                    <TableHead className="text-right">Net Kantor</TableHead>
+                                                </>
+                                            )}
                                         </TableRow>
                                     </TableHeader>
                                     <TableBody>
                                         {perSitus.length === 0 && (
-                                            <TableRow><TableCell colSpan={9} className="text-center py-8 text-muted-foreground">
+                                            <TableRow><TableCell colSpan={bolehLihatStaffIt ? 9 : 6} className="text-center py-8 text-muted-foreground">
                                                 Tidak ada transaksi pada periode ini.
                                             </TableCell></TableRow>
                                         )}
@@ -147,10 +161,14 @@ export default function Index({ filters, rekap, perSitus = [], perAfiliator, inv
                                                 <TableCell className="text-right">{formatRupiah(s.kotor)}</TableCell>
                                                 <TableCell className="text-right">{formatRupiah(s.tier1)}</TableCell>
                                                 <TableCell className="text-right">{formatRupiah(s.tier2)}</TableCell>
-                                                <TableCell className="text-right">{formatRupiah(s.kita_ai)}</TableCell>
+                                                {bolehLihatStaffIt && <TableCell className="text-right">{formatRupiah(s.staff_it)}</TableCell>}
                                                 <TableCell className="text-right text-orange-700">{formatRupiah(s.tertahan)}</TableCell>
-                                                <TableCell className="text-right text-red-700">{formatRupiah(s.total_keluar)}</TableCell>
-                                                <TableCell className="text-right font-semibold text-green-700">{formatRupiah(s.net_kantor)}</TableCell>
+                                                {bolehLihatStaffIt && (
+                                                    <>
+                                                        <TableCell className="text-right text-red-700">{formatRupiah(s.total_keluar)}</TableCell>
+                                                        <TableCell className="text-right font-semibold text-green-700">{formatRupiah(s.net_kantor)}</TableCell>
+                                                    </>
+                                                )}
                                             </TableRow>
                                         ))}
                                         {perSitus.length > 0 && (
@@ -160,10 +178,14 @@ export default function Index({ filters, rekap, perSitus = [], perAfiliator, inv
                                                 <TableCell className="text-right">{formatRupiah(rekap.kotor)}</TableCell>
                                                 <TableCell className="text-right">{formatRupiah(rekap.tier1)}</TableCell>
                                                 <TableCell className="text-right">{formatRupiah(rekap.tier2)}</TableCell>
-                                                <TableCell className="text-right">{formatRupiah(rekap.kita_ai)}</TableCell>
+                                                {bolehLihatStaffIt && <TableCell className="text-right">{formatRupiah(rekap.staff_it)}</TableCell>}
                                                 <TableCell className="text-right">{formatRupiah(rekap.tertahan)}</TableCell>
-                                                <TableCell className="text-right">{formatRupiah(rekap.total_keluar)}</TableCell>
-                                                <TableCell className="text-right text-green-700">{formatRupiah(rekap.net_kantor)}</TableCell>
+                                                {bolehLihatStaffIt && (
+                                                    <>
+                                                        <TableCell className="text-right">{formatRupiah(rekap.total_keluar)}</TableCell>
+                                                        <TableCell className="text-right text-green-700">{formatRupiah(rekap.net_kantor)}</TableCell>
+                                                    </>
+                                                )}
                                             </TableRow>
                                         )}
                                     </TableBody>
