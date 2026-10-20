@@ -8,7 +8,32 @@ Bangun layar **admin program afiliasi**: kelola afiliator, tinjau komisi, dan ca
 
 **Sudah memegang versi sebelumnya? Baca bagian ini dulu, sisanya hanya penajaman.**
 
-### 2026-10-20 — upline sepenuhnya ditetapkan admin (membatalkan catatan 2026-10-19)
+### 2026-10-20 (2) — kolom baru `tier2_eligible`, dropdown upline dihapus
+
+**Ini bentuk final; dua catatan di bawahnya sudah tidak berlaku.** Pembagiannya: **admin menentukan siapa BERHAK menerima komisi 5%, sistem menurunkan rantainya** dari data referral.
+
+Satu kolom baru di `affiliates` (migration dari aplikasi publik, CMS tidak membuatnya):
+
+| Kolom | Tipe | Keterangan |
+|---|---|---|
+| `tier2_eligible` | boolean, default false | Dicentang = akun ini boleh menerima komisi 5% dari jaringannya |
+
+Cara kerjanya: saat member mengajukan diri jadi afiliator, aplikasi publik mengisi `upline_id`-nya dengan afiliator yang dulu mengundang dia jadi member — **hanya bila akun pengundang itu `tier2_eligible`, aktif, dan di situs yang sama.** Tanpa centang, uplinenya kosong dan jaringan orang itu tidak menghasilkan 5% bagi siapa pun.
+
+Yang berubah di layar CMS:
+
+| Hal | Sebelumnya | Sekarang |
+|---|---|---|
+| Form afiliator | Dropdown "Upline (opsional)" | **Checkbox** "Akun ini boleh menerima komisi 5% dari jaringannya" + upline saat ini ditampilkan sebagai teks |
+| Antrean pengajuan | Dropdown upline | **Checkbox** yang sama |
+| `upline_id` dari form | Diterima & divalidasi | **Tidak diterima lagi** — dihapus dari form request beserta pemeriksaan lingkarannya |
+| Daftar afiliator | Kolom upline saja | Kolom upline + lencana **"Berhak 5%"** |
+
+Komisi 20% dari pendaftar langsung **tidak** bergantung pada penanda ini. Penanda hanya mengatur terbentuknya tingkat kedua.
+
+**Tidak berlaku ke belakang.** Penanda dibaca saat pengajuan afiliator dibuat, jadi mencentang akun hari ini tidak membentuk rantai dari orang yang sudah jadi afiliator sebelumnya. Koreksi rantai yang sudah terjadi tetap lewat layar **Baris Tertahan**, satu baris komisi sekaligus.
+
+### 2026-10-20 — upline sepenuhnya ditetapkan admin *(diganti, lihat catatan 2026-10-20 (2))*
 
 **Catatan 2026-10-19 di bawah ini TIDAK berlaku lagi.** Pengisian upline otomatis dicabut sehari setelah diterapkan, atas permintaan pemilik produk: penerima komisi 5% harus ditentukan admin, bukan disimpulkan sistem dari data referral.
 

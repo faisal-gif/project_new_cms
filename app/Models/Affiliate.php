@@ -22,6 +22,7 @@ class Affiliate extends Model
         'type',
         'user_id',
         'upline_id',
+        'tier2_eligible',
         'code',
         'name',
         'email',
@@ -40,7 +41,8 @@ class Affiliate extends Model
         return [
             'approved_at' => 'datetime',
             // Diisi aplikasi publik saat member mengajukan diri; kosong bila dibuat admin.
-            'terms_accepted_at' => 'datetime',
+            'tier2_eligible' => 'boolean',
+        'terms_accepted_at' => 'datetime',
         ];
     }
 

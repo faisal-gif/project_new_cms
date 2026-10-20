@@ -83,6 +83,7 @@ class AffiliateController extends Controller
                 'applicant_note' => $a->applicant_note,
                 'terms_accepted_at' => $a->terms_accepted_at,
                 'mandiri' => $a->isPengajuanMandiri(),
+                'tier2_eligible' => (bool) $a->tier2_eligible,
                 'created_at' => $a->created_at,
                 // Terisi hanya bila admin sudah menetapkannya lebih dulu.
                 'upline' => $a->upline ? [
@@ -105,24 +106,22 @@ class AffiliateController extends Controller
 
         return Inertia::render('Admin/Affiliate/Applications', [
             'applications' => $pengajuan,
-            'uplines' => $this->opsiUpline($this->situs($request)),
             'situsLabel' => $this->labelSitus($request),
             'routePrefix' => $this->prefixSitus($request),
         ]);
     }
 
-    /** Setujui pengajuan, sekalian menetapkan upline bila ada. */
+    /**
+     * Setujui pengajuan, sekalian menentukan apakah akun ini berhak menerima komisi 5%.
+     *
+     * Upline-nya TIDAK ditentukan di sini: rantainya sudah diturunkan aplikasi publik
+     * dari data referral saat pengajuan dibuat. Yang admin putuskan hanyalah penanda
+     * `tier2_eligible` — dan itu menentukan jaringan si pemohon ke depan, bukan
+     * uplinenya sendiri.
+     */
     public function approveApplication(Request $request, $id)
     {
-        $situs = $this->situs($request);
-
-        $data = $request->validate([
-            'upline_id' => [
-                'nullable',
-                'integer',
-                Rule::exists('mysql_berbayar.affiliates', 'id')->where('type', $situs),
-            ],
-        ], ['upline_id.exists' => 'Upline harus afiliator di situs yang sama.']);
+        $data = $request->validate(['tier2_eligible' => ['boolean']]);
 
         $affiliate = Affiliate::findOrFail($id);
         abort_unless($this->milikSitus($affiliate, $request), 404);
@@ -131,19 +130,14 @@ class AffiliateController extends Controller
             return back()->withErrors(['error' => 'Pengajuan ini sudah diproses.']);
         }
 
-        if (Affiliate::wouldLoop($affiliate->id, $data['upline_id'] ?? null)) {
-            return back()->withErrors(['upline_id' => 'Upline ini membentuk lingkaran.']);
-        }
-
         $affiliate->update([
             'status' => 'active',
             'approved_at' => now(),
-            // Kunci yang DIKIRIM dipakai apa adanya, termasuk null — itulah cara admin
-            // membatalkan upline yang sudah tersimpan. Hanya bila kuncinya sama sekali
-            // tidak dikirim, upline yang sudah ada dipertahankan.
-            'upline_id' => array_key_exists('upline_id', $data)
-                ? $data['upline_id']
-                : $affiliate->upline_id,
+            // Kunci yang DIKIRIM dipakai apa adanya, termasuk false. Hanya bila kuncinya
+            // sama sekali tidak dikirim, nilai yang sudah ada dipertahankan.
+            'tier2_eligible' => array_key_exists('tier2_eligible', $data)
+                ? (bool) $data['tier2_eligible']
+                : $affiliate->tier2_eligible,
         ]);
 
         return back()->with('success', "Pengajuan {$affiliate->name} disetujui.");
@@ -172,7 +166,6 @@ class AffiliateController extends Controller
     public function create(Request $request)
     {
         return Inertia::render('Admin/Affiliate/Create', [
-            'uplines' => $this->opsiUpline($this->situs($request)),
             'initialData' => [
                 // Digenerate di awal supaya admin bisa melihat & menyalin kodenya sebelum simpan.
                 'code' => Affiliate::generateCode(),
@@ -207,7 +200,6 @@ class AffiliateController extends Controller
             'affiliate' => $affiliate,
             // Dirinya sendiri dikeluarkan dari pilihan upline; lingkaran yang lebih dalam
             // tetap dijaga validasi di server.
-            'uplines' => $this->opsiUpline($this->situs($request), $affiliate->id),
             'referralBase' => $this->basisReferral($request),
             'situsLabel' => $this->labelSitus($request),
             'routePrefix' => $this->prefixSitus($request),
@@ -283,16 +275,4 @@ class AffiliateController extends Controller
         return response()->json($users);
     }
 
-    /**
-     * Pilihan upline: afiliator lain di SITUS YANG SAMA, tanpa dirinya sendiri.
-     * Upline beda situs akan menerima komisi dari situs yang bukan miliknya.
-     */
-    private function opsiUpline(string $situs, ?int $kecuali = null)
-    {
-        return Affiliate::where('type', $situs)
-            ->when($kecuali, fn($q) => $q->where('id', '<>', $kecuali))
-            ->orderBy('name')
-            ->get(['id', 'name', 'code'])
-            ->map(fn($a) => ['value' => $a->id, 'label' => "{$a->name} ({$a->code})"]);
-    }
 }

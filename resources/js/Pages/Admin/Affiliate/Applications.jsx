@@ -8,29 +8,28 @@ import { formatDate } from '@/Utils/formatter'
 import { Head, Link, router, usePage } from '@inertiajs/react'
 import { CheckCircle2, Inbox, UserCheck, XCircle } from 'lucide-react'
 import React, { useState } from 'react'
-import Select from 'react-select'
 
-export default function Applications({ applications, uplines = [], situsLabel, routePrefix = '' }) {
+export default function Applications({ applications, situsLabel, routePrefix = '' }) {
     const situsSlug = routePrefix.replace('.', '')
     const { auth } = usePage().props
     const izin = auth.permissions || []
     const bolehUbah = izin.includes(`edit afiliasi ${situsSlug}`)
 
-    // Upline yang DIUBAH admin per baris. Kunci yang belum ada berarti admin belum
-    // menyentuhnya, jadi nilai yang sudah tersimpan dipakai; nilai null berarti admin
-    // sengaja mengosongkannya. Dua hal itu harus dibedakan, kalau tidak upline yang
-    // sudah tersimpan tidak akan pernah bisa dibatalkan dari layar ini.
-    const [upline, setUpline] = useState({})
+    // Penanda yang DIUBAH admin per baris. Kunci yang belum ada berarti admin belum
+    // menyentuhnya, jadi nilai tersimpan yang dipakai; false berarti admin sengaja
+    // mematikannya. Dua hal itu harus dibedakan, kalau tidak penanda yang sudah
+    // menyala tidak akan pernah bisa dimatikan dari layar ini.
+    const [berhak, setBerhak] = useState({})
     const [proses, setProses] = useState(null)
 
-    const uplineTerpilih = (a) => (a.id in upline ? upline[a.id] : a.upline?.id ?? null)
+    const berhakTerpilih = (a) => (a.id in berhak ? berhak[a.id] : !!a.tier2_eligible)
 
     const setujui = (a) => {
         if (!confirm(`Setujui pengajuan ${a.name}?`)) return
         setProses(a.id)
         router.post(
             route(`admin.${routePrefix}affiliate.applications.approve`, a.id),
-            { upline_id: uplineTerpilih(a) },
+            { tier2_eligible: berhakTerpilih(a) },
             { preserveScroll: true, onFinish: () => setProses(null) },
         )
     }
@@ -62,9 +61,10 @@ export default function Applications({ applications, uplines = [], situsLabel, r
                     <h1 className="text-xl font-bold">Pengajuan Afiliator — {situsLabel}</h1>
                     <p className="text-sm text-muted-foreground">
                         Pengajuan berstatus <strong>pending</strong>, baik yang dikirim member lewat aplikasi publik
-                        maupun yang dibuat admin. Pengajuan mandiri selalu masuk <strong>tanpa upline</strong> —
-                        tetapkan di sini. Upline menentukan siapa menerima komisi 5%, dan selama kosong komisi itu
-                        tertahan tanpa pemilik.
+                        maupun yang dibuat admin. Centang akun yang <strong>boleh menerima komisi 5%</strong> dari
+                        jaringannya — itu satu-satunya hal soal tingkat kedua yang Anda tentukan di sini. Siapa
+                        upline seseorang diturunkan sistem dari akun yang mengundangnya, dan hanya terbentuk bila
+                        akun pengundang itu dicentang.
                     </p>
                 </div>
                 <Link href={route(`admin.${routePrefix}affiliate.index`)}>
@@ -130,23 +130,31 @@ export default function Applications({ applications, uplines = [], situsLabel, r
                             {bolehUbah && (
                                 <div className="mt-5 flex flex-wrap items-end gap-3 border-t pt-4">
                                     <div className="min-w-64 flex-1">
-                                        <label className="mb-1 block text-xs font-semibold uppercase text-muted-foreground">
-                                            Upline — penerima komisi 5%
+                                        <label className="flex cursor-pointer items-start gap-3">
+                                            <input
+                                                type="checkbox"
+                                                className="checkbox mt-0.5"
+                                                checked={berhakTerpilih(a)}
+                                                onChange={(e) => setBerhak((s) => ({ ...s, [a.id]: e.target.checked }))}
+                                            />
+                                            <span>
+                                                <span className="text-sm font-semibold">
+                                                    Boleh menerima komisi 5% dari jaringannya
+                                                </span>
+                                                <span className="mt-1 block text-xs text-muted-foreground">
+                                                    Dicentang: member yang nanti mendaftar lewat link orang ini dan
+                                                    disetujui jadi afiliator akan menjadi jaringannya, dan orang ini
+                                                    memperoleh 5% dari pendaftar yang mereka bawa. Komisi 20% dari
+                                                    pendaftar langsungnya tetap berjalan, dicentang atau tidak.
+                                                </span>
+                                                {a.upline && (
+                                                    <span className="mt-1 block text-xs text-muted-foreground">
+                                                        Upline orang ini: <strong>{a.upline.name}</strong> ({a.upline.code})
+                                                        — diturunkan dari akun yang mengundangnya.
+                                                    </span>
+                                                )}
+                                            </span>
                                         </label>
-                                        <Select
-                                            options={uplines}
-                                            isClearable
-                                            placeholder="Siapa yang mengajak orang ini?"
-                                            // Nilai otomatis dari perekrut dipakai sebagai pilihan awal, jadi
-                                            // menyetujui tanpa menyentuh dropdown ini mempertahankannya.
-                                            value={uplines.find((u) => u.value === uplineTerpilih(a)) || null}
-                                            onChange={(opt) => setUpline((s) => ({ ...s, [a.id]: opt?.value ?? null }))}
-                                        />
-                                        <p className="mt-1 text-xs text-muted-foreground">
-                                            {a.upline
-                                                ? `Sudah ditetapkan: ${a.upline.name} (${a.upline.code}). Ganti bila tidak sesuai.`
-                                                : 'Dibiarkan kosong berarti komisi 5% dari afiliator ini tertahan tanpa pemilik.'}
-                                        </p>
                                     </div>
                                     <div className="flex gap-2">
                                         <Button onClick={() => setujui(a)} disabled={proses === a.id}>

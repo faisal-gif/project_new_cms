@@ -27,7 +27,9 @@ const METODE = [
  * Catatan: kode referral TIDAK dibuat ulang saat mengedit — URL publik yang sudah
  * tersebar bergantung padanya.
  */
-export default function AffiliateForm({ data, setData, errors, processing, onSubmit, uplines = [], referralBase, submitLabel, routePrefix = '' }) {
+// `upline` hanya untuk ditampilkan; sejak penanda tier2_eligible dipakai, rantainya
+// diturunkan aplikasi publik dan tidak lagi dipilih admin di form ini.
+export default function AffiliateForm({ data, setData, errors, processing, onSubmit, upline = null, referralBase, submitLabel, routePrefix = '' }) {
     const [disalin, setDisalin] = useState(false)
 
     const salinLink = () => {
@@ -68,18 +70,50 @@ export default function AffiliateForm({ data, setData, errors, processing, onSub
                         <InputError message={errors.phone} className="mt-2" />
                     </div>
 
-                    <div className="lg:col-span-3">
-                        <InputLabel value="Upline (opsional)" className="mb-2 font-bold" />
-                        <Select
-                            isClearable
-                            options={uplines}
-                            value={uplines.find((u) => u.value === data.upline_id) || null}
-                            placeholder="Tanpa upline..."
-                            onChange={(v) => setData('upline_id', v?.value ?? null)}
-                        />
-                        <p className="text-xs text-muted-foreground mt-1">Penerima komisi tingkat kedua (5%).</p>
-                        <InputError message={errors.upline_id} className="mt-2" />
+                    {/*
+                        Satu-satunya hal yang admin tentukan soal tingkat kedua. Dulu di sini
+                        ada dropdown untuk memilih upline; sekarang admin hanya menentukan
+                        SIAPA YANG BERHAK, dan rantainya diturunkan aplikasi publik dari data
+                        referral — karena hanya data itu yang tahu siapa mengundang siapa.
+                    */}
+                    <div className="lg:col-span-6">
+                        <label className="flex cursor-pointer items-start gap-3 rounded-lg border p-3">
+                            <input
+                                type="checkbox"
+                                className="checkbox mt-0.5"
+                                checked={!!data.tier2_eligible}
+                                onChange={(e) => setData('tier2_eligible', e.target.checked)}
+                            />
+                            <span>
+                                <span className="font-bold">Akun ini boleh menerima komisi 5% dari jaringannya</span>
+                                <span className="mt-1 block text-xs text-muted-foreground">
+                                    Dicentang: setiap member yang mendaftar lewat link akun ini, lalu disetujui
+                                    jadi afiliator, otomatis menjadi jaringannya — dan akun ini memperoleh 5%
+                                    dari setiap pendaftar yang dibawa orang-orang itu. Komisi 20% dari pendaftar
+                                    langsungnya tetap berjalan, dicentang atau tidak.
+                                </span>
+                                <span className="mt-1 block text-xs text-muted-foreground">
+                                    Tidak dicentang: jaringannya tidak terbentuk, jadi tidak ada komisi 5% untuk
+                                    akun ini. Berlaku untuk pengajuan yang masuk SETELAH dicentang.
+                                </span>
+                            </span>
+                        </label>
+                        <InputError message={errors.tier2_eligible} className="mt-2" />
                     </div>
+
+                    {/* Rantai yang sudah terbentuk, ditampilkan saja — tidak lagi bisa diubah di sini. */}
+                    {upline && (
+                        <div className="lg:col-span-6">
+                            <InputLabel value="Upline saat ini" className="mb-1 font-bold" />
+                            <p className="text-sm">
+                                {upline.name} <span className="font-mono text-xs text-muted-foreground">({upline.code})</span>
+                            </p>
+                            <p className="mt-1 text-xs text-muted-foreground">
+                                Diturunkan dari akun yang mengundang orang ini. Penerima komisi 5% dari jaringan
+                                akun ini.
+                            </p>
+                        </div>
+                    )}
                 </div>
             </Card>
 

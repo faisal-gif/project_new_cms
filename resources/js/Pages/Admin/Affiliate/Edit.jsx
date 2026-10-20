@@ -4,13 +4,15 @@ import { Head, useForm } from '@inertiajs/react'
 import React from 'react'
 import AffiliateForm from './AffiliateForm'
 
-export default function Edit({ affiliate, uplines, referralBase, routePrefix = '' }) {
+export default function Edit({ affiliate, referralBase, routePrefix = '' }) {
     const { data, setData, put, processing, errors } = useForm({
         name: affiliate.name ?? '',
         email: affiliate.email ?? '',
         phone: affiliate.phone ?? '',
         code: affiliate.code ?? '',
-        upline_id: affiliate.upline_id ?? null,
+        // upline_id TIDAK dikirim: rantainya diturunkan aplikasi publik dari data
+        // referral, admin hanya menentukan siapa yang berhak lewat tier2_eligible.
+        tier2_eligible: !!affiliate.tier2_eligible,
         user_id: affiliate.user_id ?? null,
         // Isi label awal AsyncSelect dari relasi user yang sudah di-eager-load.
         user_option: affiliate.user
@@ -47,7 +49,7 @@ export default function Edit({ affiliate, uplines, referralBase, routePrefix = '
                                 errors={errors}
                                 processing={processing}
                                 onSubmit={submit}
-                                uplines={uplines}
+                                upline={affiliate.upline ?? null}
                                 referralBase={referralBase}
                                 routePrefix={routePrefix}
                                 submitLabel="Simpan Perubahan"

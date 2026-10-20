@@ -151,7 +151,14 @@ export default function Index({ affiliates, filters, referralBase, routePrefix =
                                                             </Button>
                                                         </div>
                                                     </TableCell>
-                                                    <TableCell className="text-xs">{a.upline ? `${a.upline.name} (${a.upline.code})` : '—'}</TableCell>
+                                                    <TableCell className="text-xs">
+                                                        {a.upline ? `${a.upline.name} (${a.upline.code})` : '—'}
+                                                        {a.tier2_eligible && (
+                                                            <div className="mt-1">
+                                                                <Badge className="bg-indigo-200 text-indigo-900">Berhak 5%</Badge>
+                                                            </div>
+                                                        )}
+                                                    </TableCell>
                                                     <TableCell className="text-center">{a.referrals_count ?? 0}</TableCell>
                                                     <TableCell className="text-right text-xs">{formatRupiah(a.komisi_tertahan ?? 0)}</TableCell>
                                                     <TableCell className="text-right text-xs font-semibold text-emerald-700">{formatRupiah(a.komisi_siap_cair ?? 0)}</TableCell>

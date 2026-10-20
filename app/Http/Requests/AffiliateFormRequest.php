@@ -2,7 +2,6 @@
 
 namespace App\Http\Requests;
 
-use App\Models\Affiliate;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -27,9 +26,10 @@ class AffiliateFormRequest extends FormRequest
             'phone' => ['nullable', 'string', 'max:30'],
             // code di-generate otomatis, tapi tetap divalidasi: URL publik bergantung padanya.
             'code' => ['required', 'string', 'regex:/^[A-Z0-9]{3,32}$/', Rule::unique($koneksi . 'affiliates', 'code')->ignore($id)],
-            // Upline wajib dari situs yang sama: komisi tingkat 2 lahir di situs ini,
-            // jadi penerimanya tidak boleh afiliator situs lain.
-            'upline_id' => ['nullable', 'integer', Rule::exists($koneksi . 'affiliates', 'id')->where('type', $situs)],
+            // Satu-satunya hal yang admin tentukan soal tingkat kedua: siapa yang BERHAK.
+            // Rantainya (upline_id) diturunkan aplikasi publik dari data referral, jadi
+            // kolom itu sengaja TIDAK diterima dari form ini — lihat ADR 0001 keputusan 9c.
+            'tier2_eligible' => ['boolean'],
             'user_id' => ['nullable', 'integer', Rule::exists($koneksi . 'wartawan', 'id'), Rule::unique($koneksi . 'affiliates', 'user_id')->ignore($id)],
             'payout_method' => ['required', Rule::in(['bank', 'ewallet'])],
             'bank_name' => ['nullable', 'string', 'max:60'],
@@ -38,27 +38,6 @@ class AffiliateFormRequest extends FormRequest
             'status' => ['required', Rule::in(['pending', 'active', 'suspended', 'inactive'])],
             'note' => ['nullable', 'string'],
         ];
-    }
-
-    /**
-     * Rantai upline tidak boleh membentuk lingkaran. Tidak bisa diungkapkan sebagai rule
-     * biasa karena perlu menelusuri rantainya, jadi diperiksa setelah aturan dasar lolos.
-     */
-    public function withValidator($validator): void
-    {
-        $validator->after(function ($validator) {
-            $id = (int) $this->route('affiliate');
-            $upline = $this->input('upline_id');
-
-            if ($upline && Affiliate::wouldLoop($id, (int) $upline)) {
-                $validator->errors()->add(
-                    'upline_id',
-                    $id && (int) $upline === $id
-                        ? 'Afiliator tidak boleh menjadi upline dirinya sendiri.'
-                        : 'Upline ini membentuk lingkaran pada rantai afiliasi.'
-                );
-            }
-        });
     }
 
     public function messages(): array
@@ -71,7 +50,6 @@ class AffiliateFormRequest extends FormRequest
             'code.required' => 'Kode referral wajib diisi.',
             'code.regex' => 'Kode hanya boleh huruf besar dan angka, 3–32 karakter.',
             'code.unique' => 'Kode referral ini sudah dipakai.',
-            'upline_id.exists' => 'Upline yang dipilih tidak ditemukan.',
             'user_id.exists' => 'Akun member yang dipilih tidak ditemukan.',
             'user_id.unique' => 'Akun member ini sudah tertaut ke afiliator lain.',
             'payout_method.required' => 'Metode pencairan wajib dipilih.',

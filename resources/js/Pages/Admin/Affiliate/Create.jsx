@@ -4,13 +4,13 @@ import { Head, useForm } from '@inertiajs/react'
 import React from 'react'
 import AffiliateForm from './AffiliateForm'
 
-export default function Create({ uplines, initialData, referralBase, routePrefix = '' }) {
+export default function Create({ initialData, referralBase, routePrefix = '' }) {
     const { data, setData, post, processing, errors } = useForm({
         name: '',
         email: '',
         phone: '',
         code: initialData?.code || '',
-        upline_id: null,
+        tier2_eligible: false,
         user_id: null,
         user_option: null, // hanya untuk tampilan AsyncSelect, tidak divalidasi server
         payout_method: 'bank',
@@ -44,7 +44,6 @@ export default function Create({ uplines, initialData, referralBase, routePrefix
                                 errors={errors}
                                 processing={processing}
                                 onSubmit={submit}
-                                uplines={uplines}
                                 referralBase={referralBase}
                                 routePrefix={routePrefix}
                                 submitLabel="Simpan Afiliator"
