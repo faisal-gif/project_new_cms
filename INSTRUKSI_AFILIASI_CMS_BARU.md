@@ -8,6 +8,22 @@ Bangun layar **admin program afiliasi**: kelola afiliator, tinjau komisi, dan ca
 
 **Sudah memegang versi sebelumnya? Baca bagian ini dulu, sisanya hanya penajaman.**
 
+### 2026-10-21 — tier 2 tanpa upline tidak lagi diterbitkan
+
+**Mengoreksi aturan "baris tier2 tetap dibuat berstatus `unassigned`".** Bila perekrut tidak punya upline, pos tingkat 2 kini **tidak dibuat sama sekali**.
+
+| Hal | Sebelumnya | Sekarang |
+|---|---|---|
+| Perekrut tanpa upline | baris `tier2` `unassigned`, `affiliate_id` NULL | **tidak ada baris tier2** |
+| Komisi keluar per pembayaran | termasuk 5% yang tidak ke siapa pun | hanya yang benar-benar keluar |
+| Net kantor | lebih kecil dari kenyataan | benar |
+
+Alasannya datang dari layar: di daftar transaksi, baris tanpa penerima berdampingan dengan nama perekrut (lewat `source_affiliate_id`), sehingga terbaca seolah perekrut menerima dua pos sekaligus.
+
+**Yang hilang, dan ini disengaja:** 5% itu sekarang tinggal di kantor tanpa jejak baris apa pun. Tidak ada laporan yang bisa menjawab "berapa potensi komisi tingkat 2 yang tidak tersalurkan bulan ini".
+
+**Status `unassigned` dan layar Baris Tertahan tetap ada** — dipakai baris lama yang sudah terlanjur terbit (per 21 Oktober 2026 ada satu, Rp 1.960), dan tetap jadi jalur koreksi manual. Jangan dihapus.
+
 ### 2026-10-20 (3) — "KITA AI" jadi "Staff IT", potongannya 10% + Rp 1.000, dan izinnya dipisah
 
 **Nama.** Pos `internal` sekarang disebut **Staff IT** di seluruh layar. Nilai `role`-nya di database tetap `internal` — tidak ada migrasi data, hanya labelnya yang berubah. Kunci rekap di laporan ikut berganti: `kita_ai` → `staff_it`.
@@ -214,7 +230,7 @@ Aturan penting:
 - **Perpanjangan tetap nol baris**, pos `internal` sekalipun. Yang berkomisi hanya pendaftaran member baru.
 - Pos `internal` adalah angka internal. **Hanya boleh tampil di CMS**, tidak pernah di aplikasi publik.
 - Komisi **ditahan 7 hari** sejak pembayaran lunas. Kolom `available_at` sudah berisi tanggalnya.
-- Bila perekrut tidak punya upline, baris `tier2` **tetap dibuat** dengan `affiliate_id = NULL` dan `status = 'unassigned'`. Uang itu belum jadi milik siapa pun; manajemen memutuskan belakangan.
+- Bila perekrut tidak punya upline, baris `tier2` **tidak dibuat sama sekali** (sejak 2026-10-21). 5%-nya tinggal di kantor tanpa baris apa pun. Baris `unassigned` yang sudah terlanjur ada tetap perlu ditangani lewat layar Baris Tertahan.
 
 Alur di aplikasi publik, supaya gambaran utuh: pengunjung membuka `https://kopi.times.co.id/?ref=KODE` → kode disimpan di cookie 30 hari → saat ia mendaftar, barisnya dicatat di `affiliate_referrals` → saat pembayarannya lunas (callback Tripay), baris komisi dibuat di `affiliate_commissions` di dalam transaksi pembayaran.
 
